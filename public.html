@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chogui League - Vista Pública</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-top: 80px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header h1 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            opacity: 0.9;
+        }
+
+        .public-controls {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .public-btn {
+            background: linear-gradient(145deg, #666, #888);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .public-btn:hover {
+            background: linear-gradient(145deg, #ff6b35, #f7931e);
+            transform: translateY(-2px);
+            box-shadow: 3px 8px 15px rgba(255, 107, 53, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .nav-tab {
+            background: linear-gradient(145deg, #333, #555);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .nav-tab:hover {
+            background: linear-gradient(145deg, #ff6b35, #f7931e);
+            transform: translateY(-3px);
+            box-shadow: 3px 8px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(145deg, #ff6b35, #f7931e);
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 8px 8px 25px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 10px 15px 30px rgba(0,0,0,0.6);
+        }
+
+        .card h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: inset 3px 3px 10px rgba(0,0,0,0.3);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: linear-gradient(145deg, #ff6b35, #f7931e);
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: rgba(255, 107, 53, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .readonly-banner {
+            background: linear-gradient(145deg, #666, #888);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="public-controls">
+        <a href="login.html" class="public-btn">🔑 Login</a>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🏆 CHOGUI LEAGUE</h1>
+            <p>Sistema de Gestión Profesional de Softbol - Vista Pública</p>
+        </div>
+
+        <div class="readonly-banner">
+            📖 Vista de Solo Lectura - Para administrar datos, inicia sesión como administrador
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="posiciones">🏅 Posiciones</button>
+            <button class="nav-tab" data-tab="partidos">🎯 Partidos</button>
+            <button class="nav-tab" data-tab="estadisticas">📊 Estadísticas</button>
+        </div>
+
+        <!-- Tab Posiciones -->
+        <div id="posiciones" class="tab-content active">
+            <div class="card">
+                <h3>🏆 Tabla de Posiciones</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Equipo</th>
+                                <th>PJ</th>
+                                <th>PG</th>
+                                <th>PP</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" class="empty-state">No hay equipos registrados aún</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Partidos -->
+        <div id="partidos" class="tab-content">
+            <div class="card">
+                <h3>🎯 Últimos Partidos</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Local</th>
+                                <th>Visitante</th>
+                                <th>Resultado</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" class="empty-state">No hay partidos registrados aún</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Estadísticas -->
+        <div id="estadisticas" class="tab-content">
+            <div class="card">
+                <h3>📊 Estadísticas</h3>
+                <div class="empty-state">Las estadísticas aparecerán cuando se agreguen equipos y partidos</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicialización cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            configurarEventListeners();
+        });
+
+        // Configurar event listeners
+        function configurarEventListeners() {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    mostrarPestana(this.dataset.tab);
+                });
+            });
+        }
+
+        // Sistema de navegación por pestañas
+        function mostrarPestana(nombrePestana) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const pestanaActiva = document.getElementById(nombrePestana);
+            if (pestanaActiva) {
+                pestanaActiva.classList.add('active');
+            }
+
+            const botonActivo = document.querySelector(`[data-tab="${nombrePestana}"]`);
+            if (botonActivo) {
+                botonActivo.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
