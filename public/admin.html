@@ -1165,6 +1165,23 @@
             }
         }
 
+        // ========== HACER FUNCIONES GLOBALES ==========
+        
+        // Exponer funciones al scope global para que los botones HTML puedan accederlas
+        window.agregarEquipo = agregarEquipo;
+        window.eliminarEquipo = eliminarEquipo;
+        window.editarEquipo = editarEquipo;
+        window.registrarPartido = registrarPartido;
+        window.eliminarPartido = eliminarPartido;
+        window.editarPartido = editarPartido;
+        window.agregarJugador = agregarJugador;
+        window.eliminarJugador = eliminarJugador;
+        window.editarJugador = editarJugador;
+        window.registrarEstadisticas = registrarEstadisticas;
+        window.mostrarPestana = mostrarPestana;
+        window.cerrarModal = cerrarModal;
+        window.logout = logout;
+
         // ========== FUNCIONES DE CARGA DE DATOS ==========
 
         async function cargarTodosLosDatos() {
