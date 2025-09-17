@@ -392,7 +392,35 @@ app.get('/public', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/public.html'));
 });
 
-// Iniciar servidor
+// // Función para ejecutar migraciones de base de datos
+async function runMigrations() {
+    try {
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Leer el archivo SQL
+        const sqlPath = path.join(__dirname, 'setup-pitching-stats.sql');
+        
+        if (fs.existsSync(sqlPath)) {
+            const sql = fs.readFileSync(sqlPath, 'utf8');
+            
+            // Ejecutar el SQL
+            await pool.query(sql);
+            console.log('✅ Migraciones de estadísticas de pitcheo ejecutadas correctamente');
+            
+            // Opcional: renombrar el archivo para que no se ejecute de nuevo
+            const executedPath = path.join(__dirname, 'setup-pitching-stats.executed.sql');
+            fs.renameSync(sqlPath, executedPath);
+            
+        } else {
+            console.log('📄 No hay migraciones pendientes');
+        }
+    } catch (error) {
+        console.error('❌ Error ejecutando migraciones:', error.message);
+    }
+}
+// Ejecutar migraciones al iniciar el servidor
+runMigrations();Iniciar servidor
 app.listen(PORT, () => {
     console.log(`🚀 Servidor Chogui League corriendo en puerto ${PORT}`);
     console.log(`📱 Accede en: http://localhost:${PORT}`);
