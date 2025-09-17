@@ -1908,39 +1908,306 @@
         }
 
         // ========== FUNCIONES PLACEHOLDER PARA EDITAR/ELIMINAR ==========
+// ========== FUNCIONES DE EDICIÓN Y ELIMINACIÓN ==========
 
-        function editarEquipo(id) {
-            alert(`Función de editar equipo ${id} - Por implementar en versión futura`);
+// ========== EQUIPOS ==========
+async function editarEquipo(id) {
+    try {
+        const response = await fetch(`/api/equipos/${id}`);
+        if (!response.ok) throw new Error('Error obteniendo datos del equipo');
+        
+        const equipo = await response.json();
+        
+        document.getElementById('nombreEquipo').value = equipo.nombre;
+        document.getElementById('managerEquipo').value = equipo.manager;
+        document.getElementById('ciudadEquipo').value = equipo.ciudad;
+        
+        const btnAgregar = document.querySelector('.btn-primary[onclick="agregarEquipo()"]');
+        btnAgregar.textContent = '✏️ Actualizar Equipo';
+        btnAgregar.setAttribute('onclick', `actualizarEquipo(${id})`);
+        
+        mostrarExito('equipoMessage', `Editando equipo "${equipo.nombre}". Modifica los campos y presiona "Actualizar Equipo".`);
+        document.getElementById('nombreEquipo').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('nombreEquipo').focus();
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('equipoError', 'Error cargando datos del equipo para editar');
+    }
+}
+
+async function actualizarEquipo(id) {
+    const nombre = document.getElementById('nombreEquipo').value.trim();
+    const manager = document.getElementById('managerEquipo').value.trim();
+    const ciudad = document.getElementById('ciudadEquipo').value.trim();
+
+    if (!nombre || !manager || !ciudad) {
+        mostrarError('equipoError', 'Por favor completa todos los campos');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/equipos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, manager, ciudad })
+        });
+
+        if (response.ok) {
+            const equipoActualizado = await response.json();
+            
+            document.getElementById('nombreEquipo').value = '';
+            document.getElementById('managerEquipo').value = '';
+            document.getElementById('ciudadEquipo').value = '';
+            
+            const btnActualizar = document.querySelector('.btn-primary[onclick*="actualizarEquipo"]');
+            btnActualizar.textContent = '🏆 Agregar Equipo';
+            btnActualizar.setAttribute('onclick', 'agregarEquipo()');
+            
+            mostrarExito('equipoMessage', `✅ Equipo "${equipoActualizado.nombre}" actualizado correctamente`);
+            
+            await cargarEquipos();
+            actualizarSelectores();
+            calcularPosiciones();
+        } else {
+            const errorData = await response.json();
+            mostrarError('equipoError', errorData.error || 'Error al actualizar equipo');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('equipoError', 'Error de conexión al servidor');
+    }
+}
 
-        function eliminarEquipo(id) {
-            if (confirm('¿Estás seguro de eliminar este equipo? Esto también eliminará todos sus jugadores y partidos relacionados.')) {
-                // Implementar eliminación en versión futura
-                alert('Función de eliminar por implementar en versión futura');
+async function eliminarEquipo(id) {
+    try {
+        const response = await fetch(`/api/equipos/${id}`);
+        const equipo = await response.json();
+        
+        if (confirm(`¿Estás seguro de eliminar el equipo "${equipo.nombre}"?\n\n⚠️ Esta acción eliminará todos los jugadores y partidos relacionados.`)) {
+            const deleteResponse = await fetch(`/api/equipos/${id}`, { method: 'DELETE' });
+
+            if (deleteResponse.ok) {
+                mostrarExito('equipoMessage', `✅ Equipo "${equipo.nombre}" eliminado correctamente`);
+                await cargarEquipos();
+                await cargarJugadores();
+                await cargarPartidos();
+                actualizarSelectores();
+                calcularPosiciones();
+            } else {
+                const errorData = await deleteResponse.json();
+                mostrarError('equipoError', errorData.error || 'Error al eliminar equipo');
             }
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('equipoError', 'Error de conexión al servidor');
+    }
+}
 
-        function editarPartido(id) {
-            alert(`Función de editar partido ${id} - Por implementar en versión futura`);
+// ========== JUGADORES ==========
+async function editarJugador(id) {
+    try {
+        const response = await fetch(`/api/jugadores/${id}`);
+        if (!response.ok) throw new Error('Error obteniendo datos del jugador');
+        
+        const jugador = await response.json();
+        
+        document.getElementById('nombreJugador').value = jugador.nombre;
+        document.getElementById('equipoJugador').value = jugador.equipo_id;
+        document.getElementById('posicionJugador').value = jugador.posicion;
+        document.getElementById('numeroJugador').value = jugador.numero || '';
+        
+        const btnAgregar = document.querySelector('.btn-primary[onclick="agregarJugador()"]');
+        btnAgregar.textContent = '✏️ Actualizar Jugador';
+        btnAgregar.setAttribute('onclick', `actualizarJugador(${id})`);
+        
+        mostrarExito('jugadorMessage', `Editando jugador "${jugador.nombre}". Modifica los campos y presiona "Actualizar Jugador".`);
+        document.getElementById('nombreJugador').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('nombreJugador').focus();
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('jugadorError', 'Error cargando datos del jugador para editar');
+    }
+}
+
+async function actualizarJugador(id) {
+    const nombre = document.getElementById('nombreJugador').value.trim();
+    const equipoId = document.getElementById('equipoJugador').value;
+    const posicion = document.getElementById('posicionJugador').value;
+    const numero = document.getElementById('numeroJugador').value;
+
+    if (!nombre || !equipoId || !posicion) {
+        mostrarError('jugadorError', 'Por favor completa todos los campos obligatorios');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/jugadores/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, equipo_id: equipoId, posicion, numero: numero || null })
+        });
+
+        if (response.ok) {
+            const jugadorActualizado = await response.json();
+            
+            document.getElementById('nombreJugador').value = '';
+            document.getElementById('equipoJugador').value = '';
+            document.getElementById('posicionJugador').value = '';
+            document.getElementById('numeroJugador').value = '';
+            
+            const btnActualizar = document.querySelector('.btn-primary[onclick*="actualizarJugador"]');
+            btnActualizar.textContent = '👤 Agregar Jugador';
+            btnActualizar.setAttribute('onclick', 'agregarJugador()');
+            
+            mostrarExito('jugadorMessage', `✅ Jugador "${jugadorActualizado.nombre}" actualizado correctamente`);
+            
+            await cargarJugadores();
+            actualizarSelectores();
+        } else {
+            const errorData = await response.json();
+            mostrarError('jugadorError', errorData.error || 'Error al actualizar jugador');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('jugadorError', 'Error de conexión al servidor');
+    }
+}
 
-        function eliminarPartido(id) {
-            if (confirm('¿Estás seguro de eliminar este partido?')) {
-                // Implementar eliminación en versión futura
-                alert('Función de eliminar por implementar en versión futura');
+async function eliminarJugador(id) {
+    try {
+        const response = await fetch(`/api/jugadores/${id}`);
+        const jugador = await response.json();
+        
+        if (confirm(`¿Estás seguro de eliminar al jugador "${jugador.nombre}" del equipo "${jugador.equipo_nombre}"?`)) {
+            const deleteResponse = await fetch(`/api/jugadores/${id}`, { method: 'DELETE' });
+
+            if (deleteResponse.ok) {
+                mostrarExito('jugadorMessage', `✅ Jugador "${jugador.nombre}" eliminado correctamente`);
+                await cargarJugadores();
+                actualizarSelectores();
+                actualizarLideres();
+                actualizarLideresPorPosicion();
+            } else {
+                const errorData = await deleteResponse.json();
+                mostrarError('jugadorError', errorData.error || 'Error al eliminar jugador');
             }
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('jugadorError', 'Error de conexión al servidor');
+    }
+}
 
-        function editarJugador(id) {
-            alert(`Función de editar jugador ${id} - Por implementar en versión futura`);
+// ========== PARTIDOS ==========
+async function editarPartido(id) {
+    try {
+        const response = await fetch(`/api/partidos/${id}`);
+        if (!response.ok) throw new Error('Error obteniendo datos del partido');
+        
+        const partido = await response.json();
+        
+        document.getElementById('equipoLocal').value = partido.equipo_local_id;
+        document.getElementById('equipoVisitante').value = partido.equipo_visitante_id;
+        document.getElementById('carrerasLocal').value = partido.carreras_local;
+        document.getElementById('carrerasVisitante').value = partido.carreras_visitante;
+        document.getElementById('inningsJugados').value = partido.innings_jugados;
+        document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
+        
+        const btnAgregar = document.querySelector('.btn-primary[onclick="registrarPartido()"]');
+        btnAgregar.textContent = '✏️ Actualizar Partido';
+        btnAgregar.setAttribute('onclick', `actualizarPartido(${id})`);
+        
+        mostrarExito('partidoMessage', `Editando partido entre "${partido.equipo_local_nombre}" vs "${partido.equipo_visitante_nombre}". Modifica los campos y presiona "Actualizar Partido".`);
+        document.getElementById('equipoLocal').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('equipoLocal').focus();
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('partidoError', 'Error cargando datos del partido para editar');
+    }
+}
+
+async function actualizarPartido(id) {
+    const equipoLocal = document.getElementById('equipoLocal').value;
+    const equipoVisitante = document.getElementById('equipoVisitante').value;
+    const carrerasLocal = parseInt(document.getElementById('carrerasLocal').value);
+    const carrerasVisitante = parseInt(document.getElementById('carrerasVisitante').value);
+    const inningsJugados = parseInt(document.getElementById('inningsJugados').value);
+    const fechaPartido = document.getElementById('fechaPartido').value;
+
+    if (!equipoLocal || !equipoVisitante || isNaN(carrerasLocal) || isNaN(carrerasVisitante) || !fechaPartido) {
+        mostrarError('partidoError', 'Por favor completa todos los campos');
+        return;
+    }
+
+    if (equipoLocal === equipoVisitante) {
+        mostrarError('partidoError', 'Los equipos local y visitante deben ser diferentes');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/partidos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                equipo_local_id: equipoLocal,
+                equipo_visitante_id: equipoVisitante,
+                carreras_local: carrerasLocal,
+                carreras_visitante: carrerasVisitante,
+                innings_jugados: inningsJugados,
+                fecha_partido: fechaPartido
+            })
+        });
+
+        if (response.ok) {
+            document.getElementById('equipoLocal').value = '';
+            document.getElementById('equipoVisitante').value = '';
+            document.getElementById('carrerasLocal').value = '';
+            document.getElementById('carrerasVisitante').value = '';
+            document.getElementById('inningsJugados').value = '9';
+            
+            const btnActualizar = document.querySelector('.btn-primary[onclick*="actualizarPartido"]');
+            btnActualizar.textContent = '🎯 Registrar Partido';
+            btnActualizar.setAttribute('onclick', 'registrarPartido()');
+            
+            const resultado = `${carrerasLocal} - ${carrerasVisitante}`;
+            mostrarExito('partidoMessage', `✅ Partido actualizado correctamente (${resultado})`);
+            
+            await cargarPartidos();
+            calcularPosiciones();
+        } else {
+            const errorData = await response.json();
+            mostrarError('partidoError', errorData.error || 'Error al actualizar partido');
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('partidoError', 'Error de conexión al servidor');
+    }
+}
 
-        function eliminarJugador(id) {
-            if (confirm('¿Estás seguro de eliminar este jugador?')) {
-                // Implementar eliminación en versión futura
-                alert('Función de eliminar por implementar en versión futura');
+async function eliminarPartido(id) {
+    try {
+        const response = await fetch(`/api/partidos/${id}`);
+        const partido = await response.json();
+        
+        const resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+        if (confirm(`¿Estás seguro de eliminar el partido?\n\n"${partido.equipo_local_nombre}" vs "${partido.equipo_visitante_nombre}"\nResultado: ${resultado}\nFecha: ${new Date(partido.fecha_partido).toLocaleDateString('es-AR')}`)) {
+            const deleteResponse = await fetch(`/api/partidos/${id}`, { method: 'DELETE' });
+
+            if (deleteResponse.ok) {
+                mostrarExito('partidoMessage', `✅ Partido eliminado correctamente`);
+                await cargarPartidos();
+                calcularPosiciones();
+            } else {
+                const errorData = await deleteResponse.json();
+                mostrarError('partidoError', errorData.error || 'Error al eliminar partido');
             }
         }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('partidoError', 'Error de conexión al servidor');
+    }
+}
     </script>
 </body>
 </html>
