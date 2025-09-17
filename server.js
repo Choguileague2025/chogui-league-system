@@ -3,7 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config();
-const pool = require('./config/database');
+const pool = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Servir archivos estáticos
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Ruta de prueba de la base de datos
 app.get('/api/test', async (req, res) => {
@@ -155,19 +155,19 @@ app.post('/api/jugadores', async (req, res) => {
 
 // Rutas principales HTML
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/login.html'));
+    res.sendFile(path.join(__dirname, 'public/login.html'));
 });
 
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/admin.html'));
+    res.sendFile(path.join(__dirname, 'public/admin.html'));
 });
 
 app.get('/public', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/public.html'));
+    res.sendFile(path.join(__dirname, 'public/public.html'));
 });
 
 // Iniciar servidor
