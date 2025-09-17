@@ -567,84 +567,6 @@
             font-weight: bold;
         }
 
-        /* Estilos para modales de edición */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
-            border-radius: 20px;
-            padding: 30px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 2px solid rgba(255, 215, 0, 0.4);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
-        }
-
-        .modal-header h3 {
-            color: #ffd700;
-            margin: 0;
-            font-size: 1.4rem;
-        }
-
-        .modal-close {
-            color: #ffd700;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-            transition: all 0.3s ease;
-        }
-
-        .modal-close:hover {
-            color: #ff8c00;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: flex-end;
-            margin-top: 25px;
-        }
-
-        .btn-cancel {
-            background: linear-gradient(145deg, #ff6b35, #dc143c);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .btn-cancel:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 20, 60, 0.4);
-        }
-
         @media (max-width: 768px) {
             .form-container, .stats-form-container {
                 grid-template-columns: 1fr;
@@ -1164,23 +1086,6 @@
                 actualizarLideresPorPosicion();
             }
         }
-
-        // ========== HACER FUNCIONES GLOBALES ==========
-        
-        // Exponer funciones al scope global para que los botones HTML puedan accederlas
-        window.agregarEquipo = agregarEquipo;
-        window.eliminarEquipo = eliminarEquipo;
-        window.editarEquipo = editarEquipo;
-        window.registrarPartido = registrarPartido;
-        window.eliminarPartido = eliminarPartido;
-        window.editarPartido = editarPartido;
-        window.agregarJugador = agregarJugador;
-        window.eliminarJugador = eliminarJugador;
-        window.editarJugador = editarJugador;
-        window.registrarEstadisticas = registrarEstadisticas;
-        window.mostrarPestana = mostrarPestana;
-        window.cerrarModal = cerrarModal;
-        window.logout = logout;
 
         // ========== FUNCIONES DE CARGA DE DATOS ==========
 
@@ -2002,238 +1907,40 @@
             }
         }
 
-        // ========== FUNCIONES CRUD IMPLEMENTADAS - FASE 1 ==========
-
-        // ========== FUNCIONES PARA EQUIPOS ==========
-
-        async function eliminarEquipo(id) {
-            const equipo = equipos.find(e => e.id === id);
-            if (!equipo) {
-                mostrarError('equipoError', 'Equipo no encontrado');
-                return;
-            }
-
-            // Verificar si tiene jugadores asociados
-            const jugadoresAsociados = jugadores.filter(j => j.equipo_id === id);
-            const partidosAsociados = partidos.filter(p => p.equipo_local_id === id || p.equipo_visitante_id === id);
-            
-            let mensaje = `¿Estás seguro de eliminar el equipo "${equipo.nombre}"?`;
-            
-            if (jugadoresAsociados.length > 0) {
-                mensaje += `\n\n⚠️ Este equipo tiene ${jugadoresAsociados.length} jugador(es) asociado(s) que también serán eliminados.`;
-            }
-            
-            if (partidosAsociados.length > 0) {
-                mensaje += `\n\n⚠️ Este equipo tiene ${partidosAsociados.length} partido(s) registrado(s) que también serán eliminados.`;
-            }
-
-            if (!confirm(mensaje)) return;
-
-            try {
-                const response = await fetch(`/api/equipos/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    // Actualizar datos locales
-                    equipos = equipos.filter(e => e.id !== id);
-                    jugadores = jugadores.filter(j => j.equipo_id !== id);
-                    partidos = partidos.filter(p => p.equipo_local_id !== id && p.equipo_visitante_id !== id);
-                    
-                    mostrarExito('equipoMessage', `✅ Equipo "${equipo.nombre}" eliminado correctamente`);
-                    actualizarTablaEquipos();
-                    actualizarTablaJugadores();
-                    actualizarTablaPartidos();
-                    actualizarSelectores();
-                    calcularPosiciones();
-                } else {
-                    const errorData = await response.json();
-                    mostrarError('equipoError', errorData.error || 'Error al eliminar equipo');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('equipoError', 'Error de conexión al servidor');
-            }
-        }
+        // ========== FUNCIONES PLACEHOLDER PARA EDITAR/ELIMINAR ==========
 
         function editarEquipo(id) {
-            const equipo = equipos.find(e => e.id === id);
-            if (!equipo) {
-                mostrarError('equipoError', 'Equipo no encontrado');
-                return;
-            }
-
-            // Crear modal de edición
-            const modalHTML = `
-                <div class="modal-overlay" id="editModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>✏️ Editar Equipo</h3>
-                            <span class="modal-close" onclick="cerrarModal()">&times;</span>
-                        </div>
-                        <form id="editEquipoForm">
-                            <div class="form-group">
-                                <label for="editNombreEquipo">Nombre del Equipo:</label>
-                                <input type="text" id="editNombreEquipo" value="${equipo.nombre}" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="editManagerEquipo">Manager:</label>
-                                <input type="text" id="editManagerEquipo" value="${equipo.manager}" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="editCiudadEquipo">Ciudad:</label>
-                                <input type="text" id="editCiudadEquipo" value="${equipo.ciudad}" required>
-                            </div>
-                            <div class="modal-buttons">
-                                <button type="button" class="btn-cancel" onclick="cerrarModal()">❌ Cancelar</button>
-                                <button type="submit" class="btn-primary">💾 Guardar Cambios</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            `;
-
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-            // Agregar event listener al formulario
-            document.getElementById('editEquipoForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                guardarCambiosEquipo(id);
-            });
+            alert(`Función de editar equipo ${id} - Por implementar en versión futura`);
         }
 
-        async function guardarCambiosEquipo(id) {
-            const nombre = document.getElementById('editNombreEquipo').value.trim();
-            const manager = document.getElementById('editManagerEquipo').value.trim();
-            const ciudad = document.getElementById('editCiudadEquipo').value.trim();
-
-            if (!nombre || !manager || !ciudad) {
-                alert('Por favor completa todos los campos');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/equipos/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ nombre, manager, ciudad })
-                });
-
-                if (response.ok) {
-                    const equipoActualizado = await response.json();
-                    
-                    // Actualizar en el array local
-                    const index = equipos.findIndex(e => e.id === id);
-                    if (index !== -1) {
-                        equipos[index] = { ...equipos[index], ...equipoActualizado };
-                    }
-
-                    cerrarModal();
-                    mostrarExito('equipoMessage', `✅ Equipo "${nombre}" actualizado correctamente`);
-                    actualizarTablaEquipos();
-                    actualizarSelectores();
-                } else {
-                    const errorData = await response.json();
-                    alert(errorData.error || 'Error al actualizar equipo');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error de conexión al servidor');
-            }
-        }
-
-        // ========== FUNCIONES PARA PARTIDOS ==========
-
-        async function eliminarPartido(id) {
-            const partido = partidos.find(p => p.id === id);
-            if (!partido) {
-                mostrarError('partidoError', 'Partido no encontrado');
-                return;
-            }
-
-            const mensaje = `¿Estás seguro de eliminar este partido?\n\n${partido.equipo_local_nombre} vs ${partido.equipo_visitante_nombre}\nResultado: ${partido.carreras_local} - ${partido.carreras_visitante}`;
-
-            if (!confirm(mensaje)) return;
-
-            try {
-                const response = await fetch(`/api/partidos/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    // Actualizar datos locales
-                    partidos = partidos.filter(p => p.id !== id);
-                    
-                    mostrarExito('partidoMessage', '✅ Partido eliminado correctamente');
-                    actualizarTablaPartidos();
-                    calcularPosiciones();
-                } else {
-                    const errorData = await response.json();
-                    mostrarError('partidoError', errorData.error || 'Error al eliminar partido');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarError('partidoError', 'Error de conexión al servidor');
+        function eliminarEquipo(id) {
+            if (confirm('¿Estás seguro de eliminar este equipo? Esto también eliminará todos sus jugadores y partidos relacionados.')) {
+                // Implementar eliminación en versión futura
+                alert('Función de eliminar por implementar en versión futura');
             }
         }
 
         function editarPartido(id) {
-            const partido = partidos.find(p => p.id === id);
-            if (!partido) {
-                mostrarError('partidoError', 'Partido no encontrado');
-                return;
+            alert(`Función de editar partido ${id} - Por implementar en versión futura`);
+        }
+
+        function eliminarPartido(id) {
+            if (confirm('¿Estás seguro de eliminar este partido?')) {
+                // Implementar eliminación en versión futura
+                alert('Función de eliminar por implementar en versión futura');
             }
+        }
 
-            // Formatear fecha para el input
-            const fechaFormateada = new Date(partido.fecha_partido).toISOString().split('T')[0];
+        function editarJugador(id) {
+            alert(`Función de editar jugador ${id} - Por implementar en versión futura`);
+        }
 
-            // Crear modal de edición
-            const modalHTML = `
-                <div class="modal-overlay" id="editModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3>✏️ Editar Partido</h3>
-                            <span class="modal-close" onclick="cerrarModal()">&times;</span>
-                        </div>
-                        <form id="editPartidoForm">
-                            <div class="form-group">
-                                <label for="editEquipoLocal">Equipo Local:</label>
-                                <select id="editEquipoLocal" required>
-                                    <option value="">Seleccionar equipo...</option>
-                                    ${equipos.map(equipo => 
-                                        `<option value="${equipo.id}" ${equipo.id === partido.equipo_local_id ? 'selected' : ''}>${equipo.nombre}</option>`
-                                    ).join('')}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="editEquipoVisitante">Equipo Visitante:</label>
-                                <select id="editEquipoVisitante" required>
-                                    <option value="">Seleccionar equipo...</option>
-                                    ${equipos.map(equipo => 
-                                        `<option value="${equipo.id}" ${equipo.id === partido.equipo_visitante_id ? 'selected' : ''}>${equipo.nombre}</option>`
-                                    ).join('')}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="editCarrerasLocal">Carreras Local:</label>
-                                <input type="number" id="editCarrerasLocal" value="${partido.carreras_local}" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="editCarrerasVisitante">Carreras Visitante:</label>
-                                <input type="number" id="editCarrerasVisitante" value="${partido.carreras_visitante}" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="editInningsJugados">Innings Jugados:</label>
-                                <input type="number" id="editInningsJugados" value="${partido.innings_jugados}" min="1" max="15" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="editFechaPartido">Fecha del Partido:</label>
-                                <input type="date" id="editFechaPartido" value="${fechaFormateada}" required>
-                            </div>
-                            <div class="modal-buttons">
-                                <button type="button" class="btn-cancel" onclick="cerrarModal()">❌ Cancelar</button>
-                                <button type="submit" class="btn-primary">💾 Guardar Cambios</button>
-                            </div>
-                        </form>
+        function eliminarJugador(id) {
+            if (confirm('¿Estás seguro de eliminar este jugador?')) {
+                // Implementar eliminación en versión futura
+                alert('Función de eliminar por implementar en versión futura');
+            }
+        }
+    </script>
+</body>
+</html>
