@@ -402,6 +402,277 @@ app.delete('/api/partidos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+// ====================== ESTADÍSTICAS DE PITCHEO ======================
+// Obtener todas las estadísticas de pitcheo
+app.get('/api/estadisticas-pitcheo', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT ep.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+                   calcular_era(ep.earned_runs, ep.innings_pitched) as era,
+                   calcular_whip(ep.hits_allowed, ep.walks_allowed, ep.innings_pitched) as whip
+            FROM estadisticas_pitcheo ep
+            JOIN jugadores j ON ep.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            ORDER BY ep.temporada DESC, ep.innings_pitched DESC
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas de pitcheo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Obtener estadísticas de pitcheo por jugador
+app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
+    try {
+        const { jugadorId } = req.params;
+        const result = await pool.query(`
+            SELECT ep.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+                   calcular_era(ep.earned_runs, ep.innings_pitched) as era,
+                   calcular_whip(ep.hits_allowed, ep.walks_allowed, ep.innings_pitched) as whip
+            FROM estadisticas_pitcheo ep
+            JOIN jugadores j ON ep.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            WHERE ep.jugador_id = $1
+            ORDER BY ep.temporada DESC
+        `, [jugadorId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas de pitcheo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Crear o actualizar estadísticas de pitcheo
+app.post('/api/estadisticas-pitcheo', async (req, res) => {
+    try {
+        const {
+            jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
+            walks_allowed, home_runs_allowed, wins, losses, saves, games_started,
+            games_finished, complete_games, shutouts, hit_batters, wild_pitches, balks
+        } = req.body;
+        
+        if (!jugador_id || innings_pitched === undefined) {
+            return res.status(400).json({ error: 'Jugador ID e innings lanzados son requeridos' });
+        }
+
+        // Verificar si ya existen estadísticas para este jugador en esta temporada
+        const existing = await pool.query(
+            'SELECT id FROM estadisticas_pitcheo WHERE jugador_id = $1 AND temporada = $2',
+            [jugador_id, '2025']
+        );
+
+        let result;
+        if (existing.rows.length > 0) {
+            // Actualizar estadísticas existentes (sumar valores)
+            result = await pool.query(`
+                UPDATE estadisticas_pitcheo SET
+                    innings_pitched = innings_pitched + $2,
+                    hits_allowed = hits_allowed + $3,
+                    earned_runs = earned_runs + $4,
+                    strikeouts = strikeouts + $5,
+                    walks_allowed = walks_allowed + $6,
+                    home_runs_allowed = home_runs_allowed + $7,
+                    wins = wins + $8,
+                    losses = losses + $9,
+                    saves = saves + $10,
+                    games_started = games_started + $11,
+                    games_finished = games_finished + $12,
+                    complete_games = complete_games + $13,
+                    shutouts = shutouts + $14,
+                    hit_batters = hit_batters + $15,
+                    wild_pitches = wild_pitches + $16,
+                    balks = balks + $17,
+                    fecha_registro = NOW()
+                WHERE id = $18 RETURNING *
+            `, [
+                jugador_id, innings_pitched || 0, hits_allowed || 0, earned_runs || 0,
+                strikeouts || 0, walks_allowed || 0, home_runs_allowed || 0,
+                wins || 0, losses || 0, saves || 0, games_started || 0,
+                games_finished || 0, complete_games || 0, shutouts || 0,
+                hit_batters || 0, wild_pitches || 0, balks || 0, existing.rows[0].id
+            ]);
+        } else {
+            // Crear nuevas estadísticas
+            result = await pool.query(`
+                INSERT INTO estadisticas_pitcheo (
+                    jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
+                    walks_allowed, home_runs_allowed, wins, losses, saves, games_started,
+                    games_finished, complete_games, shutouts, hit_batters, wild_pitches, balks
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+                RETURNING *
+            `, [
+                jugador_id, innings_pitched || 0, hits_allowed || 0, earned_runs || 0,
+                strikeouts || 0, walks_allowed || 0, home_runs_allowed || 0,
+                wins || 0, losses || 0, saves || 0, games_started || 0,
+                games_finished || 0, complete_games || 0, shutouts || 0,
+                hit_batters || 0, wild_pitches || 0, balks || 0
+            ]);
+        }
+        
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error registrando estadísticas de pitcheo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// ====================== ESTADÍSTICAS DEFENSIVAS ======================
+// Obtener todas las estadísticas defensivas
+app.get('/api/estadisticas-defensivas', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+                   calcular_fielding_percentage(ed.putouts, ed.assists, ed.errors) as fielding_percentage
+            FROM estadisticas_defensivas ed
+            JOIN jugadores j ON ed.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            ORDER BY ed.temporada DESC, j.posicion, j.nombre
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas defensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Obtener estadísticas defensivas por jugador
+app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
+    try {
+        const { jugadorId } = req.params;
+        const result = await pool.query(`
+            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+                   calcular_fielding_percentage(ed.putouts, ed.assists, ed.errors) as fielding_percentage
+            FROM estadisticas_defensivas ed
+            JOIN jugadores j ON ed.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            WHERE ed.jugador_id = $1
+            ORDER BY ed.temporada DESC
+        `, [jugadorId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas defensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Crear o actualizar estadísticas defensivas
+app.post('/api/estadisticas-defensivas', async (req, res) => {
+    try {
+        const {
+            jugador_id, putouts, assists, errors, double_plays,
+            passed_balls, stolen_bases_against, caught_stealing, chances
+        } = req.body;
+        
+        if (!jugador_id) {
+            return res.status(400).json({ error: 'Jugador ID es requerido' });
+        }
+
+        // Verificar si ya existen estadísticas para este jugador en esta temporada
+        const existing = await pool.query(
+            'SELECT id FROM estadisticas_defensivas WHERE jugador_id = $1 AND temporada = $2',
+            [jugador_id, '2025']
+        );
+
+        let result;
+        if (existing.rows.length > 0) {
+            // Actualizar estadísticas existentes (sumar valores)
+            result = await pool.query(`
+                UPDATE estadisticas_defensivas SET
+                    putouts = putouts + $2,
+                    assists = assists + $3,
+                    errors = errors + $4,
+                    double_plays = double_plays + $5,
+                    passed_balls = passed_balls + $6,
+                    stolen_bases_against = stolen_bases_against + $7,
+                    caught_stealing = caught_stealing + $8,
+                    chances = chances + $9,
+                    fecha_registro = NOW()
+                WHERE id = $10 RETURNING *
+            `, [
+                jugador_id, putouts || 0, assists || 0, errors || 0, double_plays || 0,
+                passed_balls || 0, stolen_bases_against || 0, caught_stealing || 0,
+                chances || 0, existing.rows[0].id
+            ]);
+        } else {
+            // Crear nuevas estadísticas
+            result = await pool.query(`
+                INSERT INTO estadisticas_defensivas (
+                    jugador_id, putouts, assists, errors, double_plays,
+                    passed_balls, stolen_bases_against, caught_stealing, chances
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING *
+            `, [
+                jugador_id, putouts || 0, assists || 0, errors || 0, double_plays || 0,
+                passed_balls || 0, stolen_bases_against || 0, caught_stealing || 0,
+                chances || 0
+            ]);
+        }
+        
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error registrando estadísticas defensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Obtener líderes de pitcheo
+app.get('/api/lideres-pitcheo', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT j.nombre as jugador_nombre, e.nombre as equipo_nombre, j.posicion,
+                   ep.wins, ep.losses, ep.saves, ep.innings_pitched, ep.strikeouts,
+                   ep.earned_runs, ep.hits_allowed, ep.walks_allowed,
+                   calcular_era(ep.earned_runs, ep.innings_pitched) as era,
+                   calcular_whip(ep.hits_allowed, ep.walks_allowed, ep.innings_pitched) as whip,
+                   CASE 
+                       WHEN ep.innings_pitched > 0 
+                       THEN ROUND((ep.strikeouts * 7.0) / ep.innings_pitched, 2)
+                       ELSE 0 
+                   END as k_per_7
+            FROM estadisticas_pitcheo ep
+            JOIN jugadores j ON ep.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            WHERE ep.innings_pitched >= 5
+            ORDER BY era ASC, whip ASC
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error obteniendo líderes de pitcheo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Obtener líderes defensivos
+app.get('/api/lideres-defensivos', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT j.nombre as jugador_nombre, e.nombre as equipo_nombre, j.posicion,
+                   ed.putouts, ed.assists, ed.errors, ed.double_plays,
+                   calcular_fielding_percentage(ed.putouts, ed.assists, ed.errors) as fielding_percentage,
+                   (ed.putouts + ed.assists) as total_chances
+            FROM estadisticas_defensivas ed
+            JOIN jugadores j ON ed.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            WHERE (ed.putouts + ed.assists + ed.errors) >= 5
+            ORDER BY j.posicion, fielding_percentage DESC, total_chances DESC
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error obteniendo líderes defensivos:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 // Rutas principales HTML
 app.get('/', (req, res) => {
@@ -442,6 +713,12 @@ app.listen(PORT, () => {
     console.log(`   - POST /api/partidos`);
     console.log(`   - PUT  /api/partidos/:id`);
     console.log(`   - DELETE /api/partidos/:id`);
+    console.log(`   - GET  /api/estadisticas-pitcheo`);
+    console.log(`   - POST /api/estadisticas-pitcheo`);
+    console.log(`   - GET  /api/estadisticas-defensivas`);
+    console.log(`   - POST /api/estadisticas-defensivas`);
+    console.log(`   - GET  /api/lideres-pitcheo`);
+    console.log(`   - GET  /api/lideres-defensivos`);
     
     // Ejecutar migraciones después de que el servidor esté funcionando
     runMigrations();
