@@ -836,6 +836,96 @@
                 <div id="statsError" class="error-message"></div>
             </div>
 
+            <!-- NUEVO FORMULARIO: ESTADÍSTICAS DE PITCHEO -->
+            <div class="card">
+                <h3>⚾ Registrar Estadísticas de Pitcheo</h3>
+                <div class="stats-form-container">
+                    <div class="form-group">
+                        <label for="jugadorPitcheo">Pitcher:</label>
+                        <select id="jugadorPitcheo" required>
+                            <option value="">Seleccionar jugador...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inningsPitched">Innings Pitched (IP):</label>
+                        <input type="number" id="inningsPitched" step="0.1" min="0" value="0">
+                        <small style="color: #ffd700; font-size: 0.8rem;">Ej: 5.2 = 5 innings y 2 outs</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="hitsAllowed">Hits Permitidos:</label>
+                        <input type="number" id="hitsAllowed" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="earnedRuns">Carreras Limpias (ER):</label>
+                        <input type="number" id="earnedRuns" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="strikeouts">Ponches (SO):</label>
+                        <input type="number" id="strikeouts" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="walksAllowed">Bases por Bolas (BB):</label>
+                        <input type="number" id="walksAllowed" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="homeRunsAllowed">Home Runs Permitidos:</label>
+                        <input type="number" id="homeRunsAllowed" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="wins">Victorias (W):</label>
+                        <input type="number" id="wins" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="losses">Derrotas (L):</label>
+                        <input type="number" id="losses" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="saves">Salvamentos (SV):</label>
+                        <input type="number" id="saves" min="0" value="0">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas Pitcheo</button>
+                <div id="pitcheoMessage" class="success-message"></div>
+                <div id="pitcheoError" class="error-message"></div>
+            </div>
+
+            <!-- NUEVO FORMULARIO: ESTADÍSTICAS DEFENSIVAS -->
+            <div class="card">
+                <h3>🛡 Registrar Estadísticas Defensivas</h3>
+                <div class="stats-form-container">
+                    <div class="form-group">
+                        <label for="jugadorDefensivo">Jugador:</label>
+                        <select id="jugadorDefensivo" required>
+                            <option value="">Seleccionar jugador...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="putouts">Eliminaciones (PO):</label>
+                        <input type="number" id="putouts" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="assists">Asistencias (A):</label>
+                        <input type="number" id="assists" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="defensiveErrors">Errores (E):</label>
+                        <input type="number" id="defensiveErrors" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="doublePlays">Jugadas Dobles (DP):</label>
+                        <input type="number" id="doublePlays" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="passedBalls">Pelotas Pasadas (PB):</label>
+                        <input type="number" id="passedBalls" min="0" value="0">
+                        <small style="color: #ffd700; font-size: 0.8rem;">Solo para catchers</small>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas Defensivas</button>
+                <div id="defensivaMessage" class="success-message"></div>
+                <div id="defensivaError" class="error-message"></div>
+            </div>
+
             <!-- LÍDERES POR POSICIÓN ESPECÍFICA (NUEVO) -->
             <div class="card">
                 <h3>🥇 MEJORES POR POSICIÓN - SISTEMA WAR AVANZADO</h3>
@@ -1652,6 +1742,23 @@
                     jugadorStatsSelect.appendChild(option);
                 });
             }
+            // Actualizar selectores para nuevos formularios
+            const pitcheoSelect = document.getElementById('jugadorPitcheo');
+            const defensivaSelect = document.getElementById('jugadorDefensivo');
+
+            if (pitcheoSelect) {
+                pitcheoSelect.innerHTML = '<option value="">Seleccionar jugador...</option>';
+                jugadores.filter(j => j.posicion === 'P').forEach(jugador => {
+                    pitcheoSelect.innerHTML += `<option value="${jugador.id}">${jugador.nombre} (${jugador.equipo_nombre})</option>`;
+                });
+            }
+
+            if (defensivaSelect) {
+                defensivaSelect.innerHTML = '<option value="">Seleccionar jugador...</option>';
+                jugadores.forEach(jugador => {
+                    defensivaSelect.innerHTML += `<option value="${jugador.id}">${jugador.nombre} (${jugador.equipo_nombre} - ${jugador.posicion})</option>`;
+                });
+            }
         }
 
         // ========== FUNCIONES PARA AGREGAR DATOS ==========
@@ -2208,6 +2315,114 @@ async function eliminarPartido(id) {
         mostrarError('partidoError', 'Error de conexión al servidor');
     }
 }
+
+   // FUNCIONES PARA ESTADÍSTICAS DE PITCHEO
+        async function registrarEstadisticasPitcheo() {
+            const jugadorId = parseInt(document.getElementById('jugadorPitcheo').value);
+            const inningsPitched = parseFloat(document.getElementById('inningsPitched').value) || 0;
+            const hitsAllowed = parseInt(document.getElementById('hitsAllowed').value) || 0;
+            const earnedRuns = parseInt(document.getElementById('earnedRuns').value) || 0;
+            const strikeouts = parseInt(document.getElementById('strikeouts').value) || 0;
+            const walksAllowed = parseInt(document.getElementById('walksAllowed').value) || 0;
+            const homeRunsAllowed = parseInt(document.getElementById('homeRunsAllowed').value) || 0;
+            const wins = parseInt(document.getElementById('wins').value) || 0;
+            const losses = parseInt(document.getElementById('losses').value) || 0;
+            const saves = parseInt(document.getElementById('saves').value) || 0;
+
+            if (!jugadorId || inningsPitched === 0) {
+                mostrarError('pitcheoError', 'Por favor selecciona un jugador e ingresa innings lanzados');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/estadisticas-pitcheo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jugador_id: jugadorId,
+                        innings_pitched: inningsPitched,
+                        hits_allowed: hitsAllowed,
+                        earned_runs: earnedRuns,
+                        strikeouts: strikeouts,
+                        walks_allowed: walksAllowed,
+                        home_runs_allowed: homeRunsAllowed,
+                        wins: wins,
+                        losses: losses,
+                        saves: saves
+                    })
+                });
+
+                if (response.ok) {
+                    // Limpiar formulario
+                    document.getElementById('jugadorPitcheo').value = '';
+                    document.getElementById('inningsPitched').value = '0';
+                    document.getElementById('hitsAllowed').value = '0';
+                    document.getElementById('earnedRuns').value = '0';
+                    document.getElementById('strikeouts').value = '0';
+                    document.getElementById('walksAllowed').value = '0';
+                    document.getElementById('homeRunsAllowed').value = '0';
+                    document.getElementById('wins').value = '0';
+                    document.getElementById('losses').value = '0';
+                    document.getElementById('saves').value = '0';
+
+                    const jugador = jugadores.find(j => j.id === jugadorId);
+                    mostrarExito('pitcheoMessage', `✅ Estadísticas de pitcheo registradas correctamente`);
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('pitcheoError', errorData.error || 'Error al registrar estadísticas');
+                }
+            } catch (error) {
+                mostrarError('pitcheoError', 'Error de conexión al servidor');
+            }
+        }
+
+        // FUNCIONES PARA ESTADÍSTICAS DEFENSIVAS
+        async function registrarEstadisticasDefensivas() {
+            const jugadorId = parseInt(document.getElementById('jugadorDefensivo').value);
+            const putouts = parseInt(document.getElementById('putouts').value) || 0;
+            const assists = parseInt(document.getElementById('assists').value) || 0;
+            const errors = parseInt(document.getElementById('defensiveErrors').value) || 0;
+            const doublePlays = parseInt(document.getElementById('doublePlays').value) || 0;
+            const passedBalls = parseInt(document.getElementById('passedBalls').value) || 0;
+
+            if (!jugadorId) {
+                mostrarError('defensivaError', 'Por favor selecciona un jugador');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/estadisticas-defensivas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jugador_id: jugadorId,
+                        putouts: putouts,
+                        assists: assists,
+                        errors: errors,
+                        double_plays: doublePlays,
+                        passed_balls: passedBalls,
+                        chances: putouts + assists + errors
+                    })
+                });
+
+                if (response.ok) {
+                    // Limpiar formulario
+                    document.getElementById('jugadorDefensivo').value = '';
+                    document.getElementById('putouts').value = '0';
+                    document.getElementById('assists').value = '0';
+                    document.getElementById('defensiveErrors').value = '0';
+                    document.getElementById('doublePlays').value = '0';
+                    document.getElementById('passedBalls').value = '0';
+
+                    mostrarExito('defensivaMessage', `✅ Estadísticas defensivas registradas correctamente`);
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('defensivaError', errorData.error || 'Error al registrar estadísticas');
+                }
+            } catch (error) {
+                mostrarError('defensivaError', 'Error de conexión al servidor');
+            }
+        }     
     </script>
 </body>
 </html>
