@@ -1040,120 +1040,20 @@ async function cargarEstadisticas() {
         const jugadoresResponse = await fetch('/api/jugadores');
         const jugadores = jugadoresResponse.ok ? await jugadoresResponse.json() : [];
 
-        // Cargar líderes de pitcheo NUEVOS
-        await cargarLideresPitcheoReales();
-        
-        // Cargar líderes defensivos NUEVOS
-        await cargarLideresDefensivosReales();
-
-        // Actualizar líderes ofensivos
-        actualizarLideresOfensivos(estadisticas, jugadores);
+        // Actualizar líderes ofensivos básicos
+        if (estadisticas.length > 0) {
+            actualizarLideresOfensivosBasicos(estadisticas, jugadores);
+        }
         
         // Actualizar tabla principal
         actualizarTablaEstadisticas(estadisticas, jugadores);
-        // Actualizar mejores por posición
-        actualizarLideresPorPosicion();
+        
+        // Cargar estadísticas de pitcheo
+        cargarLideresPitcheoSimple();
         
     } catch (error) {
         console.error('Error cargando estadísticas:', error);
     }
-}
-
-// NUEVAS FUNCIONES para conectar con las APIs reales
-async function cargarLideresPitcheoReales() {
-    try {
-        const response = await fetch('/api/lideres-pitcheo');
-        if (response.ok) {
-            const lideres = await response.json();
-            console.log('Líderes de pitcheo cargados:', lideres);
-            
-            // Actualizar ERA (mejores 3)
-            const eraLideres = lideres
-                .filter(p => p.innings_pitched >= 3)
-                .sort((a, b) => a.era - b.era)
-                .slice(0, 3);
-            actualizarLideresHTML('eraLeaders', eraLideres, 'era', true);
-
-            // Actualizar WHIP (mejores 3)  
-            const whipLideres = lideres
-                .filter(p => p.innings_pitched >= 3)
-                .sort((a, b) => a.whip - b.whip)
-                .slice(0, 3);
-            actualizarLideresHTML('whipLeaders', whipLideres, 'whip', true);
-
-            // Actualizar Victorias
-            const winsLideres = lideres
-                .sort((a, b) => b.wins - a.wins)
-                .slice(0, 3);
-            actualizarLideresHTML('winsLeaders', winsLideres, 'wins');
-
-            // Actualizar Salvamentos
-            const savesLideres = lideres
-                .sort((a, b) => b.saves - a.saves)
-                .slice(0, 3);
-            actualizarLideresHTML('savesLeaders', savesLideres, 'saves');
-            
-        }
-    } catch (error) {
-        console.error('Error cargando líderes de pitcheo:', error);
-    }
-}
-
-async function cargarLideresDefensivosReales() {
-    try {
-        const response = await fetch('/api/lideres-defensivos');
-        if (response.ok) {
-            const lideres = await response.json();
-            console.log('Líderes defensivos cargados:', lideres);
-            
-            // Actualizar mejor fielding percentage
-            const fieldingLideres = lideres
-                .filter(d => d.total_chances >= 5)
-                .sort((a, b) => b.fielding_percentage - a.fielding_percentage)
-                .slice(0, 3);
-            actualizarLideresHTML('fieldingLeaders', fieldingLideres, 'fielding_percentage', true);
-        }
-    } catch (error) {
-        console.error('Error cargando líderes defensivos:', error);
-    }
-}
-
-function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
-    const container = document.getElementById(containerId);
-    if (!container || lideres.length === 0) {
-        if (container) {
-            container.innerHTML = `
-                <div class="leader-item">
-                    <div>
-                        <div class="leader-name">Sin estadísticas</div>
-                        <div class="leader-team">-</div>
-                    </div>
-                    <div class="leader-stat">-</div>
-                </div>
-            `;
-        }
-        return;
-    }
-
-    const medals = ['🥇', '🥈', '🥉'];
-
-    container.innerHTML = lideres.map((lider, index) => {
-        let valor = isDecimal ? 
-            (lider[stat] ? lider[stat].toFixed(3) : '0.000') : 
-            (lider[stat] || 0);
-        
-        const medalIcon = medals[index] || '🏅';
-
-        return `
-            <div class="leader-item">
-                <div>
-                    <div class="leader-name">${medalIcon} ${lider.jugador_nombre || 'Desconocido'}</div>
-                    <div class="leader-team">${lider.equipo_nombre || '-'}</div>
-                </div>
-                <div class="leader-stat">${valor}</div>
-            </div>
-        `;
-    }).join('');
 }
         // ========== FUNCIONES DE CÁLCULOS AVANZADOS MLB (copiado del admin) ==========
 
