@@ -510,6 +510,124 @@
                 height: 50px;
             }
         }
+        /* Estilos para mejores por posición */
+        .position-leaders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .position-card {
+            background: linear-gradient(135deg, #16213e, #1a1a2e);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .position-card:hover {
+            border-color: #ffd700;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .position-title {
+            color: #ffd700;
+            font-size: 1rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .position-leader {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .position-player {
+            color: #fff;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .position-team {
+            color: #ffd700;
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .position-rating {
+            color: #ff8c00;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+        /* Botón WhatsApp */
+        .whatsapp-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #25D366;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .whatsapp-btn:hover {
+            background: #20B858;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .whatsapp-btn {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+        /* Botón WhatsApp */
+        .whatsapp-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #25D366;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .whatsapp-btn:hover {
+            background: #20B858;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
+            color: white;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .whatsapp-btn {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -706,8 +824,73 @@
                     <strong>Leyenda:</strong> AB=At Bats, H=Hits, AVG=Average, OBP=On-Base %, OPS=On-Base+Slugging, HR=Home Runs, RBI=Runs Batted In, WAR=Wins Above Replacement
                 </p>
             </div>
-        </div>
+            <!-- LÍDERES DE PITCHEO -->
+            <div class="card">
+                <h3>⚾ Líderes de Pitcheo - Rankings MLB</h3>
+                <div class="leaders-grid">
+                    <div class="leader-card">
+                        <h4>🏆 MEJOR ERA</h4>
+                        <div id="eraLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">-.--</div>
+                            </div>
+                        </div>
+                    </div>
 
+                    <div class="leader-card">
+                        <h4>💪 MEJOR WHIP</h4>
+                        <div id="whipLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">-.--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="leader-card">
+                        <h4>🎯 LÍDERES EN VICTORIAS</h4>
+                        <div id="winsLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="leader-card">
+                        <h4>🔥 LÍDERES EN SALVAMENTOS</h4>
+                        <div id="savesLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MEJORES POR POSICIÓN -->
+            <div class="card">
+                <h3>🥇 MEJORES POR POSICIÓN - SISTEMA WAR AVANZADO</h3>
+                <div class="position-leaders-grid" id="positionLeadersGrid">
+                    <!-- Se generará dinámicamente -->
+                </div>
+            </div>
+        </div>
+        
         <!-- Tab Playoffs -->
         <div id="playoffs" class="tab-content">
             <div class="card">
@@ -853,6 +1036,7 @@
                     estadisticas = [];
                 }
                 actualizarTablaEstadisticas();
+                actualizarLideresPorPosicion();
             } catch (error) {
                 console.error('Error cargando estadísticas:', error);
                 estadisticas = [];
@@ -1360,6 +1544,41 @@
 
         console.log('🏆 Chogui League Vista Pública cargada exitosamente');
         console.log('💡 Tip: Escribe recargarDatos() en la consola para recargar datos manualmente');
+        // Función para actualizar líderes por posición
+        function actualizarLideresPorPosicion() {
+            const container = document.getElementById('positionLeadersGrid');
+            if (!container) return;
+
+            const posiciones = [
+                { pos: 'C', nombre: '🥅 MEJOR CATCHER' },
+                { pos: '1B', nombre: '🥇 MEJOR PRIMERA BASE' },
+                { pos: '2B', nombre: '🥈 MEJOR SEGUNDA BASE' },
+                { pos: '3B', nombre: '🥉 MEJOR TERCERA BASE' },
+                { pos: 'SS', nombre: '⚡ MEJOR SHORTSTOP' },
+                { pos: 'LF', nombre: '⬅️ MEJOR LEFT FIELD' },
+                { pos: 'CF', nombre: '🎯 MEJOR CENTER FIELD' },
+                { pos: 'RF', nombre: '➡️ MEJOR RIGHT FIELD' },
+                { pos: 'P', nombre: '🥎 MEJOR PITCHER' }
+            ];
+
+            container.innerHTML = posiciones.map(posicion => {
+                return `
+                    <div class="position-card">
+                        <div class="position-title">${posicion.nombre}</div>
+                        <div class="position-leader">
+                            <div class="position-player">Sin datos</div>
+                            <div class="position-team">-</div>
+                            <div class="position-rating">-.--</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
     </script>
+    <!-- Botón WhatsApp -->
+    <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%20una%20consulta" 
+       class="whatsapp-btn" target="_blank">
+       💬 Consultas
+    </a>
 </body>
 </html>
