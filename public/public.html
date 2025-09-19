@@ -206,6 +206,67 @@
             margin-bottom: 20px;
             font-weight: bold;
         }
+        /* Estilos para líderes */
+        .leaders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .leader-card {
+            background: linear-gradient(145deg, #333, #444);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #555;
+            transition: all 0.3s ease;
+        }
+
+        .leader-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(255, 107, 53, 0.3);
+            border-color: #ff6b35;
+        }
+
+        .leader-card h4 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-align: center;
+            border-bottom: 2px solid #ff6b35;
+            padding-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .leader-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #555;
+        }
+
+        .leader-item:last-child {
+            border-bottom: none;
+        }
+
+        .leader-name {
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .leader-team {
+            color: #ff6b35;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .leader-stat {
+            color: #ff6b35;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
@@ -279,14 +340,116 @@
             </div>
         </div>
 
-        <!-- Tab Estadísticas -->
+     <!-- Tab Estadísticas -->
         <div id="estadisticas" class="tab-content">
             <div class="card">
-                <h3>📊 Estadísticas</h3>
-                <div class="empty-state">Las estadísticas aparecerán cuando se agreguen equipos y partidos</div>
+                <h3>🏆 Líderes de la Liga - Estilo MLB</h3>
+                <div class="leaders-grid">
+                    <div class="leader-card">
+                        <h4>🥇 MEJOR PROMEDIO (AVG)</h4>
+                        <div id="avgLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">-.---</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="leader-card">
+                        <h4>⚾ LÍDERES EN HOME RUNS</h4>
+                        <div id="hrLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="leader-card">
+                        <h4>🎯 LÍDERES EN RBI</h4>
+                        <div id="rbiLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="leader-card">
+                        <h4>🏆 MEJOR ERA</h4>
+                        <div id="eraLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">-.--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="leader-card">
+                        <h4>💪 LÍDERES EN STRIKEOUTS</h4>
+                        <div id="strikeoutLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="leader-card">
+                        <h4>🛡️ MEJOR FIELDING %</h4>
+                        <div id="fieldingLeaders">
+                            <div class="leader-item">
+                                <div>
+                                    <div class="leader-name">Sin estadísticas</div>
+                                    <div class="leader-team">-</div>
+                                </div>
+                                <div class="leader-stat">-.---</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 Estadísticas Completas</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Jugador</th>
+                                <th>Equipo</th>
+                                <th>Pos</th>
+                                <th>AVG</th>
+                                <th>HR</th>
+                                <th>RBI</th>
+                                <th>ERA</th>
+                                <th>FLD%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" class="empty-state">No hay estadísticas registradas aún</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
     <script>
         // Inicialización cuando se carga la página
@@ -321,6 +484,176 @@
             const botonActivo = document.querySelector(`[data-tab="${nombrePestana}"]`);
             if (botonActivo) {
                 botonActivo.classList.add('active');
+            }
+        }
+        // Cargar y mostrar estadísticas
+        async function cargarEstadisticas() {
+            try {
+                // Cargar estadísticas ofensivas (localStorage por ahora)
+                const statsGuardadas = localStorage.getItem('chogui_estadisticas');
+                let estadisticas = [];
+                
+                if (statsGuardadas) {
+                    estadisticas = JSON.parse(statsGuardadas);
+                }
+
+                // Cargar jugadores
+                const jugadoresResponse = await fetch('/api/jugadores');
+                const jugadores = jugadoresResponse.ok ? await jugadoresResponse.json() : [];
+
+                // Cargar líderes de pitcheo
+                await cargarLideresPitcheo();
+                
+                // Cargar líderes defensivos  
+                await cargarLideresDefensivos();
+
+                // Actualizar líderes ofensivos
+                actualizarLideresOfensivos(estadisticas, jugadores);
+                
+                // Actualizar tabla principal
+                actualizarTablaEstadisticas(estadisticas, jugadores);
+                
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+
+        async function cargarLideresPitcheo() {
+            try {
+                const response = await fetch('/api/lideres-pitcheo');
+                if (response.ok) {
+                    const lideres = await response.json();
+                    actualizarLideresHTML('eraLeaders', lideres.era || [], 'era', true);
+                    actualizarLideresHTML('strikeoutLeaders', lideres.strikeouts || [], 'strikeouts');
+                }
+            } catch (error) {
+                console.error('Error cargando líderes de pitcheo:', error);
+            }
+        }
+
+        async function cargarLideresDefensivos() {
+            try {
+                const response = await fetch('/api/lideres-defensivos');
+                if (response.ok) {
+                    const lideres = await response.json();
+                    actualizarLideresHTML('fieldingLeaders', lideres.fielding || [], 'fielding_percentage', true);
+                }
+            } catch (error) {
+                console.error('Error cargando líderes defensivos:', error);
+            }
+        }
+
+        function actualizarLideresOfensivos(estadisticas, jugadores) {
+            if (estadisticas.length === 0) return;
+
+            // Líderes en Average
+            const avgLideres = estadisticas
+                .filter(stat => stat.at_bats >= 10)
+                .map(stat => ({
+                    ...stat,
+                    avg: stat.hits / stat.at_bats,
+                    jugador: jugadores.find(j => j.id === stat.jugador_id)
+                }))
+                .sort((a, b) => b.avg - a.avg)
+                .slice(0, 3);
+
+            actualizarLideresHTML('avgLeaders', avgLideres, 'avg', true);
+
+            // Líderes en Home Runs
+            const hrLideres = estadisticas
+                .map(stat => ({
+                    ...stat,
+                    jugador: jugadores.find(j => j.id === stat.jugador_id)
+                }))
+                .sort((a, b) => b.home_runs - a.home_runs)
+                .slice(0, 3);
+
+            actualizarLideresHTML('hrLeaders', hrLideres, 'home_runs');
+
+            // Líderes en RBI
+            const rbiLideres = estadisticas
+                .map(stat => ({
+                    ...stat,
+                    jugador: jugadores.find(j => j.id === stat.jugador_id)
+                }))
+                .sort((a, b) => b.rbi - a.rbi)
+                .slice(0, 3);
+
+            actualizarLideresHTML('rbiLeaders', rbiLideres, 'rbi');
+        }
+
+        function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
+            const container = document.getElementById(containerId);
+            if (!container || lideres.length === 0) return;
+
+            const medals = ['🥇', '🥈', '🥉'];
+
+            container.innerHTML = lideres.map((lider, index) => {
+                const jugador = lider.jugador;
+                let valor = isDecimal ? 
+                    (lider[stat] ? lider[stat].toFixed(3) : '0.000') : 
+                    (lider[stat] || 0);
+                
+                const medalIcon = medals[index] || '🏅';
+
+                return `
+                    <div class="leader-item">
+                        <div>
+                            <div class="leader-name">${medalIcon} ${jugador ? jugador.nombre : 'Desconocido'}</div>
+                            <div class="leader-team">${jugador ? jugador.equipo_nombre : '-'}</div>
+                        </div>
+                        <div class="leader-stat">${valor}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function actualizarTablaEstadisticas(estadisticas, jugadores) {
+            const tbody = document.querySelector('#estadisticas table tbody');
+            if (!tbody) return;
+
+            if (estadisticas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay estadísticas registradas aún</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = estadisticas.map(stat => {
+                const jugador = jugadores.find(j => j.id === stat.jugador_id);
+                const avg = stat.at_bats > 0 ? (stat.hits / stat.at_bats).toFixed(3) : '.000';
+                
+                return `
+                    <tr>
+                        <td><strong>${jugador ? jugador.nombre : 'Desconocido'}</strong></td>
+                        <td>${jugador ? jugador.equipo_nombre : '-'}</td>
+                        <td>${jugador ? jugador.posicion : '-'}</td>
+                        <td><strong>${avg}</strong></td>
+                        <td>${stat.home_runs}</td>
+                        <td>${stat.rbi}</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Cargar estadísticas cuando se muestre la pestaña
+        document.addEventListener('DOMContentLoaded', function() {
+            configurarEventListeners();
+            
+            // Cargar estadísticas si estamos en esa pestaña
+            const tabActual = document.querySelector('.nav-tab.active').dataset.tab;
+            if (tabActual === 'estadisticas') {
+                cargarEstadisticas();
+            }
+        });
+
+        // Modificar la función mostrarPestana para cargar datos
+        const mostrarPestanaOriginal = mostrarPestana;
+        function mostrarPestana(nombrePestana) {
+            mostrarPestanaOriginal(nombrePestana);
+            
+            if (nombrePestana === 'estadisticas') {
+                cargarEstadisticas();
             }
         }
     </script>
