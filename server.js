@@ -449,13 +449,15 @@ app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
 });
 
 // Crear o actualizar estadísticas de pitcheo
+// Crear o actualizar estadísticas de pitcheo
 app.post('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const {
             jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
-            walks_allowed, home_runs_allowed, wins, losses, saves, games_started,
-            games_finished, complete_games, shutouts, hit_batters, wild_pitches, balks
+            walks_allowed, home_runs_allowed, wins, losses, saves
         } = req.body;
+        
+        console.log('Datos recibidos:', req.body);
         
         if (!jugador_id || innings_pitched === undefined) {
             return res.status(400).json({ error: 'Jugador ID e innings lanzados son requeridos' });
@@ -464,7 +466,7 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
         // Verificar si ya existen estadísticas para este jugador en esta temporada
         const existing = await pool.query(
             'SELECT id FROM estadisticas_pitcheo WHERE jugador_id = $1 AND temporada = $2',
-            [jugador_id, '2025']
+            [parseInt(jugador_id), '2025']
         );
 
         let result;
@@ -472,53 +474,57 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
             // Actualizar estadísticas existentes (sumar valores)
             result = await pool.query(`
                 UPDATE estadisticas_pitcheo SET
-                    innings_pitched = innings_pitched + $2,
-                    hits_allowed = hits_allowed + $3,
-                    earned_runs = earned_runs + $4,
-                    strikeouts = strikeouts + $5,
-                    walks_allowed = walks_allowed + $6,
-                    home_runs_allowed = home_runs_allowed + $7,
-                    wins = wins + $8,
-                    losses = losses + $9,
-                    saves = saves + $10,
-                    games_started = games_started + $11,
-                    games_finished = games_finished + $12,
-                    complete_games = complete_games + $13,
-                    shutouts = shutouts + $14,
-                    hit_batters = hit_batters + $15,
-                    wild_pitches = wild_pitches + $16,
-                    balks = balks + $17,
+                    innings_pitched = innings_pitched + $1,
+                    hits_allowed = hits_allowed + $2,
+                    earned_runs = earned_runs + $3,
+                    strikeouts = strikeouts + $4,
+                    walks_allowed = walks_allowed + $5,
+                    home_runs_allowed = home_runs_allowed + $6,
+                    wins = wins + $7,
+                    losses = losses + $8,
+                    saves = saves + $9,
                     fecha_registro = NOW()
-                WHERE id = $18 RETURNING *
+                WHERE id = $10 RETURNING *
             `, [
-                jugador_id, innings_pitched || 0, hits_allowed || 0, earned_runs || 0,
-                strikeouts || 0, walks_allowed || 0, home_runs_allowed || 0,
-                wins || 0, losses || 0, saves || 0, games_started || 0,
-                games_finished || 0, complete_games || 0, shutouts || 0,
-                hit_batters || 0, wild_pitches || 0, balks || 0, existing.rows[0].id
+                parseFloat(innings_pitched) || 0,
+                parseInt(hits_allowed) || 0,
+                parseInt(earned_runs) || 0,
+                parseInt(strikeouts) || 0,
+                parseInt(walks_allowed) || 0,
+                parseInt(home_runs_allowed) || 0,
+                parseInt(wins) || 0,
+                parseInt(losses) || 0,
+                parseInt(saves) || 0,
+                existing.rows[0].id
             ]);
         } else {
             // Crear nuevas estadísticas
             result = await pool.query(`
                 INSERT INTO estadisticas_pitcheo (
                     jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
-                    walks_allowed, home_runs_allowed, wins, losses, saves, games_started,
-                    games_finished, complete_games, shutouts, hit_batters, wild_pitches, balks
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+                    walks_allowed, home_runs_allowed, wins, losses, saves
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 RETURNING *
             `, [
-                jugador_id, innings_pitched || 0, hits_allowed || 0, earned_runs || 0,
-                strikeouts || 0, walks_allowed || 0, home_runs_allowed || 0,
-                wins || 0, losses || 0, saves || 0, games_started || 0,
-                games_finished || 0, complete_games || 0, shutouts || 0,
-                hit_batters || 0, wild_pitches || 0, balks || 0
+                parseInt(jugador_id),
+                parseFloat(innings_pitched) || 0,
+                parseInt(hits_allowed) || 0,
+                parseInt(earned_runs) || 0,
+                parseInt(strikeouts) || 0,
+                parseInt(walks_allowed) || 0,
+                parseInt(home_runs_allowed) || 0,
+                parseInt(wins) || 0,
+                parseInt(losses) || 0,
+                parseInt(saves) || 0
             ]);
         }
         
+        console.log('Estadísticas registradas:', result.rows[0]);
         res.status(201).json(result.rows[0]);
+        
     } catch (error) {
         console.error('Error registrando estadísticas de pitcheo:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
 
