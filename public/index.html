@@ -1027,33 +1027,51 @@
 
         // Cargar estadísticas desde localStorage (igual que admin)
 async function cargarEstadisticas() {
-    try {
-        // Cargar estadísticas ofensivas (localStorage por ahora)
-        const statsGuardadas = localStorage.getItem('chogui_estadisticas');
-        let estadisticas = [];
-        
-        if (statsGuardadas) {
-            estadisticas = JSON.parse(statsGuardadas);
-        }
-
-        // Cargar jugadores
-        const jugadoresResponse = await fetch('/api/jugadores');
-        const jugadores = jugadoresResponse.ok ? await jugadoresResponse.json() : [];
-
-        // Actualizar líderes ofensivos básicos
-        if (estadisticas.length > 0) {
-            actualizarLideresOfensivosBasicos(estadisticas, jugadores);
-        }
-        
-        // Actualizar tabla principal
-        actualizarTablaEstadisticas(estadisticas, jugadores);
-        
-        // Cargar estadísticas de pitcheo
-        cargarLideresPitcheoSimple();
-        
-    } catch (error) {
-        console.error('Error cargando estadísticas:', error);
+   try {
+    // Cargar estadísticas ofensivas (localStorage por ahora)
+    const statsGuardadas = localStorage.getItem('chogui_estadisticas');
+    
+    if (statsGuardadas) {
+        estadisticas = JSON.parse(statsGuardadas);
+        console.log(`✅ ${estadisticas.length} estadísticas cargadas`);
+    } else {
+        estadisticas = [];
     }
+    
+    actualizarTablaEstadisticas();
+    actualizarLideresPorPosicion();
+    
+    // Intentar cargar líderes de pitcheo
+    try {
+        const response = await fetch('/api/lideres-pitcheo');
+        if (response.ok) {
+            const lideres = await response.json();
+            console.log('Líderes de pitcheo:', lideres);
+            
+            // Actualizar ERA si hay datos
+            if (lideres.length > 0) {
+                const container = document.getElementById('eraLeaders');
+                if (container && lideres[0]) {
+                    container.innerHTML = `
+                        <div class="leader-item">
+                            <div>
+                                <div class="leader-name">🥇 ${lideres[0].jugador_nombre}</div>
+                                <div class="leader-team">${lideres[0].equipo_nombre}</div>
+                            </div>
+                            <div class="leader-stat">${lideres[0].era ? lideres[0].era.toFixed(2) : '0.00'}</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+    } catch (error) {
+        console.log('Info: No hay estadísticas de pitcheo aún');
+    }
+    
+} catch (error) {
+    console.error('Error cargando estadísticas:', error);
+    estadisticas = [];
+}
 }
         // ========== FUNCIONES DE CÁLCULOS AVANZADOS MLB (copiado del admin) ==========
 
