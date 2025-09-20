@@ -573,6 +573,7 @@ app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
 });
 
 // Crear o actualizar estadísticas defensivas
+// Crear o actualizar estadísticas defensivas
 app.post('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const {
@@ -588,7 +589,10 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         const existing = await pool.query(
             'SELECT id FROM estadisticas_defensivas WHERE jugador_id = $1 AND temporada = $2',
             [jugador_id, '2025']
-      if (existing.rows.length > 0) {
+        );
+
+        let result;
+        if (existing.rows.length > 0) {
             // Actualizar estadísticas existentes (sumar valores)
             result = await pool.query(`
                 UPDATE estadisticas_defensivas SET
@@ -613,6 +617,25 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                 0,
                 parseInt(chances) || 0
             ]);
+        } else {
+            // Crear nuevas estadísticas
+            result = await pool.query(`
+                INSERT INTO estadisticas_defensivas (
+                    jugador_id, putouts, assists, errors, double_plays,
+                    passed_balls, stolen_bases_against, caught_stealing, chances
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING *
+            `, [
+                parseInt(jugador_id),
+                parseInt(putouts) || 0,
+                parseInt(assists) || 0,
+                parseInt(errors) || 0,
+                parseInt(double_plays) || 0,
+                parseInt(passed_balls) || 0,
+                0,
+                0,
+                parseInt(chances) || 0
+            ]);
         }
         
         res.status(201).json(result.rows[0]);
@@ -621,7 +644,6 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 // Obtener líderes de pitcheo
 app.get('/api/lideres-pitcheo', async (req, res) => {
     try {
