@@ -1,4 +1,4 @@
-const express = require('express');
+app.post('/api/estadisticas-defensivas'const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
@@ -593,6 +593,8 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         let result;
         if (existing.rows.length > 0) {
             // Actualizar estadísticas existentes (sumar valores)
+          if (existing.rows.length > 0) {
+            // Actualizar estadísticas existentes (sumar valores)
             result = await pool.query(`
                 UPDATE estadisticas_defensivas SET
                     putouts = putouts + $2,
@@ -604,24 +606,17 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                     caught_stealing = caught_stealing + $8,
                     chances = chances + $9,
                     fecha_registro = NOW()
-                WHERE id = $10 RETURNING *
+                WHERE id = $1 RETURNING *
             `, [
-                jugador_id, putouts || 0, assists || 0, errors || 0, double_plays || 0,
-                passed_balls || 0, stolen_bases_against || 0, caught_stealing || 0,
-                chances || 0, existing.rows[0].id
-            ]);
-        } else {
-            // Crear nuevas estadísticas
-            result = await pool.query(`
-                INSERT INTO estadisticas_defensivas (
-                    jugador_id, putouts, assists, errors, double_plays,
-                    passed_balls, stolen_bases_against, caught_stealing, chances
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                RETURNING *
-            `, [
-                jugador_id, putouts || 0, assists || 0, errors || 0, double_plays || 0,
-                passed_balls || 0, stolen_bases_against || 0, caught_stealing || 0,
-                chances || 0
+                existing.rows[0].id,
+                parseInt(putouts) || 0,
+                parseInt(assists) || 0,
+                parseInt(errors) || 0,
+                parseInt(double_plays) || 0,
+                parseInt(passed_balls) || 0,
+                parseInt(stolen_bases_against) || 0,
+                parseInt(caught_stealing) || 0,
+                parseInt(chances) || 0
             ]);
         }
         
