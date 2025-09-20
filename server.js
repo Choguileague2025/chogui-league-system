@@ -588,12 +588,7 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         const existing = await pool.query(
             'SELECT id FROM estadisticas_defensivas WHERE jugador_id = $1 AND temporada = $2',
             [jugador_id, '2025']
-        );
-
-        let result;
-        if (existing.rows.length > 0) {
-            // Actualizar estadísticas existentes (sumar valores)
-          if (existing.rows.length > 0) {
+      if (existing.rows.length > 0) {
             // Actualizar estadísticas existentes (sumar valores)
             result = await pool.query(`
                 UPDATE estadisticas_defensivas SET
@@ -614,8 +609,8 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                 parseInt(errors) || 0,
                 parseInt(double_plays) || 0,
                 parseInt(passed_balls) || 0,
-                parseInt(stolen_bases_against) || 0,
-                parseInt(caught_stealing) || 0,
+                0,
+                0,
                 parseInt(chances) || 0
             ]);
         }
