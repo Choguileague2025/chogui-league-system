@@ -291,6 +291,15 @@
             color: #1a1a2e;
             transform: scale(1.1);
         }
+        
+        .btn-edit {
+            background: linear-gradient(145deg, #007BFF, #0056b3);
+            color: white;
+        }
+        .btn-edit:hover {
+            background: linear-gradient(145deg, #0088ff, #0056b3);
+            color: white;
+        }
 
         .table-container {
             overflow-x: auto;
@@ -797,6 +806,73 @@
         </div>
 
         <div id="lideres" class="tab-content">
+            
+            <div class="card">
+                <h3>📝 Editar Estadísticas de Bateo</h3>
+                <div class="table-container">
+                    <table id="tablaEditarBateo">
+                        <thead>
+                            <tr>
+                                <th>Jugador</th>
+                                <th>Equipo</th>
+                                <th>AB</th>
+                                <th>H</th>
+                                <th>HR</th>
+                                <th>RBI</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>📝 Editar Estadísticas de Pitcheo</h3>
+                <div class="table-container">
+                    <table id="tablaEditarPitcheo">
+                        <thead>
+                            <tr>
+                                <th>Jugador</th>
+                                <th>Equipo</th>
+                                <th>IP</th>
+                                <th>ER</th>
+                                <th>W</th>
+                                <th>L</th>
+                                <th>SV</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="8" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📝 Editar Estadísticas Defensivas</h3>
+                <div class="table-container">
+                    <table id="tablaEditarDefensa">
+                        <thead>
+                            <tr>
+                                <th>Jugador</th>
+                                <th>Equipo</th>
+                                <th>PO</th>
+                                <th>A</th>
+                                <th>E</th>
+                                <th>DP</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div class="card">
                 <h3>📊 Registrar Estadísticas Avanzadas (BATEO)</h3>
                 <div class="stats-form-container">
@@ -840,9 +916,7 @@
                          <small style="color: #ff8c00; font-size: 0.8rem;">Los errores se registran en el form defensivo.</small>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="registrarEstadisticas()">📊 Registrar Estadísticas</button>
-                <div id="statsMessage" class="success-message"></div>
-                <div id="statsError" class="error-message"></div>
+                <button class="btn-primary" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
             </div>
 
             <div class="card">
@@ -892,9 +966,7 @@
                         <input type="number" id="saves" min="0" value="0">
                     </div>
                 </div>
-                <button class="btn-primary" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas Pitcheo</button>
-                <div id="pitcheoMessage" class="success-message"></div>
-                <div id="pitcheoError" class="error-message"></div>
+                <button class="btn-primary" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
             </div>
 
             <div class="card">
@@ -928,9 +1000,7 @@
                         <small style="color: #ffd700; font-size: 0.8rem;">Solo para catchers</small>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas Defensivas</button>
-                <div id="defensivaMessage" class="success-message"></div>
-                <div id="defensivaError" class="error-message"></div>
+                <button class="btn-primary" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
             </div>
 
             <div class="card">
@@ -1179,6 +1249,10 @@
             if (nombrePestana === 'lideres') {
                 actualizarLideres();
                 actualizarLideresPorPosicion();
+                // *** NUEVO: Cargar tablas de edición ***
+                cargarTablaEditarBateo();
+                cargarTablaEditarPitcheo();
+                cargarTablaEditarDefensa();
             }
         }
 
@@ -1285,9 +1359,9 @@
         }
 
         function calcularWAR(jugador, stats) {
-            if (!stats || stats.at_bats < 10) return 0;
+            if (!stats || !jugador || stats.at_bats < 10) return 0;
 
-            const avg = stats.hits / stats.at_bats;
+            const avg = stats.at_bats > 0 ? (stats.hits / stats.at_bats) : 0;
             const obp = calcularOBP(stats.hits, stats.walks || 0, stats.at_bats);
             const slg = calcularSLG(stats.hits, stats.home_runs, stats.at_bats);
             const ops = calcularOPS(obp, slg);
@@ -1397,7 +1471,7 @@
                 const equipoNombre = stat.equipo_nombre || '-';
                 const posicion = stat.posicion || '-';
 
-                // Calcular métricas (la API de 'estadisticas-ofensivas' no las da, solo 'lideres')
+                // Calcular métricas
                 const avg = stat.at_bats > 0 ? (parseFloat(stat.hits) / parseFloat(stat.at_bats)).toFixed(3) : '.000';
                 const obp = calcularOBP(parseFloat(stat.hits), parseFloat(stat.walks) || 0, parseFloat(stat.at_bats)).toFixed(3);
                 const slg = calcularSLG(parseFloat(stat.hits), parseFloat(stat.home_runs), parseFloat(stat.at_bats)).toFixed(3);
@@ -1662,14 +1736,20 @@
                 console.error(error);
                 mostrarLideresVacios('avgLeaders');
                 mostrarLideresVacios('hrLeaders');
-                // ... etc
+                mostrarLideresVacios('rbiLeaders');
+                mostrarLideresVacios('opsLeaders');
+                mostrarLideresVacios('warLeaders');
+                mostrarLideresVacios('sbLeaders');
                 return;
             }
 
             if (lideresOfensivos.length === 0) {
                 mostrarLideresVacios('avgLeaders');
                 mostrarLideresVacios('hrLeaders');
-                // ... etc
+                mostrarLideresVacios('rbiLeaders');
+                mostrarLideresVacios('opsLeaders');
+                mostrarLideresVacios('warLeaders');
+                mostrarLideresVacios('sbLeaders');
                 return;
             }
 
@@ -1731,7 +1811,22 @@
             }
 
             if (!lideres || lideres.length === 0) {
-                mostrarLideresVacios(containerId); // Usar la función de estado vacío
+                let msg = "(Mínimo 10 AB)";
+                if (containerId.includes('era') || containerId.includes('whip') || containerId.includes('wins') || containerId.includes('saves')) {
+                    msg = "(Mínimo 5 IP)";
+                } else if (containerId.includes('fielding')) {
+                    msg = "(Mínimo 5 Chances)";
+                }
+                
+                container.innerHTML = `
+                    <div class="leader-item">
+                        <div>
+                            <div class="leader-name">Sin datos suficientes</div>
+                            <div class="leader-team">${msg}</div>
+                        </div>
+                        <div class="leader-stat">-</div>
+                    </div>
+                `;
                 return;
             }
 
@@ -1747,7 +1842,7 @@
                     jugadorNombre = lider.jugador_nombre;
                     equipoNombre = lider.equipo_nombre;
                 } else {
-                    // Fallback por si acaso (aunque ya no debería usarse)
+                    // Fallback (ya no debería usarse)
                     const jugador = jugadores.find(j => j.id === lider.jugador_id);
                     jugadorNombre = jugador ? jugador.nombre : 'Desconocido';
                     equipoNombre = jugador ? jugador.equipo_nombre : '-';
@@ -1761,7 +1856,7 @@
 
                 if (isDecimal) {
                     valor = statValue ? statValue.toFixed(3) : '0.000';
-                    if (stat === 'war') {
+                    if (stat === 'war' || stat === 'era' || stat === 'whip') {
                         valor = statValue.toFixed(2);
                     }
                 } else {
@@ -2043,6 +2138,9 @@
                 await cargarEstadisticas();
                 actualizarLideres();
                 actualizarLideresPorPosicion();
+                
+                // *** NUEVO: Recargar tablas de edición ***
+                cargarTablaEditarBateo();
 
             } catch (error) {
                 console.error('Error:', error);
@@ -2077,7 +2175,6 @@
         }
 
 // ========== FUNCIONES DE EDICIÓN Y ELIMINACIÓN ==========
-// (Estas funciones permanecen igual)
 
 // ========== EQUIPOS ==========
 async function editarEquipo(id) {
@@ -2391,8 +2488,8 @@ async function eliminarPartido(id) {
             const losses = parseInt(document.getElementById('losses').value) || 0;
             const saves = parseInt(document.getElementById('saves').value) || 0;
 
-            if (!jugadorId || inningsPitched === 0) {
-                mostrarError('pitcheoError', 'Por favor selecciona un jugador e ingresa innings lanzados');
+            if (!jugadorId) {
+                mostrarError('pitcheoError', 'Por favor selecciona un jugador');
                 return;
             }
 
@@ -2427,8 +2524,8 @@ async function eliminarPartido(id) {
                     document.getElementById('losses').value = '0';
                     document.getElementById('saves').value = '0';
 
-                    const jugador = jugadores.find(j => j.id === jugadorId);
                     mostrarExito('pitcheoMessage', `✅ Estadísticas de pitcheo registradas correctamente`);
+                    cargarTablaEditarPitcheo(); // Refrescar la tabla de edición
                 } else {
                     const errorData = await response.json();
                     mostrarError('pitcheoError', errorData.error || 'Error al registrar estadísticas');
@@ -2480,6 +2577,7 @@ async function eliminarPartido(id) {
                     
                     // Actualizar la vista de líderes defensivos
                     actualizarLideresPorPosicion();
+                    cargarTablaEditarDefensa(); // Refrescar la tabla de edición
                 } else {
                     const errorData = await response.json();
                     mostrarError('defensivaError', errorData.error || 'Error al registrar estadísticas');
@@ -2487,7 +2585,105 @@ async function eliminarPartido(id) {
             } catch (error) {
                 mostrarError('defensivaError', 'Error de conexión al servidor');
             }
-        }     
+        }
+
+        // *** INICIO DE FUNCIONES DE EDICIÓN (FASE 4) ***
+        async function cargarTablaEditarBateo() {
+            const tbody = document.querySelector('#tablaEditarBateo tbody');
+            try {
+                const response = await fetch('/api/estadisticas-ofensivas');
+                if (!response.ok) throw new Error('Error al cargar');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay estadísticas de bateo registradas.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(stat => `
+                    <tr>
+                        <td>${stat.jugador_nombre}</td>
+                        <td>${stat.equipo_nombre}</td>
+                        <td>${stat.at_bats}</td>
+                        <td>${stat.hits}</td>
+                        <td>${stat.home_runs}</td>
+                        <td>${stat.rbi}</td>
+                        <td><button class="btn-secondary btn-edit" onclick="cargarParaEditar('ofensiva', ${stat.jugador_id})">✏️ Editar</button></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="error-message">${error.message}</td></tr>`;
+            }
+        }
+        
+        async function cargarTablaEditarPitcheo() {
+            const tbody = document.querySelector('#tablaEditarPitcheo tbody');
+             try {
+                const response = await fetch('/api/estadisticas-pitcheo');
+                if (!response.ok) throw new Error('Error al cargar');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay estadísticas de pitcheo registradas.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(stat => `
+                    <tr>
+                        <td>${stat.jugador_nombre}</td>
+                        <td>${stat.equipo_nombre}</td>
+                        <td>${stat.innings_pitched}</td>
+                        <td>${stat.earned_runs}</td>
+                        <td>${stat.wins}</td>
+                        <td>${stat.losses}</td>
+                        <td>${stat.saves}</td>
+                        <td><button class="btn-secondary btn-edit" onclick="cargarParaEditar('pitcheo', ${stat.jugador_id})">✏️ Editar</button></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="8" class="error-message">${error.message}</td></tr>`;
+            }
+        }
+        
+        async function cargarTablaEditarDefensa() {
+            const tbody = document.querySelector('#tablaEditarDefensa tbody');
+             try {
+                const response = await fetch('/api/estadisticas-defensivas');
+                if (!response.ok) throw new Error('Error al cargar');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay estadísticas defensivas registradas.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(stat => `
+                    <tr>
+                        <td>${stat.jugador_nombre}</td>
+                        <td>${stat.equipo_nombre}</td>
+                        <td>${stat.putouts}</td>
+                        <td>${stat.assists}</td>
+                        <td>${stat.errors}</td>
+                        <td>${stat.double_plays}</td>
+                        <td><button class="btn-secondary btn-edit" onclick="cargarParaEditar('defensiva', ${stat.jugador_id})">✏️ Editar</button></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="error-message">${error.message}</td></tr>`;
+            }
+        }
+        
+        // Funciones placeholder (se implementarán en Paso 4.3)
+        async function cargarParaEditar(tipo, jugadorId) {
+            alert(`PASO 4.3: Cargando datos para editar (tipo: ${tipo}, jugador: ${jugadorId})... ¡Aún no implementado!`);
+            // Lógica del Paso 4.3 irá aquí
+        }
+        
+        async function actualizarEstadistica(tipo, jugadorId) {
+             alert(`PASO 4.3: Guardando datos (tipo: ${tipo}, jugador: ${jugadorId})... ¡Aún no implementado!`);
+            // Lógica del Paso 4.3 irá aquí
+        }
+        // *** FIN DE FUNCIONES DE EDICIÓN (FASE 4) ***
     </script>
 </body>
 </html>
