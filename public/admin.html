@@ -1210,6 +1210,7 @@
             <div class="card">
                 <h3>🗓️ Torneos Existentes</h3>
                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Selecciona el torneo que estará **activo**. Todas las nuevas estadísticas se guardarán en este torneo.</p>
+                <button class="btn-secondary" onclick="desactivarTodosLosTorneos()" style="background: #ff8c00; margin-bottom: 15px; font-weight: bold;">⚪ Desactivar Todos</button>
                 <div class="table-container">
                     <table id="torneosTable">
                         <thead>
@@ -1240,7 +1241,7 @@
         let estadisticas = []; // Esta variable ahora es para ESTADÍSTICAS OFENSIVAS
         
         // *** INICIO FASE 5: Variable para Torneo Activo ***
-        let torneoActivo = { id: null, nombre: '2025' }; // Default
+        let torneoActivo = { id: null, nombre: 'NINGUNO' }; // Default
         // *** FIN FASE 5 ***
         
         // Ajustes posicionales tipo MLB (valores reales)
@@ -1368,12 +1369,13 @@
                     torneoActivo = await response.json();
                     console.log(`✅ Torneo Activo: ${torneoActivo.nombre} (ID: ${torneoActivo.id})`);
                 } else {
-                    throw new Error('Error cargando torneo activo');
+                    // *** CORRECCIÓN FASE 5.5: Permitir que no haya torneo activo ***
+                    torneoActivo = { id: null, nombre: 'NINGUNO' };
+                    console.warn('⚠️ No hay ningún torneo activo. Las estadísticas no se guardarán.');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                mostrarError('torneoError', 'Error cargando torneo activo. Se usará el default.');
-                // 'torneoActivo' mantiene sus valores default
+                mostrarError('torneoError', 'Error cargando torneo activo.');
             }
         }
         
@@ -1404,7 +1406,8 @@
                             >
                                 ${torneo.activo ? 'Ya Activo' : 'Activar'}
                             </button>
-                        </td>
+                            <button class="btn-secondary" onclick="eliminarTorneo(${torneo.id})" style="background: #dc143c;">🗑️ Eliminar</button>
+                            </td>
                     </tr>
                 `).join('');
             } catch (error) {
@@ -1456,6 +1459,7 @@
 
                 if (response.ok) {
                     mostrarExito('torneoMessage', `✅ Nombre del torneo actualizado a "${nuevoNombre}".`);
+                    await cargarTorneoActivo(); // Recargar por si el torneo editado era el activo
                     cargarTorneos(); // Recargar la lista
                 } else {
                     const errorData = await response.json();
@@ -1490,6 +1494,46 @@
                 mostrarError('torneoError', 'Error de conexión');
             }
         }
+        
+        // *** INICIO FASE 5.5: Funciones Eliminar/Desactivar ***
+        async function desactivarTodosLosTorneos() {
+            if (!confirm('¿Estás seguro? Esto hará que no haya ningún torneo activo. No podrás registrar nuevas estadísticas hasta que actives uno.')) {
+                return;
+            }
+            try {
+                const response = await fetch('/api/torneos/desactivar-todos', { method: 'PUT' });
+                if (response.ok) {
+                    mostrarExito('torneoMessage', 'Todos los torneos desactivados.');
+                    await cargarTorneoActivo(); // Actualiza la variable global (será 'NINGUNO')
+                    cargarTorneos();
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('torneoError', errorData.error || 'Error al desactivar');
+                }
+            } catch (error) {
+                mostrarError('torneoError', 'Error de conexión');
+            }
+        }
+
+        async function eliminarTorneo(id) {
+            if (!confirm('¿Estás seguro de eliminar este torneo? Esta acción NO se puede deshacer.\n\nADVERTENCIA: Solo podrás eliminarlo si no tiene estadísticas asociadas.')) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/torneos/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    mostrarExito('torneoMessage', 'Torneo eliminado correctamente.');
+                    cargarTorneos();
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('torneoError', errorData.error || 'Error al eliminar');
+                }
+            } catch (error) {
+                mostrarError('torneoError', 'Error de conexión');
+            }
+        }
+        // *** FIN FASE 5.5 ***
+        
         // *** FIN FASE 5 ***
 
         async function cargarEquipos() {
@@ -2258,6 +2302,13 @@
         }
 
         async function registrarEstadisticas() {
+            // *** INICIO FASE 5.5: Validar torneo activo ***
+            if (!torneoActivo.id) {
+                mostrarError('statsError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
+                return;
+            }
+            // *** FIN FASE 5.5 ***
+
             const jugadorId = parseInt(document.getElementById('jugadorStats').value);
             const atBats = parseInt(document.getElementById('atBats').value) || 0;
             const hits = parseInt(document.getElementById('hits').value) || 0;
@@ -2645,6 +2696,13 @@ async function eliminarPartido(id) {
 
    // FUNCIONES PARA ESTADÍSTICAS DE PITCHEO
         async function registrarEstadisticasPitcheo() {
+            // *** INICIO FASE 5.5: Validar torneo activo ***
+            if (!torneoActivo.id) {
+                mostrarError('pitcheoError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
+                return;
+            }
+            // *** FIN FASE 5.5 ***
+
             const jugadorId = parseInt(document.getElementById('jugadorPitcheo').value);
             const inningsPitched = parseFloat(document.getElementById('inningsPitched').value) || 0;
             const hitsAllowed = parseInt(document.getElementById('hitsAllowed').value) || 0;
@@ -2698,6 +2756,13 @@ async function eliminarPartido(id) {
 
         // FUNCIONES PARA ESTADÍSTICAS DEFENSIVAS
         async function registrarEstadisticasDefensivas() {
+            // *** INICIO FASE 5.5: Validar torneo activo ***
+            if (!torneoActivo.id) {
+                mostrarError('defensivaError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
+                return;
+            }
+            // *** FIN FASE 5.5 ***
+            
             const jugadorId = parseInt(document.getElementById('jugadorDefensivo').value);
             const putouts = parseInt(document.getElementById('putouts').value) || 0;
             const assists = parseInt(document.getElementById('assists').value) || 0;
