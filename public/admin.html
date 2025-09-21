@@ -501,7 +501,7 @@
             margin-bottom: 10px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
-
+        
         .position-leader {
             text-align: left; /* CORREGIDO: para listas */
             padding: 0;
@@ -798,7 +798,7 @@
 
         <div id="lideres" class="tab-content">
             <div class="card">
-                <h3>📊 Registrar Estadísticas Avanzadas</h3>
+                <h3>📊 Registrar Estadísticas Avanzadas (BATEO)</h3>
                 <div class="stats-form-container">
                     <div class="form-group">
                         <label for="jugadorStats">Jugador:</label>
@@ -831,12 +831,13 @@
                         <input type="number" id="walks" min="0" value="0">
                     </div>
                     <div class="form-group">
-                        <label for="errors">Errores Defensivos:</label>
-                        <input type="number" id="errors" min="0" value="0">
-                    </div>
-                    <div class="form-group">
                         <label for="stolenBases">Bases Robadas (SB):</label>
                         <input type="number" id="stolenBases" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="errors" style="color: #ff8c00; opacity: 0.7;">Errores (E):</label>
+                        <input type="number" id="errors" min="0" value="0" disabled>
+                         <small style="color: #ff8c00; font-size: 0.8rem;">Los errores se registran en el form defensivo.</small>
                     </div>
                 </div>
                 <button class="btn-primary" onclick="registrarEstadisticas()">📊 Registrar Estadísticas</button>
@@ -940,7 +941,7 @@
             </div>
 
             <div class="card">
-                <h3>🏆 Líderes Generales de la Liga - Estilo MLB</h3>
+                <h3>🏆 Líderes Generales de la Liga - BATEO</h3>
                 <div class="leaders-grid">
                     <div class="leader-card">
                         <h4>🥇 MEJOR PROMEDIO (AVG)</h4>
@@ -1023,7 +1024,7 @@
             </div>
 
             <div class="card">
-                <h3>📈 Estadísticas Completas con Métricas Avanzadas</h3>
+                <h3>📈 Estadísticas Completas de Bateo</h3>
                 <div class="table-container">
                     <table id="statsTable">
                         <thead>
@@ -1092,8 +1093,8 @@
         let equipos = [];
         let partidos = [];
         let jugadores = [];
-        let estadisticas = [];
-
+        let estadisticas = []; // Esta variable ahora es para ESTADÍSTICAS OFENSIVAS
+        
         // Ajustes posicionales tipo MLB (valores reales)
         const AJUSTES_POSICIONALES = {
             'C': 12.5,    // Catcher - más difícil
@@ -1188,11 +1189,11 @@
                 await cargarEquipos();
                 await cargarPartidos();
                 await cargarJugadores();
-                await cargarEstadisticas();
+                await cargarEstadisticas(); // Carga ofensivas desde la DB
                 actualizarSelectores();
                 calcularPosiciones();
-                actualizarLideres();
-                actualizarLideresPorPosicion(); // Llamar a la nueva función
+                actualizarLideres(); // Carga líderes ofensivos desde la API
+                actualizarLideresPorPosicion(); // Carga líderes defensivos desde la API
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 mostrarError('equipoError', 'Error de conexión al servidor');
@@ -1247,21 +1248,24 @@
             }
         }
 
-        // Simular carga de estadísticas (por ahora usando localStorage)
+        // *** INICIO DE CORRECCIÓN: Cargar desde API en lugar de localStorage ***
         async function cargarEstadisticas() {
             try {
-                const statsGuardadas = localStorage.getItem('chogui_estadisticas');
-                if (statsGuardadas) {
-                    estadisticas = JSON.parse(statsGuardadas);
+                const response = await fetch('/api/estadisticas-ofensivas');
+                if (response.ok) {
+                    estadisticas = await response.json();
+                    console.log(`✅ ${estadisticas.length} estadísticas ofensivas cargadas desde la DB.`);
                 } else {
-                    estadisticas = [];
+                    throw new Error('Error cargando estadísticas ofensivas');
                 }
                 actualizarTablaEstadisticas();
             } catch (error) {
                 console.error('Error cargando estadísticas:', error);
                 estadisticas = [];
+                actualizarTablaEstadisticas(); // Llama para mostrar el error
             }
         }
+        // *** FIN DE CORRECCIÓN ***
 
         // ========== FUNCIONES DE CÁLCULOS AVANZADOS MLB ==========
 
@@ -1291,7 +1295,7 @@
             // Componentes del WAR simplificado
             const bateoCont = (ops - 0.700) * 100; // Contribution vs league average
             const ajustePosicional = AJUSTES_POSICIONALES[jugador.posicion] || 0;
-            const penalizacionErrores = (stats.errors || 0) * -2;
+            const penalizacionErrores = (stats.errors || 0) * -2; // 'errors' vendrá de la tabla defensiva
             const bonusVelocidad = (stats.stolen_bases || 0) * 0.2;
 
             const warTotal = (bateoCont + ajustePosicional + penalizacionErrores + bonusVelocidad) / 100;
@@ -1378,6 +1382,7 @@
             `).join('');
         }
 
+        // *** INICIO DE CORRECCIÓN: Leer datos de la API ***
         function actualizarTablaEstadisticas() {
             const tbody = document.querySelector('#statsTable tbody');
             
@@ -1387,18 +1392,26 @@
             }
 
             tbody.innerHTML = estadisticas.map(stat => {
-                const jugador = jugadores.find(j => j.id === stat.jugador_id);
-                const avg = stat.at_bats > 0 ? (stat.hits / stat.at_bats).toFixed(3) : '.000';
-                const obp = calcularOBP(stat.hits, stat.walks || 0, stat.at_bats).toFixed(3);
-                const slg = calcularSLG(stat.hits, stat.home_runs, stat.at_bats).toFixed(3);
+                // La API ya nos da los nombres y la posición
+                const jugadorNombre = stat.jugador_nombre || 'Desconocido';
+                const equipoNombre = stat.equipo_nombre || '-';
+                const posicion = stat.posicion || '-';
+
+                // Calcular métricas (la API de 'estadisticas-ofensivas' no las da, solo 'lideres')
+                const avg = stat.at_bats > 0 ? (parseFloat(stat.hits) / parseFloat(stat.at_bats)).toFixed(3) : '.000';
+                const obp = calcularOBP(parseFloat(stat.hits), parseFloat(stat.walks) || 0, parseFloat(stat.at_bats)).toFixed(3);
+                const slg = calcularSLG(parseFloat(stat.hits), parseFloat(stat.home_runs), parseFloat(stat.at_bats)).toFixed(3);
                 const ops = (parseFloat(obp) + parseFloat(slg)).toFixed(3);
+                
+                // WAR necesita el objeto 'jugador'
+                const jugador = { posicion: posicion }; // Objeto simulado para calcularWAR
                 const war = calcularWAR(jugador, stat).toFixed(2);
                 
                 return `
                     <tr>
-                        <td><strong>${jugador ? jugador.nombre : 'Desconocido'}</strong></td>
-                        <td>${jugador ? jugador.equipo_nombre : '-'}</td>
-                        <td>${jugador ? jugador.posicion : '-'}}</td>
+                        <td><strong>${jugadorNombre}</strong></td>
+                        <td>${equipoNombre}</td>
+                        <td>${posicion}</td>
                         <td>${stat.at_bats}</td>
                         <td>${stat.hits}</td>
                         <td><strong>${avg}</strong></td>
@@ -1411,6 +1424,8 @@
                 `;
             }).join('');
         }
+        // *** FIN DE CORRECCIÓN ***
+
 
         // *** INICIO DE CORRECCIÓN: FUNCIÓN LÍDERES POR POSICIÓN REESCRITA ***
         async function actualizarLideresPorPosicion() {
@@ -1633,90 +1648,90 @@
 
         // ========== FUNCIONES DE LÍDERES Y ESTADÍSTICAS AVANZADAS ==========
 
-        function actualizarLideres() {
-            if (estadisticas.length === 0) {
+        // *** INICIO DE CORRECCIÓN: Cargar líderes de bateo desde la API ***
+        async function actualizarLideres() {
+            let lideresOfensivos = [];
+            try {
+                const response = await fetch('/api/lideres-ofensivos');
+                if (response.ok) {
+                    lideresOfensivos = await response.json();
+                } else {
+                    throw new Error('Error cargando líderes ofensivos');
+                }
+            } catch (error) {
+                console.error(error);
+                mostrarLideresVacios('avgLeaders');
+                mostrarLideresVacios('hrLeaders');
+                // ... etc
+                return;
+            }
+
+            if (lideresOfensivos.length === 0) {
+                mostrarLideresVacios('avgLeaders');
+                mostrarLideresVacios('hrLeaders');
+                // ... etc
                 return;
             }
 
             // Líderes en Average (AVG)
-            const avgLideres = estadisticas
-                .filter(stat => stat.at_bats >= 10)
-                .map(stat => ({
-                    ...stat,
-                    avg: stat.at_bats > 0 ? stat.hits / stat.at_bats : 0
-                }))
-                .sort((a, b) => b.avg - a.avg)
-                .slice(0, 3);
-
+            const avgLideres = [...lideresOfensivos].sort((a, b) => b.avg - a.avg).slice(0, 3);
             actualizarLideresHTML('avgLeaders', avgLideres, 'avg', true);
 
             // Líderes en Home Runs
-            const hrLideres = estadisticas
-                .sort((a, b) => b.home_runs - a.home_runs)
-                .slice(0, 3);
-
+            const hrLideres = [...lideresOfensivos].sort((a, b) => b.home_runs - a.home_runs).slice(0, 3);
             actualizarLideresHTML('hrLeaders', hrLideres, 'home_runs');
 
             // Líderes en RBI
-            const rbiLideres = estadisticas
-                .sort((a, b) => b.rbi - a.rbi)
-                .slice(0, 3);
-
+            const rbiLideres = [...lideresOfensivos].sort((a, b) => b.rbi - a.rbi).slice(0, 3);
             actualizarLideresHTML('rbiLeaders', rbiLideres, 'rbi');
 
             // Líderes en OPS
-            const opsLideres = estadisticas
-                .filter(stat => stat.at_bats >= 10)
-                .map(stat => {
-                    const obp = calcularOBP(stat.hits, stat.walks || 0, stat.at_bats);
-                    const slg = calcularSLG(stat.hits, stat.home_runs, stat.at_bats);
-                    return {
-                        ...stat,
-                        ops: obp + slg
-                    };
-                })
-                .sort((a, b) => b.ops - a.ops)
-                .slice(0, 3);
-
+            const opsLideres = [...lideresOfensivos].sort((a, b) => b.ops - a.ops).slice(0, 3);
             actualizarLideresHTML('opsLeaders', opsLideres, 'ops', true);
-
-            // Líderes en WAR
-            const warLideres = estadisticas
-                .filter(stat => stat.at_bats >= 10)
-                .map(stat => {
-                    const jugador = jugadores.find(j => j.id === stat.jugador_id);
-                    return {
-                        ...stat,
-                        war: calcularWAR(jugador, stat)
-                    };
-                })
-                .sort((a, b) => b.war - a.war)
-                .slice(0, 3);
-
-            actualizarLideresHTML('warLeaders', warLideres, 'war', true);
-
+            
             // Líderes en Bases Robadas
-            const sbLideres = estadisticas
-                .sort((a, b) => (b.stolen_bases || 0) - (a.stolen_bases || 0))
-                .slice(0, 3);
-
+            const sbLideres = [...lideresOfensivos].sort((a, b) => (b.stolen_bases || 0) - (a.stolen_bases || 0)).slice(0, 3);
             actualizarLideresHTML('sbLeaders', sbLideres, 'stolen_bases');
+
+            // Líderes en WAR (se sigue calculando en el frontend)
+            const warLideres = lideresOfensivos.map(stat => {
+                const jugador = { posicion: stat.posicion }; // Simular jugador
+                return {
+                    ...stat,
+                    war: calcularWAR(jugador, stat)
+                };
+            })
+            .sort((a, b) => b.war - a.war)
+            .slice(0, 3);
+            
+            actualizarLideresHTML('warLeaders', warLideres, 'war', true);
         }
 
-        function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            if (lideres.length === 0) {
+        function mostrarLideresVacios(containerId) {
+             const container = document.getElementById(containerId);
+            if (container) {
                 container.innerHTML = `
                     <div class="leader-item">
                         <div>
                             <div class="leader-name">Sin datos suficientes</div>
-                            <div class="leader-team">-</div>
+                            <div class="leader-team">(Mínimo 10 AB)</div>
                         </div>
                         <div class="leader-stat">-</div>
                     </div>
                 `;
+            }
+        }
+
+        // *** INICIO DE CORRECCIÓN: Función HTML más robusta ***
+        function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`Contenedor no encontrado: ${containerId}`);
+                return;
+            }
+
+            if (!lideres || lideres.length === 0) {
+                mostrarLideresVacios(containerId); // Usar la función de estado vacío
                 return;
             }
 
@@ -1724,13 +1739,33 @@
             const medalIcons = ['🥇', '🥈', '🥉'];
 
             container.innerHTML = lideres.map((lider, index) => {
-                const jugador = jugadores.find(j => j.id === lider.jugador_id);
-                let valor;
+                let jugadorNombre, equipoNombre, valor;
                 
-                if (isDecimal) {
-                    valor = lider[stat] ? lider[stat].toFixed(3) : '0.000';
+                // Lógica robusta para manejar ambos tipos de datos
+                if (lider.jugador_nombre) {
+                    // Viene de la API (Pitcheo / Defensa / Ofensiva)
+                    jugadorNombre = lider.jugador_nombre;
+                    equipoNombre = lider.equipo_nombre;
                 } else {
-                    valor = lider[stat] || 0;
+                    // Fallback por si acaso (aunque ya no debería usarse)
+                    const jugador = jugadores.find(j => j.id === lider.jugador_id);
+                    jugadorNombre = jugador ? jugador.nombre : 'Desconocido';
+                    equipoNombre = jugador ? jugador.equipo_nombre : '-';
+                }
+                
+                // Manejar valor (asegurarnos de que es un número)
+                let statValue = lider[stat];
+                if (typeof statValue === 'string') {
+                    statValue = parseFloat(statValue);
+                }
+
+                if (isDecimal) {
+                    valor = statValue ? statValue.toFixed(3) : '0.000';
+                    if (stat === 'war') {
+                        valor = statValue.toFixed(2);
+                    }
+                } else {
+                    valor = statValue || 0;
                 }
                 
                 const medalClass = medals[index] || '';
@@ -1739,14 +1774,15 @@
                 return `
                     <div class="leader-item">
                         <div>
-                            <div class="leader-name ${medalClass}">${medalIcon} ${jugador ? jugador.nombre : 'Desconocido'}</div>
-                            <div class="leader-team">${jugador ? jugador.equipo_nombre : '-'}</div>
+                            <div class="leader-name ${medalClass}">${medalIcon} ${jugadorNombre}</div>
+                            <div class="leader-team">${equipoNombre}</div>
                         </div>
                         <div class="leader-stat">${valor}</div>
                     </div>
                 `;
             }).join('');
         }
+        // *** FIN DE CORRECCIÓN ***
 
         // ========== ACTUALIZAR SELECTORES ==========
 
@@ -1946,8 +1982,7 @@
             }
         }
 
-        // ========== NUEVA FUNCIÓN: REGISTRAR ESTADÍSTICAS AVANZADAS ==========
-
+        // *** INICIO DE CORRECCIÓN: Registrar Estadísticas Ofensivas en la API ***
         async function registrarEstadisticas() {
             const jugadorId = parseInt(document.getElementById('jugadorStats').value);
             const atBats = parseInt(document.getElementById('atBats').value) || 0;
@@ -1956,7 +1991,7 @@
             const rbi = parseInt(document.getElementById('rbi').value) || 0;
             const runs = parseInt(document.getElementById('runs').value) || 0;
             const walks = parseInt(document.getElementById('walks').value) || 0;
-            const errors = parseInt(document.getElementById('errors').value) || 0;
+            // 'errors' se omite intencionalmente, se registra en el form defensivo
             const stolenBases = parseInt(document.getElementById('stolenBases').value) || 0;
 
             if (!jugadorId) {
@@ -1970,40 +2005,26 @@
             }
 
             try {
-                // Buscar si ya existe una estadística para este jugador
-                const estatExistente = estadisticas.findIndex(stat => stat.jugador_id === jugadorId);
+                const response = await fetch('/api/estadisticas-ofensivas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jugador_id: jugadorId,
+                        at_bats: atBats,
+                        hits: hits,
+                        home_runs: homeRuns,
+                        rbi: rbi,
+                        runs: runs,
+                        walks: walks,
+                        stolen_bases: stolenBases
+                    })
+                });
 
-                const nuevaEstat = {
-                    jugador_id: jugadorId,
-                    at_bats: atBats,
-                    hits: hits,
-                    home_runs: homeRuns,
-                    rbi: rbi,
-                    runs: runs,
-                    walks: walks,
-                    errors: errors,
-                    stolen_bases: stolenBases,
-                    fecha: new Date().toISOString()
-                };
-
-                if (estatExistente !== -1) {
-                    // Actualizar estadística existente (sumar valores)
-                    estadisticas[estatExistente].at_bats += atBats;
-                    estadisticas[estatExistente].hits += hits;
-                    estadisticas[estatExistente].home_runs += homeRuns;
-                    estadisticas[estatExistente].rbi += rbi;
-                    estadisticas[estatExistente].runs += runs;
-                    estadisticas[estatExistente].walks += walks;
-                    estadisticas[estatExistente].errors += errors;
-                    estadisticas[estatExistente].stolen_bases += stolenBases;
-                } else {
-                    // Agregar nueva estadística
-                    estadisticas.push(nuevaEstat);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error del servidor');
                 }
-
-                // Guardar en localStorage (en futuro será en base de datos)
-                localStorage.setItem('chogui_estadisticas', JSON.stringify(estadisticas));
-
+                
                 // Limpiar formulario
                 document.getElementById('jugadorStats').value = '';
                 document.getElementById('atBats').value = '0';
@@ -2016,16 +2037,20 @@
                 document.getElementById('stolenBases').value = '0';
 
                 const jugador = jugadores.find(j => j.id === jugadorId);
-                mostrarExito('statsMessage', `✅ Estadísticas avanzadas de "${jugador ? jugador.nombre : 'Jugador'}" registradas correctamente`);
+                mostrarExito('statsMessage', `✅ Estadísticas de "${jugador ? jugador.nombre : 'Jugador'}" guardadas en la base de datos.`);
                 
-                actualizarTablaEstadisticas();
+                // Recargar todas las estadísticas y líderes
+                await cargarEstadisticas();
                 actualizarLideres();
                 actualizarLideresPorPosicion();
+
             } catch (error) {
                 console.error('Error:', error);
-                mostrarError('statsError', 'Error al registrar estadísticas');
+                mostrarError('statsError', `Error al registrar estadísticas: ${error.message}`);
             }
         }
+        // *** FIN DE CORRECCIÓN ***
+
 
         // ========== FUNCIONES DE UTILIDAD ==========
 
@@ -2051,8 +2076,8 @@
             }
         }
 
-        // ========== FUNCIONES PLACEHOLDER PARA EDITAR/ELIMINAR ==========
 // ========== FUNCIONES DE EDICIÓN Y ELIMINACIÓN ==========
+// (Estas funciones permanecen igual)
 
 // ========== EQUIPOS ==========
 async function editarEquipo(id) {
