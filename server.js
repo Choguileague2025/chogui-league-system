@@ -80,6 +80,11 @@ app.get('/api/test', async (req, res) => {
 });
 
 // ====================== TORNEOS (FASE 5) ======================
+// *** INICIO DE CORRECCIÓN DE ORDEN ***
+// Las rutas específicas (como /activo o /desactivar-todos) DEBEN ir ANTES
+// que las rutas dinámicas (como /:id) para evitar conflictos.
+
+// GET /api/torneos (Obtener todos)
 app.get('/api/torneos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM torneos ORDER BY fecha_inicio DESC');
@@ -89,11 +94,11 @@ app.get('/api/torneos', async (req, res) => {
     }
 });
 
+// GET /api/torneos/activo (Ruta específica)
 app.get('/api/torneos/activo', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM torneos WHERE activo = true LIMIT 1');
         if (result.rows.length === 0) {
-            // *** CORRECCIÓN 5.5: Ya no activa uno por defecto. Si no hay, no hay. ***
             return res.status(404).json({ error: 'No hay ningún torneo activo' });
         } else {
             res.json(result.rows[0]);
@@ -103,6 +108,7 @@ app.get('/api/torneos/activo', async (req, res) => {
     }
 });
 
+// POST /api/torneos (Crear nuevo)
 app.post('/api/torneos', async (req, res) => {
     try {
         const { nombre } = req.body;
@@ -123,7 +129,53 @@ app.post('/api/torneos', async (req, res) => {
     }
 });
 
+// PUT /api/torneos/desactivar-todos (Ruta específica)
+app.put('/api/torneos/desactivar-todos', async (req, res) => {
+    console.log('🔷 Petición para DESACTIVAR TODOS los torneos...');
+    try {
+        const queryText = 'UPDATE torneos SET activo = false';
+        console.log('   -> Ejecutando query:', queryText);
+        
+        await pool.query(queryText);
+        
+        console.log('   -> Query completada. Todos desactivados.');
+        res.json({ message: 'Todos los torneos han sido desactivados.' });
+    } catch (error) {
+        console.error('❌ Error en /api/torneos/desactivar-todos:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// PUT /api/torneos/:id/activar (Ruta dinámica específica)
+app.put('/api/torneos/:id/activar', async (req, res) => {
+    console.log(`🔷 Petición para ACTIVAR torneo ID: ${req.params.id}`);
+    try {
+        const { id } = req.params;
+        
+        console.log('   -> Desactivando todos los demás torneos...');
+        await pool.query('UPDATE torneos SET activo = false');
+        console.log('   -> ¡Desactivados!');
+
+        console.log(`   -> Activando torneo ${id}...`);
+        const result = await pool.query(
+            'UPDATE torneos SET activo = true WHERE id = $1 RETURNING *',
+            [id]
+        );
+        console.log('   -> ¡Activado!');
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Torneo no encontrado' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('❌ Error en /api/torneos/:id/activar:', error.message);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// PUT /api/torneos/:id (Ruta dinámica general - DEBE IR DESPUÉS)
 app.put('/api/torneos/:id', async (req, res) => {
+    console.log(`🔷 Petición para EDITAR NOMBRE torneo ID: ${req.params.id}`);
     try {
         const { id } = req.params;
         const { nombre } = req.body;
@@ -142,60 +194,15 @@ app.put('/api/torneos/:id', async (req, res) => {
         if (error.code === '23505') {
             res.status(400).json({ error: 'Ya existe un torneo con ese nombre' });
         } else {
+            console.error('❌ Error en PUT /api/torneos/:id:', error.message);
             res.status(500).json({ error: 'Error interno del servidor' });
         }
     }
 });
 
-// Activar un torneo (y desactivar los demás)
-app.put('/api/torneos/:id/activar', async (req, res) => {
-    console.log(`🔷 Petición para ACTIVAR torneo ID: ${req.params.id}`); // NUEVO LOG
-    try {
-        const { id } = req.params;
-        
-        console.log('   -> Desactivando todos los demás torneos...');
-        await pool.query('UPDATE torneos SET activo = false');
-        console.log('   -> ¡Desactivados!');
-
-        // *** CORRECCIÓN DEL BUG DE SINTAXIS (Líneas 169-172 originales) ***
-        console.log(`   -> Activando torneo ${id}...`);
-        const result = await pool.query(
-            'UPDATE torneos SET activo = true WHERE id = $1 RETURNING *',
-            [id]
-        );
-        console.log('   -> ¡Activado!');
-        // *** FIN DE CORRECCIÓN ***
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Torneo no encontrado' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('❌ Error en /api/torneos/:id/activar:', error.message);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-// *** INICIO FASE 5.5: Desactivar y Eliminar ***
-app.put('/api/torneos/desactivar-todos', async (req, res) => {
-    // *** ¡HE AGREGADO MÁS LOGS AQUÍ PARA ENCONTRAR EL ERROR 500! ***
-    console.log('🔷 Petición para DESACTIVAR TODOS los torneos...');
-    try {
-        const queryText = 'UPDATE torneos SET activo = false';
-        console.log('   -> Ejecutando query:', queryText);
-        
-        await pool.query(queryText);
-        
-        console.log('   -> Query completada. Todos desactivados.');
-        res.json({ message: 'Todos los torneos han sido desactivados.' });
-    } catch (error) {
-        console.error('❌ Error en /api/torneos/desactivar-todos:', error.message);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
+// DELETE /api/torneos/:id (Ruta dinámica)
 app.delete('/api/torneos/:id', async (req, res) => {
-    console.log(`🔷 Petición para ELIMINAR torneo ID: ${req.params.id}`); // NUEVO LOG
+    console.log(`🔷 Petición para ELIMINAR torneo ID: ${req.params.id}`);
     try {
         const { id } = req.params;
         // Verificar si el torneo está activo
@@ -225,7 +232,7 @@ app.delete('/api/torneos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-// *** FIN FASE 5.5 ***
+// *** FIN DE CORRECCIÓN DE ORDEN ***
 
 // ====================== EQUIPOS ======================
 app.get('/api/equipos', async (req, res) => {
