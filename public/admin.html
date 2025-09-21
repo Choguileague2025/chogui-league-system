@@ -767,17 +767,17 @@
                         </div>
                         <div class="form-group">
                             <label for="carrerasLocal">Carreras Local:</label>
-                            <input type="number" id="carrerasLocal" min="0" required>
+                            <input type="number" id="carrerasLocal" min="0">
                         </div>
                     </div>
                     <div>
                         <div class="form-group">
                             <label for="carrerasVisitante">Carreras Visitante:</label>
-                            <input type="number" id="carrerasVisitante" min="0" required>
+                            <input type="number" id="carrerasVisitante" min="0">
                         </div>
                         <div class="form-group">
                             <label for="inningsJugados">Innings Jugados:</label>
-                            <input type="number" id="inningsJugados" min="1" max="15" value="9" required>
+                            <input type="number" id="inningsJugados" min="1" max="15" value="9">
                         </div>
                         <div class="form-group">
                             <label for="fechaPartido">Fecha del Partido:</label>
@@ -1300,7 +1300,7 @@
                     </div>
                     <div class="form-group">
                         <label for="horariosJuego">Horarios (separados por coma):</label>
-                        <input type="text" id="horariosJuego" value="10:00, 12:00, 14:00, 16:00">
+                        <input type="text" id="horariosJuego" value="09:00, 11:00, 13:00, 15:00">
                     </div>
                     <div class="form-group">
                         <label for="diasEntreJornadas">Días entre Jornadas:</label>
@@ -1753,13 +1753,13 @@
             }
 
             tbody.innerHTML = partidos.map(partido => {
-                const ganador = partido.carreras_local > partido.carreras_visitante ? 
-                    partido.equipo_local_nombre : partido.equipo_visitante_nombre;
                 // === INICIO CAMBIO FASE 7.1: Mostrar partidos sin resultado ===
                 let resultado = 'Pendiente';
                 let ganadorHtml = `<small style="color: #ff8c00;">Pendiente</small>`;
 
                 if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+                    const ganador = partido.carreras_local > partido.carreras_visitante ? 
+                        partido.equipo_local_nombre : partido.equipo_visitante_nombre;
                     resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
                     ganadorHtml = `<small style="color: #4CAF50;">Ganó: ${ganador}</small>`;
                 }
@@ -1981,10 +1981,12 @@
                 const localId = partido.equipo_local_id;
                 const visitanteId = partido.equipo_visitante_id;
                 if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
+                    
+                    // === INICIO CAMBIO FASE 7.1: Contar todos los partidos para PJ (visual) ===
+                    // Pero solo sumar PG/PP si hay resultado
                     estadisticasEquipos[localId].partidos_jugados++;
                     estadisticasEquipos[visitanteId].partidos_jugados++;
                     
-                    // === INICIO CAMBIO FASE 7.1: Ignorar partidos sin resultado ===
                     if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
                         estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
                         estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
@@ -3220,17 +3222,151 @@ async function eliminarPartido(id) {
         let calendarioGenerado = [];
 
         async function generarCalendario() {
-            // (Paso 7.3) Aquí irá la lógica del algoritmo Round Robin
-            mostrarError('calendarioError', '¡Función aún no implementada! La agregaremos en el Paso 3.');
-            
-            // Simulación (para ver que funciona)
+            console.log('Iniciando generación de calendario...');
             const calendarioDiv = document.getElementById('calendario-generado');
-            calendarioDiv.innerHTML = `<div class="loading">Generando... (Lógica pendiente)</div>`;
+            calendarioDiv.innerHTML = '<div class="loading">Generando calendario...</div>';
+            
+            // 1. Validar Equipos
+            if (equipos.length !== 9) {
+                mostrarError('calendarioError', `Error: Se necesitan 9 equipos para este generador. Tienes ${equipos.length}.`);
+                calendarioDiv.innerHTML = '<div class="empty-state">Error: Se necesitan 9 equipos.</div>';
+                return;
+            }
+            
+            // 2. Obtener Parámetros
+            const horariosStr = document.getElementById('horariosJuego').value;
+            const horarios = horariosStr.split(',').map(h => h.trim());
+            if (horarios.length !== 4) {
+                mostrarError('calendarioError', 'Error: Debes ingresar 4 horarios separados por coma (ej. 09:00, 11:00, 13:00, 15:00).');
+                calendarioDiv.innerHTML = '<div class="empty-state">Error: Se necesitan 4 horarios.</div>';
+                return;
+            }
+            
+            let fechaInicioStr = document.getElementById('fechaInicioCalendario').value;
+            if (!fechaInicioStr) {
+                mostrarError('calendarioError', 'Error: Debes seleccionar una fecha de inicio.');
+                calendarioDiv.innerHTML = '<div class="empty-state">Error: Falta fecha de inicio.</div>';
+                return;
+            }
+            // Ajuste para asegurar que la fecha se interprete en la zona horaria local
+            const fechaInicio = new Date(fechaInicioStr + 'T00:00:00-03:00'); // Asumir zona local (Argentina)
+            
+            const diasEntre = parseInt(document.getElementById('diasEntreJornadas').value);
+            
+            // 3. Preparar Algoritmo (Round Robin para N impar)
+            let misEquipos = [...equipos.map(e => ({ id: e.id, nombre: e.nombre }))];
+            // Añadir un equipo "dummy" para gestionar el descanso (9 equipos -> 10)
+            misEquipos.push({ id: 'dummy', nombre: 'Descansa' });
+            
+            const n = misEquipos.length; // 10
+            const numJornadas = n - 1; // 9 jornadas
+            const numPartidosPorJornada = n / 2; // 5 "partidos" (4 reales, 1 descanso)
+            
+            let calendarioHTML = '';
+            calendarioGenerado = []; // Limpiar calendario global
+            
+            for (let r = 0; r < numJornadas; r++) {
+                let jornadaPartidos = [];
+                let fechaJornada = new Date(fechaInicio.getTime() + (r * diasEntre * 24 * 60 * 60 * 1000));
+                let fechaISO = fechaJornada.toISOString().split('T')[0];
+                
+                calendarioHTML += `<div class="jornada-card"><h4>Jornada ${r + 1} (Fecha: ${fechaJornada.toLocaleDateString('es-AR')})</h4>`;
+                
+                let descansaEquipo = '';
+                
+                for (let i = 0; i < numPartidosPorJornada; i++) {
+                    const local = misEquipos[i];
+                    const visitante = misEquipos[n - 1 - i];
+
+                    if (local.id === 'dummy') {
+                        descansaEquipo = visitante.nombre;
+                        continue; // No es un partido, es un descanso
+                    }
+                    if (visitante.id === 'dummy') {
+                        descansaEquipo = local.nombre;
+                        continue; // No es un partido, es un descanso
+                    }
+                    
+                    // Es un partido real
+                    const horario = horarios[jornadaPartidos.length % horarios.length];
+                    const partido = {
+                        equipo_local_id: local.id,
+                        equipo_visitante_id: visitante.id,
+                        fecha_partido: `${fechaISO}T${horario}:00`, // Combinar fecha y hora para timestamp
+                        local_nombre: local.nombre,
+                        visitante_nombre: visitante.nombre,
+                        horario: horario
+                    };
+                    
+                    jornadaPartidos.push(partido);
+                    calendarioHTML += `<div class="jornada-partido"><strong>${local.nombre}</strong> vs <strong>${visitante.nombre}</strong> <span>@ ${horario}</span></div>`;
+                }
+                
+                calendarioGenerado.push(...jornadaPartidos);
+                calendarioHTML += `<div class="jornada-descansa">Descansa: ${descansaEquipo}</div></div>`;
+
+                // Rotar el array (algoritmo Round Robin)
+                // Se mantiene el primer equipo (misEquipos[0])
+                // El resto rota en sentido horario
+                const ultimo = misEquipos.pop();
+                misEquipos.splice(1, 0, ultimo);
+            }
+            
+            // 4. Mostrar en UI
+            calendarioDiv.innerHTML = calendarioHTML;
+            document.getElementById('btnGuardarCalendario').disabled = false;
+            document.getElementById('btnGuardarCalendario').textContent = '💾 Guardar Calendario en BD';
+            mostrarExito('calendarioMessage', `¡Calendario de ${numJornadas} jornadas generado! Revisa y presiona 'Guardar'.`);
         }
 
         async function guardarCalendario() {
-            // (Paso 7.3) Aquí irá la lógica para enviar a /api/partidos
-            mostrarError('calendarioError', '¡Función aún no implementada! La agregaremos en el Paso 3.');
+            if (calendarioGenerado.length === 0) {
+                mostrarError('calendarioError', 'Primero debes generar un calendario.');
+                return;
+            }
+            if (!confirm(`¿Estás seguro de guardar este calendario? Se crearán ${calendarioGenerado.length} partidos en la base de datos.`)) {
+                return;
+            }
+
+            const btn = document.getElementById('btnGuardarCalendario');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            try {
+                let partidosCreados = 0;
+                for (const partido of calendarioGenerado) {
+                    
+                    const response = await fetch('/api/partidos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            equipo_local_id: partido.equipo_local_id,
+                            equipo_visitante_id: partido.equipo_visitante_id,
+                            fecha_partido: partido.fecha_partido, // Ya tiene formato YYYY-MM-DDTHH:MM:SS
+                            innings_jugados: 9, // Default
+                            carreras_local: null, // Partido a futuro
+                            carreras_visitante: null // Partido a futuro
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        partidosCreados++;
+                    } else {
+                        console.warn(`Error al guardar partido: ${partido.local_nombre} vs ${partido.visitante_nombre}`);
+                    }
+                }
+                
+                mostrarExito('calendarioMessage', `¡Calendario guardado! Se crearon ${partidosCreados} partidos en la base de datos.`);
+                await cargarPartidos(); // Actualizar la tabla de partidos
+                btn.textContent = 'Guardado ✔️';
+                calendarioGenerado = []; // Limpiar para evitar doble guardado
+            
+            } catch (error) {
+                console.error('Error guardando calendario:', error);
+                mostrarError('calendarioError', 'Error de conexión al guardar el calendario.');
+                btn.disabled = false;
+                btn.textContent = '💾 Guardar Calendario en BD';
+            }
         }
         
         // ========== FIN FASE 7 ==========
