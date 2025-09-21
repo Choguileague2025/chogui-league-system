@@ -2802,7 +2802,9 @@ async function eliminarPartido(id) {
         
         // Guardar los datos actualizados
         async function actualizarEstadistica(tipo, jugadorId) {
-            let body = { jugador_id: jugadorId, temporada: '2025' }; // Asumimos temporada actual
+            // *** INICIO DE CORRECCIÓN: Añadir jugador_id al body ***
+            let body = { jugador_id: jugadorId, temporada: '2025' }; 
+            // *** FIN DE CORRECCIÓN ***
             let errorId = 'statsError'; // Default
             let endpointTipo = tipo;
             
