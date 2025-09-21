@@ -80,9 +80,7 @@ app.get('/api/test', async (req, res) => {
 });
 
 // ====================== TORNEOS (FASE 5) ======================
-// *** INICIO DE CORRECCIÓN DE ORDEN ***
-// Las rutas específicas (como /activo o /desactivar-todos) DEBEN ir ANTES
-// que las rutas dinámicas (como /:id) para evitar conflictos.
+// *** ORDEN CORRECTO (Fase 5 Corregida) ***
 
 // GET /api/torneos (Obtener todos)
 app.get('/api/torneos', async (req, res) => {
@@ -232,7 +230,6 @@ app.delete('/api/torneos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-// *** FIN DE CORRECCIÓN DE ORDEN ***
 
 // ====================== EQUIPOS ======================
 app.get('/api/equipos', async (req, res) => {
@@ -445,18 +442,26 @@ app.get('/api/partidos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
+// *** INICIO DE CORRECCIÓN FASE 7.1 ***
 app.post('/api/partidos', async (req, res) => {
     try {
+        // Las carreras ahora son opcionales
         const { equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido } = req.body;
-        if (!equipo_local_id || !equipo_visitante_id || carreras_local === undefined || carreras_visitante === undefined) {
-            return res.status(400).json({ error: 'Todos los campos son requeridos' });
+        
+        // Quitado: carreras_local === undefined || carreras_visitante === undefined
+        // Ahora solo validamos lo esencial para un partido a futuro
+        if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
+            return res.status(400).json({ error: 'Equipo local, equipo visitante y fecha son requeridos' });
         }
         if (equipo_local_id === equipo_visitante_id) {
             return res.status(400).json({ error: 'Los equipos local y visitante deben ser diferentes' });
         }
+        
         const result = await pool.query(
             'INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados || 9, fecha_partido]
+            // Usamos || null para que guarde NULL en la BD si no se provee un resultado
+            [equipo_local_id, equipo_visitante_id, carreras_local || null, carreras_visitante || null, innings_jugados || 9, fecha_partido]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -464,6 +469,8 @@ app.post('/api/partidos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+// *** FIN DE CORRECCIÓN FASE 7.1 ***
+
 app.put('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
