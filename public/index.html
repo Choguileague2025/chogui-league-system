@@ -881,6 +881,18 @@
                     </div>
                 </div>
             </div>
+            <div class="leader-card">
+    <h4>🛡️ MEJOR PORCENTAJE DEFENSIVO</h4>
+    <div id="fieldingLeaders">
+        <div class="leader-item">
+            <div>
+                <div class="leader-name">Sin estadísticas</div>
+                <div class="leader-team">-</div>
+            </div>
+            <div class="leader-stat">-.---</div>
+        </div>
+    </div>
+</div>
 
             <!-- MEJORES POR POSICIÓN -->
             <div class="card">
@@ -1042,52 +1054,58 @@ async function cargarEstadisticas() {
         actualizarLideresPorPosicion();
         
         // NUEVO: Cargar líderes de pitcheo completos
-        try {
-            const responsePitcheo = await fetch('/api/lideres-pitcheo');
-            if (responsePitcheo.ok) {
-                const lideresPitcheo = await responsePitcheo.json();
-                console.log('✅ Líderes de pitcheo cargados:', lideresPitcheo.length);
-                
-                // Actualizar ERA
-                if (lideresPitcheo.length > 0) {
-                    actualizarLideresHTML('eraLeaders', lideresPitcheo.slice(0, 3), 'era', true);
-                    actualizarLideresHTML('whipLeaders', 
-                        lideresPitcheo.sort((a, b) => a.whip - b.whip).slice(0, 3), 'whip', true);
-                    actualizarLideresHTML('winsLeaders', 
-                        lideresPitcheo.sort((a, b) => b.wins - a.wins).slice(0, 3), 'wins');
-                    actualizarLideresHTML('savesLeaders', 
-                        lideresPitcheo.sort((a, b) => b.saves - a.saves).slice(0, 3), 'saves');
-                }
-            }
-        } catch (error) {
-            console.log('Info: No hay estadísticas de pitcheo aún');
-        }
+      // NUEVO: Cargar líderes de pitcheo completos
+try {
+    const responsePitcheo = await fetch('/api/lideres-pitcheo');
+    if (responsePitcheo.ok) {
+        const lideresPitcheo = await responsePitcheo.json();
+        console.log('✅ Líderes de pitcheo cargados:', lideresPitcheo.length);
         
-        // NUEVO: Cargar líderes defensivos
-        try {
-            const responseDefensivo = await fetch('/api/lideres-defensivos');
-            if (responseDefensivo.ok) {
-                const lideresDefensivos = await responseDefensivo.json();
-                console.log('✅ Líderes defensivos cargados:', lideresDefensivos.length);
-                
-                // Actualizar líderes defensivos
-                if (lideresDefensivos.length > 0) {
-                    // Mejor porcentaje defensivo general
-                    const mejoresDefensivos = lideresDefensivos
-                        .sort((a, b) => b.fielding_percentage - a.fielding_percentage)
-                        .slice(0, 3);
-                    
-                    actualizarLideresHTML('fieldingLeaders', mejoresDefensivos, 'fielding_percentage', true);
-                }
-            }
-        } catch (error) {
-            console.log('Info: No hay estadísticas defensivas aún');
+        if (lideresPitcheo.length > 0) {
+            // Líderes por ERA (menor es mejor)
+            const eraLideres = [...lideresPitcheo].sort((a, b) => a.era - b.era).slice(0, 3);
+            actualizarLideresHTML('eraLeaders', eraLideres, 'era', true);
+            
+            // Líderes por WHIP (menor es mejor)  
+            const whipLideres = [...lideresPitcheo].sort((a, b) => a.whip - b.whip).slice(0, 3);
+            actualizarLideresHTML('whipLeaders', whipLideres, 'whip', true);
+            
+            // Líderes por Victorias (mayor es mejor)
+            const winsLideres = [...lideresPitcheo].sort((a, b) => b.wins - a.wins).slice(0, 3);
+            actualizarLideresHTML('winsLeaders', winsLideres, 'wins');
+            
+            // Líderes por Salvamentos (mayor es mejor)
+            const savesLideres = [...lideresPitcheo].sort((a, b) => b.saves - a.saves).slice(0, 3);
+            actualizarLideresHTML('savesLeaders', savesLideres, 'saves');
         }
-        
-    } catch (error) {
-        console.error('Error cargando estadísticas:', error);
-        estadisticas = [];
     }
+} catch (error) {
+    console.log('Info: No hay estadísticas de pitcheo aún');
+}
+
+// NUEVO: Cargar líderes defensivos completos
+try {
+    const responseDefensivo = await fetch('/api/lideres-defensivos');
+    if (responseDefensivo.ok) {
+        const lideresDefensivos = await responseDefensivo.json();
+        console.log('✅ Líderes defensivos cargados:', lideresDefensivos.length);
+        
+        if (lideresDefensivos.length > 0) {
+            // Mejor porcentaje defensivo general
+            const mejoresDefensivos = lideresDefensivos
+                .sort((a, b) => b.fielding_percentage - a.fielding_percentage)
+                .slice(0, 3);
+            
+            // Crear contenedor si no existe
+            const container = document.getElementById('fieldingLeaders');
+            if (container) {
+                actualizarLideresHTML('fieldingLeaders', mejoresDefensivos, 'fielding_percentage', true);
+            }
+        }
+    }
+} catch (error) {
+    console.log('Info: No hay estadísticas defensivas aún');
+}
 }
         // ========== FUNCIONES DE CÁLCULOS AVANZADOS MLB (copiado del admin) ==========
 
