@@ -149,25 +149,28 @@ app.put('/api/torneos/:id', async (req, res) => {
 
 // Activar un torneo (y desactivar los demás)
 app.put('/api/torneos/:id/activar', async (req, res) => {
+    console.log(`🔷 Petición para ACTIVAR torneo ID: ${req.params.id}`); // NUEVO LOG
     try {
         const { id } = req.params;
-        await pool.query('UPDATE torneos SET activo = false');
         
-        // *** INICIO DE CORRECCIÓN DEL BUG DE SINTAXIS ***
-        // Las líneas 169-172 originales tenían comillas (`) y (`) y comas (,) mal puestas.
-        // Esta es la forma correcta:
+        console.log('   -> Desactivando todos los demás torneos...');
+        await pool.query('UPDATE torneos SET activo = false');
+        console.log('   -> ¡Desactivados!');
+
+        // *** CORRECCIÓN DEL BUG DE SINTAXIS (Líneas 169-172 originales) ***
+        console.log(`   -> Activando torneo ${id}...`);
         const result = await pool.query(
             'UPDATE torneos SET activo = true WHERE id = $1 RETURNING *',
             [id]
         );
-        // *** FIN DE CORRECCIÓN DEL BUG DE SINTAXIS ***
+        console.log('   -> ¡Activado!');
+        // *** FIN DE CORRECCIÓN ***
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
         res.json(result.rows[0]);
     } catch (error) {
-        // *** NUEVO: Agregamos un log para ver el error en Railway ***
         console.error('❌ Error en /api/torneos/:id/activar:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
@@ -175,40 +178,49 @@ app.put('/api/torneos/:id/activar', async (req, res) => {
 
 // *** INICIO FASE 5.5: Desactivar y Eliminar ***
 app.put('/api/torneos/desactivar-todos', async (req, res) => {
+    // *** ¡HE AGREGADO MÁS LOGS AQUÍ PARA ENCONTRAR EL ERROR 500! ***
+    console.log('🔷 Petición para DESACTIVAR TODOS los torneos...');
     try {
-        await pool.query('UPDATE torneos SET activo = false');
+        const queryText = 'UPDATE torneos SET activo = false';
+        console.log('   -> Ejecutando query:', queryText);
+        
+        await pool.query(queryText);
+        
+        console.log('   -> Query completada. Todos desactivados.');
         res.json({ message: 'Todos los torneos han sido desactivados.' });
     } catch (error) {
-        // *** NUEVO: Agregamos un log para ver el error en Railway ***
-        // Esto nos dirá por qué la ruta del botón "Desactivar Todos" daba Error 500
         console.error('❌ Error en /api/torneos/desactivar-todos:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
 app.delete('/api/torneos/:id', async (req, res) => {
+    console.log(`🔷 Petición para ELIMINAR torneo ID: ${req.params.id}`); // NUEVO LOG
     try {
         const { id } = req.params;
         // Verificar si el torneo está activo
         const torneo = await pool.query('SELECT * FROM torneos WHERE id = $1', [id]);
         if (torneo.rows.length > 0 && torneo.rows[0].activo) {
+            console.log('   -> ERROR: Intento de borrar torneo activo');
             return res.status(400).json({ error: 'No se puede eliminar un torneo activo. Activa otro primero o desactívalos todos.' });
         }
         
-        // (En el futuro, deberíamos verificar si hay stats asociadas)
-        // Por ahora, la BD lanzará un error si hay stats asociadas, lo cual está bien.
-        
+        console.log('   -> Torneo no está activo. Intentando eliminar...');
         const result = await pool.query('DELETE FROM torneos WHERE id = $1 RETURNING *', [id]);
+        
         if (result.rows.length === 0) {
+            console.log('   -> ERROR: Torneo no encontrado para eliminar');
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
+        
+        console.log('   -> ¡Torneo eliminado!');
         res.json({ message: 'Torneo eliminado correctamente' });
     } catch (error) {
         // Manejar error de llave foránea (si hay stats que dependen de este torneo)
         if (error.code === '23503') {
+             console.log('   -> ERROR: Intento de borrar torneo con stats asociadas');
              return res.status(400).json({ error: 'No se puede eliminar. Hay estadísticas (bateo, pitcheo, etc.) asociadas a este torneo.' });
         }
-        // *** NUEVO: Agregamos un log para ver el error en Railway ***
         console.error('❌ Error en DELETE /api/torneos/:id:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
