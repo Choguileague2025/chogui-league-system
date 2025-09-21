@@ -2727,13 +2727,13 @@ async function eliminarPartido(id) {
             resetearBoton('defensiva');
 
             try {
-             let endpointTipo = tipo;
-            
-            // <<< CORRECCIÓN: Añadir 's' a ofensiva y defensiva >>>
-            if (tipo === 'defensiva' || tipo === 'ofensiva') {
-                endpointTipo = tipo + 's';
-            }
-            }
+                let stat;
+                let endpointTipo = tipo;
+                
+                // *** CORRECCIÓN DE ERROR DE TIPEO (Ofensiva y Defensiva) ***
+                if (tipo === 'defensiva' || tipo === 'ofensiva') {
+                    endpointTipo = tipo + 's';
+                }
                 
                 // 1. Obtener los datos del jugador
                 const res = await fetch(`/api/estadisticas-${endpointTipo}/${jugadorId}`);
@@ -2758,7 +2758,7 @@ async function eliminarPartido(id) {
                     const btn = document.getElementById('btnRegistrarOfensiva');
                     btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
                     btn.classList.add('btn-actualizar');
-                    btn.setAttribute('onclick', `actualizarEstadistica('ofensiva', ${jugadorId})`);
+                    btn.setAttribute('onclick', `actualizarEstadistica('ofensiva', ${stat.jugador_id})`);
                     
                     document.getElementById('btnRegistrarOfensiva').scrollIntoView({ behavior: 'smooth' });
                 } else if (tipo === 'pitcheo') {
@@ -2776,7 +2776,7 @@ async function eliminarPartido(id) {
                     const btn = document.getElementById('btnRegistrarPitcheo');
                     btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
                     btn.classList.add('btn-actualizar');
-                    btn.setAttribute('onclick', `actualizarEstadistica('pitcheo', ${jugadorId})`);
+                    btn.setAttribute('onclick', `actualizarEstadistica('pitcheo', ${stat.jugador_id})`);
 
                     document.getElementById('btnRegistrarPitcheo').scrollIntoView({ behavior: 'smooth' });
                 } else if (tipo === 'defensiva') {
@@ -2790,7 +2790,7 @@ async function eliminarPartido(id) {
                     const btn = document.getElementById('btnRegistrarDefensa');
                     btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
                     btn.classList.add('btn-actualizar');
-                    btn.setAttribute('onclick', `actualizarEstadistica('defensiva', ${jugadorId})`);
+                    btn.setAttribute('onclick', `actualizarEstadistica('defensiva', ${stat.jugador_id})`);
                     
                     document.getElementById('btnRegistrarDefensa').scrollIntoView({ behavior: 'smooth' });
                 }
@@ -2802,9 +2802,7 @@ async function eliminarPartido(id) {
         
         // Guardar los datos actualizados
         async function actualizarEstadistica(tipo, jugadorId) {
-            // *** INICIO DE CORRECCIÓN: Añadir jugador_id al body ***
             let body = { jugador_id: jugadorId, temporada: '2025' }; 
-            // *** FIN DE CORRECCIÓN ***
             let errorId = 'statsError'; // Default
             let endpointTipo = tipo;
             
