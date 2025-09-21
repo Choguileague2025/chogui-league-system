@@ -1390,6 +1390,7 @@
                         <td>${new Date(torneo.fecha_inicio).toLocaleDateString('es-AR')}</td>
                         <td>${torneo.activo ? '🟢 Activo' : '⚪ Inactivo'}</td>
                         <td>
+                            <button class="btn-secondary btn-edit" onclick="editarTorneo(${torneo.id}, '${torneo.nombre}')">✏️ Editar</button>
                             <button 
                                 class="btn-secondary btn-activar" 
                                 onclick="activarTorneo(${torneo.id})"
@@ -1431,6 +1432,34 @@
                 mostrarError('torneoError', 'Error de conexión');
             }
         }
+        
+        // *** INICIO FASE 5.4: Función Editar Torneo ***
+        async function editarTorneo(id, nombreActual) {
+            const nuevoNombre = prompt('Ingresa el nuevo nombre para el torneo:', nombreActual);
+            
+            if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre === nombreActual) {
+                return; // El usuario canceló o no cambió el nombre
+            }
+
+            try {
+                const response = await fetch(`/api/torneos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre: nuevoNombre.trim() })
+                });
+
+                if (response.ok) {
+                    mostrarExito('torneoMessage', `✅ Nombre del torneo actualizado a "${nuevoNombre}".`);
+                    cargarTorneos(); // Recargar la lista
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('torneoError', errorData.error || 'Error al editar torneo');
+                }
+            } catch (error) {
+                mostrarError('torneoError', 'Error de conexión');
+            }
+        }
+        // *** FIN FASE 5.4 ***
         
         async function activarTorneo(id) {
             if (!confirm('¿Estás seguro de activar este torneo? Todas las nuevas estadísticas se guardarán aquí.')) {
@@ -2095,7 +2124,6 @@
                     const nuevoEquipo = await response.json();
                     equipos.push(nuevoEquipo);
                     
-                    // Limpiar formulario
                     document.getElementById('nombreEquipo').value = '';
                     document.getElementById('managerEquipo').value = '';
                     document.getElementById('ciudadEquipo').value = '';
@@ -2144,6 +2172,10 @@
                         carreras_visitante: carrerasVisitante,
                         innings_jugados: inningsJugados,
                         fecha_partido: fechaPartido
+                        // *** INICIO FASE 5: Enviar torneo activo ***
+                        // temporada: torneoActivo.nombre 
+                        // (SE HARÁ EN PASO 5.3)
+                        // *** FIN FASE 5 ***
                     })
                 });
 
@@ -2191,6 +2223,10 @@
                         equipo_id: equipoId,
                         posicion,
                         numero: numero || null
+                        // *** INICIO FASE 5: Enviar torneo activo ***
+                        // temporada: torneoActivo.nombre 
+                        // (SE HARÁ EN PASO 5.3)
+                        // *** FIN FASE 5 ***
                     })
                 });
 
@@ -2247,11 +2283,10 @@
                         rbi: rbi,
                         runs: runs,
                         walks: walks,
-                        stolen_bases: stolenBases
-                        // *** INICIO FASE 5: Enviar torneo activo ***
-                        // temporada: torneoActivo.nombre 
-                        // (SE HARÁ EN PASO 5.3)
-                        // *** FIN FASE 5 ***
+                        stolen_bases: stolenBases,
+                        // *** INICIO FASE 5.3: Enviar torneo activo ***
+                        temporada: torneoActivo.nombre 
+                        // *** FIN FASE 5.3 ***
                     })
                 });
 
@@ -2275,6 +2310,9 @@
                 mostrarError('statsError', `Error al registrar estadísticas: ${error.message}`);
             }
         }
+
+
+        // ========== FUNCIONES DE UTILIDAD ==========
 
         function mostrarExito(elementId, mensaje) {
             const element = document.getElementById(elementId);
@@ -2632,7 +2670,9 @@ async function eliminarPartido(id) {
                         wins: wins,
                         losses: losses,
                         saves: saves,
-                        temporada: torneoActivo.nombre // FASE 5
+                        // *** INICIO FASE 5.3: Enviar torneo activo ***
+                        temporada: torneoActivo.nombre 
+                        // *** FIN FASE 5.3 ***
                     })
                 });
 
@@ -2676,7 +2716,9 @@ async function eliminarPartido(id) {
                         double_plays: doublePlays,
                         passed_balls: passedBalls,
                         chances: putouts + assists + errors,
-                        temporada: torneoActivo.nombre // FASE 5
+                        // *** INICIO FASE 5.3: Enviar torneo activo ***
+                        temporada: torneoActivo.nombre 
+                        // *** FIN FASE 5.3 ***
                     })
                 });
 
@@ -2920,9 +2962,9 @@ async function eliminarPartido(id) {
         
         // Guardar los datos actualizados
         async function actualizarEstadistica(tipo, jugadorId) {
-            // *** INICIO DE CORRECCIÓN: Añadir jugador_id al body ***
+            // *** INICIO FASE 5.3: Enviar torneo activo ***
             let body = { jugador_id: jugadorId, temporada: torneoActivo.nombre }; 
-            // *** FIN DE CORRECCIÓN ***
+            // *** FIN FASE 5.3 ***
             let errorId = 'statsError'; // Default
             let endpointTipo = tipo;
             
@@ -2982,6 +3024,7 @@ async function eliminarPartido(id) {
                     actualizarLideres();
                 } else if (tipo === 'pitcheo') {
                     cargarTablaEditarPitcheo();
+                    // Aquí podrías recargar líderes de pitcheo si los tuvieras en esta pestaña
                 } else if (tipo === 'defensiva') {
                     cargarTablaEditarDefensa();
                     actualizarLideresPorPosicion();
