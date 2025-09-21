@@ -91,7 +91,7 @@
             width: 80px;
             height: 80px;
             margin: 0 auto 10px;
-            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzgiIGZpbGw9IiNGRkQ3MDAiIHN0cm9rZT0iI0ZGNkIzNSIgc3Ryb2tlLXdpZHRoPSI0Ii8+CjxjaXJjbGUgY3g9IjQwIiBjeT0iNDAiIHI9IjI1IiBmaWxsPSIjRkZEQjAwIi8+CjxwYXRoIGQ9Im0yNSAzNSBoMzAgdjEwIGgtMzAgeiIgZmlsbD0iI0RDMTQzQyIvPgo8cGF0aCBkPSJtMzAgMzIgaDIwIHY2IGgtMjAgeiIgZmlsbD0iI0RDMTQzQyIvPgo8cGF0aCBkPSJtMzIgNDUgaDE2IHY0IGgtMTYgeiIgZmlsbD0iI0RDMTQzQyIvPgo8dGV4dCB4PSI0MCIgeT0iNjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNGRkQ3MDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmb250LXdlaWdodD0iYm9sZCI+Q0g8L3RleHQ+Cjwvc3ZnPg==') center/contain no-repeat;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMzgiIGZpbGw9IiNGRkQ3MDAiIHN0cm9rZT0iI0ZGNkIzNSIgc3Ryb2tlLXdpZHRoPSI0Ii8+CjxwYXRoIGQ9Im0yNSAzNSBoMzAgdjEwIGgtMzAgeiIgZmlsbD0iI0RDMTQzQyIvPgo8cGF0aCBkPSJtMzAgMzIgaDIwIHY2IGgtMjAgeiIgZmlsbD0iI0RDMTQzQyIvPgo8cGF0aCBkPSJtMzIgNDUgaDE2IHY0IGgtMTYgeiIgZmlsbD0iI0RDMTQzQyIvPgo8dGV4dCB4PSI0MCIgeT0iNjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiNGRkQ3MDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI4IiBmb250LXdlaWdodD0iYm9sZCI+Q0g8L3RleHQ+Cjwvc3ZnPg==') center/contain no-repeat;
             border-radius: 50%;
             box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
             animation: rotate 20s linear infinite;
@@ -651,7 +651,6 @@
             <button class="nav-tab" data-tab="playoffs">🔥 Playoffs</button>
         </div>
 
-        <!-- Tab Posiciones -->
         <div id="posiciones" class="tab-content active">
             <div class="card">
                 <h3>🏆 Tabla de Posiciones</h3>
@@ -684,7 +683,6 @@
             </div>
         </div>
 
-        <!-- Tab Partidos -->
         <div id="partidos" class="tab-content">
             <div class="card">
                 <h3>🎯 Últimos Partidos</h3>
@@ -709,7 +707,6 @@
             </div>
         </div>
 
-        <!-- Tab Estadísticas -->
         <div id="estadisticas" class="tab-content">
             <div class="card">
                 <h3>🏆 Líderes de la Liga - Estilo MLB</h3>
@@ -824,7 +821,6 @@
                     <strong>Leyenda:</strong> AB=At Bats, H=Hits, AVG=Average, OBP=On-Base %, OPS=On-Base+Slugging, HR=Home Runs, RBI=Runs Batted In, WAR=Wins Above Replacement
                 </p>
             </div>
-            <!-- LÍDERES DE PITCHEO -->
             <div class="card">
                 <h3>⚾ Líderes de Pitcheo - Rankings MLB</h3>
                 <div class="leaders-grid">
@@ -894,16 +890,13 @@
     </div>
 </div>
 
-            <!-- MEJORES POR POSICIÓN -->
             <div class="card">
                 <h3>🥇 MEJORES POR POSICIÓN - SISTEMA WAR AVANZADO</h3>
                 <div class="position-leaders-grid" id="positionLeadersGrid">
-                    <!-- Se generará dinámicamente -->
-                </div>
+                    </div>
             </div>
         </div>
         
-        <!-- Tab Playoffs -->
         <div id="playoffs" class="tab-content">
             <div class="card">
                 <h3>🔥 Clasificación a Playoffs</h3>
@@ -920,6 +913,10 @@
         
         // Función helper para construir URLs
         function getApiUrl(endpoint) {
+            // Asegurarse de que el endpoint comience con /
+            if (!endpoint.startsWith('/')) {
+                endpoint = '/' + endpoint;
+            }
             return `${API_BASE_URL}${endpoint}`;
         }
         // Variables globales (igual que en admin)
@@ -990,7 +987,7 @@
                 await cargarEquipos();
                 await cargarPartidos();
                 await cargarJugadores();
-                await cargarEstadisticas();
+                await cargarEstadisticas(); // Esta función ahora también carga pitcheo y defensa
                 calcularPosiciones();
                 actualizarLideres();
             } catch (error) {
@@ -1001,7 +998,10 @@
 
         async function cargarEquipos() {
             try {
-                const response = await fetch('/api/equipos');
+                // *** INICIO DE CORRECCIÓN ***
+                const response = await fetch(getApiUrl('/api/equipos'));
+                // *** FIN DE CORRECCIÓN ***
+                
                 if (response.ok) {
                     equipos = await response.json();
                     console.log(`✅ ${equipos.length} equipos cargados`);
@@ -1016,7 +1016,10 @@
 
         async function cargarPartidos() {
             try {
-                const response = await fetch('/api/partidos');
+                // *** INICIO DE CORRECCIÓN ***
+                const response = await fetch(getApiUrl('/api/partidos'));
+                // *** FIN DE CORRECCIÓN ***
+                
                 if (response.ok) {
                     partidos = await response.json();
                     console.log(`✅ ${partidos.length} partidos cargados`);
@@ -1031,7 +1034,10 @@
 
         async function cargarJugadores() {
             try {
-                const response = await fetch('/api/jugadores');
+                // *** INICIO DE CORRECCIÓN ***
+                const response = await fetch(getApiUrl('/api/jugadores'));
+                // *** FIN DE CORRECCIÓN ***
+                
                 if (response.ok) {
                     jugadores = await response.json();
                     console.log(`✅ ${jugadores.length} jugadores cargados`);
@@ -1045,75 +1051,83 @@
         }
 
         // Cargar estadísticas desde localStorage (igual que admin)
-async function cargarEstadisticas() {
-    try {
-        // Cargar estadísticas ofensivas (localStorage por ahora)
-        const statsGuardadas = localStorage.getItem('chogui_estadisticas');
-        
-        if (statsGuardadas) {
-            estadisticas = JSON.parse(statsGuardadas);
-            console.log(`✅ ${estadisticas.length} estadísticas ofensivas cargadas`);
-        } else {
-            estadisticas = [];
-        }
-        
-        actualizarTablaEstadisticas();
-        actualizarLideresPorPosicion();
-        
-        // NUEVO: Cargar líderes de pitcheo completos
-      // NUEVO: Cargar líderes de pitcheo completos
-try {
-    const responsePitcheo = await fetch('/api/lideres-pitcheo');
-    if (responsePitcheo.ok) {
-        const lideresPitcheo = await responsePitcheo.json();
-        console.log('✅ Líderes de pitcheo cargados:', lideresPitcheo.length);
-        
-        if (lideresPitcheo.length > 0) {
-            // Líderes por ERA (menor es mejor)
-            const eraLideres = [...lideresPitcheo].sort((a, b) => a.era - b.era).slice(0, 3);
-            actualizarLideresHTML('eraLeaders', eraLideres, 'era', true);
-            
-            // Líderes por WHIP (menor es mejor)  
-            const whipLideres = [...lideresPitcheo].sort((a, b) => a.whip - b.whip).slice(0, 3);
-            actualizarLideresHTML('whipLeaders', whipLideres, 'whip', true);
-            
-            // Líderes por Victorias (mayor es mejor)
-            const winsLideres = [...lideresPitcheo].sort((a, b) => b.wins - a.wins).slice(0, 3);
-            actualizarLideresHTML('winsLeaders', winsLideres, 'wins');
-            
-            // Líderes por Salvamentos (mayor es mejor)
-            const savesLideres = [...lideresPitcheo].sort((a, b) => b.saves - a.saves).slice(0, 3);
-            actualizarLideresHTML('savesLeaders', savesLideres, 'saves');
-        }
-    }
-} catch (error) {
-    console.log('Info: No hay estadísticas de pitcheo aún');
-}
+        async function cargarEstadisticas() {
+            try {
+                // Cargar estadísticas ofensivas (localStorage por ahora)
+                const statsGuardadas = localStorage.getItem('chogui_estadisticas');
+                
+                if (statsGuardadas) {
+                    estadisticas = JSON.parse(statsGuardadas);
+                    console.log(`✅ ${estadisticas.length} estadísticas ofensivas cargadas`);
+                } else {
+                    estadisticas = [];
+                }
+                
+                actualizarTablaEstadisticas();
+                actualizarLideresPorPosicion();
+                
+                // NUEVO: Cargar líderes de pitcheo completos
+                try {
+                    // *** INICIO DE CORRECCIÓN ***
+                    const responsePitcheo = await fetch(getApiUrl('/api/lideres-pitcheo'));
+                    // *** FIN DE CORRECCIÓN ***
+                    
+                    if (responsePitcheo.ok) {
+                        const lideresPitcheo = await responsePitcheo.json();
+                        console.log('✅ Líderes de pitcheo cargados:', lideresPitcheo.length);
+                        
+                        if (lideresPitcheo.length > 0) {
+                            // Líderes por ERA (menor es mejor)
+                            const eraLideres = [...lideresPitcheo].sort((a, b) => a.era - b.era).slice(0, 3);
+                            actualizarLideresHTML('eraLeaders', eraLideres, 'era', true);
+                            
+                            // Líderes por WHIP (menor es mejor)  
+                            const whipLideres = [...lideresPitcheo].sort((a, b) => a.whip - b.whip).slice(0, 3);
+                            actualizarLideresHTML('whipLeaders', whipLideres, 'whip', true);
+                            
+                            // Líderes por Victorias (mayor es mejor)
+                            const winsLideres = [...lideresPitcheo].sort((a, b) => b.wins - a.wins).slice(0, 3);
+                            actualizarLideresHTML('winsLeaders', winsLideres, 'wins');
+                            
+                            // Líderes por Salvamentos (mayor es mejor)
+                            const savesLideres = [...lideresPitcheo].sort((a, b) => b.saves - a.saves).slice(0, 3);
+                            actualizarLideresHTML('savesLeaders', savesLideres, 'saves');
+                        }
+                    }
+                } catch (error) {
+                    console.log('Info: No hay estadísticas de pitcheo aún');
+                }
 
-// NUEVO: Cargar líderes defensivos completos
-try {
-    const responseDefensivo = await fetch('/api/lideres-defensivos');
-    if (responseDefensivo.ok) {
-        const lideresDefensivos = await responseDefensivo.json();
-        console.log('✅ Líderes defensivos cargados:', lideresDefensivos.length);
-        
-        if (lideresDefensivos.length > 0) {
-            // Mejor porcentaje defensivo general
-            const mejoresDefensivos = lideresDefensivos
-                .sort((a, b) => b.fielding_percentage - a.fielding_percentage)
-                .slice(0, 3);
-            
-            // Crear contenedor si no existe
-            const container = document.getElementById('fieldingLeaders');
-            if (container) {
-                actualizarLideresHTML('fieldingLeaders', mejoresDefensivos, 'fielding_percentage', true);
+                // NUEVO: Cargar líderes defensivos completos
+                try {
+                    // *** INICIO DE CORRECCIÓN ***
+                    const responseDefensivo = await fetch(getApiUrl('/api/lideres-defensivos'));
+                    // *** FIN DE CORRECCIÓN ***
+                    
+                    if (responseDefensivo.ok) {
+                        const lideresDefensivos = await responseDefensivo.json();
+                        console.log('✅ Líderes defensivos cargados:', lideresDefensivos.length);
+                        
+                        if (lideresDefensivos.length > 0) {
+                            // Mejor porcentaje defensivo general
+                            const mejoresDefensivos = lideresDefensivos
+                                .sort((a, b) => b.fielding_percentage - a.fielding_percentage)
+                                .slice(0, 3);
+                            
+                            // Crear contenedor si no existe
+                            const container = document.getElementById('fieldingLeaders');
+                            if (container) {
+                                actualizarLideresHTML('fieldingLeaders', mejoresDefensivos, 'fielding_percentage', true);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.log('Info: No hay estadísticas defensivas aún');
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
             }
         }
-    }
-} catch (error) {
-    console.log('Info: No hay estadísticas defensivas aún');
-}
-}
         // ========== FUNCIONES DE CÁLCULOS AVANZADOS MLB (copiado del admin) ==========
 
         function calcularOBP(hits, walks, atBats) {
@@ -1598,7 +1612,7 @@ try {
             
             const posicionesTable = document.querySelector('#posicionesTable tbody');
             if (posicionesTable) {
-                posicionesTable.innerHTML = '<tr><td colspan="10" class="error-message">❌ Error conectando con Railway. Verifica que el servidor esté funcionando en http://localhost:3000</td></tr>';
+                posicionesTable.innerHTML = '<tr><td colspan="10" class="error-message">❌ Error conectando con Railway. Verifica que el servidor esté funcionando.</td></tr>';
             }
             
             const partidosTable = document.querySelector('#partidosTable tbody');
@@ -1661,7 +1675,6 @@ try {
             }).join('');
         }
     </script>
-    <!-- Botón WhatsApp -->
     <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%20una%20consulta" 
        class="whatsapp-btn" target="_blank">
        💬 Consultas
