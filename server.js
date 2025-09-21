@@ -54,7 +54,7 @@ async function runMigrations() {
     await runSqlFile('setup-pitching-stats.sql');
     await runSqlFile('setup-offensive-stats.sql');
     await runSqlFile('setup-tournaments.sql');
-    await runSqlFile('fix-temporada-length.sql'); // <-- AQUÍ ESTÁ EL ARREGLO
+    await runSqlFile('fix-temporada-length.sql'); 
 
     console.log('📄 Verificación de migraciones completada.');
 }
@@ -93,12 +93,8 @@ app.get('/api/torneos/activo', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM torneos WHERE activo = true LIMIT 1');
         if (result.rows.length === 0) {
-            const reciente = await pool.query('SELECT * FROM torneos ORDER BY fecha_inicio DESC LIMIT 1');
-            if (reciente.rows.length === 0) {
-                return res.status(404).json({ error: 'No hay torneos creados' });
-            }
-            await pool.query('UPDATE torneos SET activo = true WHERE id = $1', [reciente.rows[0].id]);
-            res.json(reciente.rows[0]);
+            // *** CORRECCIÓN: Ya no activa uno por defecto. Si no hay, no hay. ***
+            return res.status(404).json({ error: 'No hay ningún torneo activo' });
         } else {
             res.json(result.rows[0]);
         }
@@ -151,6 +147,7 @@ app.put('/api/torneos/:id', async (req, res) => {
     }
 });
 
+// Activar un torneo (y desactivar los demás)
 app.put('/api/torneos/:id/activar', async (req, res) => {
     try {
         const { id } = req.params;
@@ -168,7 +165,44 @@ app.put('/api/torneos/:id/activar', async (req, res) => {
     }
 });
 
+// *** INICIO FASE 5.5: Desactivar y Eliminar ***
+app.put('/api/torneos/desactivar-todos', async (req, res) => {
+    try {
+        await pool.query('UPDATE torneos SET activo = false');
+        res.json({ message: 'Todos los torneos han sido desactivados.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+app.delete('/api/torneos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Verificar si el torneo está activo
+        const torneo = await pool.query('SELECT * FROM torneos WHERE id = $1', [id]);
+        if (torneo.rows.length > 0 && torneo.rows[0].activo) {
+            return res.status(400).json({ error: 'No se puede eliminar un torneo activo. Activa otro primero o desactívalos todos.' });
+        }
+        
+        // (En el futuro, deberíamos verificar si hay stats asociadas)
+
+        const result = await pool.query('DELETE FROM torneos WHERE id = $1 RETURNING *', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Torneo no encontrado' });
+        }
+        res.json({ message: 'Torneo eliminado correctamente' });
+    } catch (error) {
+        // Manejar error de llave foránea (si hay stats que dependen de este torneo)
+        if (error.code === '23503') {
+             return res.status(400).json({ error: 'No se puede eliminar. Hay estadísticas asociadas a este torneo. (Próximamente podremos archivar esto)' });
+        }
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+// *** FIN FASE 5.5 ***
+
 // ====================== EQUIPOS ======================
+// (Rutas de Equipos sin cambios)
 app.get('/api/equipos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM equipos ORDER BY id');
@@ -258,6 +292,7 @@ app.delete('/api/equipos/:id', async (req, res) => {
 });
 
 // ====================== JUGADORES ======================
+// (Rutas de Jugadores sin cambios)
 app.get('/api/jugadores', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -341,6 +376,7 @@ app.delete('/api/jugadores/:id', async (req, res) => {
 });
 
 // ====================== PARTIDOS ======================
+// (Rutas de Partidos sin cambios)
 app.get('/api/partidos', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -1000,6 +1036,8 @@ app.listen(PORT, () => {
     console.log(`   - POST /api/torneos`);
     console.log(`   - PUT  /api/torneos/:id              <-- ¡NUEVA!`);
     console.log(`   - PUT  /api/torneos/:id/activar`);
+    console.log(`   - PUT  /api/torneos/desactivar-todos <-- ¡NUEVA!`);
+    console.log(`   - DELETE /api/torneos/:id            <-- ¡NUEVA!`);
     console.log(`   - GET  /api/equipos`);
     console.log(`   - GET  /api/equipos/:id`);
     console.log(`   - POST /api/equipos`);
