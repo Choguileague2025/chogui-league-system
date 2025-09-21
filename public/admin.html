@@ -885,6 +885,7 @@
             </div>
             <div class="card">
                 <h3>📊 Registrar Estadísticas Avanzadas (BATEO)</h3>
+                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un jugador (ej. después de un partido).</p>
                 <div class="stats-form-container">
                     <div class="form-group">
                         <label for="jugadorStats">Jugador:</label>
@@ -931,6 +932,7 @@
 
             <div class="card">
                 <h3>⚾ Registrar Estadísticas de Pitcheo</h3>
+                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un pitcher.</p>
                 <div class="stats-form-container">
                     <div class="form-group">
                         <label for="jugadorPitcheo">Pitcher:</label>
@@ -981,6 +983,7 @@
 
             <div class="card">
                 <h3>🛡 Registrar Estadísticas Defensivas</h3>
+                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un jugador.</p>
                 <div class="stats-form-container">
                     <div class="form-group">
                         <label for="jugadorDefensivo">Jugador:</label>
@@ -2718,23 +2721,27 @@ async function eliminarPartido(id) {
 
         // Cargar datos en el formulario para editar
         async function cargarParaEditar(tipo, jugadorId) {
+            // Resetea todos los botones por si uno quedó trabado
+            resetearBoton('ofensiva');
+            resetearBoton('pitcheo');
+            resetearBoton('defensiva');
+
             try {
                 let stat;
+                let endpointTipo = tipo;
+                
+                // *** CORRECCIÓN DE ERROR DE TIPEO ***
+                if (tipo === 'defensiva') {
+                    endpointTipo = 'defensivas';
+                }
+                
                 // 1. Obtener los datos del jugador
-                if (tipo === 'ofensiva') {
-                    // La API de ofensiva no tiene ruta por ID de jugador, usamos la global
-                    const res = await fetch('/api/estadisticas-ofensivas');
-                    const stats = await res.json();
-                    stat = stats.find(s => s.jugador_id === jugadorId);
-                } else {
-                    const res = await fetch(`/api/estadisticas-${tipo}/${jugadorId}`);
-                    stat = await res.json();
+                const res = await fetch(`/api/estadisticas-${endpointTipo}/${jugadorId}`);
+                if (!res.ok) {
+                    throw new Error(`Estadísticas no encontradas para el jugador (ID: ${jugadorId}). Regístralas primero.`);
                 }
+                stat = await res.json();
 
-                if (!stat) {
-                    mostrarError(`statsError`, 'No se encontraron estadísticas para este jugador. Regístralas primero.');
-                    return;
-                }
 
                 // 2. Rellenar el formulario
                 if (tipo === 'ofensiva') {
@@ -2797,6 +2804,7 @@ async function eliminarPartido(id) {
         async function actualizarEstadistica(tipo, jugadorId) {
             let body = { jugador_id: jugadorId, temporada: '2025' }; // Asumimos temporada actual
             let errorId = 'statsError'; // Default
+            let endpointTipo = tipo;
             
             try {
                 // 1. Recoger datos del formulario
@@ -2821,6 +2829,7 @@ async function eliminarPartido(id) {
                     body.saves = parseInt(document.getElementById('saves').value) || 0;
                 } else if (tipo === 'defensiva') {
                     errorId = 'defensivaError';
+                    endpointTipo = 'defensivas'; // *** CORRECCIÓN DE ERROR DE TIPEO ***
                     body.putouts = parseInt(document.getElementById('putouts').value) || 0;
                     body.assists = parseInt(document.getElementById('assists').value) || 0;
                     body.errors = parseInt(document.getElementById('defensiveErrors').value) || 0;
@@ -2830,7 +2839,7 @@ async function eliminarPartido(id) {
                 }
                 
                 // 2. Enviar a la API PUT
-                const response = await fetch(`/api/estadisticas-${tipo}`, {
+                const response = await fetch(`/api/estadisticas-${endpointTipo}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
