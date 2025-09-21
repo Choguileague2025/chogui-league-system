@@ -78,7 +78,6 @@ app.get('/api/test', async (req, res) => {
 });
 
 // ====================== EQUIPOS ======================
-// (Rutas de Equipos sin cambios)
 app.get('/api/equipos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM equipos ORDER BY id');
@@ -168,7 +167,6 @@ app.delete('/api/equipos/:id', async (req, res) => {
 });
 
 // ====================== JUGADORES ======================
-// (Rutas de Jugadores sin cambios)
 app.get('/api/jugadores', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -252,7 +250,6 @@ app.delete('/api/jugadores/:id', async (req, res) => {
 });
 
 // ====================== PARTIDOS ======================
-// (Rutas de Partidos sin cambios)
 app.get('/api/partidos', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -559,7 +556,6 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
 
 
 // ====================== ESTADÍSTICAS DE PITCHEO ======================
-// (Rutas GET, POST, PUT sin cambios)
 app.get('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -715,7 +711,6 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
 
 
 // ====================== ESTADÍSTICAS DEFENSIVAS ======================
-// (Rutas GET, POST, PUT sin cambios)
 app.get('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -860,7 +855,6 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
 
 
 // ====================== LÍDERES (Rutas GET) ======================
-// (Rutas de Líderes sin cambios)
 app.get('/api/lideres-pitcheo', async (req, res) => {
     try {
         const result = await pool.query(`
