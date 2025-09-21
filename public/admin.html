@@ -283,6 +283,12 @@
             color: white;
             transform: translateY(-2px) scale(1.05);
         }
+        .btn-actualizar[disabled] {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
 
         .btn-secondary {
             background: linear-gradient(145deg, #ff6b35, #dc143c);
@@ -609,6 +615,53 @@
             color: #fff;
             font-weight: bold;
         }
+        
+        /* === INICIO ESTILOS FASE 7: CALENDARIO === */
+        #calendario-generado {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .jornada-card {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .jornada-card h4 {
+            color: #ff8c00;
+            border-bottom: 1px solid #ff8c00;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        .jornada-partido {
+            font-size: 0.9rem;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .jornada-partido:last-child {
+            border-bottom: none;
+        }
+        .jornada-partido strong {
+            color: #fff;
+        }
+        .jornada-partido span {
+            color: #ffd700;
+            font-size: 0.8rem;
+        }
+        .jornada-descansa {
+            margin-top: 10px;
+            font-style: italic;
+            color: #ff6b35;
+            font-size: 0.9rem;
+            font-weight: bold;
+            background: rgba(255, 107, 53, 0.1);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        /* === FIN ESTILOS FASE 7 === */
 
         @media (max-width: 768px) {
             .form-container, .stats-form-container {
@@ -640,6 +693,7 @@
             <button class="nav-tab" data-tab="lideres">🏆 Líderes</button>
             <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
             <button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
+            <button class="nav-tab" data-tab="calendario">📅 Calendario</button>
             </div>
 
         <div id="equipos" class="tab-content active">
@@ -1231,6 +1285,43 @@
                 </div>
             </div>
         </div>
+
+        <div id="calendario" class="tab-content">
+            <div class="card">
+                <h3>📅 Generador de Calendario (Round Robin)</h3>
+                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 20px;">
+                    Genera el fixture completo para los <strong>9 equipos</strong> (9 jornadas, 4 juegos y 1 descanso por jornada).
+                </p>
+                
+                <div class="form-container" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label for="fechaInicioCalendario">Fecha de Inicio (Jornada 1):</label>
+                        <input type="date" id="fechaInicioCalendario" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="horariosJuego">Horarios (separados por coma):</label>
+                        <input type="text" id="horariosJuego" value="10:00, 12:00, 14:00, 16:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="diasEntreJornadas">Días entre Jornadas:</label>
+                        <input type="number" id="diasEntreJornadas" value="7" min="1">
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="generarCalendario()">📅 Generar Calendario</button>
+                <button class="btn-primary btn-actualizar" id="btnGuardarCalendario" onclick="guardarCalendario()" disabled style="margin-left: 10px;">💾 Guardar Calendario en BD</button>
+                
+                <div id="calendarioMessage" class="success-message"></div>
+                <div id="calendarioError" class="error-message"></div>
+            </div>
+
+            <div class="card">
+                <h3>🗓️ Fixture Generado</h3>
+                <div id="calendario-generado">
+                    <div class="empty-state">Presiona "Generar Calendario" para ver el fixture aquí.</div>
+                </div>
+            </div>
+        </div>
         </div>
 
     <script>
@@ -1293,6 +1384,13 @@
                 const hoy = new Date().toISOString().split('T')[0];
                 fechaInput.value = hoy;
             }
+            // === INICIO CAMBIO FASE 7.2: Establecer fecha en calendario ===
+            const fechaCalendarioInput = document.getElementById('fechaInicioCalendario');
+            if(fechaCalendarioInput) {
+                const hoy = new Date().toISOString().split('T')[0];
+                fechaCalendarioInput.value = hoy;
+            }
+            // === FIN CAMBIO FASE 7.2 ===
         }
 
         // Configurar event listeners
@@ -1332,29 +1430,25 @@
                 cargarTablaEditarPitcheo();
                 cargarTablaEditarDefensa();
             }
-            // *** INICIO FASE 5: Cargar Torneos ***
             if (nombrePestana === 'torneos') {
                 cargarTorneos();
             }
-            // *** FIN FASE 5 ***
         }
 
         // ========== FUNCIONES DE CARGA DE DATOS ==========
 
         async function cargarTodosLosDatos() {
             try {
-                // *** INICIO FASE 5: Cargar torneo activo primero ***
                 await cargarTorneoActivo();
-                // *** FIN FASE 5 ***
                 
                 await cargarEquipos();
                 await cargarPartidos();
                 await cargarJugadores();
-                await cargarEstadisticas(); // Carga ofensivas desde la DB
+                await cargarEstadisticas(); 
                 actualizarSelectores();
                 calcularPosiciones();
-                actualizarLideres(); // Carga líderes ofensivos desde la API
-                actualizarLideresPorPosicion(); // Carga líderes defensivos desde la API
+                actualizarLideres(); 
+                actualizarLideresPorPosicion(); 
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 mostrarError('equipoError', 'Error de conexión al servidor');
@@ -1369,7 +1463,6 @@
                     torneoActivo = await response.json();
                     console.log(`✅ Torneo Activo: ${torneoActivo.nombre} (ID: ${torneoActivo.id})`);
                 } else {
-                    // *** CORRECCIÓN FASE 5.5: Permitir que no haya torneo activo ***
                     torneoActivo = { id: null, nombre: 'NINGUNO' };
                     console.warn('⚠️ No hay ningún torneo activo. Las estadísticas no se guardarán.');
                 }
@@ -1442,12 +1535,11 @@
             }
         }
         
-        // *** INICIO FASE 5.4: Función Editar Torneo ***
         async function editarTorneo(id, nombreActual) {
             const nuevoNombre = prompt('Ingresa el nuevo nombre para el torneo:', nombreActual);
             
             if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre === nombreActual) {
-                return; // El usuario canceló o no cambió el nombre
+                return; 
             }
 
             try {
@@ -1459,8 +1551,8 @@
 
                 if (response.ok) {
                     mostrarExito('torneoMessage', `✅ Nombre del torneo actualizado a "${nuevoNombre}".`);
-                    await cargarTorneoActivo(); // Recargar por si el torneo editado era el activo
-                    cargarTorneos(); // Recargar la lista
+                    await cargarTorneoActivo(); 
+                    cargarTorneos(); 
                 } else {
                     const errorData = await response.json();
                     mostrarError('torneoError', errorData.error || 'Error al editar torneo');
@@ -1469,7 +1561,6 @@
                 mostrarError('torneoError', 'Error de conexión');
             }
         }
-        // *** FIN FASE 5.4 ***
         
         async function activarTorneo(id) {
             if (!confirm('¿Estás seguro de activar este torneo? Todas las nuevas estadísticas se guardarán aquí.')) {
@@ -1484,8 +1575,8 @@
                 if (response.ok) {
                     const torneoActivado = await response.json();
                     mostrarExito('torneoMessage', `✅ Torneo "${torneoActivado.nombre}" está ahora activo.`);
-                    await cargarTorneoActivo(); // Actualizar la variable global
-                    cargarTorneos(); // Recargar la lista
+                    await cargarTorneoActivo(); 
+                    cargarTorneos(); 
                 } else {
                     const errorData = await response.json();
                     mostrarError('torneoError', errorData.error || 'Error al activar torneo');
@@ -1495,7 +1586,6 @@
             }
         }
         
-        // *** INICIO FASE 5.5: Funciones Eliminar/Desactivar ***
         async function desactivarTodosLosTorneos() {
             if (!confirm('¿Estás seguro? Esto hará que no haya ningún torneo activo. No podrás registrar nuevas estadísticas hasta que actives uno.')) {
                 return;
@@ -1504,7 +1594,7 @@
                 const response = await fetch('/api/torneos/desactivar-todos', { method: 'PUT' });
                 if (response.ok) {
                     mostrarExito('torneoMessage', 'Todos los torneos desactivados.');
-                    await cargarTorneoActivo(); // Actualiza la variable global (será 'NINGUNO')
+                    await cargarTorneoActivo(); 
                     cargarTorneos();
                 } else {
                     const errorData = await response.json();
@@ -1532,8 +1622,6 @@
                 mostrarError('torneoError', 'Error de conexión');
             }
         }
-        // *** FIN FASE 5.5 ***
-        
         // *** FIN FASE 5 ***
 
         async function cargarEquipos() {
@@ -1667,7 +1755,15 @@
             tbody.innerHTML = partidos.map(partido => {
                 const ganador = partido.carreras_local > partido.carreras_visitante ? 
                     partido.equipo_local_nombre : partido.equipo_visitante_nombre;
-                const resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+                // === INICIO CAMBIO FASE 7.1: Mostrar partidos sin resultado ===
+                let resultado = 'Pendiente';
+                let ganadorHtml = `<small style="color: #ff8c00;">Pendiente</small>`;
+
+                if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+                    resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+                    ganadorHtml = `<small style="color: #4CAF50;">Ganó: ${ganador}</small>`;
+                }
+                // === FIN CAMBIO FASE 7.1 ===
                 
                 return `
                     <tr>
@@ -1675,7 +1771,7 @@
                         <td><strong>${partido.equipo_visitante_nombre}</strong></td>
                         <td>
                             <strong>${resultado}</strong><br>
-                            <small style="color: #4CAF50;">Ganó: ${ganador}</small>
+                            ${ganadorHtml}
                         </td>
                         <td>${partido.innings_jugados} inn</td>
                         <td>${new Date(partido.fecha_partido).toLocaleDateString('es-AR')}</td>
@@ -1887,17 +1983,23 @@
                 if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
                     estadisticasEquipos[localId].partidos_jugados++;
                     estadisticasEquipos[visitanteId].partidos_jugados++;
-                    estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
-                    estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
-                    estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
-                    estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
-                    if (partido.carreras_local > partido.carreras_visitante) {
-                        estadisticasEquipos[localId].partidos_ganados++;
-                        estadisticasEquipos[visitanteId].partidos_perdidos++;
-                    } else {
-                        estadisticasEquipos[visitanteId].partidos_ganados++;
-                        estadisticasEquipos[localId].partidos_perdidos++;
+                    
+                    // === INICIO CAMBIO FASE 7.1: Ignorar partidos sin resultado ===
+                    if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+                        estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
+                        estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
+                        estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
+                        estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
+                        
+                        if (partido.carreras_local > partido.carreras_visitante) {
+                            estadisticasEquipos[localId].partidos_ganados++;
+                            estadisticasEquipos[visitanteId].partidos_perdidos++;
+                        } else {
+                            estadisticasEquipos[visitanteId].partidos_ganados++;
+                            estadisticasEquipos[localId].partidos_perdidos++;
+                        }
                     }
+                    // === FIN CAMBIO FASE 7.1 ===
                 }
             });
 
@@ -1905,7 +2007,9 @@
             const posiciones = Object.values(estadisticasEquipos)
                 .map(stats => ({
                     ...stats,
-                    porcentaje: stats.partidos_jugados > 0 ? (stats.partidos_ganados / stats.partidos_jugados) : 0,
+                    // ¡NUEVO! PJ ahora cuenta solo los jugados con resultado
+                    partidos_jugados_con_resultado: stats.partidos_ganados + stats.partidos_perdidos,
+                    porcentaje: (stats.partidos_ganados + stats.partidos_perdidos) > 0 ? (stats.partidos_ganados / (stats.partidos_ganados + stats.partidos_perdidos)) : 0,
                     diferencia: stats.carreras_favor - stats.carreras_contra
                 }))
                 .sort((a, b) => {
@@ -1920,13 +2024,14 @@
                 const pos = index + 1;
                 let estado = '';
                 let estadoClass = '';
+                const partidosJugados = equipo.partidos_jugados_con_resultado; // Usar la nueva variable
 
                 if (pos <= 6) { // Clasifican 6
                     estado = 'CLASIFICADO';
                     estadoClass = 'style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;"';
                 } else {
                     // Lógica de Eliminación (Número Mágico)
-                    if (!equipoSexto || equipoSexto.partidos_jugados === 0) {
+                    if (!equipoSexto || equipoSexto.partidos_jugados_con_resultado === 0) {
                         estado = 'EN LUCHA';
                         estadoClass = 'style="color: #ff8c00; font-size: 0.8rem; font-weight: bold;"';
                     } else {
@@ -1934,7 +2039,7 @@
                         const derrotasEquipo = equipo.partidos_perdidos;
                         // (8 + 1) - Victorias del 6to - Derrotas del 7mo
                         const magicNumber = (PARTIDOS_TOTALES_TEMPORADA + 1) - victoriasSexto - derrotasEquipo;
-                        const partidosRestantes = PARTIDOS_TOTALES_TEMPORADA - equipo.partidos_jugados;
+                        const partidosRestantes = PARTIDOS_TOTALES_TEMPORADA - partidosJugados;
 
                         if (magicNumber <= 0 || magicNumber > partidosRestantes) {
                             estado = 'ELIMINADO';
@@ -1954,8 +2059,7 @@
                             </span>
                         </td>
                         <td><strong>${equipo.nombre}</strong></td>
-                        <td>${equipo.partidos_jugados}</td>
-                        <td>${equipo.partidos_ganados}</td>
+                        <td>${partidosJugados}</td> <td>${equipo.partidos_ganados}</td>
                         <td>${equipo.partidos_perdidos}</td>
                         <td><strong>${(equipo.porcentaje * 100).toFixed(1)}%</strong></td>
                         <td>${equipo.carreras_favor}</td>
@@ -2214,10 +2318,18 @@
             const inningsJugados = parseInt(document.getElementById('inningsJugados').value);
             const fechaPartido = document.getElementById('fechaPartido').value;
 
-            if (!equipoLocal || !equipoVisitante || isNaN(carrerasLocal) || isNaN(carrerasVisitante) || !fechaPartido) {
-                mostrarError('partidoError', 'Por favor completa todos los campos');
+            // === INICIO CAMBIO FASE 7.1: Validación de carreras ===
+            // Ya no son obligatorias, pero si se pone una, se debe poner la otra.
+            if (!equipoLocal || !equipoVisitante || !fechaPartido) {
+                mostrarError('partidoError', 'Equipo local, visitante y fecha son obligatorios.');
                 return;
             }
+
+            if ((!isNaN(carrerasLocal) && isNaN(carrerasVisitante)) || (isNaN(carrerasLocal) && !isNaN(carrerasVisitante))) {
+                 mostrarError('partidoError', 'Si registras carreras, debes registrar tanto local como visitante.');
+                return;
+            }
+            // === FIN CAMBIO FASE 7.1 ===
 
             if (equipoLocal === equipoVisitante) {
                 mostrarError('partidoError', 'Los equipos local y visitante deben ser diferentes');
@@ -2233,14 +2345,12 @@
                     body: JSON.stringify({
                         equipo_local_id: equipoLocal,
                         equipo_visitante_id: equipoVisitante,
-                        carreras_local: carrerasLocal,
-                        carreras_visitante: carrerasVisitante,
+                        // === INICIO CAMBIO FASE 7.1: Enviar null si está vacío ===
+                        carreras_local: isNaN(carrerasLocal) ? null : carrerasLocal,
+                        carreras_visitante: isNaN(carrerasVisitante) ? null : carrerasVisitante,
+                        // === FIN CAMBIO FASE 7.1 ===
                         innings_jugados: inningsJugados,
                         fecha_partido: fechaPartido
-                        // *** INICIO FASE 5: Enviar torneo activo ***
-                        // temporada: torneoActivo.nombre 
-                        // (SE HARÁ EN PASO 5.3)
-                        // *** FIN FASE 5 ***
                     })
                 });
 
@@ -2251,8 +2361,7 @@
                     document.getElementById('carrerasVisitante').value = '';
                     document.getElementById('inningsJugados').value = '9';
                     
-                    const resultado = `${carrerasLocal} - ${carrerasVisitante}`;
-                    mostrarExito('partidoMessage', `✅ Partido registrado correctamente (${resultado})`);
+                    mostrarExito('partidoMessage', `✅ Partido registrado correctamente`);
                     
                     await cargarPartidos();
                     calcularPosiciones();
@@ -2288,10 +2397,6 @@
                         equipo_id: equipoId,
                         posicion,
                         numero: numero || null
-                        // *** INICIO FASE 5: Enviar torneo activo ***
-                        // temporada: torneoActivo.nombre 
-                        // (SE HARÁ EN PASO 5.3)
-                        // *** FIN FASE 5 ***
                     })
                 });
 
@@ -2356,9 +2461,7 @@
                         runs: runs,
                         walks: walks,
                         stolen_bases: stolenBases,
-                        // *** INICIO FASE 5.3: Enviar torneo activo ***
                         temporada: torneoActivo.nombre 
-                        // *** FIN FASE 5.3 ***
                     })
                 });
 
@@ -2609,8 +2712,10 @@ async function editarPartido(id) {
         
         document.getElementById('equipoLocal').value = partido.equipo_local_id;
         document.getElementById('equipoVisitante').value = partido.equipo_visitante_id;
-        document.getElementById('carrerasLocal').value = partido.carreras_local;
-        document.getElementById('carrerasVisitante').value = partido.carreras_visitante;
+        // === INICIO CAMBIO FASE 7.1: Mostrar 'null' como vacío ===
+        document.getElementById('carrerasLocal').value = partido.carreras_local || '';
+        document.getElementById('carrerasVisitante').value = partido.carreras_visitante || '';
+        // === FIN CAMBIO FASE 7.1 ===
         document.getElementById('inningsJugados').value = partido.innings_jugados;
         document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
         
@@ -2618,7 +2723,7 @@ async function editarPartido(id) {
         btnAgregar.textContent = '✏️ Actualizar Partido';
         btnAgregar.setAttribute('onclick', `actualizarPartido(${id})`);
         
-        mostrarExito('partidoMessage', `Editando partido entre "${partido.equipo_local_nombre}" vs "${partido.equipo_visitante_nombre}". Modifica los campos y presiona "Actualizar Partido".`);
+        mostrarExito('partidoMessage', `Editando partido entre "${partido.equipo_local_nombre}" vs "${partido.equipo_visitante_nombre}".`);
         document.getElementById('equipoLocal').scrollIntoView({ behavior: 'smooth' });
         document.getElementById('equipoLocal').focus();
     } catch (error) {
@@ -2635,10 +2740,16 @@ async function actualizarPartido(id) {
     const inningsJugados = parseInt(document.getElementById('inningsJugados').value);
     const fechaPartido = document.getElementById('fechaPartido').value;
 
-    if (!equipoLocal || !equipoVisitante || isNaN(carrerasLocal) || isNaN(carrerasVisitante) || !fechaPartido) {
-        mostrarError('partidoError', 'Por favor completa todos los campos');
+    // === INICIO CAMBIO FASE 7.1: Validación de carreras ===
+    if (!equipoLocal || !equipoVisitante || !fechaPartido) {
+        mostrarError('partidoError', 'Equipo local, visitante y fecha son obligatorios.');
         return;
     }
+    if ((!isNaN(carrerasLocal) && isNaN(carrerasVisitante)) || (isNaN(carrerasLocal) && !isNaN(carrerasVisitante))) {
+         mostrarError('partidoError', 'Si registras carreras, debes registrar tanto local como visitante.');
+        return;
+    }
+    // === FIN CAMBIO FASE 7.1 ===
 
     if (equipoLocal === equipoVisitante) {
         mostrarError('partidoError', 'Los equipos local y visitante deben ser diferentes');
@@ -2652,8 +2763,10 @@ async function actualizarPartido(id) {
             body: JSON.stringify({
                 equipo_local_id: equipoLocal,
                 equipo_visitante_id: equipoVisitante,
-                carreras_local: carrerasLocal,
-                carreras_visitante: carrerasVisitante,
+                // === INICIO CAMBIO FASE 7.1: Enviar null si está vacío ===
+                carreras_local: isNaN(carrerasLocal) ? null : carrerasLocal,
+                carreras_visitante: isNaN(carrerasVisitante) ? null : carrerasVisitante,
+                // === FIN CAMBIO FASE 7.1 ===
                 innings_jugados: inningsJugados,
                 fecha_partido: fechaPartido
             })
@@ -2670,8 +2783,7 @@ async function actualizarPartido(id) {
             btnActualizar.textContent = '🎯 Registrar Partido';
             btnActualizar.setAttribute('onclick', 'registrarPartido()');
             
-            const resultado = `${carrerasLocal} - ${carrerasVisitante}`;
-            mostrarExito('partidoMessage', `✅ Partido actualizado correctamente (${resultado})`);
+            mostrarExito('partidoMessage', `✅ Partido actualizado correctamente`);
             
             await cargarPartidos();
             calcularPosiciones();
@@ -2690,7 +2802,11 @@ async function eliminarPartido(id) {
         const response = await fetch(`/api/partidos/${id}`);
         const partido = await response.json();
         
-        const resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+        let resultado = 'Pendiente';
+        if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+            resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+        }
+
         if (confirm(`¿Estás seguro de eliminar el partido?\n\n"${partido.equipo_local_nombre}" vs "${partido.equipo_visitante_nombre}"\nResultado: ${resultado}\nFecha: ${new Date(partido.fecha_partido).toLocaleDateString('es-AR')}`)) {
             const deleteResponse = await fetch(`/api/partidos/${id}`, { method: 'DELETE' });
 
@@ -2711,12 +2827,10 @@ async function eliminarPartido(id) {
 
    // FUNCIONES PARA ESTADÍSTICAS DE PITCHEO
         async function registrarEstadisticasPitcheo() {
-            // *** INICIO FASE 5.5: Validar torneo activo ***
             if (!torneoActivo.id) {
                 mostrarError('pitcheoError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
                 return;
             }
-            // *** FIN FASE 5.5 ***
 
             const jugadorId = parseInt(document.getElementById('jugadorPitcheo').value);
             const inningsPitched = parseFloat(document.getElementById('inningsPitched').value) || 0;
@@ -2749,17 +2863,14 @@ async function eliminarPartido(id) {
                         wins: wins,
                         losses: losses,
                         saves: saves,
-                        // *** INICIO FASE 5.3: Enviar torneo activo ***
                         temporada: torneoActivo.nombre 
-                        // *** FIN FASE 5.3 ***
                     })
                 });
 
                 if (response.ok) {
-                    // Limpiar formulario
                     limpiarFormulario('pitcheo');
                     mostrarExito('pitcheoMessage', `✅ Estadísticas de pitcheo registradas correctamente`);
-                    cargarTablaEditarPitcheo(); // Refrescar la tabla de edición
+                    cargarTablaEditarPitcheo(); 
                 } else {
                     const errorData = await response.json();
                     mostrarError('pitcheoError', errorData.error || 'Error al registrar estadísticas');
@@ -2771,12 +2882,10 @@ async function eliminarPartido(id) {
 
         // FUNCIONES PARA ESTADÍSTICAS DEFENSIVAS
         async function registrarEstadisticasDefensivas() {
-            // *** INICIO FASE 5.5: Validar torneo activo ***
             if (!torneoActivo.id) {
                 mostrarError('defensivaError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
                 return;
             }
-            // *** FIN FASE 5.5 ***
             
             const jugadorId = parseInt(document.getElementById('jugadorDefensivo').value);
             const putouts = parseInt(document.getElementById('putouts').value) || 0;
@@ -2802,20 +2911,15 @@ async function eliminarPartido(id) {
                         double_plays: doublePlays,
                         passed_balls: passedBalls,
                         chances: putouts + assists + errors,
-                        // *** INICIO FASE 5.3: Enviar torneo activo ***
                         temporada: torneoActivo.nombre 
-                        // *** FIN FASE 5.3 ***
                     })
                 });
 
                 if (response.ok) {
-                    // Limpiar formulario
                     limpiarFormulario('defensiva');
                     mostrarExito('defensivaMessage', `✅ Estadísticas defensivas registradas correctamente`);
-                    
-                    // Actualizar la vista de líderes defensivos
                     actualizarLideresPorPosicion();
-                    cargarTablaEditarDefensa(); // Refrescar la tabla de edición
+                    cargarTablaEditarDefensa(); 
                 } else {
                     const errorData = await response.json();
                     mostrarError('defensivaError', errorData.error || 'Error al registrar estadísticas');
@@ -2967,7 +3071,6 @@ async function eliminarPartido(id) {
 
         // Cargar datos en el formulario para editar
         async function cargarParaEditar(tipo, jugadorId) {
-            // Resetea todos los botones por si uno quedó trabado
             resetearBoton('ofensiva');
             resetearBoton('pitcheo');
             resetearBoton('defensiva');
@@ -2976,12 +3079,10 @@ async function eliminarPartido(id) {
                 let stat;
                 let endpointTipo = tipo;
                 
-                // *** CORRECCIÓN DE ERROR DE TIPEO (Ofensiva y Defensiva) ***
                 if (tipo === 'defensiva' || tipo === 'ofensiva') {
                     endpointTipo = tipo + 's';
                 }
                 
-                // 1. Obtener los datos del jugador
                 const res = await fetch(`/api/estadisticas-${endpointTipo}/${jugadorId}`);
                 if (!res.ok) {
                     throw new Error(`Estadísticas no encontradas para el jugador (ID: ${jugadorId}). Regístralas primero.`);
@@ -2989,7 +3090,6 @@ async function eliminarPartido(id) {
                 stat = await res.json();
 
 
-                // 2. Rellenar el formulario
                 if (tipo === 'ofensiva') {
                     document.getElementById('jugadorStats').value = stat.jugador_id;
                     document.getElementById('atBats').value = stat.at_bats;
@@ -3000,7 +3100,6 @@ async function eliminarPartido(id) {
                     document.getElementById('walks').value = stat.walks;
                     document.getElementById('stolenBases').value = stat.stolen_bases;
                     
-                    // 3. Cambiar el botón
                     const btn = document.getElementById('btnRegistrarOfensiva');
                     btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
                     btn.classList.add('btn-actualizar');
@@ -3046,16 +3145,12 @@ async function eliminarPartido(id) {
             }
         }
         
-        // Guardar los datos actualizados
         async function actualizarEstadistica(tipo, jugadorId) {
-            // *** INICIO FASE 5.3: Enviar torneo activo ***
             let body = { jugador_id: jugadorId, temporada: torneoActivo.nombre }; 
-            // *** FIN FASE 5.3 ***
-            let errorId = 'statsError'; // Default
+            let errorId = 'statsError'; 
             let endpointTipo = tipo;
             
             try {
-                // 1. Recoger datos del formulario
                 if (tipo === 'ofensiva') {
                     body.at_bats = parseInt(document.getElementById('atBats').value) || 0;
                     body.hits = parseInt(document.getElementById('hits').value) || 0;
@@ -3077,7 +3172,7 @@ async function eliminarPartido(id) {
                     body.saves = parseInt(document.getElementById('saves').value) || 0;
                 } else if (tipo === 'defensiva') {
                     errorId = 'defensivaError';
-                    endpointTipo = 'defensivas'; // *** CORRECCIÓN DE ERROR DE TIPEO ***
+                    endpointTipo = 'defensivas'; 
                     body.putouts = parseInt(document.getElementById('putouts').value) || 0;
                     body.assists = parseInt(document.getElementById('assists').value) || 0;
                     body.errors = parseInt(document.getElementById('defensiveErrors').value) || 0;
@@ -3086,7 +3181,6 @@ async function eliminarPartido(id) {
                     body.chances = body.putouts + body.assists + body.errors;
                 }
                 
-                // 2. Enviar a la API PUT
                 const response = await fetch(`/api/estadisticas-${endpointTipo}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -3098,14 +3192,12 @@ async function eliminarPartido(id) {
                     throw new Error(errorData.error || 'Error del servidor');
                 }
                 
-                // 3. Limpiar y refrescar
                 limpiarFormulario(tipo);
                 resetearBoton(tipo);
                 mostrarExito(errorId.replace('Error', 'Message'), '✅ Estadísticas actualizadas (reemplazadas) correctamente.');
                 
-                // 4. Recargar todas las tablas y líderes
                 if (tipo === 'ofensiva') {
-                    await cargarEstadisticas(); // Recarga la tabla principal de bateo
+                    await cargarEstadisticas(); 
                     cargarTablaEditarBateo();
                     actualizarLideres();
                 } else if (tipo === 'pitcheo') {
@@ -3121,6 +3213,27 @@ async function eliminarPartido(id) {
             }
         }
         // *** FIN DE FUNCIONES DE EDICIÓN (FASE 4) ***
+        
+        // ========== INICIO FASE 7: GENERADOR DE CALENDARIO ==========
+        
+        // Variable global para guardar los partidos generados
+        let calendarioGenerado = [];
+
+        async function generarCalendario() {
+            // (Paso 7.3) Aquí irá la lógica del algoritmo Round Robin
+            mostrarError('calendarioError', '¡Función aún no implementada! La agregaremos en el Paso 3.');
+            
+            // Simulación (para ver que funciona)
+            const calendarioDiv = document.getElementById('calendario-generado');
+            calendarioDiv.innerHTML = `<div class="loading">Generando... (Lógica pendiente)</div>`;
+        }
+
+        async function guardarCalendario() {
+            // (Paso 7.3) Aquí irá la lógica para enviar a /api/partidos
+            mostrarError('calendarioError', '¡Función aún no implementada! La agregaremos en el Paso 3.');
+        }
+        
+        // ========== FIN FASE 7 ==========
     </script>
 </body>
 </html>
