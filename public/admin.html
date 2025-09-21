@@ -1290,7 +1290,7 @@
             <div class="card">
                 <h3>📅 Generador de Calendario (Round Robin)</h3>
                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 20px;">
-                    Genera el fixture completo para los <strong>9 equipos</strong> (9 jornadas, 4 juegos y 1 descanso por jornada).
+                    Genera el fixture para los <strong>9 equipos</strong>. Se crearán <strong>6 jornadas</strong> (4 juegos y 1 descanso por jornada).
                 </p>
                 
                 <div class="form-container" style="grid-template-columns: 1fr 1fr 1fr;">
@@ -3221,6 +3221,7 @@ async function eliminarPartido(id) {
         // Variable global para guardar los partidos generados
         let calendarioGenerado = [];
 
+        // ¡INICIO FASE 7.3: LÓGICA DEL ALGORITMO!
         async function generarCalendario() {
             console.log('Iniciando generación de calendario...');
             const calendarioDiv = document.getElementById('calendario-generado');
@@ -3249,7 +3250,8 @@ async function eliminarPartido(id) {
                 return;
             }
             // Ajuste para asegurar que la fecha se interprete en la zona horaria local
-            const fechaInicio = new Date(fechaInicioStr + 'T00:00:00-03:00'); // Asumir zona local (Argentina)
+            // Asumimos Argentina (-03:00). ¡Ajusta esto si tu servidor está en otra zona!
+            const fechaInicio = new Date(fechaInicioStr + 'T12:00:00-03:00'); 
             
             const diasEntre = parseInt(document.getElementById('diasEntreJornadas').value);
             
@@ -3259,7 +3261,10 @@ async function eliminarPartido(id) {
             misEquipos.push({ id: 'dummy', nombre: 'Descansa' });
             
             const n = misEquipos.length; // 10
-            const numJornadas = n - 1; // 9 jornadas
+            
+            // ¡CAMBIO FASE 7.4 (Opción C)!
+            const numJornadas = 6; // 6 jornadas en lugar de (n-1)
+            
             const numPartidosPorJornada = n / 2; // 5 "partidos" (4 reales, 1 descanso)
             
             let calendarioHTML = '';
@@ -3267,7 +3272,9 @@ async function eliminarPartido(id) {
             
             for (let r = 0; r < numJornadas; r++) {
                 let jornadaPartidos = [];
-                let fechaJornada = new Date(fechaInicio.getTime() + (r * diasEntre * 24 * 60 * 60 * 1000));
+                // Sumar días a la fecha de inicio
+                let fechaJornada = new Date(fechaInicio.getTime());
+                fechaJornada.setDate(fechaJornada.getDate() + (r * diasEntre));
                 let fechaISO = fechaJornada.toISOString().split('T')[0];
                 
                 calendarioHTML += `<div class="jornada-card"><h4>Jornada ${r + 1} (Fecha: ${fechaJornada.toLocaleDateString('es-AR')})</h4>`;
@@ -3368,6 +3375,7 @@ async function eliminarPartido(id) {
                 btn.textContent = '💾 Guardar Calendario en BD';
             }
         }
+        // ¡FIN FASE 7.3!
         
         // ========== FIN FASE 7 ==========
     </script>
