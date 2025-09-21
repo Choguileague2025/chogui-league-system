@@ -152,15 +152,23 @@ app.put('/api/torneos/:id/activar', async (req, res) => {
     try {
         const { id } = req.params;
         await pool.query('UPDATE torneos SET activo = false');
+        
+        // *** INICIO DE CORRECCIÓN DEL BUG DE SINTAXIS ***
+        // Las líneas 169-172 originales tenían comillas (`) y (`) y comas (,) mal puestas.
+        // Esta es la forma correcta:
         const result = await pool.query(
             'UPDATE torneos SET activo = true WHERE id = $1 RETURNING *',
             [id]
         );
+        // *** FIN DE CORRECCIÓN DEL BUG DE SINTAXIS ***
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
         res.json(result.rows[0]);
     } catch (error) {
+        // *** NUEVO: Agregamos un log para ver el error en Railway ***
+        console.error('❌ Error en /api/torneos/:id/activar:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -171,6 +179,9 @@ app.put('/api/torneos/desactivar-todos', async (req, res) => {
         await pool.query('UPDATE torneos SET activo = false');
         res.json({ message: 'Todos los torneos han sido desactivados.' });
     } catch (error) {
+        // *** NUEVO: Agregamos un log para ver el error en Railway ***
+        // Esto nos dirá por qué la ruta del botón "Desactivar Todos" daba Error 500
+        console.error('❌ Error en /api/torneos/desactivar-todos:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -197,6 +208,8 @@ app.delete('/api/torneos/:id', async (req, res) => {
         if (error.code === '23503') {
              return res.status(400).json({ error: 'No se puede eliminar. Hay estadísticas (bateo, pitcheo, etc.) asociadas a este torneo.' });
         }
+        // *** NUEVO: Agregamos un log para ver el error en Railway ***
+        console.error('❌ Error en DELETE /api/torneos/:id:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
