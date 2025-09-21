@@ -7,7 +7,22 @@ const pool = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
+// Configuración CORS para permitir GitHub Pages
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:8080',
+        'https://choguileague2025.github.io',
+        'https://chogui-league-system-production.up.railway.app'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
 // Middleware
 app.use(cors({
     origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
