@@ -2727,13 +2727,12 @@ async function eliminarPartido(id) {
             resetearBoton('defensiva');
 
             try {
-                let stat;
-                let stat;
-            let endpointTipo = tipo;
-
-            // <<< CORRECCIÓN DE ERROR DE TIPEO (Ofensiva y Defensiva) >>>
+             let endpointTipo = tipo;
+            
+            // <<< CORRECCIÓN: Añadir 's' a ofensiva y defensiva >>>
             if (tipo === 'defensiva' || tipo === 'ofensiva') {
                 endpointTipo = tipo + 's';
+            }
             }
                 
                 // 1. Obtener los datos del jugador
