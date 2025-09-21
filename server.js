@@ -6,10 +6,9 @@ require('dotenv').config();
 const pool = require('./database');
 
 const app = express();
-// PUERTO CORREGIDO (eliminada la línea duplicada)
 const PORT = process.env.PORT || 3000;
 
-// Configuración CORS unificada (eliminado el bloque duplicado)
+// Configuración CORS unificada
 app.use(cors({
     origin: [
         'http://localhost:3000',
@@ -22,40 +21,43 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Middlewares unificados (eliminado el express.json duplicado)
+// Middlewares
 app.use(express.json());
 app.use(cookieParser());
 
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
+// *** INICIO DE CORRECCIÓN: runMigrations MEJORADO ***
 // Función para ejecutar migraciones de base de datos
 async function runMigrations() {
-    try {
-        const fs = require('fs');
-        const path = require('path');
-        
-        // Leer el archivo SQL
-        const sqlPath = path.join(__dirname, 'setup-pitching-stats.sql');
-        
-        if (fs.existsSync(sqlPath)) {
-            const sql = fs.readFileSync(sqlPath, 'utf8');
-            
-            // Ejecutar el SQL
-            await pool.query(sql);
-            console.log('✅ Migraciones de estadísticas de pitcheo ejecutadas correctamente');
-            
-            // Opcional: renombrar el archivo para que no se ejecute de nuevo
-            const executedPath = path.join(__dirname, 'setup-pitching-stats.executed.sql');
-            fs.renameSync(sqlPath, executedPath);
-            
-        } else {
-            console.log('📄 No hay migraciones pendientes');
+    const fs = require('fs');
+    
+    // Función helper para ejecutar un archivo SQL
+    const runSqlFile = async (fileName) => {
+        try {
+            const sqlPath = path.join(__dirname, fileName);
+            if (fs.existsSync(sqlPath)) {
+                const sql = fs.readFileSync(sqlPath, 'utf8');
+                await pool.query(sql);
+                console.log(`✅ Migración ${fileName} ejecutada correctamente`);
+                
+                // Renombrar el archivo para que no se ejecute de nuevo
+                const executedPath = path.join(__dirname, fileName.replace('.sql', '.executed.sql'));
+                fs.renameSync(sqlPath, executedPath);
+            }
+        } catch (error) {
+            console.error(`❌ Error ejecutando migración ${fileName}:`, error.message);
         }
-    } catch (error) {
-        console.error('❌ Error ejecutando migraciones:', error.message);
-    }
+    };
+
+    // Lista de archivos de migración a ejecutar en orden
+    await runSqlFile('setup-pitching-stats.sql');
+    await runSqlFile('setup-offensive-stats.sql'); // <-- EJECUTA TU NUEVO ARCHIVO
+
+    console.log('📄 Verificación de migraciones completada.');
 }
+// *** FIN DE CORRECCIÓN ***
 
 // Ruta de prueba de la base de datos
 app.get('/api/test', async (req, res) => {
@@ -412,6 +414,147 @@ app.delete('/api/partidos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
+// *** INICIO DE NUEVAS APIS DE BATEO (FASE 3) ***
+// ====================== ESTADÍSTICAS OFENSIVAS ======================
+// Obtener todas las estadísticas ofensivas
+app.get('/api/estadisticas-ofensivas', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+                   CASE 
+                       WHEN eo.at_bats = 0 THEN 0.000
+                       ELSE (eo.hits::DECIMAL / eo.at_bats) 
+                   END as avg
+            FROM estadisticas_ofensivas eo
+            JOIN jugadores j ON eo.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            ORDER BY eo.temporada DESC, avg DESC
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas ofensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// Crear o actualizar estadísticas ofensivas
+app.post('/api/estadisticas-ofensivas', async (req, res) => {
+    try {
+        const {
+            jugador_id, at_bats, hits, home_runs, rbi, 
+            runs, walks, stolen_bases
+        } = req.body;
+        
+        if (!jugador_id) {
+            return res.status(400).json({ error: 'Jugador ID es requerido' });
+        }
+
+        const existing = await pool.query(
+            'SELECT id FROM estadisticas_ofensivas WHERE jugador_id = $1 AND temporada = $2',
+            [parseInt(jugador_id), '2025']
+        );
+
+        let result;
+        if (existing.rows.length > 0) {
+            // Actualizar (sumar)
+            result = await pool.query(`
+                UPDATE estadisticas_ofensivas SET
+                    at_bats = at_bats + $1,
+                    hits = hits + $2,
+                    home_runs = home_runs + $3,
+                    rbi = rbi + $4,
+                    runs = runs + $5,
+                    walks = walks + $6,
+                    stolen_bases = stolen_bases + $7,
+                    fecha_registro = NOW()
+                WHERE id = $8 RETURNING *
+            `, [
+                parseInt(at_bats) || 0,
+                parseInt(hits) || 0,
+                parseInt(home_runs) || 0,
+                parseInt(rbi) || 0,
+                parseInt(runs) || 0,
+                parseInt(walks) || 0,
+                parseInt(stolen_bases) || 0,
+                existing.rows[0].id
+            ]);
+        } else {
+            // Crear
+            result = await pool.query(`
+                INSERT INTO estadisticas_ofensivas (
+                    jugador_id, at_bats, hits, home_runs, rbi, 
+                    runs, walks, stolen_bases, temporada
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING *
+            `, [
+                parseInt(jugador_id),
+                parseInt(at_bats) || 0,
+                parseInt(hits) || 0,
+                parseInt(home_runs) || 0,
+                parseInt(rbi) || 0,
+                parseInt(runs) || 0,
+                parseInt(walks) || 0,
+                parseInt(stolen_bases) || 0,
+                '2025' // Default temporada
+            ]);
+        }
+        
+        res.status(201).json(result.rows[0]);
+        
+    } catch (error) {
+        console.error('Error registrando estadísticas ofensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
+    }
+});
+
+// Obtener líderes ofensivos (para la vista pública)
+app.get('/api/lideres-ofensivos', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                j.nombre as jugador_nombre, e.nombre as equipo_nombre, j.posicion,
+                eo.at_bats, eo.hits, eo.home_runs, eo.rbi, eo.runs, eo.walks, eo.stolen_bases,
+                
+                -- AVG (Average)
+                CASE 
+                    WHEN eo.at_bats > 0 THEN (eo.hits::DECIMAL / eo.at_bats)
+                    ELSE 0 
+                END as avg,
+                
+                -- OBP (On-Base Percentage)
+                CASE 
+                    WHEN (eo.at_bats + eo.walks) > 0 THEN (eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks)
+                    ELSE 0 
+                END as obp,
+                
+                -- SLG (Slugging)
+                CASE 
+                    WHEN eo.at_bats > 0 THEN (eo.hits + (eo.home_runs * 3))::DECIMAL / eo.at_bats
+                    ELSE 0 
+                END as slg,
+                
+                -- OPS (On-Base + Slugging)
+                CASE 
+                    WHEN (eo.at_bats + eo.walks) > 0 AND eo.at_bats > 0 THEN 
+                        ((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks)) + 
+                        ((eo.hits + (eo.home_runs * 3))::DECIMAL / eo.at_bats)
+                    ELSE 0 
+                END as ops
+                
+            FROM estadisticas_ofensivas eo
+            JOIN jugadores j ON eo.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            WHERE eo.at_bats >= 10 -- Mínimo 10 At-Bats para calificar
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error obteniendo líderes ofensivos:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+// *** FIN DE NUEVAS APIS DE BATEO ***
+
 // ====================== ESTADÍSTICAS DE PITCHEO ======================
 // Obtener todas las estadísticas de pitcheo
 app.get('/api/estadisticas-pitcheo', async (req, res) => {
@@ -458,7 +601,6 @@ app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
     }
 });
 
-// Crear o actualizar estadísticas de pitcheo
 // Crear o actualizar estadísticas de pitcheo
 app.post('/api/estadisticas-pitcheo', async (req, res) => {
     try {
@@ -583,7 +725,6 @@ app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
 });
 
 // Crear o actualizar estadísticas defensivas
-// Crear o actualizar estadísticas defensivas
 app.post('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const {
@@ -688,7 +829,7 @@ app.get('/api/lideres-defensivos', async (req, res) => {
             SELECT j.nombre as jugador_nombre, e.nombre as equipo_nombre, j.posicion,
                    ed.putouts, ed.assists, ed.errors, ed.double_plays,
                    calcular_fielding_percentage(ed.putouts, ed.assists, ed.errors) as fielding_percentage,
-                   (ed.putouts + ed.assists) as total_chances
+                   (ed.putouts + ed.assists + ed.errors) as total_chances
             FROM estadisticas_defensivas ed
             JOIN jugadores j ON ed.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
@@ -741,6 +882,9 @@ app.listen(PORT, () => {
     console.log(`   - POST /api/partidos`);
     console.log(`   - PUT  /api/partidos/:id`);
     console.log(`   - DELETE /api/partidos/:id`);
+    console.log(`   - GET  /api/estadisticas-ofensivas`);
+    console.log(`   - POST /api/estadisticas-ofensivas`);
+    console.log(`   - GET  /api/lideres-ofensivos`);
     console.log(`   - GET  /api/estadisticas-pitcheo`);
     console.log(`   - POST /api/estadisticas-pitcheo`);
     console.log(`   - GET  /api/estadisticas-defensivas`);
