@@ -53,6 +53,7 @@ async function runMigrations() {
     // Lista de archivos de migración a ejecutar en orden
     await runSqlFile('setup-pitching-stats.sql');
     await runSqlFile('setup-offensive-stats.sql');
+    await runSqlFile('setup-tournaments.sql'); // <-- EJECUTA TU NUEVO ARCHIVO
 
     console.log('📄 Verificación de migraciones completada.');
 }
@@ -77,7 +78,77 @@ app.get('/api/test', async (req, res) => {
     }
 });
 
+// ====================== TORNEOS (NUEVO FASE 5) ======================
+app.get('/api/torneos', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM torneos ORDER BY fecha_inicio DESC');
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+app.get('/api/torneos/activo', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM torneos WHERE activo = true LIMIT 1');
+        if (result.rows.length === 0) {
+            // Si no hay ninguno activo, activar el más reciente
+            const reciente = await pool.query('SELECT * FROM torneos ORDER BY fecha_inicio DESC LIMIT 1');
+            if (reciente.rows.length === 0) {
+                return res.status(404).json({ error: 'No hay torneos creados' });
+            }
+            await pool.query('UPDATE torneos SET activo = true WHERE id = $1', [reciente.rows[0].id]);
+            res.json(reciente.rows[0]);
+        } else {
+            res.json(result.rows[0]);
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+app.post('/api/torneos', async (req, res) => {
+    try {
+        const { nombre } = req.body;
+        if (!nombre) {
+            return res.status(400).json({ error: 'El nombre es requerido' });
+        }
+        const result = await pool.query(
+            'INSERT INTO torneos (nombre) VALUES ($1) RETURNING *',
+            [nombre]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        if (error.code === '23505') {
+            res.status(400).json({ error: 'Ya existe un torneo con ese nombre' });
+        } else {
+            res.status(500).json({ error: 'Error interno del servidor' });
+        }
+    }
+});
+
+// Activar un torneo (y desactivar los demás)
+app.put('/api/torneos/:id/activar', async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Desactivar todos
+        await pool.query('UPDATE torneos SET activo = false');
+        // Activar el seleccionado
+        const result = await pool.query(
+            'UPDATE torneos SET activo = true WHERE id = $1 RETURNING *',
+            [id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Torneo no encontrado' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 // ====================== EQUIPOS ======================
+// (Rutas de Equipos sin cambios)
 app.get('/api/equipos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM equipos ORDER BY id');
@@ -167,6 +238,7 @@ app.delete('/api/equipos/:id', async (req, res) => {
 });
 
 // ====================== JUGADORES ======================
+// (Rutas de Jugadores sin cambios)
 app.get('/api/jugadores', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -250,6 +322,7 @@ app.delete('/api/jugadores/:id', async (req, res) => {
 });
 
 // ====================== PARTIDOS ======================
+// (Rutas de Partidos sin cambios)
 app.get('/api/partidos', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -364,9 +437,6 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
-// *** INICIO DE NUEVA API (FASE 4.3) ***
-// Obtener estadísticas ofensivas por JUGADOR ID
 app.get('/api/estadisticas-ofensivas/:jugadorId', async (req, res) => {
     try {
         const { jugadorId } = req.params;
@@ -378,36 +448,28 @@ app.get('/api/estadisticas-ofensivas/:jugadorId', async (req, res) => {
             WHERE eo.jugador_id = $1
             ORDER BY eo.temporada DESC
         `, [jugadorId]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas ofensivas no encontradas' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error obteniendo estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-// *** FIN DE NUEVA API (FASE 4.3) ***
-
-// Ruta POST (SUMAR)
 app.post('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const {
             jugador_id, at_bats, hits, home_runs, rbi, 
             runs, walks, stolen_bases
         } = req.body;
-        
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-
         const existing = await pool.query(
             'SELECT id FROM estadisticas_ofensivas WHERE jugador_id = $1 AND temporada = $2',
             [parseInt(jugador_id), '2025']
         );
-
         let result;
         if (existing.rows.length > 0) {
             // Actualizar (sumar)
@@ -452,53 +514,40 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
                 '2025' // Default temporada
             ]);
         }
-        
         res.status(201).json(result.rows[0]);
-        
     } catch (error) {
         console.error('Error registrando estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
-
-// Ruta GET Lideres
 app.get('/api/lideres-ofensivos', async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT 
                 j.nombre as jugador_nombre, e.nombre as equipo_nombre, j.posicion,
                 eo.at_bats, eo.hits, eo.home_runs, eo.rbi, eo.runs, eo.walks, eo.stolen_bases,
-                
-                -- AVG (Average)
                 CASE 
                     WHEN eo.at_bats > 0 THEN (eo.hits::DECIMAL / eo.at_bats)
                     ELSE 0 
                 END as avg,
-                
-                -- OBP (On-Base Percentage)
                 CASE 
                     WHEN (eo.at_bats + eo.walks) > 0 THEN (eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks)
                     ELSE 0 
                 END as obp,
-                
-                -- SLG (Slugging)
                 CASE 
                     WHEN eo.at_bats > 0 THEN (eo.hits + (eo.home_runs * 3))::DECIMAL / eo.at_bats
                     ELSE 0 
                 END as slg,
-                
-                -- OPS (On-Base + Slugging)
                 CASE 
                     WHEN (eo.at_bats + eo.walks) > 0 AND eo.at_bats > 0 THEN 
                         ((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks)) + 
                         ((eo.hits + (eo.home_runs * 3))::DECIMAL / eo.at_bats)
                     ELSE 0 
                 END as ops
-                
             FROM estadisticas_ofensivas eo
             JOIN jugadores j ON eo.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
-            WHERE eo.at_bats >= 10 -- Mínimo 10 At-Bats para calificar
+            WHERE eo.at_bats >= 10
         `);
         res.json(result.rows);
     } catch (error) {
@@ -506,19 +555,15 @@ app.get('/api/lideres-ofensivos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
-// Ruta PUT (REEMPLAZAR)
 app.put('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const {
             jugador_id, at_bats, hits, home_runs, rbi, 
             runs, walks, stolen_bases, temporada
         } = req.body;
-        
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-
         const result = await pool.query(`
             UPDATE estadisticas_ofensivas SET
                 at_bats = $1,
@@ -542,18 +587,15 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
             temporada || '2025',
             parseInt(jugador_id)
         ]);
-
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
         }
         res.json(result.rows[0]);
-        
     } catch (error) {
         console.error('Error actualizando estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
-
 
 // ====================== ESTADÍSTICAS DE PITCHEO ======================
 app.get('/api/estadisticas-pitcheo', async (req, res) => {
@@ -709,7 +751,6 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
     }
 });
 
-
 // ====================== ESTADÍSTICAS DEFENSIVAS ======================
 app.get('/api/estadisticas-defensivas', async (req, res) => {
     try {
@@ -852,7 +893,6 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
-
 
 // ====================== LÍDERES (Rutas GET) ======================
 app.get('/api/lideres-pitcheo', async (req, res) => {
