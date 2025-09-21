@@ -2728,12 +2728,13 @@ async function eliminarPartido(id) {
 
             try {
                 let stat;
-                let endpointTipo = tipo;
-                
-                // *** CORRECCIÓN DE ERROR DE TIPEO ***
-                if (tipo === 'defensiva') {
-                    endpointTipo = 'defensivas';
-                }
+                let stat;
+            let endpointTipo = tipo;
+
+            // <<< CORRECCIÓN DE ERROR DE TIPEO (Ofensiva y Defensiva) >>>
+            if (tipo === 'defensiva' || tipo === 'ofensiva') {
+                endpointTipo = tipo + 's';
+            }
                 
                 // 1. Obtener los datos del jugador
                 const res = await fetch(`/api/estadisticas-${endpointTipo}/${jugadorId}`);
