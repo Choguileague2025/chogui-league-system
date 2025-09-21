@@ -3281,6 +3281,10 @@ async function eliminarPartido(id) {
                 
                 let descansaEquipo = '';
                 
+                // === ¡INICIO FASE 7.5: LÓGICA DE ROTACIÓN DE HORARIOS! ===
+                const offsetHorario = r % horarios.length;
+                // === FIN FASE 7.5 ===
+
                 for (let i = 0; i < numPartidosPorJornada; i++) {
                     const local = misEquipos[i];
                     const visitante = misEquipos[n - 1 - i];
@@ -3295,7 +3299,11 @@ async function eliminarPartido(id) {
                     }
                     
                     // Es un partido real
-                    const horario = horarios[jornadaPartidos.length % horarios.length];
+                    // === ¡CAMBIO FASE 7.5: Se aplica el offset! ===
+                    const horarioIndex = (jornadaPartidos.length + offsetHorario) % horarios.length;
+                    const horario = horarios[horarioIndex];
+                    // === FIN CAMBIO FASE 7.5 ===
+
                     const partido = {
                         equipo_local_id: local.id,
                         equipo_visitante_id: visitante.id,
@@ -3319,11 +3327,38 @@ async function eliminarPartido(id) {
                 misEquipos.splice(1, 0, ultimo);
             }
             
+            // === INICIO FASE 7.5: Añadir Jornadas de Playoffs (Visual) ===
+            let fechaJornada7 = new Date(fechaInicio.getTime());
+            fechaJornada7.setDate(fechaJornada7.getDate() + (6 * diasEntre));
+            calendarioHTML += `
+                <div class="jornada-card" style="border-color: #ff6b35; background: rgba(255, 107, 53, 0.1);">
+                    <h4>Jornada 7: Playoffs - Cuartos y Repechaje (Fecha: ${fechaJornada7.toLocaleDateString('es-AR')})</h4>
+                    <div class="jornada-partido"><strong>(1er Lugar)</strong> vs <strong>(6to Lugar)</strong></div>
+                    <div class="jornada-partido"><strong>(2do Lugar)</strong> vs <strong>(5to Lugar)</strong></div>
+                    <div class="jornada-partido"><strong>(3er Lugar)</strong> vs <strong>(4to Lugar)</strong></div>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
+                    <div class="jornada-partido" style="color: #ff8c00;">Repechaje 1: (Perdedor 1) vs (Perdedor 2)</div>
+                    <div class="jornada-partido" style="color: #ff8c00;">Repechaje 2: (Perdedor 1) vs (Perdedor 3)</div>
+                    <div class="jornada-partido" style="color: #ff8c00;">Repechaje 3: (Perdedor 2) vs (Perdedor 3)</div>
+                </div>`;
+
+            let fechaJornada8 = new Date(fechaInicio.getTime());
+            fechaJornada8.setDate(fechaJornada8.getDate() + (7 * diasEntre));
+            calendarioHTML += `
+                <div class="jornada-card" style="border-color: #ffd700; background: rgba(255, 215, 0, 0.1);">
+                    <h4>Jornada 8: Semifinal y Final (Fecha: ${fechaJornada8.toLocaleDateString('es-AR')})</h4>
+                    <div class="jornada-partido">Semifinal 1: (Ganador Cuartos 1) vs (Ganador Repechaje)</div>
+                    <div class="jornada-partido">Semifinal 2: (Ganador Cuartos 2) vs (Ganador Cuartos 3)</div>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
+                    <div class="jornada-partido" style="font-size: 1.1rem; text-align: center;"><strong>🏆 GRAN FINAL 🏆</strong></div>
+                </div>`;
+            // === FIN FASE 7.5 ===
+
             // 4. Mostrar en UI
             calendarioDiv.innerHTML = calendarioHTML;
             document.getElementById('btnGuardarCalendario').disabled = false;
             document.getElementById('btnGuardarCalendario').textContent = '💾 Guardar Calendario en BD';
-            mostrarExito('calendarioMessage', `¡Calendario de ${numJornadas} jornadas generado! Revisa y presiona 'Guardar'.`);
+            mostrarExito('calendarioMessage', `¡Calendario de ${numJornadas} jornadas (más playoffs) generado! Revisa y presiona 'Guardar'.`);
         }
 
         async function guardarCalendario() {
@@ -3331,7 +3366,8 @@ async function eliminarPartido(id) {
                 mostrarError('calendarioError', 'Primero debes generar un calendario.');
                 return;
             }
-            if (!confirm(`¿Estás seguro de guardar este calendario? Se crearán ${calendarioGenerado.length} partidos en la base de datos.`)) {
+            // ¡CAMBIO! Mensaje de confirmación actualizado
+            if (!confirm(`¿Estás seguro de guardar este calendario? Se crearán ${calendarioGenerado.length} partidos (solo las 6 jornadas de temporada regular) en la base de datos. Los playoffs son solo visuales.`)) {
                 return;
             }
 
@@ -3363,7 +3399,8 @@ async function eliminarPartido(id) {
                     }
                 }
                 
-                mostrarExito('calendarioMessage', `¡Calendario guardado! Se crearon ${partidosCreados} partidos en la base de datos.`);
+                // ¡CAMBIO! Mensaje de éxito actualizado
+                mostrarExito('calendarioMessage', `¡Calendario guardado! Se crearon ${partidosCreados} partidos de temporada regular.`);
                 await cargarPartidos(); // Actualizar la tabla de partidos
                 btn.textContent = 'Guardado ✔️';
                 calendarioGenerado = []; // Limpiar para evitar doble guardado
