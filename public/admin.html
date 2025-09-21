@@ -941,7 +941,9 @@
                     </div>
                 </div>
                 <button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
-            </div>
+                <div id="statsMessage" class="success-message"></div>
+                <div id="statsError" class="error-message"></div>
+                </div>
 
             <div class="card">
                 <h3>⚾ Registrar Estadísticas de Pitcheo</h3>
@@ -992,7 +994,9 @@
                     </div>
                 </div>
                 <button class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
-            </div>
+                <div id="pitcheoMessage" class="success-message"></div>
+                <div id="pitcheoError" class="error-message"></div>
+                </div>
 
             <div class="card">
                 <h3>🛡 Registrar Estadísticas Defensivas</h3>
@@ -1027,7 +1031,9 @@
                     </div>
                 </div>
                 <button class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
-            </div>
+                <div id="defensivaMessage" class="success-message"></div>
+                <div id="defensivaError" class="error-message"></div>
+                </div>
 
             <div class="card">
                 <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
@@ -3024,7 +3030,6 @@ async function eliminarPartido(id) {
                     actualizarLideres();
                 } else if (tipo === 'pitcheo') {
                     cargarTablaEditarPitcheo();
-                    // Aquí podrías recargar líderes de pitcheo si los tuvieras en esta pestaña
                 } else if (tipo === 'defensiva') {
                     cargarTablaEditarDefensa();
                     actualizarLideresPorPosicion();
