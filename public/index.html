@@ -540,62 +540,69 @@
             margin-bottom: 10px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
-
+        
+        /* Estilos copiados de admin.html para Top 5 defensivo */
         .position-leader {
-            text-align: center;
-            padding: 10px 0;
+            text-align: left;
+            padding: 0;
         }
-
+        .position-leader-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+        .position-leader-item:last-child {
+            border-bottom: none;
+        }
+        .position-player-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .position-player {
             color: #fff;
             font-weight: bold;
             font-size: 0.9rem;
         }
-
         .position-team {
             color: #ffd700;
             font-size: 0.7rem;
             opacity: 0.8;
         }
-
         .position-rating {
             color: #ff8c00;
             font-weight: bold;
             font-size: 1.1rem;
-            margin-top: 5px;
         }
-        /* Botón WhatsApp */
-        .whatsapp-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #25D366;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 25px;
-            text-decoration: none;
+        .war-stats {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        .war-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+        .war-component {
+            text-align: center;
+            padding: 8px;
+            background: rgba(26, 26, 46, 0.5);
+            border-radius: 6px;
+        }
+        .war-component-title {
+            color: #ffd700;
+            font-size: 0.7rem;
+            margin-bottom: 3px;
+        }
+        .war-component-value {
+            color: #fff;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
-            z-index: 1000;
-            transition: all 0.3s ease;
         }
+        /* Fin estilos copiados */
 
-        .whatsapp-btn:hover {
-            background: #20B858;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
-            color: white;
-            text-decoration: none;
-        }
-
-        @media (max-width: 768px) {
-            .whatsapp-btn {
-                bottom: 15px;
-                right: 15px;
-                padding: 10px 16px;
-                font-size: 0.9rem;
-            }
-        }
         /* Botón WhatsApp */
         .whatsapp-btn {
             position: fixed;
@@ -709,7 +716,7 @@
 
         <div id="estadisticas" class="tab-content">
             <div class="card">
-                <h3>🏆 Líderes de la Liga - Estilo MLB</h3>
+                <h3>🏆 Líderes de la Liga - BATEO</h3>
                 <div class="leaders-grid">
                     <div class="leader-card">
                         <h4>🥇 MEJOR PROMEDIO (AVG)</h4>
@@ -792,7 +799,7 @@
             </div>
 
             <div class="card">
-                <h3>📈 Estadísticas Completas con Métricas Avanzadas</h3>
+                <h3>📈 Estadísticas Completas de Bateo</h3>
                 <div class="table-container">
                     <table id="statsTable">
                         <thead>
@@ -812,7 +819,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="11" class="loading">Cargando estadísticas desde localStorage...</td>
+                                <td colspan="11" class="loading">Cargando estadísticas desde la Base de Datos...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -891,9 +898,10 @@
 </div>
 
             <div class="card">
-                <h3>🥇 MEJORES POR POSICIÓN - SISTEMA WAR AVANZADO</h3>
+                <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
                 <div class="position-leaders-grid" id="positionLeadersGrid">
-                    </div>
+                    <div class="loading">Cargando líderes defensivos...</div>
+                </div>
             </div>
         </div>
         
@@ -923,7 +931,7 @@
         let equipos = [];
         let partidos = [];
         let jugadores = [];
-        let estadisticas = [];
+        let estadisticas = []; // Esta variable ahora es para ESTADÍSTICAS OFENSIVAS
 
         // Ajustes posicionales tipo MLB (copiado del admin)
         const AJUSTES_POSICIONALES = {
@@ -973,28 +981,25 @@
             if (botonActivo) {
                 botonActivo.classList.add('active');
             }
-
-            // Si estamos en la pestaña de líderes, actualizar estadísticas
-            if (nombrePestana === 'estadisticas') {
-                actualizarLideres();
-            }
         }
 
         // ========== FUNCIONES DE CARGA DE DATOS (igual que admin) ==========
 
+        // *** INICIO DE CORRECCIÓN: cargarTodosLosDatos simplificado ***
         async function cargarTodosLosDatos() {
             try {
                 await cargarEquipos();
                 await cargarPartidos();
                 await cargarJugadores();
-                await cargarEstadisticas(); // Esta función ahora también carga pitcheo y defensa
+                await cargarEstadisticas(); // Esta función AHORA carga TODOS los líderes
                 calcularPosiciones();
-                actualizarLideres();
+                // actualizarLideres() HA SIDO ELIMINADO y su lógica movida a cargarEstadisticas
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 mostrarErrores();
             }
         }
+        // *** FIN DE CORRECCIÓN ***
 
         async function cargarEquipos() {
             try {
@@ -1044,82 +1049,121 @@
             }
         }
 
-        // Cargar estadísticas desde localStorage (igual que admin)
+        // *** INICIO DE CORRECCIÓN: Cargar todo desde API ***
         async function cargarEstadisticas() {
             try {
-                // Cargar estadísticas ofensivas (localStorage por ahora)
-                const statsGuardadas = localStorage.getItem('chogui_estadisticas');
-                
-                if (statsGuardadas) {
-                    estadisticas = JSON.parse(statsGuardadas);
-                    console.log(`✅ ${estadisticas.length} estadísticas ofensivas cargadas`);
+                // 1. Cargar estadísticas ofensivas (para la tabla completa)
+                const statsResponse = await fetch(getApiUrl('/api/estadisticas-ofensivas'));
+                if (statsResponse.ok) {
+                    estadisticas = await statsResponse.json();
+                    console.log(`✅ ${estadisticas.length} estadísticas ofensivas cargadas desde la DB.`);
+                    actualizarTablaEstadisticas();
                 } else {
-                    estadisticas = [];
-                }
-                
-                actualizarTablaEstadisticas();
-                actualizarLideresPorPosicion();
-                
-                // NUEVO: Cargar líderes de pitcheo completos
-                try {
-                    const responsePitcheo = await fetch(getApiUrl('/api/lideres-pitcheo'));
-                    if (responsePitcheo.ok) {
-                        const lideresPitcheo = await responsePitcheo.json();
-                        console.log('✅ Líderes de pitcheo cargados:', lideresPitcheo.length);
-                        
-                        if (lideresPitcheo.length > 0) {
-                            // Líderes por ERA (menor es mejor)
-                            const eraLideres = [...lideresPitcheo].sort((a, b) => a.era - b.era).slice(0, 3);
-                            actualizarLideresHTML('eraLeaders', eraLideres, 'era', true);
-                            
-                            // Líderes por WHIP (menor es mejor)  
-                            const whipLideres = [...lideresPitcheo].sort((a, b) => a.whip - b.whip).slice(0, 3);
-                            actualizarLideresHTML('whipLeaders', whipLideres, 'whip', true);
-                            
-                            // Líderes por Victorias (mayor es mejor)
-                            const winsLideres = [...lideresPitcheo].sort((a, b) => b.wins - a.wins).slice(0, 3);
-                            actualizarLideresHTML('winsLeaders', winsLideres, 'wins');
-                            
-                            // Líderes por Salvamentos (mayor es mejor)
-                            const savesLideres = [...lideresPitcheo].sort((a, b) => b.saves - a.saves).slice(0, 3);
-                            actualizarLideresHTML('savesLeaders', savesLideres, 'saves');
-                        }
-                    } else {
-                        // Si la respuesta no es OK, lanzar un error para que lo capture el catch
-                        throw new Error(`Error ${responsePitcheo.status} cargando líderes de pitcheo`);
-                    }
-                } catch (error) {
-                    console.log('Info: No hay estadísticas de pitcheo aún o error al cargar.', error.message);
-                }
-
-                // NUEVO: Cargar líderes defensivos completos
-                try {
-                    const responseDefensivo = await fetch(getApiUrl('/api/lideres-defensivos'));
-                    if (responseDefensivo.ok) {
-                        const lideresDefensivos = await responseDefensivo.json();
-                        console.log('✅ Líderes defensivos cargados:', lideresDefensivos.length);
-                        
-                        if (lideresDefensivos.length > 0) {
-                            // Mejor porcentaje defensivo general
-                            const mejoresDefensivos = lideresDefensivos
-                                .sort((a, b) => b.fielding_percentage - a.fielding_percentage)
-                                .slice(0, 3);
-                            
-                            const container = document.getElementById('fieldingLeaders');
-                            if (container) {
-                                actualizarLideresHTML('fieldingLeaders', mejoresDefensivos, 'fielding_percentage', true);
-                            }
-                        }
-                    } else {
-                         throw new Error(`Error ${responseDefensivo.status} cargando líderes defensivos`);
-                    }
-                } catch (error) {
-                    console.log('Info: No hay estadísticas defensivas aún o error al cargar.', error.message);
+                    throw new Error('Error cargando tabla de estadísticas ofensivas');
                 }
             } catch (error) {
-                console.error('Error cargando estadísticas:', error);
+                console.error(error);
+                estadisticas = [];
+                actualizarTablaEstadisticas(); // Muestra tabla vacía
             }
+
+            try {
+                // 2. Cargar líderes ofensivos (para los cuadros de líderes)
+                const responseOfensivo = await fetch(getApiUrl('/api/lideres-ofensivos'));
+                if (responseOfensivo.ok) {
+                    const lideresOfensivos = await responseOfensivo.json();
+                    console.log('✅ Líderes ofensivos cargados:', lideresOfensivos.length);
+                    
+                    if (lideresOfensivos.length > 0) {
+                        const avgLideres = [...lideresOfensivos].sort((a, b) => b.avg - a.avg).slice(0, 3);
+                        actualizarLideresHTML('avgLeaders', avgLideres, 'avg', true);
+
+                        const hrLideres = [...lideresOfensivos].sort((a, b) => b.home_runs - a.home_runs).slice(0, 3);
+                        actualizarLideresHTML('hrLeaders', hrLideres, 'home_runs');
+
+                        const rbiLideres = [...lideresOfensivos].sort((a, b) => b.rbi - a.rbi).slice(0, 3);
+                        actualizarLideresHTML('rbiLeaders', rbiLideres, 'rbi');
+
+                        const opsLideres = [...lideresOfensivos].sort((a, b) => b.ops - a.ops).slice(0, 3);
+                        actualizarLideresHTML('opsLeaders', opsLideres, 'ops', true);
+
+                        const sbLideres = [...lideresOfensivos].sort((a, b) => (b.stolen_bases || 0) - (a.stolen_bases || 0)).slice(0, 3);
+                        actualizarLideresHTML('sbLeaders', sbLideres, 'stolen_bases');
+
+                        // WAR se calcula en el frontend
+                        const warLideres = lideresOfensivos.map(stat => {
+                            const jugador = { posicion: stat.posicion }; // Simular jugador
+                            return { ...stat, war: calcularWAR(jugador, stat) };
+                        }).sort((a, b) => b.war - a.war).slice(0, 3);
+                        actualizarLideresHTML('warLeaders', warLideres, 'war', true);
+                    }
+                } else {
+                    throw new Error('Error cargando líderes ofensivos');
+                }
+            } catch (error) {
+                console.log('Info: No hay estadísticas ofensivas aún.', error.message);
+                mostrarLideresVacios('avgLeaders');
+                mostrarLideresVacios('hrLeaders');
+                mostrarLideresVacios('rbiLeaders');
+                mostrarLideresVacios('opsLeaders');
+                mostrarLideresVacios('warLeaders');
+                mostrarLideresVacios('sbLeaders');
+            }
+            
+            // 3. Cargar líderes de pitcheo (código existente)
+            try {
+                const responsePitcheo = await fetch(getApiUrl('/api/lideres-pitcheo'));
+                if (responsePitcheo.ok) {
+                    const lideresPitcheo = await responsePitcheo.json();
+                    console.log('✅ Líderes de pitcheo cargados:', lideresPitcheo.length);
+                    
+                    if (lideresPitcheo.length > 0) {
+                        const eraLideres = [...lideresPitcheo].sort((a, b) => a.era - b.era).slice(0, 3);
+                        actualizarLideresHTML('eraLeaders', eraLideres, 'era', true);
+                        const whipLideres = [...lideresPitcheo].sort((a, b) => a.whip - b.whip).slice(0, 3);
+                        actualizarLideresHTML('whipLeaders', whipLideres, 'whip', true);
+                        const winsLideres = [...lideresPitcheo].sort((a, b) => b.wins - a.wins).slice(0, 3);
+                        actualizarLideresHTML('winsLeaders', winsLideres, 'wins');
+                        const savesLideres = [...lideresPitcheo].sort((a, b) => b.saves - a.saves).slice(0, 3);
+                        actualizarLideresHTML('savesLeaders', savesLideres, 'saves');
+                    }
+                } else {
+                     throw new Error(`Error ${responsePitcheo.status} cargando líderes de pitcheo`);
+                }
+            } catch (error) {
+                console.log('Info: No hay estadísticas de pitcheo aún.', error.message);
+            }
+
+            // 4. Cargar líderes defensivos (código existente)
+            try {
+                const responseDefensivo = await fetch(getApiUrl('/api/lideres-defensivos'));
+                if (responseDefensivo.ok) {
+                    const lideresDefensivos = await responseDefensivo.json();
+                    console.log('✅ Líderes defensivos cargados:', lideresDefensivos.length);
+                    
+                    if (lideresDefensivos.length > 0) {
+                        const mejoresDefensivos = lideresDefensivos
+                            .sort((a, b) => b.fielding_percentage - a.fielding_percentage)
+                            .slice(0, 3);
+                        
+                        const container = document.getElementById('fieldingLeaders');
+                        if (container) {
+                            actualizarLideresHTML('fieldingLeaders', mejoresDefensivos, 'fielding_percentage', true);
+                        }
+                    }
+                } else {
+                     throw new Error(`Error ${responseDefensivo.status} cargando líderes defensivos`);
+                }
+            } catch (error) {
+                console.log('Info: No hay estadísticas defensivas aún.', error.message);
+            }
+
+            // 5. Cargar líderes por posición
+            actualizarLideresPorPosicion();
         }
+        // *** FIN DE CORRECCIÓN ***
+
+
         // ========== FUNCIONES DE CÁLCULOS AVANZADOS MLB (copiado del admin) ==========
 
         function calcularOBP(hits, walks, atBats) {
@@ -1137,16 +1181,19 @@
         }
 
         function calcularWAR(jugador, stats) {
-            if (!stats || stats.at_bats < 10) return 0;
+            // stats ahora viene de la API ofensiva
+            if (!stats || !jugador || stats.at_bats < 10) return 0;
 
-            const avg = stats.hits / stats.at_bats;
+            const avg = stats.at_bats > 0 ? (stats.hits / stats.at_bats) : 0;
             const obp = calcularOBP(stats.hits, stats.walks || 0, stats.at_bats);
             const slg = calcularSLG(stats.hits, stats.home_runs, stats.at_bats);
             const ops = calcularOPS(obp, slg);
 
             const bateoCont = (ops - 0.700) * 100;
             const ajustePosicional = AJUSTES_POSICIONALES[jugador.posicion] || 0;
-            const penalizacionErrores = (stats.errors || 0) * -2;
+            // 'errors' ya no está en este objeto, se necesitaría una lógica más avanzada
+            // para combinar stats ofensivas y defensivas. Por ahora lo omitimos.
+            const penalizacionErrores = 0; // (stats.errors || 0) * -2;
             const bonusVelocidad = (stats.stolen_bases || 0) * 0.2;
 
             const warTotal = (bateoCont + ajustePosicional + penalizacionErrores + bonusVelocidad) / 100;
@@ -1290,8 +1337,7 @@
             }).join('');
         }
 
-        // ========== ACTUALIZAR TABLA DE ESTADÍSTICAS ==========
-
+        // *** INICIO DE CORRECCIÓN: Leer datos de la API ***
         function actualizarTablaEstadisticas() {
             const tbody = document.querySelector('#statsTable tbody');
             
@@ -1301,18 +1347,24 @@
             }
 
             tbody.innerHTML = estadisticas.map(stat => {
-                const jugador = jugadores.find(j => j.id === stat.jugador_id);
-                const avg = stat.at_bats > 0 ? (stat.hits / stat.at_bats).toFixed(3) : '.000';
-                const obp = calcularOBP(stat.hits, stat.walks || 0, stat.at_bats).toFixed(3);
-                const slg = calcularSLG(stat.hits, stat.home_runs, stat.at_bats).toFixed(3);
+                const jugadorNombre = stat.jugador_nombre || 'Desconocido';
+                const equipoNombre = stat.equipo_nombre || '-';
+                const posicion = stat.posicion || '-';
+                
+                // Las stats vienen de la API
+                const avg = stat.avg ? parseFloat(stat.avg).toFixed(3) : '.000';
+                const obp = calcularOBP(parseFloat(stat.hits), parseFloat(stat.walks) || 0, parseFloat(stat.at_bats)).toFixed(3);
+                const slg = calcularSLG(parseFloat(stat.hits), parseFloat(stat.home_runs), parseFloat(stat.at_bats)).toFixed(3);
                 const ops = (parseFloat(obp) + parseFloat(slg)).toFixed(3);
+                
+                const jugador = { posicion: posicion };
                 const war = calcularWAR(jugador, stat).toFixed(2);
                 
                 return `
                     <tr>
-                        <td><strong>${jugador ? jugador.nombre : 'Desconocido'}</strong></td>
-                        <td>${jugador ? jugador.equipo_nombre : '-'}</td>
-                        <td>${jugador ? jugador.posicion : '-'}</td>
+                        <td><strong>${jugadorNombre}</strong></td>
+                        <td>${equipoNombre}</td>
+                        <td>${posicion}</td>
                         <td>${stat.at_bats}</td>
                         <td>${stat.hits}</td>
                         <td><strong>${avg}</strong></td>
@@ -1325,97 +1377,26 @@
                 `;
             }).join('');
         }
+        // *** FIN DE CORRECCIÓN ***
 
         // ========== ACTUALIZAR LÍDERES (copiado del admin) ==========
-
-        function actualizarLideres() {
-            if (estadisticas.length === 0) {
-                mostrarLideresVacios();
-                return;
-            }
-
-            // Líderes en Average (AVG)
-            const avgLideres = estadisticas
-                .filter(stat => stat.at_bats >= 10)
-                .map(stat => ({
-                    ...stat,
-                    avg: stat.at_bats > 0 ? stat.hits / stat.at_bats : 0
-                }))
-                .sort((a, b) => b.avg - a.avg)
-                .slice(0, 3);
-
-            actualizarLideresHTML('avgLeaders', avgLideres, 'avg', true);
-
-            // Líderes en Home Runs
-            const hrLideres = estadisticas
-                .sort((a, b) => b.home_runs - a.home_runs)
-                .slice(0, 3);
-
-            actualizarLideresHTML('hrLeaders', hrLideres, 'home_runs');
-
-            // Líderes en RBI
-            const rbiLideres = estadisticas
-                .sort((a, b) => b.rbi - a.rbi)
-                .slice(0, 3);
-
-            actualizarLideresHTML('rbiLeaders', rbiLideres, 'rbi');
-
-            // Líderes en OPS
-            const opsLideres = estadisticas
-                .filter(stat => stat.at_bats >= 10)
-                .map(stat => {
-                    const obp = calcularOBP(stat.hits, stat.walks || 0, stat.at_bats);
-                    const slg = calcularSLG(stat.hits, stat.home_runs, stat.at_bats);
-                    return {
-                        ...stat,
-                        ops: obp + slg
-                    };
-                })
-                .sort((a, b) => b.ops - a.ops)
-                .slice(0, 3);
-
-            actualizarLideresHTML('opsLeaders', opsLideres, 'ops', true);
-
-            // Líderes en WAR
-            const warLideres = estadisticas
-                .filter(stat => stat.at_bats >= 10)
-                .map(stat => {
-                    const jugador = jugadores.find(j => j.id === stat.jugador_id);
-                    return {
-                        ...stat,
-                        war: calcularWAR(jugador, stat)
-                    };
-                })
-                .sort((a, b) => b.war - a.war)
-                .slice(0, 3);
-
-            actualizarLideresHTML('warLeaders', warLideres, 'war', true);
-
-            // Líderes en Bases Robadas
-            const sbLideres = estadisticas
-                .sort((a, b) => (b.stolen_bases || 0) - (a.stolen_bases || 0))
-                .slice(0, 3);
-
-            actualizarLideresHTML('sbLeaders', sbLideres, 'stolen_bases');
-        }
-
-        function mostrarLideresVacios() {
-            const containers = ['avgLeaders', 'hrLeaders', 'rbiLeaders', 'opsLeaders', 'warLeaders', 'sbLeaders'];
-            
-            containers.forEach(containerId => {
-                const container = document.getElementById(containerId);
-                if (container) {
-                    container.innerHTML = `
-                        <div class="leader-item">
-                            <div>
-                                <div class="leader-name">Sin estadísticas</div>
-                                <div class="leader-team">Ve al panel de administración</div>
-                            </div>
-                            <div class="leader-stat">-</div>
+        
+        // Esta función (actualizarLideres) se elimina porque su lógica se movió
+        // a la nueva función cargarEstadisticas()
+        
+        function mostrarLideresVacios(containerId) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div class="leader-item">
+                        <div>
+                            <div class="leader-name">Sin estadísticas</div>
+                            <div class="leader-team">Ve al panel de administración</div>
                         </div>
-                    `;
-                }
-            });
+                        <div class="leader-stat">-</div>
+                    </div>
+                `;
+            }
         }
 
        // *** INICIO DE CORRECCIÓN: FUNCIÓN ACTUALIZAR LÍDERES MÁS ROBUSTA ***
@@ -1427,11 +1408,12 @@
             }
 
             if (!lideres || lideres.length === 0) {
-                container.innerHTML = `
+                 const msg = (containerId.includes('avg') || containerId.includes('ops')) ? "(Mínimo 10 AB)" : "(Mínimo 5 IP)";
+                 container.innerHTML = `
                     <div class="leader-item">
                         <div>
                             <div class="leader-name">Sin datos suficientes</div>
-                            <div class="leader-team">Mínimo 10 AB o 5 IP requeridos</div>
+                            <div class="leader-team">${msg}</div>
                         </div>
                         <div class="leader-stat">-</div>
                     </div>
@@ -1447,11 +1429,11 @@
                 
                 // Lógica robusta para manejar ambos tipos de datos
                 if (lider.jugador_nombre) {
-                    // Viene de la API (Pitcheo / Defensa)
+                    // Viene de la API (Pitcheo / Defensa / Ofensiva)
                     jugadorNombre = lider.jugador_nombre;
                     equipoNombre = lider.equipo_nombre;
                 } else {
-                    // Viene de localStorage (Ofensiva)
+                    // Fallback (ya no debería usarse)
                     const jugador = jugadores.find(j => j.id === lider.jugador_id);
                     jugadorNombre = jugador ? jugador.nombre : 'Desconocido';
                     equipoNombre = jugador ? jugador.equipo_nombre : '-';
@@ -1635,7 +1617,9 @@
                 playoffsContent.innerHTML = '<div class="error-message">❌ Error cargando datos de playoffs. Verifica la conexión con Railway.</div>';
             }
 
-            mostrarLideresVacios();
+            mostrarLideresVacios('avgLeaders');
+            mostrarLideresVacios('hrLeaders');
+            // ... etc
         }
 
         // Función para recargar datos manualmente (útil para debugging)
@@ -1649,10 +1633,28 @@
 
         console.log('🏆 Chogui League Vista Pública cargada exitosamente');
         console.log('💡 Tip: Escribe recargarDatos() en la consola para recargar datos manualmente');
-        // Función para actualizar líderes por posición
-        function actualizarLideresPorPosicion() {
+        
+        // *** INICIO DE CORRECCIÓN: Cargar líderes por posición ***
+        async function actualizarLideresPorPosicion() {
             const container = document.getElementById('positionLeadersGrid');
             if (!container) return;
+
+            container.innerHTML = '<div class="loading">Cargando líderes defensivos...</div>';
+
+            // 1. Cargar estadísticas defensivas desde la API
+            let defensiveStats = [];
+            try {
+                const response = await fetch(getApiUrl('/api/lideres-defensivos'));
+                if (response.ok) {
+                    defensiveStats = await response.json();
+                } else {
+                    throw new Error('Error al cargar estadísticas defensivas');
+                }
+            } catch (error) {
+                console.error('Error cargando stats defensivas:', error);
+                container.innerHTML = '<div class="error-message">Error al cargar estadísticas defensivas.</div>';
+                return;
+            }
 
             const posiciones = [
                 { pos: 'C', nombre: '🥅 MEJOR CATCHER' },
@@ -1663,22 +1665,83 @@
                 { pos: 'LF', nombre: '⬅️ MEJOR LEFT FIELD' },
                 { pos: 'CF', nombre: '🎯 MEJOR CENTER FIELD' },
                 { pos: 'RF', nombre: '➡️ MEJOR RIGHT FIELD' },
-                { pos: 'P', nombre: '🥎 MEJOR PITCHER' }
             ];
 
             container.innerHTML = posiciones.map(posicion => {
+                
+                // 2. Filtrar y ordenar por stats defensivas
+                const mejoresJugadores = defensiveStats
+                    .filter(j => j.posicion === posicion.pos)
+                    .sort((a, b) => {
+                        const fldA = parseFloat(a.fielding_percentage) || 0;
+                        const fldB = parseFloat(b.fielding_percentage) || 0;
+                        if (fldB !== fldA) {
+                            return fldB - fldA;
+                        }
+                        const chancesA = parseInt(a.total_chances) || 0;
+                        const chancesB = parseInt(b.total_chances) || 0;
+                        return chancesB - chancesA;
+                    })
+                    .slice(0, 5); // 3. Tomar el TOP 5
+
+                
+                let leadersHTML;
+                if (mejoresJugadores.length === 0) {
+                    leadersHTML = `
+                        <div class="position-leader" style="opacity: 0.5; text-align: center; padding: 10px;">
+                            <div class="position-player">Sin jugadores con stats</div>
+                            <div class="position-team">(Mínimo 5 chances)</div>
+                            <div class="position-rating">-.---</div>
+                        </div>
+                    `;
+                } else {
+                    // 4. Generar el HTML con las estadísticas correctas
+                    leadersHTML = mejoresJugadores.map((jugador, index) => {
+                        const fld = parseFloat(jugador.fielding_percentage).toFixed(3);
+                        const po = parseInt(jugador.putouts);
+                        const a = parseInt(jugador.assists);
+                        const e = parseInt(jugador.errors);
+
+                        return `
+                        <div class="position-leader-item">
+                            <div class="position-player-container">
+                                <div>
+                                    <div class="position-player">${index + 1}. ${jugador.jugador_nombre}</div>
+                                    <div class="position-team">${jugador.equipo_nombre}</div>
+                                </div>
+                                <div class="position-rating">FLD%: ${fld}</div>
+                            </div>
+                            <div class="war-stats" style="margin-top: 8px; padding: 8px; border-radius: 6px;">
+                                <div class="war-breakdown" style="gap: 5px; grid-template-columns: repeat(3, 1fr);">
+                                    <div class="war-component">
+                                        <div class="war-component-title">PO</div>
+                                        <div class="war-component-value">${po}</div>
+                                    </div>
+                                    <div class="war-component">
+                                        <div class="war-component-title">A</div>
+                                        <div class="war-component-value">${a}</div>
+                                    </div>
+                                    <div class="war-component">
+                                        <div class="war-component-title">E</div>
+                                        <div class="war-component-value">${e}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `}).join('');
+                }
+
                 return `
                     <div class="position-card">
                         <div class="position-title">${posicion.nombre}</div>
                         <div class="position-leader">
-                            <div class="position-player">Sin datos</div>
-                            <div class="position-team">-</div>
-                            <div class="position-rating">-.--</div>
+                            ${leadersHTML}
                         </div>
                     </div>
                 `;
             }).join('');
         }
+        // *** FIN DE CORRECCIÓN ***
     </script>
     <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%20una%20consulta" 
        class="whatsapp-btn" target="_blank">
