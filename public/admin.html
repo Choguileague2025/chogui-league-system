@@ -503,28 +503,40 @@
         }
 
         .position-leader {
-            text-align: center;
-            padding: 10px 0;
+            text-align: left; /* CORREGIDO: para listas */
+            padding: 0;
         }
-
+        
+        /* ESTILOS NUEVOS PARA LISTA TOP 5 */
+        .position-leader-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+        }
+        .position-leader-item:last-child {
+            border-bottom: none;
+        }
+        
+        .position-player-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .position-player {
             color: #fff;
             font-weight: bold;
             font-size: 0.9rem;
         }
-
         .position-team {
             color: #ffd700;
             font-size: 0.7rem;
             opacity: 0.8;
         }
-
         .position-rating {
             color: #ff8c00;
             font-weight: bold;
             font-size: 1.1rem;
-            margin-top: 5px;
         }
+        /* FIN ESTILOS NUEVOS */
 
         /* Sistema WAR avanzado */
         .war-stats {
@@ -598,7 +610,6 @@
             <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
         </div>
 
-        <!-- Tab Equipos -->
         <div id="equipos" class="tab-content active">
             <div class="card">
                 <h3>➕ Agregar Nuevo Equipo</h3>
@@ -651,7 +662,6 @@
             </div>
         </div>
 
-        <!-- Tab Partidos -->
         <div id="partidos" class="tab-content">
             <div class="card">
                 <h3>⚾ Registrar Nuevo Partido</h3>
@@ -718,7 +728,6 @@
             </div>
         </div>
 
-        <!-- Tab Jugadores -->
         <div id="jugadores" class="tab-content">
             <div class="card">
                 <h3>👤 Agregar Nuevo Jugador</h3>
@@ -787,7 +796,6 @@
             </div>
         </div>
 
-        <!-- Tab Líderes (SISTEMA AVANZADO MLB) -->
         <div id="lideres" class="tab-content">
             <div class="card">
                 <h3>📊 Registrar Estadísticas Avanzadas</h3>
@@ -836,7 +844,6 @@
                 <div id="statsError" class="error-message"></div>
             </div>
 
-            <!-- NUEVO FORMULARIO: ESTADÍSTICAS DE PITCHEO -->
             <div class="card">
                 <h3>⚾ Registrar Estadísticas de Pitcheo</h3>
                 <div class="stats-form-container">
@@ -889,7 +896,6 @@
                 <div id="pitcheoError" class="error-message"></div>
             </div>
 
-            <!-- NUEVO FORMULARIO: ESTADÍSTICAS DEFENSIVAS -->
             <div class="card">
                 <h3>🛡 Registrar Estadísticas Defensivas</h3>
                 <div class="stats-form-container">
@@ -926,11 +932,10 @@
                 <div id="defensivaError" class="error-message"></div>
             </div>
 
-            <!-- LÍDERES POR POSICIÓN ESPECÍFICA (NUEVO) -->
             <div class="card">
-                <h3>🥇 MEJORES POR POSICIÓN - SISTEMA WAR AVANZADO</h3>
+                <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
                 <div class="position-leaders-grid" id="positionLeadersGrid">
-                    <!-- Se generará dinámicamente -->
+                    <div class="loading">Cargando líderes defensivos...</div>
                 </div>
             </div>
 
@@ -1049,7 +1054,6 @@
             </div>
         </div>
 
-        <!-- Tab Posiciones -->
         <div id="posiciones" class="tab-content">
             <div class="card">
                 <h3>🏆 Tabla de Posiciones en Tiempo Real</h3>
@@ -1188,7 +1192,7 @@
                 actualizarSelectores();
                 calcularPosiciones();
                 actualizarLideres();
-                actualizarLideresPorPosicion();
+                actualizarLideresPorPosicion(); // Llamar a la nueva función
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 mostrarError('equipoError', 'Error de conexión al servidor');
@@ -1394,7 +1398,7 @@
                     <tr>
                         <td><strong>${jugador ? jugador.nombre : 'Desconocido'}</strong></td>
                         <td>${jugador ? jugador.equipo_nombre : '-'}</td>
-                        <td>${jugador ? jugador.posicion : '-'}</td>
+                        <td>${jugador ? jugador.posicion : '-'}}</td>
                         <td>${stat.at_bats}</td>
                         <td>${stat.hits}</td>
                         <td><strong>${avg}</strong></td>
@@ -1408,11 +1412,27 @@
             }).join('');
         }
 
-        // ========== NUEVA FUNCIÓN: LÍDERES POR POSICIÓN ESPECÍFICA ==========
-
-        function actualizarLideresPorPosicion() {
+        // *** INICIO DE CORRECCIÓN: FUNCIÓN LÍDERES POR POSICIÓN REESCRITA ***
+        async function actualizarLideresPorPosicion() {
             const container = document.getElementById('positionLeadersGrid');
             if (!container) return;
+
+            container.innerHTML = '<div class="loading">Cargando líderes defensivos...</div>';
+
+            // 1. Cargar estadísticas defensivas desde la API
+            let defensiveStats = [];
+            try {
+                const response = await fetch('/api/lideres-defensivos');
+                if (response.ok) {
+                    defensiveStats = await response.json();
+                } else {
+                    throw new Error('Error al cargar estadísticas defensivas');
+                }
+            } catch (error) {
+                console.error('Error cargando stats defensivas:', error);
+                container.innerHTML = '<div class="error-message">Error al cargar estadísticas defensivas.</div>';
+                return;
+            }
 
             const posiciones = [
                 { pos: 'C', nombre: '🥅 MEJOR CATCHER' },
@@ -1423,71 +1443,88 @@
                 { pos: 'LF', nombre: '⬅️ MEJOR LEFT FIELD' },
                 { pos: 'CF', nombre: '🎯 MEJOR CENTER FIELD' },
                 { pos: 'RF', nombre: '➡️ MEJOR RIGHT FIELD' },
-                { pos: 'P', nombre: '🥎 MEJOR PITCHER' }
+                // { pos: 'P', nombre: '🥎 MEJOR PITCHER' } // Los pitchers se miden por ERA, no FLD%
             ];
 
             container.innerHTML = posiciones.map(posicion => {
-                const jugadoresPosicion = jugadores.filter(j => j.posicion === posicion.pos);
                 
-                if (jugadoresPosicion.length === 0) {
-                    return `
-                        <div class="position-card">
-                            <div class="position-title">${posicion.nombre}</div>
-                            <div class="position-leader">
-                                <div class="position-player">Sin jugadores</div>
-                                <div class="position-team">-</div>
-                                <div class="position-rating">-.--</div>
-                            </div>
+                // 2. Filtrar y ordenar por stats defensivas
+                const mejoresJugadores = defensiveStats
+                    .filter(j => j.posicion === posicion.pos)
+                    .sort((a, b) => {
+                        // Criterio 1: Porcentaje de Fildeo (DESC)
+                        const fldA = parseFloat(a.fielding_percentage) || 0;
+                        const fldB = parseFloat(b.fielding_percentage) || 0;
+                        if (fldB !== fldA) {
+                            return fldB - fldA;
+                        }
+                        // Criterio 2: Total Chances (DESC)
+                        const chancesA = parseInt(a.total_chances) || 0;
+                        const chancesB = parseInt(b.total_chances) || 0;
+                        return chancesB - chancesA;
+                    })
+                    .slice(0, 5); // 3. Tomar el TOP 5
+
+                
+                let leadersHTML;
+                if (mejoresJugadores.length === 0) {
+                    leadersHTML = `
+                        <div class="position-leader" style="opacity: 0.5; text-align: center; padding: 10px;">
+                            <div class="position-player">Sin jugadores con stats</div>
+                            <div class="position-team">(Mínimo 5 chances)</div>
+                            <div class="position-rating">-.---</div>
                         </div>
                     `;
-                }
+                } else {
+                    // 4. Generar el HTML con las estadísticas correctas
+                    leadersHTML = mejoresJugadores.map((jugador, index) => {
+                        // Convertir a números para asegurar
+                        const fld = parseFloat(jugador.fielding_percentage).toFixed(3);
+                        const po = parseInt(jugador.putouts);
+                        const a = parseInt(jugador.assists);
+                        const e = parseInt(jugador.errors);
 
-                // Calcular el mejor jugador por posición usando WAR
-                const mejorJugador = jugadoresPosicion.map(jugador => {
-                    const stat = estadisticas.find(s => s.jugador_id === jugador.id);
-                    const war = stat ? calcularWAR(jugador, stat) : 0;
-                    const avg = stat && stat.at_bats > 0 ? stat.hits / stat.at_bats : 0;
-                    
-                    return {
-                        jugador,
-                        war,
-                        avg,
-                        stats: stat
-                    };
-                }).sort((a, b) => {
-                    // Ordenar por WAR primero, luego por AVG
-                    if (Math.abs(b.war - a.war) > 0.1) return b.war - a.war;
-                    return b.avg - a.avg;
-                })[0];
+                        return `
+                        <div class="position-leader-item">
+                            <div class="position-player-container">
+                                <div>
+                                    <div class="position-player">${index + 1}. ${jugador.jugador_nombre}</div>
+                                    <div class="position-team">${jugador.equipo_nombre}</div>
+                                </div>
+                                <div class="position-rating">FLD%: ${fld}</div>
+                            </div>
+                            <div class="war-stats" style="margin-top: 8px; padding: 8px;">
+                                <div class="war-breakdown" style="gap: 5px;">
+                                    <div class="war-component">
+                                        <div class="war-component-title">PO</div>
+                                        <div class="war-component-value">${po}</div>
+                                    </div>
+                                    <div class="war-component">
+                                        <div class="war-component-title">A</div>
+                                        <div class="war-component-value">${a}</div>
+                                    </div>
+                                    <div class="war-component">
+                                        <div class="war-component-title">E</div>
+                                        <div class="war-component-value">${e}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `}).join('');
+                }
 
                 return `
                     <div class="position-card">
                         <div class="position-title">${posicion.nombre}</div>
                         <div class="position-leader">
-                            <div class="position-player">${mejorJugador.jugador.nombre}</div>
-                            <div class="position-team">${mejorJugador.jugador.equipo_nombre}</div>
-                            <div class="position-rating">WAR: ${mejorJugador.war.toFixed(2)}</div>
-                            <div class="war-stats">
-                                <div class="war-breakdown">
-                                    <div class="war-component">
-                                        <div class="war-component-title">AVG</div>
-                                        <div class="war-component-value">${mejorJugador.avg.toFixed(3)}</div>
-                                    </div>
-                                    <div class="war-component">
-                                        <div class="war-component-title">HR</div>
-                                        <div class="war-component-value">${mejorJugador.stats ? mejorJugador.stats.home_runs : 0}</div>
-                                    </div>
-                                    <div class="war-component">
-                                        <div class="war-component-title">RBI</div>
-                                        <div class="war-component-value">${mejorJugador.stats ? mejorJugador.stats.rbi : 0}</div>
-                                    </div>
-                                </div>
-                            </div>
+                            ${leadersHTML}
                         </div>
                     </div>
                 `;
             }).join('');
         }
+        // *** FIN DE CORRECCIÓN ***
+
 
         // ========== FUNCIÓN DE CÁLCULO DE POSICIONES ==========
 
@@ -2415,6 +2452,9 @@ async function eliminarPartido(id) {
                     document.getElementById('passedBalls').value = '0';
 
                     mostrarExito('defensivaMessage', `✅ Estadísticas defensivas registradas correctamente`);
+                    
+                    // Actualizar la vista de líderes defensivos
+                    actualizarLideresPorPosicion();
                 } else {
                     const errorData = await response.json();
                     mostrarError('defensivaError', errorData.error || 'Error al registrar estadísticas');
