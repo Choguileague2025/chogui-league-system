@@ -1201,16 +1201,16 @@
             return Math.max(warTotal, -2.0);
         }
 
-        // ========== FUNCIÓN DE CÁLCULO DE POSICIONES (copiado del admin) ==========
+        // ========== FUNCIÓN DE CÁLCULO DE POSICIONES (NUEVA LÓGICA FASE 6) ==========
 
         function calcularPosiciones() {
             const tbody = document.querySelector('#posicionesTable tbody');
-            
+            const PARTIDOS_TOTALES_TEMPORADA = 8; // ¡NUEVO! Total de juegos por equipo
+
             if (equipos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay equipos registrados. Ve al panel de administración para agregar equipos.</td></tr>';
                 return;
             }
-
             if (partidos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay partidos registrados. Ve al panel de administración para agregar partidos.</td></tr>';
                 return;
@@ -1218,7 +1218,6 @@
 
             // Calcular estadísticas por equipo (mismo algoritmo que admin)
             const estadisticasEquipos = {};
-            
             equipos.forEach(equipo => {
                 estadisticasEquipos[equipo.id] = {
                     id: equipo.id,
@@ -1234,16 +1233,13 @@
             partidos.forEach(partido => {
                 const localId = partido.equipo_local_id;
                 const visitanteId = partido.equipo_visitante_id;
-                
                 if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
                     estadisticasEquipos[localId].partidos_jugados++;
                     estadisticasEquipos[visitanteId].partidos_jugados++;
-                    
                     estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
                     estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
                     estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
                     estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
-                    
                     if (partido.carreras_local > partido.carreras_visitante) {
                         estadisticasEquipos[localId].partidos_ganados++;
                         estadisticasEquipos[visitanteId].partidos_perdidos++;
@@ -1254,7 +1250,7 @@
                 }
             });
 
-            // Convertir a array y ordenar por porcentaje
+            // Convertir a array y ordenar
             const posiciones = Object.values(estadisticasEquipos)
                 .map(stats => ({
                     ...stats,
@@ -1266,20 +1262,36 @@
                     return b.diferencia - a.diferencia;
                 });
 
+            // ¡NUEVA LÓGICA DE CLASIFICACIÓN (TOP 6)!
+            const equipoSexto = posiciones[5]; // Obtenemos al 6to lugar
+
             tbody.innerHTML = posiciones.map((equipo, index) => {
                 const pos = index + 1;
                 let estado = '';
                 let estadoClass = '';
-                
-                if (pos <= 4) {
-                    estado = 'PLAYOFF';
+
+                if (pos <= 6) { // Clasifican 6
+                    estado = 'CLASIFICADO';
                     estadoClass = 'style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;"';
-                } else if (pos > equipos.length - 2) {
-                    estado = 'ELIMINADO';
-                    estadoClass = 'style="color: #dc143c; font-size: 0.8rem; font-weight: bold;"';
                 } else {
-                    estado = 'EN LUCHA';
-                    estadoClass = 'style="color: #ff8c00; font-size: 0.8rem; font-weight: bold;"';
+                    // Lógica de Eliminación (Número Mágico)
+                    if (!equipoSexto || equipoSexto.partidos_jugados === 0) {
+                        estado = 'EN LUCHA';
+                        estadoClass = 'style="color: #ff8c00; font-size: 0.8rem; font-weight: bold;"';
+                    } else {
+                        const victoriasSexto = equipoSexto.partidos_ganados;
+                        const derrotasEquipo = equipo.partidos_perdidos;
+                        const magicNumber = (PARTIDOS_TOTALES_TEMPORADA + 1) - victoriasSexto - derrotasEquipo;
+                        const partidosRestantes = PARTIDOS_TOTALES_TEMPORADA - equipo.partidos_jugados;
+
+                        if (magicNumber <= 0 || magicNumber > partidosRestantes) {
+                            estado = 'ELIMINADO';
+                            estadoClass = 'style="color: #dc143c; font-size: 0.8rem; font-weight: bold;"';
+                        } else {
+                            estado = `EN LUCHA (M# ${magicNumber})`;
+                            estadoClass = 'style="color: #ff8c00; font-size: 0.8rem; font-weight: bold;"';
+                        }
+                    }
                 }
 
                 return `
@@ -1473,40 +1485,29 @@
         }
         // *** FIN DE CORRECCIÓN ***
 
-        // ========== ACTUALIZAR PLAYOFFS ==========
+        // ========== ACTUALIZAR PLAYOFFS (NUEVA LÓGICA FASE 6.2) ==========
 
         function actualizarPlayoffs(posiciones = null) {
             const contenido = document.getElementById('playoffsContent');
-            
             if (!contenido) return;
 
-            if (equipos.length < 4 || partidos.length === 0) {
-                contenido.innerHTML = '<div class="empty-state">Se necesitan al menos 4 equipos y algunos partidos para calcular la clasificación. Ve al panel de administración para agregar más datos.</div>';
-                return;
-            }
-
-            // Si no se pasaron posiciones, calcularlas
+            // Si no se pasaron posiciones, calcularlas (necesario si la pestaña se carga primero)
             if (!posiciones) {
-                // Calcular estadísticas básicas
+                // Lógica rápida solo para obtener el orden
                 const estadisticasEquipos = {};
-                
                 equipos.forEach(equipo => {
-                    estadisticasEquipos[equipo.id] = {
-                        id: equipo.id,
-                        nombre: equipo.nombre,
-                        partidos_jugados: 0,
-                        partidos_ganados: 0
-                    };
+                    estadisticasEquipos[equipo.id] = { id: equipo.id, nombre: equipo.nombre, partidos_jugados: 0, partidos_ganados: 0, carreras_favor: 0, carreras_contra: 0 };
                 });
-
                 partidos.forEach(partido => {
                     const localId = partido.equipo_local_id;
                     const visitanteId = partido.equipo_visitante_id;
-                    
                     if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
                         estadisticasEquipos[localId].partidos_jugados++;
                         estadisticasEquipos[visitanteId].partidos_jugados++;
-                        
+                        estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
+                        estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
+                        estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
+                        estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
                         if (partido.carreras_local > partido.carreras_visitante) {
                             estadisticasEquipos[localId].partidos_ganados++;
                         } else {
@@ -1514,60 +1515,88 @@
                         }
                     }
                 });
-
                 posiciones = Object.values(estadisticasEquipos)
                     .map(stats => ({
                         ...stats,
-                        porcentaje: stats.partidos_jugados > 0 ? (stats.partidos_ganados / stats.partidos_jugados) : 0
+                        porcentaje: stats.partidos_jugados > 0 ? (stats.partidos_ganados / stats.partidos_jugados) : 0,
+                        diferencia: stats.carreras_favor - stats.carreras_contra
                     }))
-                    .sort((a, b) => b.porcentaje - a.porcentaje);
+                    .sort((a, b) => {
+                        if (b.porcentaje !== a.porcentaje) return b.porcentaje - a.porcentaje;
+                        return b.diferencia - a.diferencia;
+                    });
             }
 
-            const clasificados = posiciones.slice(0, 4);
-            const enLucha = posiciones.slice(4, 6);
-            const eliminados = posiciones.slice(6);
+            // ¡NUEVA LÓGICA DE PLAYOFFS (TOP 6)!
+            if (equipos.length < 6 || partidos.length === 0) {
+                contenido.innerHTML = '<div class="empty-state">Se necesitan al menos 6 equipos y algunos partidos para calcular la clasificación a playoffs.</div>';
+                return;
+            }
+
+            const clasificados = posiciones.slice(0, 6);
+            const enLucha = posiciones.slice(6);
 
             let html = '<div style="display: grid; gap: 20px;">';
 
-            // Clasificados
-            if (clasificados.length > 0) {
+            // Cruces de Cuartos de Final
+            if (clasificados.length >= 6) {
+                const juegoA = `<strong>${clasificados[0].nombre} (1°)</strong> vs <strong>${clasificados[5].nombre} (6°)</strong>`;
+                const juegoB = `<strong>${clasificados[1].nombre} (2°)</strong> vs <strong>${clasificados[4].nombre} (5°)</strong>`;
+                const juegoC = `<strong>${clasificados[2].nombre} (3°)</strong> vs <strong>${clasificados[3].nombre} (4°)</strong>`;
+
                 html += `
-                    <div class="card" style="background: linear-gradient(145deg, #4CAF50, #45a049); margin: 0;">
-                        <h4 style="color: white; margin-bottom: 15px;">🏆 CLASIFICADOS A PLAYOFFS</h4>
-                        ${clasificados.map((equipo, index) => `
-                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2);">
-                                <span><strong>${index + 1}. ${equipo.nombre}</strong></span>
-                                <span>${equipo.partidos_ganados}-${equipo.partidos_jugados - equipo.partidos_ganados} (${(equipo.porcentaje * 100).toFixed(1)}%)</span>
-                            </div>
-                        `).join('')}
+                    <div class="card" style="background: linear-gradient(145deg, #16213e, #1a1a2e); margin: 0; border-color: #ffd700;">
+                        <h4 style="color: #ffd700; margin-bottom: 15px;">🔥 Cruces de Playoffs (Cuartos de Final)</h4>
+                        
+                        <div style="font-size: 1.1rem; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 10px;">
+                            ${juegoA}
+                        </div>
+                        <div style="font-size: 1.1rem; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 10px;">
+                            ${juegoB}
+                        </div>
+                        <div style="font-size: 1.1rem; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                            ${juegoC}
+                        </div>
+                    </div>
+                `;
+            } else {
+                 html += `
+                    <div class="card" style="background: linear-gradient(145deg, #16213e, #1a1a2e); margin: 0;">
+                        <h4 style="color: #ffd700; margin-bottom: 15px;">🔥 Cruces de Playoffs</h4>
+                        <div class="empty-state">Aún no hay suficientes equipos clasificados (se necesitan 6).</div>
                     </div>
                 `;
             }
 
-            // En lucha
+            // *** CORRECCIÓN DE REGLA (Turno 89) ***
+            // Regla del Wildcard (Triangular de Perdedores)
+            html += `
+                <div class="card" style="background: linear-gradient(145deg, #ff9800, #f57c00); margin: 0;">
+                    <h4 style="color: white; margin-bottom: 15px;">⭐ Regla del 4to Semifinalista (Triangular)</h4>
+                    <p style="color: white; font-size: 0.9rem; line-height: 1.6;">
+                        1. Los 3 equipos **ganadores** de los cruces de playoffs avanzan a semifinales.
+                        <br>
+                        2. Los 3 equipos **perdedores** jugarán un nuevo "Round Robin" (un triangular) entre ellos.
+                        <br>
+                        3. El equipo (de esos 3) que reciba la **menor cantidad de carreras** *durante ese triangular* será el 4to semifinalista.
+                        <br>
+                        <strong style="color: #1a1a2e; margin-top: 10px; display: block; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 4px;">
+                            Nota: El admin debe llevar esta cuenta manualmente.
+                        </strong>
+                    </p>
+                </div>
+            `;
+            // *** FIN DE CORRECCIÓN DE REGLA ***
+
+            // Equipos en Lucha (si los hay)
             if (enLucha.length > 0) {
                 html += `
-                    <div class="card" style="background: linear-gradient(145deg, #ff9800, #f57c00); margin: 0;">
-                        <h4 style="color: white; margin-bottom: 15px;">⚡ EN LUCHA POR CLASIFICAR</h4>
+                    <div class="card" style="background: linear-gradient(145deg, #555, #333); margin: 0;">
+                        <h4 style="color: #ffd700; margin-bottom: 15px;">⏳ Equipos en Lucha / Eliminados</h4>
                         ${enLucha.map((equipo, index) => `
-                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2); opacity: 0.7;">
                                 <span><strong>${clasificados.length + index + 1}. ${equipo.nombre}</strong></span>
-                                <span>${equipo.partidos_ganados}-${equipo.partidos_jugados - equipo.partidos_ganados} (${(equipo.porcentaje * 100).toFixed(1)}%)</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            }
-
-            // Eliminados
-            if (eliminados.length > 0) {
-                html += `
-                    <div class="card" style="background: linear-gradient(145deg, #dc143c, #b71c1c); margin: 0;">
-                        <h4 style="color: white; margin-bottom: 15px;">❌ ELIMINADOS</h4>
-                        ${eliminados.map((equipo, index) => `
-                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2);">
-                                <span><strong>${clasificados.length + enLucha.length + index + 1}. ${equipo.nombre}</strong></span>
-                                <span>${equipo.partidos_ganados}-${equipo.partidos_jugados - equipo.partidos_ganados} (${(equipo.porcentaje * 100).toFixed(1)}%)</span>
+                                <span>${equipo.partidos_ganados}-${equipo.partidos_perdidos} (${(equipo.porcentaje * 100).toFixed(1)}%)</span>
                             </div>
                         `).join('')}
                     </div>
