@@ -998,9 +998,7 @@
 
         async function cargarEquipos() {
             try {
-                // *** INICIO DE CORRECCIÓN ***
                 const response = await fetch(getApiUrl('/api/equipos'));
-                // *** FIN DE CORRECCIÓN ***
                 
                 if (response.ok) {
                     equipos = await response.json();
@@ -1016,9 +1014,7 @@
 
         async function cargarPartidos() {
             try {
-                // *** INICIO DE CORRECCIÓN ***
                 const response = await fetch(getApiUrl('/api/partidos'));
-                // *** FIN DE CORRECCIÓN ***
                 
                 if (response.ok) {
                     partidos = await response.json();
@@ -1034,9 +1030,7 @@
 
         async function cargarJugadores() {
             try {
-                // *** INICIO DE CORRECCIÓN ***
                 const response = await fetch(getApiUrl('/api/jugadores'));
-                // *** FIN DE CORRECCIÓN ***
                 
                 if (response.ok) {
                     jugadores = await response.json();
@@ -1068,10 +1062,7 @@
                 
                 // NUEVO: Cargar líderes de pitcheo completos
                 try {
-                    // *** INICIO DE CORRECCIÓN ***
                     const responsePitcheo = await fetch(getApiUrl('/api/lideres-pitcheo'));
-                    // *** FIN DE CORRECCIÓN ***
-                    
                     if (responsePitcheo.ok) {
                         const lideresPitcheo = await responsePitcheo.json();
                         console.log('✅ Líderes de pitcheo cargados:', lideresPitcheo.length);
@@ -1093,17 +1084,17 @@
                             const savesLideres = [...lideresPitcheo].sort((a, b) => b.saves - a.saves).slice(0, 3);
                             actualizarLideresHTML('savesLeaders', savesLideres, 'saves');
                         }
+                    } else {
+                        // Si la respuesta no es OK, lanzar un error para que lo capture el catch
+                        throw new Error(`Error ${responsePitcheo.status} cargando líderes de pitcheo`);
                     }
                 } catch (error) {
-                    console.log('Info: No hay estadísticas de pitcheo aún');
+                    console.log('Info: No hay estadísticas de pitcheo aún o error al cargar.', error.message);
                 }
 
                 // NUEVO: Cargar líderes defensivos completos
                 try {
-                    // *** INICIO DE CORRECCIÓN ***
                     const responseDefensivo = await fetch(getApiUrl('/api/lideres-defensivos'));
-                    // *** FIN DE CORRECCIÓN ***
-                    
                     if (responseDefensivo.ok) {
                         const lideresDefensivos = await responseDefensivo.json();
                         console.log('✅ Líderes defensivos cargados:', lideresDefensivos.length);
@@ -1114,15 +1105,16 @@
                                 .sort((a, b) => b.fielding_percentage - a.fielding_percentage)
                                 .slice(0, 3);
                             
-                            // Crear contenedor si no existe
                             const container = document.getElementById('fieldingLeaders');
                             if (container) {
                                 actualizarLideresHTML('fieldingLeaders', mejoresDefensivos, 'fielding_percentage', true);
                             }
                         }
+                    } else {
+                         throw new Error(`Error ${responseDefensivo.status} cargando líderes defensivos`);
                     }
                 } catch (error) {
-                    console.log('Info: No hay estadísticas defensivas aún');
+                    console.log('Info: No hay estadísticas defensivas aún o error al cargar.', error.message);
                 }
             } catch (error) {
                 console.error('Error cargando estadísticas:', error);
@@ -1426,65 +1418,78 @@
             });
         }
 
+       // *** INICIO DE CORRECCIÓN: FUNCIÓN ACTUALIZAR LÍDERES MÁS ROBUSTA ***
        function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`Contenedor no encontrado: ${containerId}`);
+                return;
+            }
 
-    if (lideres.length === 0) {
-        container.innerHTML = `
-            <div class="leader-item">
-                <div>
-                    <div class="leader-name">Sin datos suficientes</div>
-                    <div class="leader-team">Mínimo 10 AB requeridos</div>
-                </div>
-                <div class="leader-stat">-</div>
-            </div>
-        `;
-        return;
-    }
+            if (!lideres || lideres.length === 0) {
+                container.innerHTML = `
+                    <div class="leader-item">
+                        <div>
+                            <div class="leader-name">Sin datos suficientes</div>
+                            <div class="leader-team">Mínimo 10 AB o 5 IP requeridos</div>
+                        </div>
+                        <div class="leader-stat">-</div>
+                    </div>
+                `;
+                return;
+            }
 
-    const medals = ['gold-medal', 'silver-medal', 'bronze-medal'];
-    const medalIcons = ['🥇', '🥈', '🥉'];
+            const medals = ['gold-medal', 'silver-medal', 'bronze-medal'];
+            const medalIcons = ['🥇', '🥈', '🥉'];
 
-    container.innerHTML = lideres.map((lider, index) => {
-        // Manejar diferentes tipos de datos (ofensivos, defensivos, pitcheo)
-        let jugadorNombre, equipoNombre, valor;
-        
-        if (lider.jugador) {
-            // Datos ofensivos (localStorage)
-            jugadorNombre = lider.jugador.nombre;
-            equipoNombre = lider.jugador.equipo_nombre;
-        } else if (lider.jugador_nombre) {
-            // Datos de pitcheo/defensivos (API)
-            jugadorNombre = lider.jugador_nombre;
-            equipoNombre = lider.equipo_nombre;
-        } else {
-            // Fallback para datos ofensivos antiguos
-            const jugador = jugadores.find(j => j.id === lider.jugador_id);
-            jugadorNombre = jugador ? jugador.nombre : 'Desconocido';
-            equipoNombre = jugador ? jugador.equipo_nombre : '-';
+            container.innerHTML = lideres.map((lider, index) => {
+                let jugadorNombre, equipoNombre, valor;
+                
+                // Lógica robusta para manejar ambos tipos de datos
+                if (lider.jugador_nombre) {
+                    // Viene de la API (Pitcheo / Defensa)
+                    jugadorNombre = lider.jugador_nombre;
+                    equipoNombre = lider.equipo_nombre;
+                } else {
+                    // Viene de localStorage (Ofensiva)
+                    const jugador = jugadores.find(j => j.id === lider.jugador_id);
+                    jugadorNombre = jugador ? jugador.nombre : 'Desconocido';
+                    equipoNombre = jugador ? jugador.equipo_nombre : '-';
+                }
+                
+                // Manejar valor (asegurarnos de que es un número)
+                let statValue = lider[stat];
+                if (typeof statValue === 'string') {
+                    statValue = parseFloat(statValue);
+                }
+
+                if (isDecimal) {
+                    // Para ERA, WHIP, AVG, etc.
+                    valor = statValue ? statValue.toFixed(3) : '0.000';
+                    // Caso especial para ERA y WHIP que pueden ser 0.00
+                    if (stat === 'era' || stat === 'whip') {
+                        valor = statValue.toFixed(2);
+                    }
+                } else {
+                    // Para HR, RBI, Wins, etc.
+                    valor = statValue || 0;
+                }
+                
+                const medalClass = medals[index] || '';
+                const medalIcon = medalIcons[index] || '🏅';
+
+                return `
+                    <div class="leader-item">
+                        <div>
+                            <div class="leader-name ${medalClass}">${medalIcon} ${jugadorNombre}</div>
+                            <div class="leader-team">${equipoNombre}</div>
+                        </div>
+                        <div class="leader-stat">${valor}</div>
+                    </div>
+                `;
+            }).join('');
         }
-        
-        if (isDecimal) {
-            valor = lider[stat] ? lider[stat].toFixed(3) : '0.000';
-        } else {
-            valor = lider[stat] || 0;
-        }
-        
-        const medalClass = medals[index] || '';
-        const medalIcon = medalIcons[index] || '🏅';
-
-        return `
-            <div class="leader-item">
-                <div>
-                    <div class="leader-name ${medalClass}">${medalIcon} ${jugadorNombre}</div>
-                    <div class="leader-team">${equipoNombre}</div>
-                </div>
-                <div class="leader-stat">${valor}</div>
-            </div>
-        `;
-    }).join('');
-}
+        // *** FIN DE CORRECCIÓN ***
 
         // ========== ACTUALIZAR PLAYOFFS ==========
 
