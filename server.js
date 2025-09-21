@@ -6,10 +6,10 @@ require('dotenv').config();
 const pool = require('./database');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// PUERTO CORREGIDO (eliminada la línea duplicada)
 const PORT = process.env.PORT || 3000;
 
-// Configuración CORS para permitir GitHub Pages
+// Configuración CORS unificada (eliminado el bloque duplicado)
 app.use(cors({
     origin: [
         'http://localhost:3000',
@@ -22,12 +22,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
-// Middleware
-app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-    credentials: true
-}));
+// Middlewares unificados (eliminado el express.json duplicado)
 app.use(express.json());
 app.use(cookieParser());
 
