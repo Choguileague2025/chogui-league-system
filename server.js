@@ -93,7 +93,7 @@ app.get('/api/torneos/activo', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM torneos WHERE activo = true LIMIT 1');
         if (result.rows.length === 0) {
-            // *** CORRECCIÓN: Ya no activa uno por defecto. Si no hay, no hay. ***
+            // *** CORRECCIÓN 5.5: Ya no activa uno por defecto. Si no hay, no hay. ***
             return res.status(404).json({ error: 'No hay ningún torneo activo' });
         } else {
             res.json(result.rows[0]);
@@ -185,7 +185,8 @@ app.delete('/api/torneos/:id', async (req, res) => {
         }
         
         // (En el futuro, deberíamos verificar si hay stats asociadas)
-
+        // Por ahora, la BD lanzará un error si hay stats asociadas, lo cual está bien.
+        
         const result = await pool.query('DELETE FROM torneos WHERE id = $1 RETURNING *', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
@@ -194,7 +195,7 @@ app.delete('/api/torneos/:id', async (req, res) => {
     } catch (error) {
         // Manejar error de llave foránea (si hay stats que dependen de este torneo)
         if (error.code === '23503') {
-             return res.status(400).json({ error: 'No se puede eliminar. Hay estadísticas asociadas a este torneo. (Próximamente podremos archivar esto)' });
+             return res.status(400).json({ error: 'No se puede eliminar. Hay estadísticas (bateo, pitcheo, etc.) asociadas a este torneo.' });
         }
         res.status(500).json({ error: 'Error interno del servidor' });
     }
@@ -202,7 +203,6 @@ app.delete('/api/torneos/:id', async (req, res) => {
 // *** FIN FASE 5.5 ***
 
 // ====================== EQUIPOS ======================
-// (Rutas de Equipos sin cambios)
 app.get('/api/equipos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM equipos ORDER BY id');
@@ -292,7 +292,6 @@ app.delete('/api/equipos/:id', async (req, res) => {
 });
 
 // ====================== JUGADORES ======================
-// (Rutas de Jugadores sin cambios)
 app.get('/api/jugadores', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -376,7 +375,6 @@ app.delete('/api/jugadores/:id', async (req, res) => {
 });
 
 // ====================== PARTIDOS ======================
-// (Rutas de Partidos sin cambios)
 app.get('/api/partidos', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -521,7 +519,13 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-        const activeTemporada = temporada || '2025'; // Usar la temporada del body o un default
+        
+        // *** CORRECCIÓN FASE 5.5: Validar que haya torneo activo ***
+        if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
+             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+        }
+        const activeTemporada = temporada;
+        // *** FIN FASE 5.5 ***
 
         const existing = await pool.query(
             'SELECT id FROM estadisticas_ofensivas WHERE jugador_id = $1 AND temporada = $2',
@@ -624,7 +628,10 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-        const activeTemporada = temporada || '2025';
+        if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
+             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+        }
+        const activeTemporada = temporada;
         // *** FIN FASE 5.3 ***
 
         const result = await pool.query(`
@@ -708,7 +715,10 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-        const activeTemporada = temporada || '2025';
+        if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
+             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+        }
+        const activeTemporada = temporada;
         // *** FIN FASE 5.3 ***
 
         const existing = await pool.query(
@@ -781,7 +791,10 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-        const activeTemporada = temporada || '2025';
+        if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
+             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+        }
+        const activeTemporada = temporada;
         // *** FIN FASE 5.3 ***
 
         const result = await pool.query(`
@@ -868,7 +881,10 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-        const activeTemporada = temporada || '2025';
+        if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
+             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+        }
+        const activeTemporada = temporada;
         // *** FIN FASE 5.3 ***
 
         const existing = await pool.query(
@@ -932,7 +948,10 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-        const activeTemporada = temporada || '2025';
+        if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
+             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+        }
+        const activeTemporada = temporada;
         // *** FIN FASE 5.3 ***
         
         const result = await pool.query(`
