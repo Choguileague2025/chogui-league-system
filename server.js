@@ -127,6 +127,32 @@ app.post('/api/torneos', async (req, res) => {
     }
 });
 
+// *** INICIO FASE 5.4: Editar Nombre de Torneo ***
+app.put('/api/torneos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre } = req.body;
+        if (!nombre) {
+            return res.status(400).json({ error: 'El nombre es requerido' });
+        }
+        const result = await pool.query(
+            'UPDATE torneos SET nombre = $1 WHERE id = $2 RETURNING *',
+            [nombre, id]
+        );
+         if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Torneo no encontrado' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        if (error.code === '23505') {
+            res.status(400).json({ error: 'Ya existe un torneo con ese nombre' });
+        } else {
+            res.status(500).json({ error: 'Error interno del servidor' });
+        }
+    }
+});
+// *** FIN FASE 5.4 ***
+
 // Activar un torneo (y desactivar los demás)
 app.put('/api/torneos/:id/activar', async (req, res) => {
     try {
@@ -461,15 +487,18 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const {
             jugador_id, at_bats, hits, home_runs, rbi, 
-            runs, walks, stolen_bases
+            runs, walks, stolen_bases, temporada // <-- Acepta 'temporada'
         } = req.body;
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
+        const activeTemporada = temporada || '2025'; // Usa la temporada del body o un default
+
         const existing = await pool.query(
             'SELECT id FROM estadisticas_ofensivas WHERE jugador_id = $1 AND temporada = $2',
-            [parseInt(jugador_id), '2025']
+            [parseInt(jugador_id), activeTemporada]
         );
+
         let result;
         if (existing.rows.length > 0) {
             // Actualizar (sumar)
@@ -511,7 +540,7 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
                 parseInt(runs) || 0,
                 parseInt(walks) || 0,
                 parseInt(stolen_bases) || 0,
-                '2025' // Default temporada
+                activeTemporada
             ]);
         }
         res.status(201).json(result.rows[0]);
@@ -564,6 +593,8 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
+        const activeTemporada = temporada || '2025';
+
         const result = await pool.query(`
             UPDATE estadisticas_ofensivas SET
                 at_bats = $1,
@@ -573,9 +604,8 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
                 runs = $5,
                 walks = $6,
                 stolen_bases = $7,
-                temporada = $8,
                 fecha_registro = NOW()
-            WHERE jugador_id = $9 RETURNING *
+            WHERE jugador_id = $8 AND temporada = $9 RETURNING *
         `, [
             parseInt(at_bats) || 0,
             parseInt(hits) || 0,
@@ -584,8 +614,8 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
             parseInt(runs) || 0,
             parseInt(walks) || 0,
             parseInt(stolen_bases) || 0,
-            temporada || '2025',
-            parseInt(jugador_id)
+            parseInt(jugador_id),
+            activeTemporada
         ]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
@@ -641,14 +671,16 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const {
             jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
-            walks_allowed, home_runs_allowed, wins, losses, saves
+            walks_allowed, home_runs_allowed, wins, losses, saves, temporada
         } = req.body;
-        if (!jugador_id || innings_pitched === undefined) {
-            return res.status(400).json({ error: 'Jugador ID e innings lanzados son requeridos' });
+        if (!jugador_id) {
+            return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
+        const activeTemporada = temporada || '2025';
+
         const existing = await pool.query(
             'SELECT id FROM estadisticas_pitcheo WHERE jugador_id = $1 AND temporada = $2',
-            [parseInt(jugador_id), '2025']
+            [parseInt(jugador_id), activeTemporada]
         );
         let result;
         if (existing.rows.length > 0) {
@@ -683,8 +715,8 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
             result = await pool.query(`
                 INSERT INTO estadisticas_pitcheo (
                     jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
-                    walks_allowed, home_runs_allowed, wins, losses, saves
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                    walks_allowed, home_runs_allowed, wins, losses, saves, temporada
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 RETURNING *
             `, [
                 parseInt(jugador_id),
@@ -696,7 +728,8 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
                 parseInt(home_runs_allowed) || 0,
                 parseInt(wins) || 0,
                 parseInt(losses) || 0,
-                parseInt(saves) || 0
+                parseInt(saves) || 0,
+                activeTemporada
             ]);
         }
         res.status(201).json(result.rows[0]);
@@ -714,6 +747,8 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
+        const activeTemporada = temporada || '2025';
+
         const result = await pool.query(`
             UPDATE estadisticas_pitcheo SET
                 innings_pitched = $1,
@@ -725,9 +760,8 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
                 wins = $7,
                 losses = $8,
                 saves = $9,
-                temporada = $10,
                 fecha_registro = NOW()
-            WHERE jugador_id = $11 RETURNING *
+            WHERE jugador_id = $10 AND temporada = $11 RETURNING *
         `, [
             parseFloat(innings_pitched) || 0,
             parseInt(hits_allowed) || 0,
@@ -738,8 +772,8 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
             parseInt(wins) || 0,
             parseInt(losses) || 0,
             parseInt(saves) || 0,
-            temporada || '2025',
-            parseInt(jugador_id)
+            parseInt(jugador_id),
+            activeTemporada
         ]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
@@ -793,14 +827,16 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const {
             jugador_id, putouts, assists, errors, double_plays,
-            passed_balls, stolen_bases_against, caught_stealing, chances
+            passed_balls, chances, temporada
         } = req.body;
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
+        const activeTemporada = temporada || '2025';
+
         const existing = await pool.query(
             'SELECT id FROM estadisticas_defensivas WHERE jugador_id = $1 AND temporada = $2',
-            [jugador_id, '2025']
+            [jugador_id, activeTemporada]
         );
         let result;
         if (existing.rows.length > 0) {
@@ -812,9 +848,7 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                     errors = errors + $4,
                     double_plays = double_plays + $5,
                     passed_balls = passed_balls + $6,
-                    stolen_bases_against = stolen_bases_against + $7,
-                    caught_stealing = caught_stealing + $8,
-                    chances = chances + $9,
+                    chances = chances + $7,
                     fecha_registro = NOW()
                 WHERE id = $1 RETURNING *
             `, [
@@ -824,8 +858,6 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                 parseInt(errors) || 0,
                 parseInt(double_plays) || 0,
                 parseInt(passed_balls) || 0,
-                0,
-                0,
                 parseInt(chances) || 0
             ]);
         } else {
@@ -833,8 +865,8 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
             result = await pool.query(`
                 INSERT INTO estadisticas_defensivas (
                     jugador_id, putouts, assists, errors, double_plays,
-                    passed_balls, stolen_bases_against, caught_stealing, chances
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                    passed_balls, chances, temporada
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING *
             `, [
                 parseInt(jugador_id),
@@ -843,9 +875,8 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                 parseInt(errors) || 0,
                 parseInt(double_plays) || 0,
                 parseInt(passed_balls) || 0,
-                0,
-                0,
-                parseInt(chances) || 0
+                parseInt(chances) || 0,
+                activeTemporada
             ]);
         }
         res.status(201).json(result.rows[0]);
@@ -863,6 +894,8 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
+        const activeTemporada = temporada || '2025';
+        
         const result = await pool.query(`
             UPDATE estadisticas_defensivas SET
                 putouts = $1,
@@ -871,9 +904,8 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
                 double_plays = $4,
                 passed_balls = $5,
                 chances = $6,
-                temporada = $7,
                 fecha_registro = NOW()
-            WHERE jugador_id = $8 RETURNING *
+            WHERE jugador_id = $7 AND temporada = $8 RETURNING *
         `, [
             parseInt(putouts) || 0,
             parseInt(assists) || 0,
@@ -881,8 +913,8 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
             parseInt(double_plays) || 0,
             parseInt(passed_balls) || 0,
             parseInt(chances) || 0,
-            temporada || '2025',
-            parseInt(jugador_id)
+            parseInt(jugador_id),
+            activeTemporada
         ]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
@@ -961,6 +993,10 @@ app.listen(PORT, () => {
     console.log(`🔧 Modo: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🗄️ APIs disponibles:`);
     console.log(`   - GET  /api/test (prueba de conexión)`);
+    console.log(`   - GET  /api/torneos`);
+    console.log(`   - POST /api/torneos`);
+    console.log(`   - PUT  /api/torneos/:id`);
+    console.log(`   - PUT  /api/torneos/:id/activar`);
     console.log(`   - GET  /api/equipos`);
     console.log(`   - GET  /api/equipos/:id`);
     console.log(`   - POST /api/equipos`);
@@ -977,18 +1013,18 @@ app.listen(PORT, () => {
     console.log(`   - PUT  /api/partidos/:id`);
     console.log(`   - DELETE /api/partidos/:id`);
     console.log(`   - GET  /api/estadisticas-ofensivas`);
-    console.log(`   - GET  /api/estadisticas-ofensivas/:jugadorId   <-- ¡NUEVA!`);
+    console.log(`   - GET  /api/estadisticas-ofensivas/:jugadorId`);
     console.log(`   - POST /api/estadisticas-ofensivas`);
-    console.log(`   - PUT  /api/estadisticas-ofensivas   <-- ¡NUEVA!`);
+    console.log(`   - PUT  /api/estadisticas-ofensivas`);
     console.log(`   - GET  /api/lideres-ofensivos`);
     console.log(`   - GET  /api/estadisticas-pitcheo`);
     console.log(`   - GET  /api/estadisticas-pitcheo/:jugadorId`);
     console.log(`   - POST /api/estadisticas-pitcheo`);
-    console.log(`   - PUT  /api/estadisticas-pitcheo   <-- ¡NUEVA!`);
+    console.log(`   - PUT  /api/estadisticas-pitcheo`);
     console.log(`   - GET  /api/estadisticas-defensivas`);
     console.log(`   - GET  /api/estadisticas-defensivas/:jugadorId`);
     console.log(`   - POST /api/estadisticas-defensivas`);
-    console.log(`   - PUT  /api/estadisticas-defensivas   <-- ¡NUEVA!`);
+    console.log(`   - PUT  /api/estadisticas-defensivas`);
     console.log(`   - GET  /api/lideres-pitcheo`);
     console.log(`   - GET  /api/lideres-defensivos`);
     
