@@ -310,6 +310,18 @@
             background: linear-gradient(145deg, #0088ff, #0056b3);
             color: white;
         }
+        
+        .btn-activar {
+            background: linear-gradient(145deg, #4CAF50, #45a049);
+            color: white;
+            font-weight: bold;
+        }
+        .btn-activar[disabled] {
+            background: #555;
+            color: #999;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
 
         .table-container {
             overflow-x: auto;
@@ -627,7 +639,8 @@
             <button class="nav-tab" data-tab="jugadores">👤 Jugadores</button>
             <button class="nav-tab" data-tab="lideres">🏆 Líderes</button>
             <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
-        </div>
+            <button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
+            </div>
 
         <div id="equipos" class="tab-content active">
             <div class="card">
@@ -1169,7 +1182,49 @@
                 </p>
             </div>
         </div>
-    </div>
+        
+        <div id="torneos" class="tab-content">
+            <div class="card">
+                <h3>➕ Crear Nuevo Torneo</h3>
+                <div class="form-container" style="grid-template-columns: 1fr;">
+                    <div>
+                        <div class="form-group">
+                            <label for="nombreTorneo">Nombre del Torneo:</label>
+                            <input type="text" id="nombreTorneo" required placeholder="Ej: Torneo Verano 2026">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn-primary" onclick="crearTorneo()">🗓️ Crear Torneo</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="torneoMessage" class="success-message"></div>
+                <div id="torneoError" class="error-message"></div>
+            </div>
+
+            <div class="card">
+                <h3>🗓️ Torneos Existentes</h3>
+                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Selecciona el torneo que estará **activo**. Todas las nuevas estadísticas se guardarán en este torneo.</p>
+                <div class="table-container">
+                    <table id="torneosTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre del Torneo</th>
+                                <th>Fecha de Creación</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="loading">Cargando torneos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        </div>
 
     <script>
         // Variables globales
@@ -1177,6 +1232,10 @@
         let partidos = [];
         let jugadores = [];
         let estadisticas = []; // Esta variable ahora es para ESTADÍSTICAS OFENSIVAS
+        
+        // *** INICIO FASE 5: Variable para Torneo Activo ***
+        let torneoActivo = { id: null, nombre: '2025' }; // Default
+        // *** FIN FASE 5 ***
         
         // Ajustes posicionales tipo MLB (valores reales)
         const AJUSTES_POSICIONALES = {
@@ -1258,21 +1317,29 @@
                 botonActivo.classList.add('active');
             }
 
-            // Si estamos en la pestaña de líderes, actualizar estadísticas
+            // Cargar datos específicos de la pestaña
             if (nombrePestana === 'lideres') {
                 actualizarLideres();
                 actualizarLideresPorPosicion();
-                // *** NUEVO: Cargar tablas de edición ***
                 cargarTablaEditarBateo();
                 cargarTablaEditarPitcheo();
                 cargarTablaEditarDefensa();
             }
+            // *** INICIO FASE 5: Cargar Torneos ***
+            if (nombrePestana === 'torneos') {
+                cargarTorneos();
+            }
+            // *** FIN FASE 5 ***
         }
 
         // ========== FUNCIONES DE CARGA DE DATOS ==========
 
         async function cargarTodosLosDatos() {
             try {
+                // *** INICIO FASE 5: Cargar torneo activo primero ***
+                await cargarTorneoActivo();
+                // *** FIN FASE 5 ***
+                
                 await cargarEquipos();
                 await cargarPartidos();
                 await cargarJugadores();
@@ -1286,6 +1353,109 @@
                 mostrarError('equipoError', 'Error de conexión al servidor');
             }
         }
+        
+        // *** INICIO FASE 5: Funciones de Torneos ***
+        async function cargarTorneoActivo() {
+             try {
+                const response = await fetch('/api/torneos/activo');
+                if (response.ok) {
+                    torneoActivo = await response.json();
+                    console.log(`✅ Torneo Activo: ${torneoActivo.nombre} (ID: ${torneoActivo.id})`);
+                } else {
+                    throw new Error('Error cargando torneo activo');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('torneoError', 'Error cargando torneo activo. Se usará el default.');
+                // 'torneoActivo' mantiene sus valores default
+            }
+        }
+        
+        async function cargarTorneos() {
+            const tbody = document.querySelector('#torneosTable tbody');
+            try {
+                const response = await fetch('/api/torneos');
+                if (!response.ok) throw new Error('Error al cargar');
+                const torneos = await response.json();
+                
+                if (torneos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay torneos creados.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = torneos.map(torneo => `
+                    <tr>
+                        <td>${torneo.id}</td>
+                        <td><strong>${torneo.nombre}</strong></td>
+                        <td>${new Date(torneo.fecha_inicio).toLocaleDateString('es-AR')}</td>
+                        <td>${torneo.activo ? '🟢 Activo' : '⚪ Inactivo'}</td>
+                        <td>
+                            <button 
+                                class="btn-secondary btn-activar" 
+                                onclick="activarTorneo(${torneo.id})"
+                                ${torneo.activo ? 'disabled' : ''}
+                            >
+                                ${torneo.activo ? 'Ya Activo' : 'Activar'}
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="5" class="error-message">${error.message}</td></tr>`;
+            }
+        }
+        
+        async function crearTorneo() {
+            const nombre = document.getElementById('nombreTorneo').value.trim();
+            if (!nombre) {
+                mostrarError('torneoError', 'El nombre es requerido');
+                return;
+            }
+            
+             try {
+                const response = await fetch('/api/torneos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre })
+                });
+
+                if (response.ok) {
+                    document.getElementById('nombreTorneo').value = '';
+                    mostrarExito('torneoMessage', `✅ Torneo "${nombre}" creado.`);
+                    cargarTorneos(); // Recargar la lista
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('torneoError', errorData.error || 'Error al crear torneo');
+                }
+            } catch (error) {
+                mostrarError('torneoError', 'Error de conexión');
+            }
+        }
+        
+        async function activarTorneo(id) {
+            if (!confirm('¿Estás seguro de activar este torneo? Todas las nuevas estadísticas se guardarán aquí.')) {
+                return;
+            }
+            
+             try {
+                const response = await fetch(`/api/torneos/${id}/activar`, {
+                    method: 'PUT'
+                });
+
+                if (response.ok) {
+                    const torneoActivado = await response.json();
+                    mostrarExito('torneoMessage', `✅ Torneo "${torneoActivado.nombre}" está ahora activo.`);
+                    await cargarTorneoActivo(); // Actualizar la variable global
+                    cargarTorneos(); // Recargar la lista
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('torneoError', errorData.error || 'Error al activar torneo');
+                }
+            } catch (error) {
+                mostrarError('torneoError', 'Error de conexión');
+            }
+        }
+        // *** FIN FASE 5 ***
 
         async function cargarEquipos() {
             try {
@@ -1335,7 +1505,6 @@
             }
         }
 
-        // *** INICIO DE CORRECCIÓN: Cargar desde API en lugar de localStorage ***
         async function cargarEstadisticas() {
             try {
                 const response = await fetch('/api/estadisticas-ofensivas');
@@ -1352,8 +1521,7 @@
                 actualizarTablaEstadisticas(); // Llama para mostrar el error
             }
         }
-        // *** FIN DE CORRECCIÓN ***
-
+        
         // ========== FUNCIONES DE CÁLCULOS AVANZADOS MLB ==========
 
         function calcularOBP(hits, walks, atBats) {
@@ -1362,8 +1530,7 @@
         }
 
         function calcularSLG(hits, homeRuns, atBats) {
-            // Simplificado: asumimos que todos los hits no-HR son singles
-            const totalBases = hits + (homeRuns * 3); // HR cuenta como 4, ya está en hits
+            const totalBases = hits + (homeRuns * 3);
             return atBats > 0 ? totalBases / atBats : 0;
         }
 
@@ -1372,25 +1539,17 @@
         }
 
         function calcularWAR(jugador, stats) {
-            // stats ahora viene de la API ofensiva
             if (!stats || !jugador || stats.at_bats < 10) return 0;
-
             const avg = stats.at_bats > 0 ? (stats.hits / stats.at_bats) : 0;
             const obp = calcularOBP(stats.hits, stats.walks || 0, stats.at_bats);
             const slg = calcularSLG(stats.hits, stats.home_runs, stats.at_bats);
             const ops = calcularOPS(obp, slg);
-
-            // Componentes del WAR simplificado
-            const bateoCont = (ops - 0.700) * 100; // Contribution vs league average
+            const bateoCont = (ops - 0.700) * 100;
             const ajustePosicional = AJUSTES_POSICIONALES[jugador.posicion] || 0;
-            // 'errors' ya no está en este objeto, se necesitaría una lógica más avanzada
-            // para combinar stats ofensivas y defensivas. Por ahora lo omitimos.
-            const penalizacionErrores = 0; // (stats.errors || 0) * -2;
+            const penalizacionErrores = 0; 
             const bonusVelocidad = (stats.stolen_bases || 0) * 0.2;
-
             const warTotal = (bateoCont + ajustePosicional + penalizacionErrores + bonusVelocidad) / 100;
-            
-            return Math.max(warTotal, -2.0); // Mínimo -2.0 WAR
+            return Math.max(warTotal, -2.0);
         }
 
         // ========== FUNCIONES DE ACTUALIZACIÓN DE TABLAS ==========
@@ -1472,7 +1631,6 @@
             `).join('');
         }
 
-        // *** INICIO DE CORRECCIÓN: Leer datos de la API ***
         function actualizarTablaEstadisticas() {
             const tbody = document.querySelector('#statsTable tbody');
             
@@ -1482,19 +1640,16 @@
             }
 
             tbody.innerHTML = estadisticas.map(stat => {
-                // La API ya nos da los nombres y la posición
                 const jugadorNombre = stat.jugador_nombre || 'Desconocido';
                 const equipoNombre = stat.equipo_nombre || '-';
                 const posicion = stat.posicion || '-';
 
-                // Calcular métricas
                 const avg = stat.at_bats > 0 ? (parseFloat(stat.hits) / parseFloat(stat.at_bats)).toFixed(3) : '.000';
                 const obp = calcularOBP(parseFloat(stat.hits), parseFloat(stat.walks) || 0, parseFloat(stat.at_bats)).toFixed(3);
                 const slg = calcularSLG(parseFloat(stat.hits), parseFloat(stat.home_runs), parseFloat(stat.at_bats)).toFixed(3);
                 const ops = (parseFloat(obp) + parseFloat(slg)).toFixed(3);
                 
-                // WAR necesita el objeto 'jugador'
-                const jugador = { posicion: posicion }; // Objeto simulado para calcularWAR
+                const jugador = { posicion: posicion }; 
                 const war = calcularWAR(jugador, stat).toFixed(2);
                 
                 return `
@@ -1514,17 +1669,13 @@
                 `;
             }).join('');
         }
-        // *** FIN DE CORRECCIÓN ***
 
-
-        // *** INICIO DE CORRECCIÓN: FUNCIÓN LÍDERES POR POSICIÓN REESCRITA ***
         async function actualizarLideresPorPosicion() {
             const container = document.getElementById('positionLeadersGrid');
             if (!container) return;
 
             container.innerHTML = '<div class="loading">Cargando líderes defensivos...</div>';
 
-            // 1. Cargar estadísticas defensivas desde la API
             let defensiveStats = [];
             try {
                 const response = await fetch('/api/lideres-defensivos');
@@ -1548,27 +1699,23 @@
                 { pos: 'LF', nombre: '⬅️ MEJOR LEFT FIELD' },
                 { pos: 'CF', nombre: '🎯 MEJOR CENTER FIELD' },
                 { pos: 'RF', nombre: '➡️ MEJOR RIGHT FIELD' },
-                // { pos: 'P', nombre: '🥎 MEJOR PITCHER' } // Los pitchers se miden por ERA, no FLD%
             ];
 
             container.innerHTML = posiciones.map(posicion => {
                 
-                // 2. Filtrar y ordenar por stats defensivas
                 const mejoresJugadores = defensiveStats
                     .filter(j => j.posicion === posicion.pos)
                     .sort((a, b) => {
-                        // Criterio 1: Porcentaje de Fildeo (DESC)
                         const fldA = parseFloat(a.fielding_percentage) || 0;
                         const fldB = parseFloat(b.fielding_percentage) || 0;
                         if (fldB !== fldA) {
                             return fldB - fldA;
                         }
-                        // Criterio 2: Total Chances (DESC)
                         const chancesA = parseInt(a.total_chances) || 0;
                         const chancesB = parseInt(b.total_chances) || 0;
                         return chancesB - chancesA;
                     })
-                    .slice(0, 5); // 3. Tomar el TOP 5
+                    .slice(0, 5); 
 
                 
                 let leadersHTML;
@@ -1581,9 +1728,7 @@
                         </div>
                     `;
                 } else {
-                    // 4. Generar el HTML con las estadísticas correctas
                     leadersHTML = mejoresJugadores.map((jugador, index) => {
-                        // Convertir a números para asegurar
                         const fld = parseFloat(jugador.fielding_percentage).toFixed(3);
                         const po = parseInt(jugador.putouts);
                         const a = parseInt(jugador.assists);
@@ -1628,11 +1773,7 @@
                 `;
             }).join('');
         }
-        // *** FIN DE CORRECCIÓN ***
-
-
-        // ========== FUNCIÓN DE CÁLCULO DE POSICIONES ==========
-
+        
         function calcularPosiciones() {
             const tbody = document.querySelector('#posicionesTable tbody');
             
@@ -1666,17 +1807,14 @@
                 const visitanteId = partido.equipo_visitante_id;
                 
                 if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
-                    // Actualizar partidos jugados
                     estadisticasEquipos[localId].partidos_jugados++;
                     estadisticasEquipos[visitanteId].partidos_jugados++;
                     
-                    // Actualizar carreras
                     estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
                     estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
                     estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
                     estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
                     
-                    // Determinar ganador
                     if (partido.carreras_local > partido.carreras_visitante) {
                         estadisticasEquipos[localId].partidos_ganados++;
                         estadisticasEquipos[visitanteId].partidos_perdidos++;
@@ -1738,7 +1876,6 @@
 
         // ========== FUNCIONES DE LÍDERES Y ESTADÍSTICAS AVANZADAS ==========
 
-        // *** INICIO DE CORRECCIÓN: Cargar líderes de bateo desde la API ***
         async function actualizarLideres() {
             let lideresOfensivos = [];
             try {
@@ -1769,29 +1906,23 @@
                 return;
             }
 
-            // Líderes en Average (AVG)
             const avgLideres = [...lideresOfensivos].sort((a, b) => b.avg - a.avg).slice(0, 3);
             actualizarLideresHTML('avgLeaders', avgLideres, 'avg', true);
 
-            // Líderes en Home Runs
             const hrLideres = [...lideresOfensivos].sort((a, b) => b.home_runs - a.home_runs).slice(0, 3);
             actualizarLideresHTML('hrLeaders', hrLideres, 'home_runs');
 
-            // Líderes en RBI
             const rbiLideres = [...lideresOfensivos].sort((a, b) => b.rbi - a.rbi).slice(0, 3);
             actualizarLideresHTML('rbiLeaders', rbiLideres, 'rbi');
 
-            // Líderes en OPS
             const opsLideres = [...lideresOfensivos].sort((a, b) => b.ops - a.ops).slice(0, 3);
             actualizarLideresHTML('opsLeaders', opsLideres, 'ops', true);
             
-            // Líderes en Bases Robadas
             const sbLideres = [...lideresOfensivos].sort((a, b) => (b.stolen_bases || 0) - (a.stolen_bases || 0)).slice(0, 3);
             actualizarLideresHTML('sbLeaders', sbLideres, 'stolen_bases');
 
-            // Líderes en WAR (se sigue calculando en el frontend)
             const warLideres = lideresOfensivos.map(stat => {
-                const jugador = { posicion: stat.posicion }; // Simular jugador
+                const jugador = { posicion: stat.posicion }; 
                 return {
                     ...stat,
                     war: calcularWAR(jugador, stat)
@@ -1818,7 +1949,6 @@
             }
         }
 
-        // *** INICIO DE CORRECCIÓN: Función HTML más robusta ***
         function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
             const container = document.getElementById(containerId);
             if (!container) {
@@ -1852,19 +1982,15 @@
             container.innerHTML = lideres.map((lider, index) => {
                 let jugadorNombre, equipoNombre, valor;
                 
-                // Lógica robusta para manejar ambos tipos de datos
                 if (lider.jugador_nombre) {
-                    // Viene de la API (Pitcheo / Defensa / Ofensiva)
                     jugadorNombre = lider.jugador_nombre;
                     equipoNombre = lider.equipo_nombre;
                 } else {
-                    // Fallback (ya no debería usarse)
                     const jugador = jugadores.find(j => j.id === lider.jugador_id);
                     jugadorNombre = jugador ? jugador.nombre : 'Desconocido';
                     equipoNombre = jugador ? jugador.equipo_nombre : '-';
                 }
                 
-                // Manejar valor (asegurarnos de que es un número)
                 let statValue = lider[stat];
                 if (typeof statValue === 'string') {
                     statValue = parseFloat(statValue);
@@ -1893,7 +2019,6 @@
                 `;
             }).join('');
         }
-        // *** FIN DE CORRECCIÓN ***
 
         // ========== ACTUALIZAR SELECTORES ==========
 
@@ -2023,7 +2148,6 @@
                 });
 
                 if (response.ok) {
-                    // Limpiar formulario
                     document.getElementById('equipoLocal').value = '';
                     document.getElementById('equipoVisitante').value = '';
                     document.getElementById('carrerasLocal').value = '';
@@ -2033,7 +2157,6 @@
                     const resultado = `${carrerasLocal} - ${carrerasVisitante}`;
                     mostrarExito('partidoMessage', `✅ Partido registrado correctamente (${resultado})`);
                     
-                    // Recargar datos y recalcular posiciones
                     await cargarPartidos();
                     calcularPosiciones();
                 } else {
@@ -2074,7 +2197,6 @@
                 if (response.ok) {
                     const nuevoJugador = await response.json();
                     
-                    // Limpiar formulario
                     document.getElementById('nombreJugador').value = '';
                     document.getElementById('equipoJugador').value = '';
                     document.getElementById('posicionJugador').value = '';
@@ -2093,7 +2215,6 @@
             }
         }
 
-        // *** INICIO DE CORRECCIÓN: Registrar Estadísticas Ofensivas en la API ***
         async function registrarEstadisticas() {
             const jugadorId = parseInt(document.getElementById('jugadorStats').value);
             const atBats = parseInt(document.getElementById('atBats').value) || 0;
@@ -2102,7 +2223,6 @@
             const rbi = parseInt(document.getElementById('rbi').value) || 0;
             const runs = parseInt(document.getElementById('runs').value) || 0;
             const walks = parseInt(document.getElementById('walks').value) || 0;
-            // 'errors' se omite intencionalmente, se registra en el form defensivo
             const stolenBases = parseInt(document.getElementById('stolenBases').value) || 0;
 
             if (!jugadorId) {
@@ -2128,6 +2248,10 @@
                         runs: runs,
                         walks: walks,
                         stolen_bases: stolenBases
+                        // *** INICIO FASE 5: Enviar torneo activo ***
+                        // temporada: torneoActivo.nombre 
+                        // (SE HARÁ EN PASO 5.3)
+                        // *** FIN FASE 5 ***
                     })
                 });
 
@@ -2136,18 +2260,14 @@
                     throw new Error(errorData.error || 'Error del servidor');
                 }
                 
-                // Limpiar formulario
                 limpiarFormulario('ofensiva');
 
                 const jugador = jugadores.find(j => j.id === jugadorId);
                 mostrarExito('statsMessage', `✅ Estadísticas de "${jugador ? jugador.nombre : 'Jugador'}" guardadas en la base de datos.`);
                 
-                // Recargar todas las estadísticas y líderes
                 await cargarEstadisticas();
                 actualizarLideres();
                 actualizarLideresPorPosicion();
-                
-                // *** NUEVO: Recargar tablas de edición ***
                 cargarTablaEditarBateo();
 
             } catch (error) {
@@ -2155,10 +2275,6 @@
                 mostrarError('statsError', `Error al registrar estadísticas: ${error.message}`);
             }
         }
-        // *** FIN DE CORRECCIÓN ***
-
-
-        // ========== FUNCIONES DE UTILIDAD ==========
 
         function mostrarExito(elementId, mensaje) {
             const element = document.getElementById(elementId);
@@ -2515,7 +2631,8 @@ async function eliminarPartido(id) {
                         home_runs_allowed: homeRunsAllowed,
                         wins: wins,
                         losses: losses,
-                        saves: saves
+                        saves: saves,
+                        temporada: torneoActivo.nombre // FASE 5
                     })
                 });
 
@@ -2558,7 +2675,8 @@ async function eliminarPartido(id) {
                         errors: errors,
                         double_plays: doublePlays,
                         passed_balls: passedBalls,
-                        chances: putouts + assists + errors
+                        chances: putouts + assists + errors,
+                        temporada: torneoActivo.nombre // FASE 5
                     })
                 });
 
@@ -2802,7 +2920,9 @@ async function eliminarPartido(id) {
         
         // Guardar los datos actualizados
         async function actualizarEstadistica(tipo, jugadorId) {
-            let body = { jugador_id: jugadorId, temporada: '2025' }; 
+            // *** INICIO DE CORRECCIÓN: Añadir jugador_id al body ***
+            let body = { jugador_id: jugadorId, temporada: torneoActivo.nombre }; 
+            // *** FIN DE CORRECCIÓN ***
             let errorId = 'statsError'; // Default
             let endpointTipo = tipo;
             
