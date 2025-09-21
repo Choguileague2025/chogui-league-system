@@ -511,7 +511,6 @@ app.get('/api/estadisticas-ofensivas/:jugadorId', async (req, res) => {
 });
 app.post('/api/estadisticas-ofensivas', async (req, res) => {
     try {
-        // *** INICIO FASE 5.3: Aceptar 'temporada' del body ***
         const {
             jugador_id, at_bats, hits, home_runs, rbi, 
             runs, walks, stolen_bases, temporada
@@ -520,18 +519,15 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
         
-        // *** CORRECCIÓN FASE 5.5: Validar que haya torneo activo ***
         if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
              return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
         }
         const activeTemporada = temporada;
-        // *** FIN FASE 5.5 ***
 
         const existing = await pool.query(
             'SELECT id FROM estadisticas_ofensivas WHERE jugador_id = $1 AND temporada = $2',
             [parseInt(jugador_id), activeTemporada]
         );
-        // *** FIN FASE 5.3 ***
 
         let result;
         if (existing.rows.length > 0) {
@@ -574,7 +570,7 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
                 parseInt(runs) || 0,
                 parseInt(walks) || 0,
                 parseInt(stolen_bases) || 0,
-                activeTemporada // *** FASE 5.3 ***
+                activeTemporada
             ]);
         }
         res.status(201).json(result.rows[0]);
@@ -620,7 +616,6 @@ app.get('/api/lideres-ofensivos', async (req, res) => {
 });
 app.put('/api/estadisticas-ofensivas', async (req, res) => {
     try {
-        // *** INICIO FASE 5.3: Aceptar 'temporada' del body ***
         const {
             jugador_id, at_bats, hits, home_runs, rbi, 
             runs, walks, stolen_bases, temporada
@@ -632,7 +627,6 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
              return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
         }
         const activeTemporada = temporada;
-        // *** FIN FASE 5.3 ***
 
         const result = await pool.query(`
             UPDATE estadisticas_ofensivas SET
@@ -653,7 +647,7 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
             parseInt(walks) || 0,
             parseInt(stolen_bases) || 0,
             parseInt(jugador_id),
-            activeTemporada // *** FASE 5.3 ***
+            activeTemporada
         ]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
@@ -707,7 +701,6 @@ app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
 });
 app.post('/api/estadisticas-pitcheo', async (req, res) => {
     try {
-        // *** INICIO FASE 5.3: Aceptar 'temporada' del body ***
         const {
             jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
             walks_allowed, home_runs_allowed, wins, losses, saves, temporada
@@ -719,11 +712,10 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
              return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
         }
         const activeTemporada = temporada;
-        // *** FIN FASE 5.3 ***
 
         const existing = await pool.query(
             'SELECT id FROM estadisticas_pitcheo WHERE jugador_id = $1 AND temporada = $2',
-            [parseInt(jugador_id), activeTemporada] // *** FASE 5.3 ***
+            [parseInt(jugador_id), activeTemporada]
         );
         let result;
         if (existing.rows.length > 0) {
@@ -772,7 +764,7 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
                 parseInt(wins) || 0,
                 parseInt(losses) || 0,
                 parseInt(saves) || 0,
-                activeTemporada // *** FASE 5.3 ***
+                activeTemporada
             ]);
         }
         res.status(201).json(result.rows[0]);
@@ -783,7 +775,6 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
 });
 app.put('/api/estadisticas-pitcheo', async (req, res) => {
     try {
-        // *** INICIO FASE 5.3: Aceptar 'temporada' del body ***
         const {
             jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
             walks_allowed, home_runs_allowed, wins, losses, saves, temporada
@@ -795,7 +786,6 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
              return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
         }
         const activeTemporada = temporada;
-        // *** FIN FASE 5.3 ***
 
         const result = await pool.query(`
             UPDATE estadisticas_pitcheo SET
@@ -821,7 +811,7 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
             parseInt(losses) || 0,
             parseInt(saves) || 0,
             parseInt(jugador_id),
-            activeTemporada // *** FASE 5.3 ***
+            activeTemporada
         ]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
@@ -873,7 +863,6 @@ app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
 });
 app.post('/api/estadisticas-defensivas', async (req, res) => {
     try {
-        // *** INICIO FASE 5.3: Aceptar 'temporada' del body ***
         const {
             jugador_id, putouts, assists, errors, double_plays,
             passed_balls, chances, temporada
@@ -885,11 +874,10 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
              return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
         }
         const activeTemporada = temporada;
-        // *** FIN FASE 5.3 ***
 
         const existing = await pool.query(
             'SELECT id FROM estadisticas_defensivas WHERE jugador_id = $1 AND temporada = $2',
-            [jugador_id, activeTemporada] // *** FASE 5.3 ***
+            [jugador_id, activeTemporada]
         );
         let result;
         if (existing.rows.length > 0) {
@@ -929,7 +917,7 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                 parseInt(double_plays) || 0,
                 parseInt(passed_balls) || 0,
                 parseInt(chances) || 0,
-                activeTemporada // *** FASE 5.3 ***
+                activeTemporada
             ]);
         }
         res.status(201).json(result.rows[0]);
@@ -940,7 +928,6 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
 });
 app.put('/api/estadisticas-defensivas', async (req, res) => {
     try {
-        // *** INICIO FASE 5.3: Aceptar 'temporada' del body ***
         const {
             jugador_id, putouts, assists, errors, double_plays,
             passed_balls, chances, temporada
@@ -952,7 +939,6 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
              return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
         }
         const activeTemporada = temporada;
-        // *** FIN FASE 5.3 ***
         
         const result = await pool.query(`
             UPDATE estadisticas_defensivas SET
@@ -972,7 +958,7 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
             parseInt(passed_balls) || 0,
             parseInt(chances) || 0,
             parseInt(jugador_id),
-            activeTemporada // *** FASE 5.3 ***
+            activeTemporada
         ]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
