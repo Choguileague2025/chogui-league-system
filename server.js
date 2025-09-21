@@ -88,36 +88,29 @@ app.get('/api/equipos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.get('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const result = await pool.query('SELECT * FROM equipos WHERE id = $1', [id]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Equipo no encontrado' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error obteniendo equipo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.post('/api/equipos', async (req, res) => {
     try {
         const { nombre, manager, ciudad } = req.body;
-        
         if (!nombre || !manager || !ciudad) {
             return res.status(400).json({ error: 'Todos los campos son requeridos' });
         }
-
         const result = await pool.query(
             'INSERT INTO equipos (nombre, manager, ciudad, fecha_creacion) VALUES ($1, $2, $3, NOW()) RETURNING *',
             [nombre, manager, ciudad]
         );
-        
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error creando equipo:', error);
@@ -128,25 +121,20 @@ app.post('/api/equipos', async (req, res) => {
         }
     }
 });
-
 app.put('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { nombre, manager, ciudad } = req.body;
-        
         if (!nombre || !manager || !ciudad) {
             return res.status(400).json({ error: 'Todos los campos son requeridos' });
         }
-
         const result = await pool.query(
             'UPDATE equipos SET nombre = $1, manager = $2, ciudad = $3 WHERE id = $4 RETURNING *',
             [nombre, manager, ciudad, id]
         );
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Equipo no encontrado' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error actualizando equipo:', error);
@@ -157,27 +145,21 @@ app.put('/api/equipos/:id', async (req, res) => {
         }
     }
 });
-
 app.delete('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
         const jugadores = await pool.query('SELECT COUNT(*) FROM jugadores WHERE equipo_id = $1', [id]);
         if (parseInt(jugadores.rows[0].count) > 0) {
             return res.status(400).json({ error: 'No se puede eliminar un equipo que tiene jugadores asociados. Elimina primero los jugadores.' });
         }
-
         const partidos = await pool.query('SELECT COUNT(*) FROM partidos WHERE equipo_local_id = $1 OR equipo_visitante_id = $1', [id]);
         if (parseInt(partidos.rows[0].count) > 0) {
             return res.status(400).json({ error: 'No se puede eliminar un equipo que tiene partidos registrados. Elimina primero los partidos.' });
         }
-
         const result = await pool.query('DELETE FROM equipos WHERE id = $1 RETURNING *', [id]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Equipo no encontrado' });
         }
-
         res.json({ message: 'Equipo eliminado correctamente' });
     } catch (error) {
         console.error('Error eliminando equipo:', error);
@@ -201,7 +183,6 @@ app.get('/api/jugadores', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.get('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -211,73 +192,58 @@ app.get('/api/jugadores/:id', async (req, res) => {
             JOIN equipos e ON j.equipo_id = e.id
             WHERE j.id = $1
         `, [id]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error obteniendo jugador:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.post('/api/jugadores', async (req, res) => {
     try {
         const { nombre, equipo_id, posicion, numero } = req.body;
-        
         if (!nombre || !equipo_id || !posicion) {
             return res.status(400).json({ error: 'Nombre, equipo y posición son requeridos' });
         }
-
         const result = await pool.query(
             'INSERT INTO jugadores (nombre, equipo_id, posicion, numero) VALUES ($1, $2, $3, $4) RETURNING *',
             [nombre, equipo_id, posicion, numero]
         );
-        
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error creando jugador:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.put('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { nombre, equipo_id, posicion, numero } = req.body;
-        
         if (!nombre || !equipo_id || !posicion) {
             return res.status(400).json({ error: 'Nombre, equipo y posición son requeridos' });
         }
-
         const result = await pool.query(
             'UPDATE jugadores SET nombre = $1, equipo_id = $2, posicion = $3, numero = $4 WHERE id = $5 RETURNING *',
             [nombre, equipo_id, posicion, numero, id]
         );
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error actualizando jugador:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.delete('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
         const result = await pool.query('DELETE FROM jugadores WHERE id = $1 RETURNING *', [id]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
-
         res.json({ message: 'Jugador eliminado correctamente' });
     } catch (error) {
         console.error('Error eliminando jugador:', error);
@@ -304,7 +270,6 @@ app.get('/api/partidos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.get('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -317,81 +282,64 @@ app.get('/api/partidos/:id', async (req, res) => {
             JOIN equipos ev ON p.equipo_visitante_id = ev.id
             WHERE p.id = $1
         `, [id]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error obteniendo partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.post('/api/partidos', async (req, res) => {
     try {
         const { equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido } = req.body;
-        
         if (!equipo_local_id || !equipo_visitante_id || carreras_local === undefined || carreras_visitante === undefined) {
             return res.status(400).json({ error: 'Todos los campos son requeridos' });
         }
-
         if (equipo_local_id === equipo_visitante_id) {
             return res.status(400).json({ error: 'Los equipos local y visitante deben ser diferentes' });
         }
-
         const result = await pool.query(
             'INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
             [equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados || 9, fecha_partido]
         );
-        
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error creando partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.put('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido } = req.body;
-        
         if (!equipo_local_id || !equipo_visitante_id || carreras_local === undefined || carreras_visitante === undefined) {
             return res.status(400).json({ error: 'Todos los campos son requeridos' });
         }
-
         if (equipo_local_id === equipo_visitante_id) {
             return res.status(400).json({ error: 'Los equipos local y visitante deben ser diferentes' });
         }
-
         const result = await pool.query(
             'UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2, carreras_local = $3, carreras_visitante = $4, innings_jugados = $5, fecha_partido = $6 WHERE id = $7 RETURNING *',
             [equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados || 9, fecha_partido, id]
         );
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error actualizando partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.delete('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
         const result = await pool.query('DELETE FROM partidos WHERE id = $1 RETURNING *', [id]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
         }
-
         res.json({ message: 'Partido eliminado correctamente' });
     } catch (error) {
         console.error('Error eliminando partido:', error);
@@ -400,7 +348,6 @@ app.delete('/api/partidos/:id', async (req, res) => {
 });
 
 // ====================== ESTADÍSTICAS OFENSIVAS ======================
-// (Rutas de FASE 3 que ya añadimos)
 app.get('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -420,6 +367,32 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
+// *** INICIO DE NUEVA API (FASE 4.3) ***
+// Obtener estadísticas ofensivas por JUGADOR ID
+app.get('/api/estadisticas-ofensivas/:jugadorId', async (req, res) => {
+    try {
+        const { jugadorId } = req.params;
+        const result = await pool.query(`
+            SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre
+            FROM estadisticas_ofensivas eo
+            JOIN jugadores j ON eo.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            WHERE eo.jugador_id = $1
+            ORDER BY eo.temporada DESC
+        `, [jugadorId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Estadísticas ofensivas no encontradas' });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas ofensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+// *** FIN DE NUEVA API (FASE 4.3) ***
 
 // Ruta POST (SUMAR)
 app.post('/api/estadisticas-ofensivas', async (req, res) => {
@@ -537,7 +510,6 @@ app.get('/api/lideres-ofensivos', async (req, res) => {
     }
 });
 
-// *** INICIO DE NUEVA API DE EDICIÓN (FASE 4) ***
 // Ruta PUT (REEMPLAZAR)
 app.put('/api/estadisticas-ofensivas', async (req, res) => {
     try {
@@ -584,11 +556,10 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
-// *** FIN DE NUEVA API DE EDICIÓN (FASE 4) ***
 
 
 // ====================== ESTADÍSTICAS DE PITCHEO ======================
-// (Rutas GET y POST sin cambios)
+// (Rutas GET, POST, PUT sin cambios)
 app.get('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -606,7 +577,6 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
     try {
         const { jugadorId } = req.params;
@@ -620,36 +590,28 @@ app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
             WHERE ep.jugador_id = $1
             ORDER BY ep.temporada DESC
         `, [jugadorId]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error obteniendo estadísticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.post('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const {
             jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
             walks_allowed, home_runs_allowed, wins, losses, saves
         } = req.body;
-        
-        console.log('Datos recibidos:', req.body);
-        
         if (!jugador_id || innings_pitched === undefined) {
             return res.status(400).json({ error: 'Jugador ID e innings lanzados son requeridos' });
         }
-
         const existing = await pool.query(
             'SELECT id FROM estadisticas_pitcheo WHERE jugador_id = $1 AND temporada = $2',
             [parseInt(jugador_id), '2025']
         );
-
         let result;
         if (existing.rows.length > 0) {
             // Actualizar (sumar)
@@ -699,29 +661,21 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
                 parseInt(saves) || 0
             ]);
         }
-        
-        console.log('Estadísticas registradas:', result.rows[0]);
         res.status(201).json(result.rows[0]);
-        
     } catch (error) {
         console.error('Error registrando estadísticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
-
-// *** INICIO DE NUEVA API DE EDICIÓN (FASE 4) ***
-// Ruta PUT (REEMPLAZAR)
 app.put('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const {
             jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
             walks_allowed, home_runs_allowed, wins, losses, saves, temporada
         } = req.body;
-        
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-
         const result = await pool.query(`
             UPDATE estadisticas_pitcheo SET
                 innings_pitched = $1,
@@ -749,22 +703,19 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
             temporada || '2025',
             parseInt(jugador_id)
         ]);
-
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
         }
         res.json(result.rows[0]);
-        
     } catch (error) {
         console.error('Error actualizando estadísticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
-// *** FIN DE NUEVA API DE EDICIÓN (FASE 4) ***
 
 
 // ====================== ESTADÍSTICAS DEFENSIVAS ======================
-// (Rutas GET y POST sin cambios)
+// (Rutas GET, POST, PUT sin cambios)
 app.get('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -781,7 +732,6 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
     try {
         const { jugadorId } = req.params;
@@ -794,34 +744,28 @@ app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
             WHERE ed.jugador_id = $1
             ORDER BY ed.temporada DESC
         `, [jugadorId]);
-        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
         }
-        
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error obteniendo estadísticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.post('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const {
             jugador_id, putouts, assists, errors, double_plays,
             passed_balls, stolen_bases_against, caught_stealing, chances
         } = req.body;
-        
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-
         const existing = await pool.query(
             'SELECT id FROM estadisticas_defensivas WHERE jugador_id = $1 AND temporada = $2',
             [jugador_id, '2025']
         );
-
         let result;
         if (existing.rows.length > 0) {
             // Actualizar (sumar)
@@ -868,27 +812,21 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                 parseInt(chances) || 0
             ]);
         }
-        
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error registrando estadísticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
-// *** INICIO DE NUEVA API DE EDICIÓN (FASE 4) ***
-// Ruta PUT (REEMPLAZAR)
 app.put('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const {
             jugador_id, putouts, assists, errors, double_plays,
             passed_balls, chances, temporada
         } = req.body;
-        
         if (!jugador_id) {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
-
         const result = await pool.query(`
             UPDATE estadisticas_defensivas SET
                 putouts = $1,
@@ -910,18 +848,15 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
             temporada || '2025',
             parseInt(jugador_id)
         ]);
-
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
         }
         res.json(result.rows[0]);
-        
     } catch (error) {
         console.error('Error actualizando estadísticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
-// *** FIN DE NUEVA API DE EDICIÓN (FASE 4) ***
 
 
 // ====================== LÍDERES (Rutas GET) ======================
@@ -951,7 +886,6 @@ app.get('/api/lideres-pitcheo', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-
 app.get('/api/lideres-defensivos', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -976,15 +910,12 @@ app.get('/api/lideres-defensivos', async (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/index.html'));
 });
-
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/login.html'));
 });
-
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/admin.html'));
 });
-
 app.get('/public', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/public.html'));
 });
@@ -1012,13 +943,16 @@ app.listen(PORT, () => {
     console.log(`   - PUT  /api/partidos/:id`);
     console.log(`   - DELETE /api/partidos/:id`);
     console.log(`   - GET  /api/estadisticas-ofensivas`);
+    console.log(`   - GET  /api/estadisticas-ofensivas/:jugadorId   <-- ¡NUEVA!`);
     console.log(`   - POST /api/estadisticas-ofensivas`);
     console.log(`   - PUT  /api/estadisticas-ofensivas   <-- ¡NUEVA!`);
     console.log(`   - GET  /api/lideres-ofensivos`);
     console.log(`   - GET  /api/estadisticas-pitcheo`);
+    console.log(`   - GET  /api/estadisticas-pitcheo/:jugadorId`);
     console.log(`   - POST /api/estadisticas-pitcheo`);
     console.log(`   - PUT  /api/estadisticas-pitcheo   <-- ¡NUEVA!`);
     console.log(`   - GET  /api/estadisticas-defensivas`);
+    console.log(`   - GET  /api/estadisticas-defensivas/:jugadorId`);
     console.log(`   - POST /api/estadisticas-defensivas`);
     console.log(`   - PUT  /api/estadisticas-defensivas   <-- ¡NUEVA!`);
     console.log(`   - GET  /api/lideres-pitcheo`);
