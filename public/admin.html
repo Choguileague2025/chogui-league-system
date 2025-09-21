@@ -1853,14 +1853,15 @@
             }).join('');
         }
         
+        // ========== INICIO LÓGICA FASE 6 (TOP 6 / 8 JUEGOS) ==========
         function calcularPosiciones() {
             const tbody = document.querySelector('#posicionesTable tbody');
-            
+            const PARTIDOS_TOTALES_TEMPORADA = 8; // ¡NUEVO! Total de juegos por equipo
+
             if (equipos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay equipos registrados</td></tr>';
                 return;
             }
-
             if (partidos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay partidos para calcular posiciones</td></tr>';
                 return;
@@ -1868,7 +1869,6 @@
 
             // Calcular estadísticas por equipo
             const estadisticasEquipos = {};
-            
             equipos.forEach(equipo => {
                 estadisticasEquipos[equipo.id] = {
                     id: equipo.id,
@@ -1884,16 +1884,13 @@
             partidos.forEach(partido => {
                 const localId = partido.equipo_local_id;
                 const visitanteId = partido.equipo_visitante_id;
-                
                 if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
                     estadisticasEquipos[localId].partidos_jugados++;
                     estadisticasEquipos[visitanteId].partidos_jugados++;
-                    
                     estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
                     estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
                     estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
                     estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
-                    
                     if (partido.carreras_local > partido.carreras_visitante) {
                         estadisticasEquipos[localId].partidos_ganados++;
                         estadisticasEquipos[visitanteId].partidos_perdidos++;
@@ -1904,7 +1901,7 @@
                 }
             });
 
-            // Convertir a array y ordenar por porcentaje
+            // Convertir a array y ordenar
             const posiciones = Object.values(estadisticasEquipos)
                 .map(stats => ({
                     ...stats,
@@ -1916,20 +1913,37 @@
                     return b.diferencia - a.diferencia;
                 });
 
+            // ¡NUEVA LÓGICA DE CLASIFICACIÓN (TOP 6)!
+            const equipoSexto = posiciones[5]; // Obtenemos al 6to lugar
+
             tbody.innerHTML = posiciones.map((equipo, index) => {
                 const pos = index + 1;
                 let estado = '';
                 let estadoClass = '';
-                
-                if (pos <= 4) {
-                    estado = 'PLAYOFF';
+
+                if (pos <= 6) { // Clasifican 6
+                    estado = 'CLASIFICADO';
                     estadoClass = 'style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;"';
-                } else if (pos > equipos.length - 2) {
-                    estado = 'ELIMINADO';
-                    estadoClass = 'style="color: #dc143c; font-size: 0.8rem; font-weight: bold;"';
                 } else {
-                    estado = 'EN LUCHA';
-                    estadoClass = 'style="color: #ff8c00; font-size: 0.8rem; font-weight: bold;"';
+                    // Lógica de Eliminación (Número Mágico)
+                    if (!equipoSexto || equipoSexto.partidos_jugados === 0) {
+                        estado = 'EN LUCHA';
+                        estadoClass = 'style="color: #ff8c00; font-size: 0.8rem; font-weight: bold;"';
+                    } else {
+                        const victoriasSexto = equipoSexto.partidos_ganados;
+                        const derrotasEquipo = equipo.partidos_perdidos;
+                        // (8 + 1) - Victorias del 6to - Derrotas del 7mo
+                        const magicNumber = (PARTIDOS_TOTALES_TEMPORADA + 1) - victoriasSexto - derrotasEquipo;
+                        const partidosRestantes = PARTIDOS_TOTALES_TEMPORADA - equipo.partidos_jugados;
+
+                        if (magicNumber <= 0 || magicNumber > partidosRestantes) {
+                            estado = 'ELIMINADO';
+                            estadoClass = 'style="color: #dc143c; font-size: 0.8rem; font-weight: bold;"';
+                        } else {
+                            estado = `EN LUCHA (M# ${magicNumber})`;
+                            estadoClass = 'style="color: #ff8c00; font-size: 0.8rem; font-weight: bold;"';
+                        }
+                    }
                 }
 
                 return `
@@ -1952,6 +1966,7 @@
                 `;
             }).join('');
         }
+        // ========== FIN LÓGICA FASE 6 ==========
 
         // ========== FUNCIONES DE LÍDERES Y ESTADÍSTICAS AVANZADAS ==========
 
