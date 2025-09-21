@@ -273,6 +273,16 @@
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 10px 25px rgba(255, 215, 0, 0.6);
         }
+        
+        .btn-actualizar {
+            background: linear-gradient(145deg, #007BFF, #0056b3);
+            color: white;
+        }
+        .btn-actualizar:hover {
+            background: linear-gradient(145deg, #0088ff, #0056b3);
+            color: white;
+            transform: translateY(-2px) scale(1.05);
+        }
 
         .btn-secondary {
             background: linear-gradient(145deg, #ff6b35, #dc143c);
@@ -916,7 +926,7 @@
                          <small style="color: #ff8c00; font-size: 0.8rem;">Los errores se registran en el form defensivo.</small>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
+                <button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
             </div>
 
             <div class="card">
@@ -966,7 +976,7 @@
                         <input type="number" id="saves" min="0" value="0">
                     </div>
                 </div>
-                <button class="btn-primary" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
+                <button class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
             </div>
 
             <div class="card">
@@ -1000,7 +1010,7 @@
                         <small style="color: #ffd700; font-size: 0.8rem;">Solo para catchers</small>
                     </div>
                 </div>
-                <button class="btn-primary" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
+                <button class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
             </div>
 
             <div class="card">
@@ -1359,6 +1369,7 @@
         }
 
         function calcularWAR(jugador, stats) {
+            // stats ahora viene de la API ofensiva
             if (!stats || !jugador || stats.at_bats < 10) return 0;
 
             const avg = stats.at_bats > 0 ? (stats.hits / stats.at_bats) : 0;
@@ -1369,7 +1380,9 @@
             // Componentes del WAR simplificado
             const bateoCont = (ops - 0.700) * 100; // Contribution vs league average
             const ajustePosicional = AJUSTES_POSICIONALES[jugador.posicion] || 0;
-            const penalizacionErrores = (stats.errors || 0) * -2; // 'errors' vendrá de la tabla defensiva
+            // 'errors' ya no está en este objeto, se necesitaría una lógica más avanzada
+            // para combinar stats ofensivas y defensivas. Por ahora lo omitimos.
+            const penalizacionErrores = 0; // (stats.errors || 0) * -2;
             const bonusVelocidad = (stats.stolen_bases || 0) * 0.2;
 
             const warTotal = (bateoCont + ajustePosicional + penalizacionErrores + bonusVelocidad) / 100;
@@ -2121,15 +2134,7 @@
                 }
                 
                 // Limpiar formulario
-                document.getElementById('jugadorStats').value = '';
-                document.getElementById('atBats').value = '0';
-                document.getElementById('hits').value = '0';
-                document.getElementById('homeRuns').value = '0';
-                document.getElementById('rbi').value = '0';
-                document.getElementById('runs').value = '0';
-                document.getElementById('walks').value = '0';
-                document.getElementById('errors').value = '0';
-                document.getElementById('stolenBases').value = '0';
+                limpiarFormulario('ofensiva');
 
                 const jugador = jugadores.find(j => j.id === jugadorId);
                 mostrarExito('statsMessage', `✅ Estadísticas de "${jugador ? jugador.nombre : 'Jugador'}" guardadas en la base de datos.`);
@@ -2513,17 +2518,7 @@ async function eliminarPartido(id) {
 
                 if (response.ok) {
                     // Limpiar formulario
-                    document.getElementById('jugadorPitcheo').value = '';
-                    document.getElementById('inningsPitched').value = '0';
-                    document.getElementById('hitsAllowed').value = '0';
-                    document.getElementById('earnedRuns').value = '0';
-                    document.getElementById('strikeouts').value = '0';
-                    document.getElementById('walksAllowed').value = '0';
-                    document.getElementById('homeRunsAllowed').value = '0';
-                    document.getElementById('wins').value = '0';
-                    document.getElementById('losses').value = '0';
-                    document.getElementById('saves').value = '0';
-
+                    limpiarFormulario('pitcheo');
                     mostrarExito('pitcheoMessage', `✅ Estadísticas de pitcheo registradas correctamente`);
                     cargarTablaEditarPitcheo(); // Refrescar la tabla de edición
                 } else {
@@ -2566,13 +2561,7 @@ async function eliminarPartido(id) {
 
                 if (response.ok) {
                     // Limpiar formulario
-                    document.getElementById('jugadorDefensivo').value = '';
-                    document.getElementById('putouts').value = '0';
-                    document.getElementById('assists').value = '0';
-                    document.getElementById('defensiveErrors').value = '0';
-                    document.getElementById('doublePlays').value = '0';
-                    document.getElementById('passedBalls').value = '0';
-
+                    limpiarFormulario('defensiva');
                     mostrarExito('defensivaMessage', `✅ Estadísticas defensivas registradas correctamente`);
                     
                     // Actualizar la vista de líderes defensivos
@@ -2673,15 +2662,206 @@ async function eliminarPartido(id) {
             }
         }
         
-        // Funciones placeholder (se implementarán en Paso 4.3)
+        // *** INICIO DE CORRECCIÓN: Lógica para Paso 4.3 ***
+        
+        // Función para limpiar formularios
+        function limpiarFormulario(tipo) {
+            if (tipo === 'ofensiva') {
+                document.getElementById('jugadorStats').value = '';
+                document.getElementById('atBats').value = '0';
+                document.getElementById('hits').value = '0';
+                document.getElementById('homeRuns').value = '0';
+                document.getElementById('rbi').value = '0';
+                document.getElementById('runs').value = '0';
+                document.getElementById('walks').value = '0';
+                document.getElementById('stolenBases').value = '0';
+            } else if (tipo === 'pitcheo') {
+                document.getElementById('jugadorPitcheo').value = '';
+                document.getElementById('inningsPitched').value = '0';
+                document.getElementById('hitsAllowed').value = '0';
+                document.getElementById('earnedRuns').value = '0';
+                document.getElementById('strikeouts').value = '0';
+                document.getElementById('walksAllowed').value = '0';
+                document.getElementById('homeRunsAllowed').value = '0';
+                document.getElementById('wins').value = '0';
+                document.getElementById('losses').value = '0';
+                document.getElementById('saves').value = '0';
+            } else if (tipo === 'defensiva') {
+                document.getElementById('jugadorDefensivo').value = '';
+                document.getElementById('putouts').value = '0';
+                document.getElementById('assists').value = '0';
+                document.getElementById('defensiveErrors').value = '0';
+                document.getElementById('doublePlays').value = '0';
+                document.getElementById('passedBalls').value = '0';
+            }
+        }
+
+        // Función para resetear el botón de registro/actualización
+        function resetearBoton(tipo) {
+            if (tipo === 'ofensiva') {
+                const btn = document.getElementById('btnRegistrarOfensiva');
+                btn.textContent = '📊 Registrar Estadísticas (Sumar)';
+                btn.classList.remove('btn-actualizar');
+                btn.setAttribute('onclick', 'registrarEstadisticas()');
+            } else if (tipo === 'pitcheo') {
+                const btn = document.getElementById('btnRegistrarPitcheo');
+                btn.textContent = '⚾ Registrar Estadísticas (Sumar)';
+                btn.classList.remove('btn-actualizar');
+                btn.setAttribute('onclick', 'registrarEstadisticasPitcheo()');
+            } else if (tipo === 'defensiva') {
+                const btn = document.getElementById('btnRegistrarDefensa');
+                btn.textContent = '🛡 Registrar Estadísticas (Sumar)';
+                btn.classList.remove('btn-actualizar');
+                btn.setAttribute('onclick', 'registrarEstadisticasDefensivas()');
+            }
+        }
+
+        // Cargar datos en el formulario para editar
         async function cargarParaEditar(tipo, jugadorId) {
-            alert(`PASO 4.3: Cargando datos para editar (tipo: ${tipo}, jugador: ${jugadorId})... ¡Aún no implementado!`);
-            // Lógica del Paso 4.3 irá aquí
+            try {
+                let stat;
+                // 1. Obtener los datos del jugador
+                if (tipo === 'ofensiva') {
+                    // La API de ofensiva no tiene ruta por ID de jugador, usamos la global
+                    const res = await fetch('/api/estadisticas-ofensivas');
+                    const stats = await res.json();
+                    stat = stats.find(s => s.jugador_id === jugadorId);
+                } else {
+                    const res = await fetch(`/api/estadisticas-${tipo}/${jugadorId}`);
+                    stat = await res.json();
+                }
+
+                if (!stat) {
+                    mostrarError(`statsError`, 'No se encontraron estadísticas para este jugador. Regístralas primero.');
+                    return;
+                }
+
+                // 2. Rellenar el formulario
+                if (tipo === 'ofensiva') {
+                    document.getElementById('jugadorStats').value = stat.jugador_id;
+                    document.getElementById('atBats').value = stat.at_bats;
+                    document.getElementById('hits').value = stat.hits;
+                    document.getElementById('homeRuns').value = stat.home_runs;
+                    document.getElementById('rbi').value = stat.rbi;
+                    document.getElementById('runs').value = stat.runs;
+                    document.getElementById('walks').value = stat.walks;
+                    document.getElementById('stolenBases').value = stat.stolen_bases;
+                    
+                    // 3. Cambiar el botón
+                    const btn = document.getElementById('btnRegistrarOfensiva');
+                    btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
+                    btn.classList.add('btn-actualizar');
+                    btn.setAttribute('onclick', `actualizarEstadistica('ofensiva', ${jugadorId})`);
+                    
+                    document.getElementById('btnRegistrarOfensiva').scrollIntoView({ behavior: 'smooth' });
+                } else if (tipo === 'pitcheo') {
+                    document.getElementById('jugadorPitcheo').value = stat.jugador_id;
+                    document.getElementById('inningsPitched').value = stat.innings_pitched;
+                    document.getElementById('hitsAllowed').value = stat.hits_allowed;
+                    document.getElementById('earnedRuns').value = stat.earned_runs;
+                    document.getElementById('strikeouts').value = stat.strikeouts;
+                    document.getElementById('walksAllowed').value = stat.walks_allowed;
+                    document.getElementById('homeRunsAllowed').value = stat.home_runs_allowed;
+                    document.getElementById('wins').value = stat.wins;
+                    document.getElementById('losses').value = stat.losses;
+                    document.getElementById('saves').value = stat.saves;
+                    
+                    const btn = document.getElementById('btnRegistrarPitcheo');
+                    btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
+                    btn.classList.add('btn-actualizar');
+                    btn.setAttribute('onclick', `actualizarEstadistica('pitcheo', ${jugadorId})`);
+
+                    document.getElementById('btnRegistrarPitcheo').scrollIntoView({ behavior: 'smooth' });
+                } else if (tipo === 'defensiva') {
+                    document.getElementById('jugadorDefensivo').value = stat.jugador_id;
+                    document.getElementById('putouts').value = stat.putouts;
+                    document.getElementById('assists').value = stat.assists;
+                    document.getElementById('defensiveErrors').value = stat.errors;
+                    document.getElementById('doublePlays').value = stat.double_plays;
+                    document.getElementById('passedBalls').value = stat.passed_balls;
+                    
+                    const btn = document.getElementById('btnRegistrarDefensa');
+                    btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
+                    btn.classList.add('btn-actualizar');
+                    btn.setAttribute('onclick', `actualizarEstadistica('defensiva', ${jugadorId})`);
+                    
+                    document.getElementById('btnRegistrarDefensa').scrollIntoView({ behavior: 'smooth' });
+                }
+
+            } catch (error) {
+                mostrarError('statsError', `Error al cargar datos para editar: ${error.message}`);
+            }
         }
         
+        // Guardar los datos actualizados
         async function actualizarEstadistica(tipo, jugadorId) {
-             alert(`PASO 4.3: Guardando datos (tipo: ${tipo}, jugador: ${jugadorId})... ¡Aún no implementado!`);
-            // Lógica del Paso 4.3 irá aquí
+            let body = { jugador_id: jugadorId, temporada: '2025' }; // Asumimos temporada actual
+            let errorId = 'statsError'; // Default
+            
+            try {
+                // 1. Recoger datos del formulario
+                if (tipo === 'ofensiva') {
+                    body.at_bats = parseInt(document.getElementById('atBats').value) || 0;
+                    body.hits = parseInt(document.getElementById('hits').value) || 0;
+                    body.home_runs = parseInt(document.getElementById('homeRuns').value) || 0;
+                    body.rbi = parseInt(document.getElementById('rbi').value) || 0;
+                    body.runs = parseInt(document.getElementById('runs').value) || 0;
+                    body.walks = parseInt(document.getElementById('walks').value) || 0;
+                    body.stolen_bases = parseInt(document.getElementById('stolenBases').value) || 0;
+                } else if (tipo === 'pitcheo') {
+                    errorId = 'pitcheoError';
+                    body.innings_pitched = parseFloat(document.getElementById('inningsPitched').value) || 0;
+                    body.hits_allowed = parseInt(document.getElementById('hitsAllowed').value) || 0;
+                    body.earned_runs = parseInt(document.getElementById('earnedRuns').value) || 0;
+                    body.strikeouts = parseInt(document.getElementById('strikeouts').value) || 0;
+                    body.walks_allowed = parseInt(document.getElementById('walksAllowed').value) || 0;
+                    body.home_runs_allowed = parseInt(document.getElementById('homeRunsAllowed').value) || 0;
+                    body.wins = parseInt(document.getElementById('wins').value) || 0;
+                    body.losses = parseInt(document.getElementById('losses').value) || 0;
+                    body.saves = parseInt(document.getElementById('saves').value) || 0;
+                } else if (tipo === 'defensiva') {
+                    errorId = 'defensivaError';
+                    body.putouts = parseInt(document.getElementById('putouts').value) || 0;
+                    body.assists = parseInt(document.getElementById('assists').value) || 0;
+                    body.errors = parseInt(document.getElementById('defensiveErrors').value) || 0;
+                    body.double_plays = parseInt(document.getElementById('doublePlays').value) || 0;
+                    body.passed_balls = parseInt(document.getElementById('passedBalls').value) || 0;
+                    body.chances = body.putouts + body.assists + body.errors;
+                }
+                
+                // 2. Enviar a la API PUT
+                const response = await fetch(`/api/estadisticas-${tipo}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error del servidor');
+                }
+                
+                // 3. Limpiar y refrescar
+                limpiarFormulario(tipo);
+                resetearBoton(tipo);
+                mostrarExito(errorId.replace('Error', 'Message'), '✅ Estadísticas actualizadas (reemplazadas) correctamente.');
+                
+                // 4. Recargar todas las tablas y líderes
+                if (tipo === 'ofensiva') {
+                    await cargarEstadisticas(); // Recarga la tabla principal de bateo
+                    cargarTablaEditarBateo();
+                    actualizarLideres();
+                } else if (tipo === 'pitcheo') {
+                    cargarTablaEditarPitcheo();
+                } else if (tipo === 'defensiva') {
+                    cargarTablaEditarDefensa();
+                    actualizarLideresPorPosicion();
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError(errorId, `Error al actualizar: ${error.message}`);
+            }
         }
         // *** FIN DE FUNCIONES DE EDICIÓN (FASE 4) ***
     </script>
