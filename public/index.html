@@ -915,6 +915,13 @@
     </div>
 
     <script>
+        // Configuración de API - URL de Railway
+        const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
+        
+        // Función helper para construir URLs
+        function getApiUrl(endpoint) {
+            return `${API_BASE_URL}${endpoint}`;
+        }
         // Variables globales (igual que en admin)
         let equipos = [];
         let partidos = [];
