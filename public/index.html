@@ -1205,7 +1205,8 @@
 
         function calcularPosiciones() {
             const tbody = document.querySelector('#posicionesTable tbody');
-            const PARTIDOS_TOTALES_TEMPORADA = 8; // ¡NUEVO! Total de juegos por equipo
+            // ¡CAMBIO! La temporada es de 10 juegos (Opción B)
+            const PARTIDOS_TOTALES_TEMPORADA = 10; 
 
             if (equipos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay equipos registrados. Ve al panel de administración para agregar equipos.</td></tr>';
@@ -1234,18 +1235,22 @@
                 const localId = partido.equipo_local_id;
                 const visitanteId = partido.equipo_visitante_id;
                 if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
-                    estadisticasEquipos[localId].partidos_jugados++;
-                    estadisticasEquipos[visitanteId].partidos_jugados++;
-                    estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
-                    estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
-                    estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
-                    estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
-                    if (partido.carreras_local > partido.carreras_visitante) {
-                        estadisticasEquipos[localId].partidos_ganados++;
-                        estadisticasEquipos[visitanteId].partidos_perdidos++;
-                    } else {
-                        estadisticasEquipos[visitanteId].partidos_ganados++;
-                        estadisticasEquipos[localId].partidos_perdidos++;
+                    // Contar partido solo si tiene resultado
+                    if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+                        estadisticasEquipos[localId].partidos_jugados++;
+                        estadisticasEquipos[visitanteId].partidos_jugados++;
+                        estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
+                        estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
+                        estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
+                        estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
+                        
+                        if (partido.carreras_local > partido.carreras_visitante) {
+                            estadisticasEquipos[localId].partidos_ganados++;
+                            estadisticasEquipos[visitanteId].partidos_perdidos++;
+                        } else {
+                            estadisticasEquipos[visitanteId].partidos_ganados++;
+                            estadisticasEquipos[localId].partidos_perdidos++;
+                        }
                     }
                 }
             });
@@ -1269,6 +1274,7 @@
                 const pos = index + 1;
                 let estado = '';
                 let estadoClass = '';
+                const partidosJugados = equipo.partidos_jugados; // Usar el contador de partidos con resultado
 
                 if (pos <= 6) { // Clasifican 6
                     estado = 'CLASIFICADO';
@@ -1281,8 +1287,9 @@
                     } else {
                         const victoriasSexto = equipoSexto.partidos_ganados;
                         const derrotasEquipo = equipo.partidos_perdidos;
+                        // ¡CAMBIO! (10 + 1)
                         const magicNumber = (PARTIDOS_TOTALES_TEMPORADA + 1) - victoriasSexto - derrotasEquipo;
-                        const partidosRestantes = PARTIDOS_TOTALES_TEMPORADA - equipo.partidos_jugados;
+                        const partidosRestantes = PARTIDOS_TOTALES_TEMPORADA - partidosJugados;
 
                         if (magicNumber <= 0 || magicNumber > partidosRestantes) {
                             estado = 'ELIMINADO';
@@ -1298,7 +1305,7 @@
                     <tr>
                         <td><span class="position-number">${pos}</span></td>
                         <td><strong>${equipo.nombre}</strong></td>
-                        <td>${equipo.partidos_jugados}</td>
+                        <td>${partidosJugados}</td>
                         <td>${equipo.partidos_ganados}</td>
                         <td>${equipo.partidos_perdidos}</td>
                         <td><strong>${(equipo.porcentaje * 100).toFixed(1)}%</strong></td>
@@ -1324,15 +1331,22 @@
                 return;
             }
 
-            // Ordenar partidos por fecha más reciente y tomar los últimos 10
+            // Ordenar partidos por fecha más reciente
             const partidosOrdenados = [...partidos]
-                .sort((a, b) => new Date(b.fecha_partido) - new Date(a.fecha_partido))
-                .slice(0, 10);
+                .sort((a, b) => new Date(b.fecha_partido) - new Date(a.fecha_partido));
 
             tbody.innerHTML = partidosOrdenados.map(partido => {
-                const ganador = partido.carreras_local > partido.carreras_visitante ? 
-                    partido.equipo_local_nombre : partido.equipo_visitante_nombre;
-                const resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+                // === INICIO CAMBIO FASE 7.1: Mostrar partidos sin resultado ===
+                let resultado = 'Pendiente';
+                let ganadorHtml = `<small style="color: #ff8c00;">Pendiente</small>`;
+
+                if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+                    const ganador = partido.carreras_local > partido.carreras_visitante ? 
+                        partido.equipo_local_nombre : partido.equipo_visitante_nombre;
+                    resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+                    ganadorHtml = `<small style="color: #4CAF50;">Ganó: ${ganador}</small>`;
+                }
+                // === FIN CAMBIO FASE 7.1 ===
                 
                 return `
                     <tr>
@@ -1340,7 +1354,7 @@
                         <td><strong>${partido.equipo_visitante_nombre}</strong></td>
                         <td>
                             <strong>${resultado}</strong><br>
-                            <small style="color: #4CAF50;">Ganó: ${ganador}</small>
+                            ${ganadorHtml}
                         </td>
                         <td>${partido.innings_jugados} inn</td>
                         <td>${new Date(partido.fecha_partido).toLocaleDateString('es-AR')}</td>
@@ -1393,9 +1407,6 @@
 
         // ========== ACTUALIZAR LÍDERES (copiado del admin) ==========
         
-        // Esta función (actualizarLideres) se elimina porque su lógica se movió
-        // a la nueva función cargarEstadisticas()
-        
         function mostrarLideresVacios(containerId) {
             const container = document.getElementById(containerId);
             if (container) {
@@ -1411,7 +1422,6 @@
             }
         }
 
-       // *** INICIO DE CORRECCIÓN: FUNCIÓN ACTUALIZAR LÍDERES MÁS ROBUSTA ***
        function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
             const container = document.getElementById(containerId);
             if (!container) {
@@ -1439,33 +1449,26 @@
             container.innerHTML = lideres.map((lider, index) => {
                 let jugadorNombre, equipoNombre, valor;
                 
-                // Lógica robusta para manejar ambos tipos de datos
                 if (lider.jugador_nombre) {
-                    // Viene de la API (Pitcheo / Defensa / Ofensiva)
                     jugadorNombre = lider.jugador_nombre;
                     equipoNombre = lider.equipo_nombre;
                 } else {
-                    // Fallback (ya no debería usarse)
                     const jugador = jugadores.find(j => j.id === lider.jugador_id);
                     jugadorNombre = jugador ? jugador.nombre : 'Desconocido';
                     equipoNombre = jugador ? jugador.equipo_nombre : '-';
                 }
                 
-                // Manejar valor (asegurarnos de que es un número)
                 let statValue = lider[stat];
                 if (typeof statValue === 'string') {
                     statValue = parseFloat(statValue);
                 }
 
                 if (isDecimal) {
-                    // Para ERA, WHIP, AVG, etc.
                     valor = statValue ? statValue.toFixed(3) : '0.000';
-                    // Caso especial para ERA y WHIP que pueden ser 0.00
                     if (stat === 'era' || stat === 'whip') {
                         valor = statValue.toFixed(2);
                     }
                 } else {
-                    // Para HR, RBI, Wins, etc.
                     valor = statValue || 0;
                 }
                 
@@ -1491,7 +1494,6 @@
             const contenido = document.getElementById('playoffsContent');
             if (!contenido) return;
 
-            // Si no se pasaron posiciones, calcularlas (necesario si la pestaña se carga primero)
             if (!posiciones) {
                 // Lógica rápida solo para obtener el orden
                 const estadisticasEquipos = {};
@@ -1502,16 +1504,18 @@
                     const localId = partido.equipo_local_id;
                     const visitanteId = partido.equipo_visitante_id;
                     if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
-                        estadisticasEquipos[localId].partidos_jugados++;
-                        estadisticasEquipos[visitanteId].partidos_jugados++;
-                        estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
-                        estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
-                        estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
-                        estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
-                        if (partido.carreras_local > partido.carreras_visitante) {
-                            estadisticasEquipos[localId].partidos_ganados++;
-                        } else {
-                            estadisticasEquipos[visitanteId].partidos_ganados++;
+                        if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+                            estadisticasEquipos[localId].partidos_jugados++;
+                            estadisticasEquipos[visitanteId].partidos_jugados++;
+                            estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
+                            estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
+                            estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
+                            estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
+                            if (partido.carreras_local > partido.carreras_visitante) {
+                                estadisticasEquipos[localId].partidos_ganados++;
+                            } else {
+                                estadisticasEquipos[visitanteId].partidos_ganados++;
+                            }
                         }
                     }
                 });
@@ -1568,20 +1572,18 @@
                 `;
             }
 
-            // *** CORRECCIÓN DE REGLA (Turno 89) ***
-            // Regla del Wildcard (Triangular de Perdedores)
+            // *** CORRECCIÓN DE REGLA (Turno 113) ***
+            // Regla del Wildcard (Mejor Perdedor por resultado del juego)
             html += `
                 <div class="card" style="background: linear-gradient(145deg, #ff9800, #f57c00); margin: 0;">
-                    <h4 style="color: white; margin-bottom: 15px;">⭐ Regla del 4to Semifinalista (Triangular)</h4>
+                    <h4 style="color: white; margin-bottom: 15px;">⭐ Regla del 4to Semifinalista (Mejor Perdedor)</h4>
                     <p style="color: white; font-size: 0.9rem; line-height: 1.6;">
                         1. Los 3 equipos **ganadores** de los cruces de playoffs avanzan a semifinales.
                         <br>
-                        2. Los 3 equipos **perdedores** jugarán un nuevo "Round Robin" (un triangular) entre ellos.
-                        <br>
-                        3. El equipo (de esos 3) que reciba la **menor cantidad de carreras** *durante ese triangular* será el 4to semifinalista.
+                        2. De los 3 equipos **perdedores**, el equipo que haya tenido la **mejor diferencia de carreras** (carreras a favor menos carreras en contra) *en ese partido perdido* avanzará como 4to semifinalista.
                         <br>
                         <strong style="color: #1a1a2e; margin-top: 10px; display: block; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 4px;">
-                            Nota: El admin debe llevar esta cuenta manualmente.
+                            Ej: Si pierdes 5-4 (Dif -1) eres 'mejor perdedor' que si pierdes 10-0 (Dif -10).
                         </strong>
                     </p>
                 </div>
