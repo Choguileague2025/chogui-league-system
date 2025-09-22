@@ -1290,7 +1290,8 @@
             <div class="card">
                 <h3>📅 Generador de Calendario (Round Robin)</h3>
                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 20px;">
-                    Genera el fixture para los <strong>9 equipos</strong>. Se crearán <strong>6 jornadas</strong> (4 juegos y 1 descanso por jornada).
+                    Genera el fixture para los <strong>9 equipos</strong>. Se crearán <strong>9 jornadas</strong> (5 juegos/jornada, 1 equipo juega doble).<br>
+                    La temporada será de <strong>10 juegos</strong> por equipo.
                 </p>
                 
                 <div class="form-container" style="grid-template-columns: 1fr 1fr 1fr;">
@@ -1300,7 +1301,7 @@
                     </div>
                     <div class="form-group">
                         <label for="horariosJuego">Horarios (separados por coma):</label>
-                        <input type="text" id="horariosJuego" value="09:00, 11:00, 13:00, 15:00">
+                        <input type="text" id="horariosJuego" value="09:00, 11:00, 13:00, 15:00, 17:00">
                     </div>
                     <div class="form-group">
                         <label for="diasEntreJornadas">Días entre Jornadas:</label>
@@ -1952,7 +1953,8 @@
         // ========== INICIO LÓGICA FASE 6 (TOP 6 / 8 JUEGOS) ==========
         function calcularPosiciones() {
             const tbody = document.querySelector('#posicionesTable tbody');
-            const PARTIDOS_TOTALES_TEMPORADA = 8; // ¡NUEVO! Total de juegos por equipo
+            // ¡CAMBIO! La temporada es de 10 juegos (Opción B)
+            const PARTIDOS_TOTALES_TEMPORADA = 10; 
 
             if (equipos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay equipos registrados</td></tr>';
@@ -1982,8 +1984,6 @@
                 const visitanteId = partido.equipo_visitante_id;
                 if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
                     
-                    // === INICIO CAMBIO FASE 7.1: Contar todos los partidos para PJ (visual) ===
-                    // Pero solo sumar PG/PP si hay resultado
                     estadisticasEquipos[localId].partidos_jugados++;
                     estadisticasEquipos[visitanteId].partidos_jugados++;
                     
@@ -2001,7 +2001,6 @@
                             estadisticasEquipos[localId].partidos_perdidos++;
                         }
                     }
-                    // === FIN CAMBIO FASE 7.1 ===
                 }
             });
 
@@ -2009,7 +2008,6 @@
             const posiciones = Object.values(estadisticasEquipos)
                 .map(stats => ({
                     ...stats,
-                    // ¡NUEVO! PJ ahora cuenta solo los jugados con resultado
                     partidos_jugados_con_resultado: stats.partidos_ganados + stats.partidos_perdidos,
                     porcentaje: (stats.partidos_ganados + stats.partidos_perdidos) > 0 ? (stats.partidos_ganados / (stats.partidos_ganados + stats.partidos_perdidos)) : 0,
                     diferencia: stats.carreras_favor - stats.carreras_contra
@@ -2019,14 +2017,14 @@
                     return b.diferencia - a.diferencia;
                 });
 
-            // ¡NUEVA LÓGICA DE CLASIFICACIÓN (TOP 6)!
-            const equipoSexto = posiciones[5]; // Obtenemos al 6to lugar
+            // LÓGICA DE CLASIFICACIÓN (TOP 6)
+            const equipoSexto = posiciones[5]; 
 
             tbody.innerHTML = posiciones.map((equipo, index) => {
                 const pos = index + 1;
                 let estado = '';
                 let estadoClass = '';
-                const partidosJugados = equipo.partidos_jugados_con_resultado; // Usar la nueva variable
+                const partidosJugados = equipo.partidos_jugados_con_resultado;
 
                 if (pos <= 6) { // Clasifican 6
                     estado = 'CLASIFICADO';
@@ -2039,7 +2037,7 @@
                     } else {
                         const victoriasSexto = equipoSexto.partidos_ganados;
                         const derrotasEquipo = equipo.partidos_perdidos;
-                        // (8 + 1) - Victorias del 6to - Derrotas del 7mo
+                        // ¡CAMBIO! (10 + 1)
                         const magicNumber = (PARTIDOS_TOTALES_TEMPORADA + 1) - victoriasSexto - derrotasEquipo;
                         const partidosRestantes = PARTIDOS_TOTALES_TEMPORADA - partidosJugados;
 
@@ -2061,7 +2059,8 @@
                             </span>
                         </td>
                         <td><strong>${equipo.nombre}</strong></td>
-                        <td>${partidosJugados}</td> <td>${equipo.partidos_ganados}</td>
+                        <td>${partidosJugados}</td>
+                        <td>${equipo.partidos_ganados}</td>
                         <td>${equipo.partidos_perdidos}</td>
                         <td><strong>${(equipo.porcentaje * 100).toFixed(1)}%</strong></td>
                         <td>${equipo.carreras_favor}</td>
@@ -3216,14 +3215,13 @@ async function eliminarPartido(id) {
         }
         // *** FIN DE FUNCIONES DE EDICIÓN (FASE 4) ***
         
-        // ========== INICIO FASE 7: GENERADOR DE CALENDARIO ==========
+        // ========== INICIO FASE 7: GENERADOR DE CALENDARIO (OPCIÓN B) ==========
         
         // Variable global para guardar los partidos generados
         let calendarioGenerado = [];
 
-        // ¡INICIO FASE 7.3: LÓGICA DEL ALGORITMO!
         async function generarCalendario() {
-            console.log('Iniciando generación de calendario...');
+            console.log('Iniciando generación de calendario (Opción B: 10 juegos)...');
             const calendarioDiv = document.getElementById('calendario-generado');
             calendarioDiv.innerHTML = '<div class="loading">Generando calendario...</div>';
             
@@ -3237,9 +3235,9 @@ async function eliminarPartido(id) {
             // 2. Obtener Parámetros
             const horariosStr = document.getElementById('horariosJuego').value;
             const horarios = horariosStr.split(',').map(h => h.trim());
-            if (horarios.length !== 4) {
-                mostrarError('calendarioError', 'Error: Debes ingresar 4 horarios separados por coma (ej. 09:00, 11:00, 13:00, 15:00).');
-                calendarioDiv.innerHTML = '<div class="empty-state">Error: Se necesitan 4 horarios.</div>';
+            if (horarios.length !== 5) {
+                mostrarError('calendarioError', 'Error: Debes ingresar 5 horarios separados por coma (ej. 09:00, 11:00, 13:00, 15:00, 17:00).');
+                calendarioDiv.innerHTML = '<div class="empty-state">Error: Se necesitan 5 horarios.</div>';
                 return;
             }
             
@@ -3249,65 +3247,51 @@ async function eliminarPartido(id) {
                 calendarioDiv.innerHTML = '<div class="empty-state">Error: Falta fecha de inicio.</div>';
                 return;
             }
-            // Ajuste para asegurar que la fecha se interprete en la zona horaria local
-            // Asumimos Argentina (-03:00). ¡Ajusta esto si tu servidor está en otra zona!
-            const fechaInicio = new Date(fechaInicioStr + 'T12:00:00-03:00'); 
-            
+            const fechaInicio = new Date(fechaInicioStr + 'T12:00:00-03:00'); // Asumir zona local
             const diasEntre = parseInt(document.getElementById('diasEntreJornadas').value);
             
-            // 3. Preparar Algoritmo (Round Robin para N impar)
+            // 3. Preparar Algoritmo (Opción B: 9 equipos, 9 jornadas, 5 partidos/jornada)
             let misEquipos = [...equipos.map(e => ({ id: e.id, nombre: e.nombre }))];
-            // Añadir un equipo "dummy" para gestionar el descanso (9 equipos -> 10)
-            misEquipos.push({ id: 'dummy', nombre: 'Descansa' });
             
-            const n = misEquipos.length; // 10
-            
-            // ¡CAMBIO FASE 7.4 (Opción C)!
-            const numJornadas = 6; // 6 jornadas en lugar de (n-1)
-            
-            const numPartidosPorJornada = n / 2; // 5 "partidos" (4 reales, 1 descanso)
+            const n = misEquipos.length; // 9
+            const numJornadas = 9;
             
             let calendarioHTML = '';
             calendarioGenerado = []; // Limpiar calendario global
+            let equiposQueJugaronDoble = [];
+
+            // Creamos una copia para rotar
+            let equiposRotativos = [...misEquipos];
             
             for (let r = 0; r < numJornadas; r++) {
                 let jornadaPartidos = [];
-                // Sumar días a la fecha de inicio
                 let fechaJornada = new Date(fechaInicio.getTime());
                 fechaJornada.setDate(fechaJornada.getDate() + (r * diasEntre));
                 let fechaISO = fechaJornada.toISOString().split('T')[0];
                 
+                // === LÓGICA DE ROTACIÓN DE HORARIOS ===
+                const offsetHorario = r % horarios.length;
+                
                 calendarioHTML += `<div class="jornada-card"><h4>Jornada ${r + 1} (Fecha: ${fechaJornada.toLocaleDateString('es-AR')})</h4>`;
                 
-                let descansaEquipo = '';
+                // 1. Identificar al equipo que juega doble
+                // Usamos el equipo que "descansaría" en un round robin de 9
+                const equipoDoble = equiposRotativos[n - 1]; 
                 
-                // === ¡INICIO FASE 7.5: LÓGICA DE ROTACIÓN DE HORARIOS! ===
-                const offsetHorario = r % horarios.length;
-                // === FIN FASE 7.5 ===
-
-                for (let i = 0; i < numPartidosPorJornada; i++) {
-                    const local = misEquipos[i];
-                    const visitante = misEquipos[n - 1 - i];
-
-                    if (local.id === 'dummy') {
-                        descansaEquipo = visitante.nombre;
-                        continue; // No es un partido, es un descanso
-                    }
-                    if (visitante.id === 'dummy') {
-                        descansaEquipo = local.nombre;
-                        continue; // No es un partido, es un descanso
-                    }
+                // 2. Crear los 4 partidos de los 8 equipos restantes
+                let equiposSimples = equiposRotativos.slice(0, n - 1);
+                
+                for (let i = 0; i < (n - 1) / 2; i++) { // 8 equipos / 2 = 4 partidos
+                    const local = equiposSimples[i];
+                    const visitante = equiposSimples[n - 2 - i];
                     
-                    // Es un partido real
-                    // === ¡CAMBIO FASE 7.5: Se aplica el offset! ===
                     const horarioIndex = (jornadaPartidos.length + offsetHorario) % horarios.length;
                     const horario = horarios[horarioIndex];
-                    // === FIN CAMBIO FASE 7.5 ===
-
+                    
                     const partido = {
                         equipo_local_id: local.id,
                         equipo_visitante_id: visitante.id,
-                        fecha_partido: `${fechaISO}T${horario}:00`, // Combinar fecha y hora para timestamp
+                        fecha_partido: `${fechaISO}T${horario}:00`,
                         local_nombre: local.nombre,
                         visitante_nombre: visitante.nombre,
                         horario: horario
@@ -3316,45 +3300,58 @@ async function eliminarPartido(id) {
                     jornadaPartidos.push(partido);
                     calendarioHTML += `<div class="jornada-partido"><strong>${local.nombre}</strong> vs <strong>${visitante.nombre}</strong> <span>@ ${horario}</span></div>`;
                 }
+
+                // 3. Crear el 5to partido (el del equipoDoble)
+                // Jugará contra el primer equipo de la lista de rotación (equiposRotativos[0])
+                // Esto asegura que los rivales roten
+                const rivalDoble = equiposRotativos[0];
+                
+                const horarioIndex = (jornadaPartidos.length + offsetHorario) % horarios.length;
+                const horario = horarios[horarioIndex];
+
+                const partidoDoble = {
+                    equipo_local_id: equipoDoble.id,
+                    equipo_visitante_id: rivalDoble.id,
+                    fecha_partido: `${fechaISO}T${horario}:00`,
+                    local_nombre: equipoDoble.nombre,
+                    visitante_nombre: rivalDoble.nombre,
+                    horario: horario
+                };
+                
+                jornadaPartidos.push(partidoDoble);
+                calendarioHTML += `<div class="jornada-partido" style="background: rgba(255,215,0,0.1);"><strong>${equipoDoble.nombre}</strong> vs <strong>${rivalDoble.nombre}</strong> <span>@ ${horario} (Doble)</span></div>`;
                 
                 calendarioGenerado.push(...jornadaPartidos);
-                calendarioHTML += `<div class="jornada-descansa">Descansa: ${descansaEquipo}</div></div>`;
+                calendarioHTML += `<div class="jornada-descansa" style="color: #4CAF50; background: rgba(76, 175, 80, 0.1);">Juega Doble: ${equipoDoble.nombre}</div></div>`;
 
-                // Rotar el array (algoritmo Round Robin)
-                // Se mantiene el primer equipo (misEquipos[0])
-                // El resto rota en sentido horario
-                const ultimo = misEquipos.pop();
-                misEquipos.splice(1, 0, ultimo);
+                // Rotar el array (algoritmo Round Robin para N impar)
+                const ultimo = equiposRotativos.pop();
+                equiposRotativos.splice(0, 0, ultimo);
             }
             
-            // === INICIO FASE 7.5: Añadir Jornadas de Playoffs (Visual) ===
-            let fechaJornada7 = new Date(fechaInicio.getTime());
-            fechaJornada7.setDate(fechaJornada7.getDate() + (6 * diasEntre));
+            // 4. Mostrar en UI (Playoffs)
+            let fechaJornada10 = new Date(fechaInicio.getTime());
+            fechaJornada10.setDate(fechaJornada10.getDate() + (9 * diasEntre)); // Jornada 10
             calendarioHTML += `
                 <div class="jornada-card" style="border-color: #ff6b35; background: rgba(255, 107, 53, 0.1);">
-                    <h4>Jornada 7: Playoffs - Cuartos y Repechaje (Fecha: ${fechaJornada7.toLocaleDateString('es-AR')})</h4>
+                    <h4>Jornada 10: Playoffs - Cuartos (Fecha: ${fechaJornada10.toLocaleDateString('es-AR')})</h4>
                     <div class="jornada-partido"><strong>(1er Lugar)</strong> vs <strong>(6to Lugar)</strong></div>
                     <div class="jornada-partido"><strong>(2do Lugar)</strong> vs <strong>(5to Lugar)</strong></div>
                     <div class="jornada-partido"><strong>(3er Lugar)</strong> vs <strong>(4to Lugar)</strong></div>
-                    <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
-                    <div class="jornada-partido" style="color: #ff8c00;">Repechaje 1: (Perdedor 1) vs (Perdedor 2)</div>
-                    <div class="jornada-partido" style="color: #ff8c00;">Repechaje 2: (Perdedor 1) vs (Perdedor 3)</div>
-                    <div class="jornada-partido" style="color: #ff8c00;">Repechaje 3: (Perdedor 2) vs (Perdedor 3)</div>
                 </div>`;
 
-            let fechaJornada8 = new Date(fechaInicio.getTime());
-            fechaJornada8.setDate(fechaJornada8.getDate() + (7 * diasEntre));
+            let fechaJornada11 = new Date(fechaInicio.getTime());
+            fechaJornada11.setDate(fechaJornada11.getDate() + (10 * diasEntre)); // Jornada 11
             calendarioHTML += `
                 <div class="jornada-card" style="border-color: #ffd700; background: rgba(255, 215, 0, 0.1);">
-                    <h4>Jornada 8: Semifinal y Final (Fecha: ${fechaJornada8.toLocaleDateString('es-AR')})</h4>
-                    <div class="jornada-partido">Semifinal 1: (Ganador Cuartos 1) vs (Ganador Repechaje)</div>
-                    <div class="jornada-partido">Semifinal 2: (Ganador Cuartos 2) vs (Ganador Cuartos 3)</div>
+                    <h4>Jornada 11: Semifinal y Final (Fecha: ${fechaJornada11.toLocaleDateString('es-AR')})</h4>
+                    <div class="jornada-partido">Semifinal 1: (Ganador 1) vs (Mejor Perdedor)</div>
+                    <div class="jornada-partido">Semifinal 2: (Ganador 2) vs (Ganador 3)</div>
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 10px 0;">
                     <div class="jornada-partido" style="font-size: 1.1rem; text-align: center;"><strong>🏆 GRAN FINAL 🏆</strong></div>
                 </div>`;
-            // === FIN FASE 7.5 ===
 
-            // 4. Mostrar en UI
+            // 5. Mostrar en UI
             calendarioDiv.innerHTML = calendarioHTML;
             document.getElementById('btnGuardarCalendario').disabled = false;
             document.getElementById('btnGuardarCalendario').textContent = '💾 Guardar Calendario en BD';
@@ -3366,8 +3363,7 @@ async function eliminarPartido(id) {
                 mostrarError('calendarioError', 'Primero debes generar un calendario.');
                 return;
             }
-            // ¡CAMBIO! Mensaje de confirmación actualizado
-            if (!confirm(`¿Estás seguro de guardar este calendario? Se crearán ${calendarioGenerado.length} partidos (solo las 6 jornadas de temporada regular) en la base de datos. Los playoffs son solo visuales.`)) {
+            if (!confirm(`¿Estás seguro de guardar este calendario? Se crearán ${calendarioGenerado.length} partidos (solo las 9 jornadas de temporada regular) en la base de datos. Los playoffs son solo visuales.`)) {
                 return;
             }
 
@@ -3399,7 +3395,6 @@ async function eliminarPartido(id) {
                     }
                 }
                 
-                // ¡CAMBIO! Mensaje de éxito actualizado
                 mostrarExito('calendarioMessage', `¡Calendario guardado! Se crearon ${partidosCreados} partidos de temporada regular.`);
                 await cargarPartidos(); // Actualizar la tabla de partidos
                 btn.textContent = 'Guardado ✔️';
