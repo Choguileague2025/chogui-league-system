@@ -19,6 +19,7 @@
             position: relative;
         }
 
+        /* Efectos de fuego/energía similares al logo */
         body::before {
             content: '';
             position: fixed;
@@ -288,11 +289,6 @@
             cursor: not-allowed;
             opacity: 0.7;
         }
-        
-        .btn-confirmar {
-            background: linear-gradient(145deg, #4CAF50, #45a049);
-            color: white;
-        }
 
         .btn-secondary {
             background: linear-gradient(145deg, #ff6b35, #dc143c);
@@ -428,7 +424,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
             animation: rotate 4s linear infinite;
         }
 
@@ -619,63 +615,6 @@
             color: #fff;
             font-weight: bold;
         }
-        
-        /* === INICIO ESTILOS CALENDARIO === */
-        #calendario-generado {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-        }
-        .jornada-card {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 10px;
-            padding: 15px;
-        }
-        .jornada-card h4 {
-            color: #ff8c00;
-            border-bottom: 1px solid #ff8c00;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-        .jornada-partido {
-            font-size: 0.9rem;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .jornada-partido:last-child {
-            border-bottom: none;
-        }
-        .jornada-partido strong {
-            color: #fff;
-        }
-        .jornada-partido span {
-            color: #ffd700;
-            font-size: 0.8rem;
-        }
-        
-        /* === ESTILOS PARA MAPEADOR DE EQUIPOS === */
-        #mapeoEquiposContainer {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid #ff8c00;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        .mapeo-item {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .mapeo-item label {
-            font-weight: bold;
-            text-align: right;
-            color: #ff8c00;
-        }
-        /* === FIN ESTILOS CALENDARIO === */
-
 
         @media (max-width: 768px) {
             .form-container, .stats-form-container {
@@ -707,7 +646,6 @@
             <button class="nav-tab" data-tab="lideres">🏆 Líderes</button>
             <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
             <button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
-            <button class="nav-tab" data-tab="calendario">📅 Calendario</button>
             </div>
 
         <div id="equipos" class="tab-content active">
@@ -875,17 +813,6 @@
 
             <div class="card">
                 <h3>👥 Jugadores Registrados</h3>
-                <div class="form-group" style="margin-bottom: 5px;">
-                    <label for="buscadorJugadores">🔍 Buscar Jugador por Nombre:</label>
-                    <input type="text" id="buscadorJugadores" onkeyup="actualizarTablaJugadores()" placeholder="Escribe un nombre...">
-                </div>
-                
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label for="filtroRosterEquipo">🏅 Filtrar Roster por Equipo:</label>
-                    <select id="filtroRosterEquipo" onchange="actualizarTablaJugadores()">
-                        <option value="">-- Mostrar Todos los Equipos --</option>
-                        </select>
-                </div>
                 <div class="table-container">
                     <table id="jugadoresTable">
                         <thead>
@@ -1310,40 +1237,6 @@
                 </div>
             </div>
         </div>
-
-        <div id="calendario" class="tab-content">
-            <div class="card">
-                <h3>📅 Generador de Calendario (Basado en Fixture Fijo)</h3>
-                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 20px;">
-                    Este generador crea un calendario de **7 jornadas** para **9 equipos**, basado en el fixture predefinido para garantizar 8 juegos por equipo y un doble juego para cada uno.
-                </p>
-                
-                <div class="form-container" style="grid-template-columns: 1fr;">
-                    <div class="form-group">
-                        <label for="fechaInicioCalendario">Fecha de Inicio del Torneo:</label>
-                        <input type="date" id="fechaInicioCalendario" required>
-                        <small style="color: #ffd700; font-size: 0.8rem;">El sistema encontrará automáticamente el primer domingo a partir de esta fecha.</small>
-                    </div>
-                </div>
-                
-                <button class="btn-primary" onclick="generarCalendario()">📅 Generar Calendario</button>
-                
-                <div id="mapeoEquiposContainer" style="margin-top: 20px;"></div>
-
-                <div id="calendarioMessage" class="success-message"></div>
-                <div id="calendarioError" class="error-message"></div>
-            </div>
-
-            <div class="card">
-                <h3>🗓️ Fixture Generado</h3>
-                <div id="calendario-generado">
-                    <div class="empty-state">Completa la asignación de equipos para ver el fixture aquí.</div>
-                </div>
-                <div style="text-align: center; margin-top: 20px; display: none;" id="guardarBtnContainer">
-                    <button class="btn-primary btn-actualizar" id="btnGuardarCalendario" onclick="guardarCalendario()">💾 Guardar Calendario en BD</button>
-                </div>
-            </div>
-        </div>
         </div>
 
     <script>
@@ -1351,54 +1244,26 @@
         let equipos = [];
         let partidos = [];
         let jugadores = [];
-        let estadisticas = [];
-        let calendarioGenerado = [];
-        let torneoActivo = { id: null, nombre: 'NINGUNO' };
-
+        let estadisticas = []; // Esta variable ahora es para ESTADÍSTICAS OFENSIVAS
+        
+        // *** INICIO FASE 5: Variable para Torneo Activo ***
+        let torneoActivo = { id: null, nombre: 'NINGUNO' }; // Default
+        // *** FIN FASE 5 ***
+        
+        // Ajustes posicionales tipo MLB (valores reales)
         const AJUSTES_POSICIONALES = {
-            'C': 12.5, 'SS': 7.5, 'CF': 2.5, '2B': 3.0, '3B': 2.0,
-            'RF': -7.5, 'LF': -7.0, '1B': -12.5, 'P': 0.0
+            'C': 12.5,    // Catcher - más difícil
+            'SS': 7.5,    // Shortstop
+            'CF': 2.5,    // Center Field
+            '2B': 3.0,    // Segunda Base
+            '3B': 2.0,    // Tercera Base
+            'RF': -7.5,   // Right Field
+            'LF': -7.0,   // Left Field
+            '1B': -12.5,  // Primera Base - más fácil
+            'P': 0.0      // Pitcher (especial)
         };
 
-        // Datos del fixture fijo del PDF
-        const fixtureData = [
-            { jornada: 1, partidos: [
-                { hora: '09:00', local: 'Chogui', visitante: 'Cerveceros' }, { hora: '10:45', local: 'Chogui', visitante: 'Ortencios' },
-                { hora: '12:30', local: 'Chelo', visitante: 'Chimichurris' }, { hora: '14:15', local: 'Bondiolas', visitante: 'Chelo' },
-                { hora: '16:00', local: 'Monsiel', visitante: 'PayNow' }, { hora: '17:45', local: 'Vacios', visitante: 'Monsiel' },
-            ]},
-            { jornada: 2, partidos: [
-                { hora: '09:00', local: 'PayNow', visitante: 'Chimichurris' }, { hora: '10:45', local: 'Bondiolas', visitante: 'PayNow' },
-                { hora: '12:30', local: 'Monsiel', visitante: 'Ortencios' }, { hora: '14:15', local: 'Chogui', visitante: 'Vacíos' },
-                { hora: '16:00', local: 'Chelo', visitante: 'Cerveceros' },
-            ]},
-            { jornada: 3, partidos: [
-                { hora: '09:00', local: 'Cerveceros', visitante: 'Ortencios' }, { hora: '10:45', local: 'Chimichurris', visitante: 'Cerveceros' },
-                { hora: '12:30', local: 'Bondiolas', visitante: 'Vacíos' }, { hora: '14:15', local: 'Chelo', visitante: 'Monsiel' },
-                { hora: '16:00', local: 'Chogui', visitante: 'PayNow' },
-            ]},
-            { jornada: 4, partidos: [
-                { hora: '09:00', local: 'Chogui', visitante: 'Chimichurris' }, { hora: '10:45', local: 'PayNow', visitante: 'Vacíos' },
-                { hora: '12:30', local: 'Ortencios', visitante: 'Chelo' }, { hora: '14:15', local: 'Bondiolas', visitante: 'Ortencios' },
-                { hora: '16:00', local: 'Cerveceros', visitante: 'Monsiel' },
-            ]},
-            { jornada: 5, partidos: [
-                { hora: '09:00', local: 'PayNow', visitante: 'Cerveceros' }, { hora: '10:45', local: 'Chimichurris', visitante: 'Bondiolas' },
-                { hora: '12:30', local: 'Ortencios', visitante: 'Chimichurris' }, { hora: '14:15', local: 'Chogui', visitante: 'Monsiel' },
-                { hora: '16:00', local: 'Chelo', visitante: 'Vacíos' },
-            ]},
-            { jornada: 6, partidos: [
-                { hora: '09:00', local: 'Vacios', visitante: 'Chimichurris' }, { hora: '10:45', local: 'Ortencios', visitante: 'PayNow' },
-                { hora: '12:30', local: 'Chogui', visitante: 'Chelo' }, { hora: '14:15', local: 'Cerveceros', visitante: 'Bondiolas' },
-                { hora: '16:00', local: 'Monsiel', visitante: 'Bondiolas' },
-            ]},
-            { jornada: 7, partidos: [
-                { hora: '09:00', local: 'Chogui', visitante: 'Bondiolas' }, { hora: '10:45', local: 'Vacíos', visitante: 'Cerveceros' },
-                { hora: '12:30', local: 'Ortencios', visitante: 'Vacíos' }, { hora: '14:15', local: 'Chimichurris', visitante: 'Monsiel' },
-                { hora: '16:00', local: 'PayNow', visitante: 'Chelo' },
-            ]},
-        ];
-
+        // Verificar autenticación y cargar datos al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             verificarAutenticacion();
             configurarEventListeners();
@@ -1406,15 +1271,20 @@
             establecerFechaActual();
         });
 
+        // Verificar que el usuario sea administrador
         function verificarAutenticacion() {
             const userRole = localStorage.getItem('userRole');
+            
             if (!userRole || userRole !== 'admin') {
                 alert('⛔ Acceso denegado. Solo administradores pueden acceder.');
                 window.location.href = 'login.html';
                 return;
             }
+            
+            console.log('Administrador conectado:', localStorage.getItem('username'));
         }
 
+        // Logout
         function logout() {
             localStorage.removeItem('userRole');
             localStorage.removeItem('username');
@@ -1422,14 +1292,16 @@
             window.location.href = 'login.html';
         }
 
+        // Establecer fecha actual en el formulario
         function establecerFechaActual() {
-            const hoy = new Date().toISOString().split('T')[0];
-            const fechaPartidoInput = document.getElementById('fechaPartido');
-            if (fechaPartidoInput) fechaPartidoInput.value = hoy;
-            const fechaCalendarioInput = document.getElementById('fechaInicioCalendario');
-            if(fechaCalendarioInput) fechaCalendarioInput.value = hoy;
+            const fechaInput = document.getElementById('fechaPartido');
+            if (fechaInput) {
+                const hoy = new Date().toISOString().split('T')[0];
+                fechaInput.value = hoy;
+            }
         }
 
+        // Configurar event listeners
         function configurarEventListeners() {
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
@@ -1438,17 +1310,27 @@
             });
         }
 
+        // Sistema de navegación por pestañas
         function mostrarPestana(nombrePestana) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
+
             document.querySelectorAll('.nav-tab').forEach(btn => {
                 btn.classList.remove('active');
             });
+
             const pestanaActiva = document.getElementById(nombrePestana);
-            if (pestanaActiva) pestanaActiva.classList.add('active');
+            if (pestanaActiva) {
+                pestanaActiva.classList.add('active');
+            }
+
             const botonActivo = document.querySelector(`[data-tab="${nombrePestana}"]`);
-            if (botonActivo) botonActivo.classList.add('active');
+            if (botonActivo) {
+                botonActivo.classList.add('active');
+            }
+
+            // Cargar datos específicos de la pestaña
             if (nombrePestana === 'lideres') {
                 actualizarLideres();
                 actualizarLideresPorPosicion();
@@ -1456,36 +1338,50 @@
                 cargarTablaEditarPitcheo();
                 cargarTablaEditarDefensa();
             }
-            if (nombrePestana === 'torneos') cargarTorneos();
+            // *** INICIO FASE 5: Cargar Torneos ***
+            if (nombrePestana === 'torneos') {
+                cargarTorneos();
+            }
+            // *** FIN FASE 5 ***
         }
+
+        // ========== FUNCIONES DE CARGA DE DATOS ==========
 
         async function cargarTodosLosDatos() {
             try {
+                // *** INICIO FASE 5: Cargar torneo activo primero ***
                 await cargarTorneoActivo();
+                // *** FIN FASE 5 ***
+                
                 await cargarEquipos();
                 await cargarPartidos();
                 await cargarJugadores();
-                await cargarEstadisticas(); 
+                await cargarEstadisticas(); // Carga ofensivas desde la DB
                 actualizarSelectores();
                 calcularPosiciones();
-                actualizarLideres(); 
-                actualizarLideresPorPosicion(); 
+                actualizarLideres(); // Carga líderes ofensivos desde la API
+                actualizarLideresPorPosicion(); // Carga líderes defensivos desde la API
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 mostrarError('equipoError', 'Error de conexión al servidor');
             }
         }
         
+        // *** INICIO FASE 5: Funciones de Torneos ***
         async function cargarTorneoActivo() {
              try {
                 const response = await fetch('/api/torneos/activo');
                 if (response.ok) {
                     torneoActivo = await response.json();
+                    console.log(`✅ Torneo Activo: ${torneoActivo.nombre} (ID: ${torneoActivo.id})`);
                 } else {
+                    // *** CORRECCIÓN FASE 5.5: Permitir que no haya torneo activo ***
                     torneoActivo = { id: null, nombre: 'NINGUNO' };
+                    console.warn('⚠️ No hay ningún torneo activo. Las estadísticas no se guardarán.');
                 }
             } catch (error) {
                 console.error('Error:', error);
+                mostrarError('torneoError', 'Error cargando torneo activo.');
             }
         }
         
@@ -1493,11 +1389,14 @@
             const tbody = document.querySelector('#torneosTable tbody');
             try {
                 const response = await fetch('/api/torneos');
+                if (!response.ok) throw new Error('Error al cargar');
                 const torneos = await response.json();
+                
                 if (torneos.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay torneos creados.</td></tr>';
                     return;
                 }
+                
                 tbody.innerHTML = torneos.map(torneo => `
                     <tr>
                         <td>${torneo.id}</td>
@@ -1506,11 +1405,15 @@
                         <td>${torneo.activo ? '🟢 Activo' : '⚪ Inactivo'}</td>
                         <td>
                             <button class="btn-secondary btn-edit" onclick="editarTorneo(${torneo.id}, '${torneo.nombre}')">✏️ Editar</button>
-                            <button class="btn-secondary btn-activar" onclick="activarTorneo(${torneo.id})" ${torneo.activo ? 'disabled' : ''}>
+                            <button 
+                                class="btn-secondary btn-activar" 
+                                onclick="activarTorneo(${torneo.id})"
+                                ${torneo.activo ? 'disabled' : ''}
+                            >
                                 ${torneo.activo ? 'Ya Activo' : 'Activar'}
                             </button>
                             <button class="btn-secondary" onclick="eliminarTorneo(${torneo.id})" style="background: #dc143c;">🗑️ Eliminar</button>
-                        </td>
+                            </td>
                     </tr>
                 `).join('');
             } catch (error) {
@@ -1520,17 +1423,22 @@
         
         async function crearTorneo() {
             const nombre = document.getElementById('nombreTorneo').value.trim();
-            if (!nombre) return mostrarError('torneoError', 'El nombre es requerido');
-            try {
+            if (!nombre) {
+                mostrarError('torneoError', 'El nombre es requerido');
+                return;
+            }
+            
+             try {
                 const response = await fetch('/api/torneos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre })
                 });
+
                 if (response.ok) {
                     document.getElementById('nombreTorneo').value = '';
                     mostrarExito('torneoMessage', `✅ Torneo "${nombre}" creado.`);
-                    cargarTorneos();
+                    cargarTorneos(); // Recargar la lista
                 } else {
                     const errorData = await response.json();
                     mostrarError('torneoError', errorData.error || 'Error al crear torneo');
@@ -1540,53 +1448,69 @@
             }
         }
         
+        // *** INICIO FASE 5.4: Función Editar Torneo ***
         async function editarTorneo(id, nombreActual) {
-            const nuevoNombre = prompt('Ingresa el nuevo nombre:', nombreActual);
-            if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre === nombreActual) return;
+            const nuevoNombre = prompt('Ingresa el nuevo nombre para el torneo:', nombreActual);
+            
+            if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre === nombreActual) {
+                return; // El usuario canceló o no cambió el nombre
+            }
+
             try {
                 const response = await fetch(`/api/torneos/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ nombre: nuevoNombre.trim() })
                 });
+
                 if (response.ok) {
-                    mostrarExito('torneoMessage', `✅ Torneo actualizado.`);
-                    await cargarTorneoActivo(); 
-                    cargarTorneos(); 
+                    mostrarExito('torneoMessage', `✅ Nombre del torneo actualizado a "${nuevoNombre}".`);
+                    await cargarTorneoActivo(); // Recargar por si el torneo editado era el activo
+                    cargarTorneos(); // Recargar la lista
                 } else {
                     const errorData = await response.json();
-                    mostrarError('torneoError', errorData.error || 'Error al editar');
+                    mostrarError('torneoError', errorData.error || 'Error al editar torneo');
                 }
             } catch (error) {
                 mostrarError('torneoError', 'Error de conexión');
             }
         }
+        // *** FIN FASE 5.4 ***
         
         async function activarTorneo(id) {
-            if (!confirm('¿Estás seguro?')) return;
+            if (!confirm('¿Estás seguro de activar este torneo? Todas las nuevas estadísticas se guardarán aquí.')) {
+                return;
+            }
+            
              try {
-                const response = await fetch(`/api/torneos/${id}/activar`, { method: 'PUT' });
+                const response = await fetch(`/api/torneos/${id}/activar`, {
+                    method: 'PUT'
+                });
+
                 if (response.ok) {
-                    const data = await response.json();
-                    mostrarExito('torneoMessage', `✅ Torneo "${data.nombre}" activado.`);
-                    await cargarTorneoActivo(); 
-                    cargarTorneos(); 
+                    const torneoActivado = await response.json();
+                    mostrarExito('torneoMessage', `✅ Torneo "${torneoActivado.nombre}" está ahora activo.`);
+                    await cargarTorneoActivo(); // Actualizar la variable global
+                    cargarTorneos(); // Recargar la lista
                 } else {
                     const errorData = await response.json();
-                    mostrarError('torneoError', errorData.error || 'Error al activar');
+                    mostrarError('torneoError', errorData.error || 'Error al activar torneo');
                 }
             } catch (error) {
                 mostrarError('torneoError', 'Error de conexión');
             }
         }
         
+        // *** INICIO FASE 5.5: Funciones Eliminar/Desactivar ***
         async function desactivarTodosLosTorneos() {
-            if (!confirm('¿Estás seguro?')) return;
+            if (!confirm('¿Estás seguro? Esto hará que no haya ningún torneo activo. No podrás registrar nuevas estadísticas hasta que actives uno.')) {
+                return;
+            }
             try {
                 const response = await fetch('/api/torneos/desactivar-todos', { method: 'PUT' });
                 if (response.ok) {
                     mostrarExito('torneoMessage', 'Todos los torneos desactivados.');
-                    await cargarTorneoActivo(); 
+                    await cargarTorneoActivo(); // Actualiza la variable global (será 'NINGUNO')
                     cargarTorneos();
                 } else {
                     const errorData = await response.json();
@@ -1598,11 +1522,13 @@
         }
 
         async function eliminarTorneo(id) {
-            if (!confirm('¿Estás seguro?')) return;
+            if (!confirm('¿Estás seguro de eliminar este torneo? Esta acción NO se puede deshacer.\n\nADVERTENCIA: Solo podrás eliminarlo si no tiene estadísticas asociadas.')) {
+                return;
+            }
             try {
                 const response = await fetch(`/api/torneos/${id}`, { method: 'DELETE' });
                 if (response.ok) {
-                    mostrarExito('torneoMessage', 'Torneo eliminado.');
+                    mostrarExito('torneoMessage', 'Torneo eliminado correctamente.');
                     cargarTorneos();
                 } else {
                     const errorData = await response.json();
@@ -1612,220 +1538,1583 @@
                 mostrarError('torneoError', 'Error de conexión');
             }
         }
+        // *** FIN FASE 5.5 ***
+        
+        // *** FIN FASE 5 ***
 
         async function cargarEquipos() {
             try {
                 const response = await fetch('/api/equipos');
-                equipos = await response.json();
-                actualizarTablaEquipos();
+                if (response.ok) {
+                    equipos = await response.json();
+                    actualizarTablaEquipos();
+                } else {
+                    throw new Error('Error cargando equipos');
+                }
             } catch (error) {
-                document.querySelector('#equiposTable tbody').innerHTML = '<tr><td colspan="6" class="error-message">Error cargando equipos</td></tr>';
+                console.error('Error:', error);
+                document.querySelector('#equiposTable tbody').innerHTML = 
+                    '<tr><td colspan="6" class="error-message">Error cargando equipos</td></tr>';
             }
         }
 
         async function cargarPartidos() {
             try {
                 const response = await fetch('/api/partidos');
-                partidos = await response.json();
-                actualizarTablaPartidos();
+                if (response.ok) {
+                    partidos = await response.json();
+                    actualizarTablaPartidos();
+                } else {
+                    throw new Error('Error cargando partidos');
+                }
             } catch (error) {
-                document.querySelector('#partidosTable tbody').innerHTML = '<tr><td colspan="6" class="error-message">Error cargando partidos</td></tr>';
+                console.error('Error:', error);
+                document.querySelector('#partidosTable tbody').innerHTML = 
+                    '<tr><td colspan="6" class="error-message">Error cargando partidos</td></tr>';
             }
         }
 
         async function cargarJugadores() {
             try {
                 const response = await fetch('/api/jugadores');
-                jugadores = await response.json();
-                actualizarTablaJugadores();
+                if (response.ok) {
+                    jugadores = await response.json();
+                    actualizarTablaJugadores();
+                } else {
+                    throw new Error('Error cargando jugadores');
+                }
             } catch (error) {
-                document.querySelector('#jugadoresTable tbody').innerHTML = '<tr><td colspan="5" class="error-message">Error cargando jugadores</td></tr>';
+                console.error('Error:', error);
+                document.querySelector('#jugadoresTable tbody').innerHTML = 
+                    '<tr><td colspan="5" class="error-message">Error cargando jugadores</td></tr>';
             }
         }
 
         async function cargarEstadisticas() {
             try {
                 const response = await fetch('/api/estadisticas-ofensivas');
-                estadisticas = await response.json();
+                if (response.ok) {
+                    estadisticas = await response.json();
+                    console.log(`✅ ${estadisticas.length} estadísticas ofensivas cargadas desde la DB.`);
+                } else {
+                    throw new Error('Error cargando estadísticas ofensivas');
+                }
                 actualizarTablaEstadisticas();
             } catch (error) {
+                console.error('Error cargando estadísticas:', error);
                 estadisticas = [];
-                actualizarTablaEstadisticas();
+                actualizarTablaEstadisticas(); // Llama para mostrar el error
             }
         }
-
-        function calcularPosiciones() {
-            const tbody = document.querySelector('#posicionesTable tbody');
-            const PARTIDOS_TOTALES_TEMPORADA = 8;
-            if (equipos.length === 0) return tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay equipos.</td></tr>';
-            const estadisticasEquipos = {};
-            equipos.forEach(equipo => {
-                estadisticasEquipos[equipo.id] = { id: equipo.id, nombre: equipo.nombre, partidos_jugados: 0, partidos_ganados: 0, partidos_perdidos: 0, carreras_favor: 0, carreras_contra: 0 };
-            });
-            partidos.forEach(partido => {
-                if (partido.carreras_local === null) return;
-                const local = estadisticasEquipos[partido.equipo_local_id];
-                const visitante = estadisticasEquipos[partido.equipo_visitante_id];
-                if (!local || !visitante) return;
-                local.partidos_jugados++;
-                visitante.partidos_jugados++;
-                local.carreras_favor += partido.carreras_local;
-                local.carreras_contra += partido.carreras_visitante;
-                visitante.carreras_favor += partido.carreras_visitante;
-                visitante.carreras_contra += partido.carreras_local;
-                if (partido.carreras_local > partido.carreras_visitante) {
-                    local.partidos_ganados++;
-                    visitante.partidos_perdidos++;
-                } else {
-                    visitante.partidos_ganados++;
-                    local.partidos_perdidos++;
-                }
-            });
-            const posiciones = Object.values(estadisticasEquipos)
-                .map(s => ({ ...s, porcentaje: s.partidos_jugados ? (s.partidos_ganados / s.partidos_jugados) : 0, diferencia: s.carreras_favor - s.carreras_contra }))
-                .sort((a, b) => b.porcentaje - a.porcentaje || a.carreras_contra - b.carreras_contra || b.diferencia - a.diferencia);
-            tbody.innerHTML = posiciones.map((equipo, index) => {
-                const pos = index + 1;
-                let estado = 'EN LUCHA', estadoClass = 'style="color: #ff8c00;"';
-                if (pos <= 6) {
-                    estado = 'CLASIFICADO';
-                    estadoClass = 'style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 12px;"';
-                } else {
-                    const sexto = posiciones[5];
-                    if (sexto) {
-                        const magicNumber = (PARTIDOS_TOTALES_TEMPORADA + 1) - sexto.partidos_ganados - equipo.partidos_perdidos;
-                        if (magicNumber <= 0) {
-                            estado = 'ELIMINADO';
-                            estadoClass = 'style="color: #dc143c;"';
-                        }
-                    }
-                }
-                return `<tr><td>...</td><td><strong>${equipo.nombre}</strong></td><td>...</td></tr>`; // Simplified for brevity
-            }).join('');
-        }
-
-        // --- All other existing functions (CRUD, stats, etc.) would go here ---
         
-        function generarCalendario() {
-            mostrarInterfazDeMapeo();
+        // ========== FUNCIONES DE CÁLCULOS AVANZADOS MLB ==========
+
+        function calcularOBP(hits, walks, atBats) {
+            const totalBases = hits + walks;
+            return atBats > 0 ? totalBases / (atBats + walks) : 0;
         }
 
-        function mostrarInterfazDeMapeo() {
-            const container = document.getElementById('mapeoEquiposContainer');
-            container.innerHTML = '';
-            document.getElementById('calendario-generado').innerHTML = '<div class="empty-state">Completa la asignación de equipos para ver el fixture aquí.</div>';
-            document.getElementById('guardarBtnContainer').style.display = 'none';
+        function calcularSLG(hits, homeRuns, atBats) {
+            const totalBases = hits + (homeRuns * 3);
+            return atBats > 0 ? totalBases / atBats : 0;
+        }
 
-            if (equipos.length !== 9) {
-                mostrarError('calendarioError', `Se necesitan exactamente 9 equipos. Tienes ${equipos.length}.`);
+        function calcularOPS(obp, slg) {
+            return obp + slg;
+        }
+
+        function calcularWAR(jugador, stats) {
+            if (!stats || !jugador || stats.at_bats < 10) return 0;
+            const avg = stats.at_bats > 0 ? (stats.hits / stats.at_bats) : 0;
+            const obp = calcularOBP(stats.hits, stats.walks || 0, stats.at_bats);
+            const slg = calcularSLG(stats.hits, stats.home_runs, stats.at_bats);
+            const ops = calcularOPS(obp, slg);
+            const bateoCont = (ops - 0.700) * 100;
+            const ajustePosicional = AJUSTES_POSICIONALES[jugador.posicion] || 0;
+            const penalizacionErrores = 0; 
+            const bonusVelocidad = (stats.stolen_bases || 0) * 0.2;
+            const warTotal = (bateoCont + ajustePosicional + penalizacionErrores + bonusVelocidad) / 100;
+            return Math.max(warTotal, -2.0);
+        }
+
+        // ========== FUNCIONES DE ACTUALIZACIÓN DE TABLAS ==========
+
+        function actualizarTablaEquipos() {
+            const tbody = document.querySelector('#equiposTable tbody');
+            
+            if (equipos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay equipos registrados</td></tr>';
                 return;
             }
 
-            const placeholders = ['Chogui', 'Cerveceros', 'Ortencios', 'Chelo', 'Chimichurris', 'Bondiolas', 'Monsiel', 'PayNow', 'Vacios'];
-            let optionsHTML = '<option value="">-- Selecciona tu equipo --</option>' + equipos.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
-            
-            let mapeoHTML = `<h3>Paso 1: Asignación de Equipos</h3><p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 20px;">Asigna cada uno de tus equipos a un "slot" del fixture predefinido.</p>`;
-            placeholders.forEach(ph => {
-                mapeoHTML += `<div class="mapeo-item"><label for="map-${ph}">${ph}:</label><select id="map-${ph}">${optionsHTML}</select></div>`;
-            });
-            mapeoHTML += `<div style="text-align: center; margin-top: 20px;"><button class="btn-primary btn-confirmar" onclick="ejecutarGeneracionConMapeo()">✅ Confirmar y Generar Fixture</button></div>`;
-            
-            container.innerHTML = mapeoHTML;
+            tbody.innerHTML = equipos.map(equipo => `
+                <tr>
+                    <td>${equipo.id}</td>
+                    <td><strong>${equipo.nombre}</strong></td>
+                    <td>${equipo.manager}</td>
+                    <td>${equipo.ciudad}</td>
+                    <td>${new Date(equipo.fecha_creacion).toLocaleDateString('es-AR')}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editarEquipo(${equipo.id})">✏️</button>
+                        <button class="btn-secondary" onclick="eliminarEquipo(${equipo.id})" style="background: #dc143c;">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
-        function ejecutarGeneracionConMapeo() {
-            console.log("Botón 'Confirmar' presionado. Iniciando generación...");
-            const placeholders = ['Chogui', 'Cerveceros', 'Ortencios', 'Chelo', 'Chimichurris', 'Bondiolas', 'Monsiel', 'PayNow', 'Vacios'];
-            const userMapping = new Map();
-            const selectedIds = new Set();
+        function actualizarTablaPartidos() {
+            const tbody = document.querySelector('#partidosTable tbody');
             
-            console.log("Validando selecciones...");
-            for (const ph of placeholders) {
-                const select = document.getElementById(`map-${ph}`);
-                const equipoId = select.value;
-
-                if (!equipoId) {
-                    console.error(`Error: El slot ${ph} no fue asignado.`);
-                    mostrarError('calendarioError', `Debes asignar un equipo al slot "${ph}".`);
-                    return;
-                }
-                if (selectedIds.has(equipoId)) {
-                    const equipoDuplicado = equipos.find(e => e.id == equipoId);
-                    console.error(`Error: El equipo ID ${equipoId} (${equipoDuplicado.nombre}) está duplicado.`);
-                    mostrarError('calendarioError', `El equipo "${equipoDuplicado.nombre}" fue asignado más de una vez.`);
-                    return;
-                }
-                selectedIds.add(equipoId);
-                const equipo = equipos.find(e => e.id == equipoId);
-                userMapping.set(ph, equipo);
-            }
-            console.log("Validación completada con éxito. Mapeo final:", userMapping);
-
-            const calendarioDiv = document.getElementById('calendario-generado');
-            calendarioDiv.innerHTML = '<div class="loading">Generando calendario...</div>';
-            calendarioGenerado = [];
-            let calendarioHTML = '';
-
-            let fechaInicioStr = document.getElementById('fechaInicioCalendario').value;
-            if (!fechaInicioStr) return mostrarError('calendarioError', 'Debes seleccionar una fecha de inicio.');
-
-            let fechaActual = new Date(fechaInicioStr + 'T12:00:00Z');
-            while (fechaActual.getUTCDay() !== 0) {
-                fechaActual.setUTCDate(fechaActual.getUTCDate() + 1);
+            if (partidos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay partidos registrados</td></tr>';
+                return;
             }
 
-            fixtureData.forEach((dataJornada, index) => {
-                let fechaJornada = new Date(fechaActual.getTime());
-                fechaJornada.setUTCDate(fechaJornada.getUTCDate() + (index * 7));
-                let fechaISO = fechaJornada.toISOString().split('T')[0];
-                calendarioHTML += `<div class="jornada-card"><h4>Jornada ${dataJornada.jornada} (Fecha: ${fechaJornada.toLocaleDateString('es-AR')})</h4>`;
-                dataJornada.partidos.forEach(partido => {
-                    const equipoLocal = userMapping.get(partido.local);
-                    const equipoVisitante = userMapping.get(partido.visitante);
-                    calendarioHTML += `<div class="jornada-partido"><strong>${equipoLocal.nombre}</strong> vs <strong>${equipoVisitante.nombre}</strong> <span>@ ${partido.hora}</span></div>`;
-                    calendarioGenerado.push({ equipo_local_id: equipoLocal.id, equipo_visitante_id: equipoVisitante.id, fecha_partido: `${fechaISO}T${partido.hora}:00` });
-                });
-                calendarioHTML += `</div>`;
-            });
-            
-            let fechaPlayoffs = new Date(fechaActual.getTime());
-            fechaPlayoffs.setUTCDate(fechaPlayoffs.getUTCDate() + (fixtureData.length * 7));
-            calendarioHTML += `<div class="jornada-card" style="border-color: #ff6b35;"><h4>Jornada ${fixtureData.length + 1}: Playoffs - Cuartos</h4><div class="jornada-partido"><strong>1ro</strong> vs <strong>5to</strong></div>...</div>`;
-            
-            calendarioDiv.innerHTML = calendarioHTML;
-            document.getElementById('guardarBtnContainer').style.display = 'block';
-            mostrarExito('calendarioMessage', '¡Fixture generado! Revisa y guarda.');
-            document.getElementById('mapeoEquiposContainer').innerHTML = '';
-            console.log("Generación de HTML completada.");
+            tbody.innerHTML = partidos.map(partido => {
+                const ganador = partido.carreras_local > partido.carreras_visitante ? 
+                    partido.equipo_local_nombre : partido.equipo_visitante_nombre;
+                const resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+                
+                return `
+                    <tr>
+                        <td><strong>${partido.equipo_local_nombre}</strong></td>
+                        <td><strong>${partido.equipo_visitante_nombre}</strong></td>
+                        <td>
+                            <strong>${resultado}</strong><br>
+                            <small style="color: #4CAF50;">Ganó: ${ganador}</small>
+                        </td>
+                        <td>${partido.innings_jugados} inn</td>
+                        <td>${new Date(partido.fecha_partido).toLocaleDateString('es-AR')}</td>
+                        <td>
+                            <button class="btn-secondary" onclick="editarPartido(${partido.id})">✏️</button>
+                            <button class="btn-secondary" onclick="eliminarPartido(${partido.id})" style="background: #dc143c;">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        async function guardarCalendario() {
-            if (calendarioGenerado.length === 0) return mostrarError('calendarioError', 'Primero genera un calendario.');
-            if (!confirm(`¿Guardar ${calendarioGenerado.length} partidos?`)) return;
+        function actualizarTablaJugadores() {
+            const tbody = document.querySelector('#jugadoresTable tbody');
             
-            const btn = document.getElementById('btnGuardarCalendario');
-            btn.disabled = true;
-            btn.textContent = 'Guardando...';
+            if (jugadores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay jugadores registrados</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = jugadores.map(jugador => `
+                <tr>
+                    <td>${jugador.numero || '-'}</td>
+                    <td><strong>${jugador.nombre}</strong></td>
+                    <td>${jugador.equipo_nombre}</td>
+                    <td>${jugador.posicion}</td>
+                    <td>
+                        <button class="btn-secondary" onclick="editarJugador(${jugador.id})">✏️</button>
+                        <button class="btn-secondary" onclick="eliminarJugador(${jugador.id})" style="background: #dc143c;">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function actualizarTablaEstadisticas() {
+            const tbody = document.querySelector('#statsTable tbody');
+            
+            if (estadisticas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No hay estadísticas registradas</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = estadisticas.map(stat => {
+                const jugadorNombre = stat.jugador_nombre || 'Desconocido';
+                const equipoNombre = stat.equipo_nombre || '-';
+                const posicion = stat.posicion || '-';
+
+                const avg = stat.at_bats > 0 ? (parseFloat(stat.hits) / parseFloat(stat.at_bats)).toFixed(3) : '.000';
+                const obp = calcularOBP(parseFloat(stat.hits), parseFloat(stat.walks) || 0, parseFloat(stat.at_bats)).toFixed(3);
+                const slg = calcularSLG(parseFloat(stat.hits), parseFloat(stat.home_runs), parseFloat(stat.at_bats)).toFixed(3);
+                const ops = (parseFloat(obp) + parseFloat(slg)).toFixed(3);
+                
+                const jugador = { posicion: posicion }; 
+                const war = calcularWAR(jugador, stat).toFixed(2);
+                
+                return `
+                    <tr>
+                        <td><strong>${jugadorNombre}</strong></td>
+                        <td>${equipoNombre}</td>
+                        <td>${posicion}</td>
+                        <td>${stat.at_bats}</td>
+                        <td>${stat.hits}</td>
+                        <td><strong>${avg}</strong></td>
+                        <td>${obp}</td>
+                        <td><strong>${ops}</strong></td>
+                        <td>${stat.home_runs}</td>
+                        <td>${stat.rbi}</td>
+                        <td><strong style="color: ${parseFloat(war) > 0 ? '#4CAF50' : '#dc143c'}">${war}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function actualizarLideresPorPosicion() {
+            const container = document.getElementById('positionLeadersGrid');
+            if (!container) return;
+
+            container.innerHTML = '<div class="loading">Cargando líderes defensivos...</div>';
+
+            let defensiveStats = [];
             try {
-                let creados = 0;
-                for (const p of calendarioGenerado) {
-                    const res = await fetch('/api/partidos', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ...p, innings_jugados: 9, carreras_local: null, carreras_visitante: null })
-                    });
-                    if (res.ok) creados++;
+                const response = await fetch('/api/lideres-defensivos');
+                if (response.ok) {
+                    defensiveStats = await response.json();
+                } else {
+                    throw new Error('Error al cargar estadísticas defensivas');
                 }
-                mostrarExito('calendarioMessage', `¡Calendario guardado! Se crearon ${creados} partidos.`);
-                await cargarPartidos();
-                btn.textContent = 'Guardado ✔️';
-                calendarioGenerado = [];
             } catch (error) {
-                mostrarError('calendarioError', 'Error de conexión.');
-                btn.disabled = false;
-                btn.textContent = '💾 Guardar Calendario';
+                console.error('Error cargando stats defensivas:', error);
+                container.innerHTML = '<div class="error-message">Error al cargar estadísticas defensivas.</div>';
+                return;
+            }
+
+            const posiciones = [
+                { pos: 'C', nombre: '🥅 MEJOR CATCHER' },
+                { pos: '1B', nombre: '🥇 MEJOR PRIMERA BASE' },
+                { pos: '2B', nombre: '🥈 MEJOR SEGUNDA BASE' },
+                { pos: '3B', nombre: '🥉 MEJOR TERCERA BASE' },
+                { pos: 'SS', nombre: '⚡ MEJOR SHORTSTOP' },
+                { pos: 'LF', nombre: '⬅️ MEJOR LEFT FIELD' },
+                { pos: 'CF', nombre: '🎯 MEJOR CENTER FIELD' },
+                { pos: 'RF', nombre: '➡️ MEJOR RIGHT FIELD' },
+            ];
+
+            container.innerHTML = posiciones.map(posicion => {
+                
+                const mejoresJugadores = defensiveStats
+                    .filter(j => j.posicion === posicion.pos)
+                    .sort((a, b) => {
+                        const fldA = parseFloat(a.fielding_percentage) || 0;
+                        const fldB = parseFloat(b.fielding_percentage) || 0;
+                        if (fldB !== fldA) {
+                            return fldB - fldA;
+                        }
+                        const chancesA = parseInt(a.total_chances) || 0;
+                        const chancesB = parseInt(b.total_chances) || 0;
+                        return chancesB - chancesA;
+                    })
+                    .slice(0, 5); 
+
+                
+                let leadersHTML;
+                if (mejoresJugadores.length === 0) {
+                    leadersHTML = `
+                        <div class="position-leader" style="opacity: 0.5; text-align: center; padding: 10px;">
+                            <div class="position-player">Sin jugadores con stats</div>
+                            <div class="position-team">(Mínimo 5 chances)</div>
+                            <div class="position-rating">-.---</div>
+                        </div>
+                    `;
+                } else {
+                    leadersHTML = mejoresJugadores.map((jugador, index) => {
+                        const fld = parseFloat(jugador.fielding_percentage).toFixed(3);
+                        const po = parseInt(jugador.putouts);
+                        const a = parseInt(jugador.assists);
+                        const e = parseInt(jugador.errors);
+
+                        return `
+                        <div class="position-leader-item">
+                            <div class="position-player-container">
+                                <div>
+                                    <div class="position-player">${index + 1}. ${jugador.jugador_nombre}</div>
+                                    <div class="position-team">${jugador.equipo_nombre}</div>
+                                </div>
+                                <div class="position-rating">FLD%: ${fld}</div>
+                            </div>
+                            <div class="war-stats" style="margin-top: 8px; padding: 8px;">
+                                <div class="war-breakdown" style="gap: 5px;">
+                                    <div class="war-component">
+                                        <div class="war-component-title">PO</div>
+                                        <div class="war-component-value">${po}</div>
+                                    </div>
+                                    <div class="war-component">
+                                        <div class="war-component-title">A</div>
+                                        <div class="war-component-value">${a}</div>
+                                    </div>
+                                    <div class="war-component">
+                                        <div class="war-component-title">E</div>
+                                        <div class="war-component-value">${e}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `}).join('');
+                }
+
+                return `
+                    <div class="position-card">
+                        <div class="position-title">${posicion.nombre}</div>
+                        <div class="position-leader">
+                            ${leadersHTML}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function calcularPosiciones() {
+            const tbody = document.querySelector('#posicionesTable tbody');
+            
+            if (equipos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay equipos registrados</td></tr>';
+                return;
+            }
+
+            if (partidos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay partidos para calcular posiciones</td></tr>';
+                return;
+            }
+
+            // Calcular estadísticas por equipo
+            const estadisticasEquipos = {};
+            
+            equipos.forEach(equipo => {
+                estadisticasEquipos[equipo.id] = {
+                    id: equipo.id,
+                    nombre: equipo.nombre,
+                    partidos_jugados: 0,
+                    partidos_ganados: 0,
+                    partidos_perdidos: 0,
+                    carreras_favor: 0,
+                    carreras_contra: 0
+                };
+            });
+
+            partidos.forEach(partido => {
+                const localId = partido.equipo_local_id;
+                const visitanteId = partido.equipo_visitante_id;
+                
+                if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
+                    estadisticasEquipos[localId].partidos_jugados++;
+                    estadisticasEquipos[visitanteId].partidos_jugados++;
+                    
+                    estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
+                    estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
+                    estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
+                    estadisticasEquipos[visitanteId].carreras_contra += partido.carreras_local;
+                    
+                    if (partido.carreras_local > partido.carreras_visitante) {
+                        estadisticasEquipos[localId].partidos_ganados++;
+                        estadisticasEquipos[visitanteId].partidos_perdidos++;
+                    } else {
+                        estadisticasEquipos[visitanteId].partidos_ganados++;
+                        estadisticasEquipos[localId].partidos_perdidos++;
+                    }
+                }
+            });
+
+            // Convertir a array y ordenar por porcentaje
+            const posiciones = Object.values(estadisticasEquipos)
+                .map(stats => ({
+                    ...stats,
+                    porcentaje: stats.partidos_jugados > 0 ? (stats.partidos_ganados / stats.partidos_jugados) : 0,
+                    diferencia: stats.carreras_favor - stats.carreras_contra
+                }))
+                .sort((a, b) => {
+                    if (b.porcentaje !== a.porcentaje) return b.porcentaje - a.porcentaje;
+                    return b.diferencia - a.diferencia;
+                });
+
+            tbody.innerHTML = posiciones.map((equipo, index) => {
+                const pos = index + 1;
+                let estado = '';
+                let estadoClass = '';
+                
+                if (pos <= 4) {
+                    estado = 'PLAYOFF';
+                    estadoClass = 'style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;"';
+                } else if (pos > equipos.length - 2) {
+                    estado = 'ELIMINADO';
+                    estadoClass = 'style="color: #dc143c; font-size: 0.8rem; font-weight: bold;"';
+                } else {
+                    estado = 'EN LUCHA';
+                    estadoClass = 'style="color: #ff8c00; font-size: 0.8rem; font-weight: bold;"';
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <span style="display: inline-block; background: linear-gradient(45deg, #ffd700, #ff8c00); color: #1a1a2e; width: 25px; height: 25px; border-radius: 50%; text-align: center; line-height: 25px; font-weight: bold; margin-right: 8px; font-size: 0.8rem;">
+                                ${pos}
+                            </span>
+                        </td>
+                        <td><strong>${equipo.nombre}</strong></td>
+                        <td>${equipo.partidos_jugados}</td>
+                        <td>${equipo.partidos_ganados}</td>
+                        <td>${equipo.partidos_perdidos}</td>
+                        <td><strong>${(equipo.porcentaje * 100).toFixed(1)}%</strong></td>
+                        <td>${equipo.carreras_favor}</td>
+                        <td>${equipo.carreras_contra}</td>
+                        <td>${equipo.diferencia > 0 ? '+' : ''}${equipo.diferencia}</td>
+                        <td><span ${estadoClass}>${estado}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ========== FUNCIONES DE LÍDERES Y ESTADÍSTICAS AVANZADAS ==========
+
+        async function actualizarLideres() {
+            let lideresOfensivos = [];
+            try {
+                const response = await fetch('/api/lideres-ofensivos');
+                if (response.ok) {
+                    lideresOfensivos = await response.json();
+                } else {
+                    throw new Error('Error cargando líderes ofensivos');
+                }
+            } catch (error) {
+                console.error(error);
+                mostrarLideresVacios('avgLeaders');
+                mostrarLideresVacios('hrLeaders');
+                mostrarLideresVacios('rbiLeaders');
+                mostrarLideresVacios('opsLeaders');
+                mostrarLideresVacios('warLeaders');
+                mostrarLideresVacios('sbLeaders');
+                return;
+            }
+
+            if (lideresOfensivos.length === 0) {
+                mostrarLideresVacios('avgLeaders');
+                mostrarLideresVacios('hrLeaders');
+                mostrarLideresVacios('rbiLeaders');
+                mostrarLideresVacios('opsLeaders');
+                mostrarLideresVacios('warLeaders');
+                mostrarLideresVacios('sbLeaders');
+                return;
+            }
+
+            const avgLideres = [...lideresOfensivos].sort((a, b) => b.avg - a.avg).slice(0, 3);
+            actualizarLideresHTML('avgLeaders', avgLideres, 'avg', true);
+
+            const hrLideres = [...lideresOfensivos].sort((a, b) => b.home_runs - a.home_runs).slice(0, 3);
+            actualizarLideresHTML('hrLeaders', hrLideres, 'home_runs');
+
+            const rbiLideres = [...lideresOfensivos].sort((a, b) => b.rbi - a.rbi).slice(0, 3);
+            actualizarLideresHTML('rbiLeaders', rbiLideres, 'rbi');
+
+            const opsLideres = [...lideresOfensivos].sort((a, b) => b.ops - a.ops).slice(0, 3);
+            actualizarLideresHTML('opsLeaders', opsLideres, 'ops', true);
+            
+            const sbLideres = [...lideresOfensivos].sort((a, b) => (b.stolen_bases || 0) - (a.stolen_bases || 0)).slice(0, 3);
+            actualizarLideresHTML('sbLeaders', sbLideres, 'stolen_bases');
+
+            const warLideres = lideresOfensivos.map(stat => {
+                const jugador = { posicion: stat.posicion }; 
+                return {
+                    ...stat,
+                    war: calcularWAR(jugador, stat)
+                };
+            })
+            .sort((a, b) => b.war - a.war)
+            .slice(0, 3);
+            
+            actualizarLideresHTML('warLeaders', warLideres, 'war', true);
+        }
+
+        function mostrarLideresVacios(containerId) {
+             const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div class="leader-item">
+                        <div>
+                            <div class="leader-name">Sin datos suficientes</div>
+                            <div class="leader-team">(Mínimo 10 AB)</div>
+                        </div>
+                        <div class="leader-stat">-</div>
+                    </div>
+                `;
             }
         }
+
+        function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`Contenedor no encontrado: ${containerId}`);
+                return;
+            }
+
+            if (!lideres || lideres.length === 0) {
+                let msg = "(Mínimo 10 AB)";
+                if (containerId.includes('era') || containerId.includes('whip') || containerId.includes('wins') || containerId.includes('saves')) {
+                    msg = "(Mínimo 5 IP)";
+                } else if (containerId.includes('fielding')) {
+                    msg = "(Mínimo 5 Chances)";
+                }
+                
+                container.innerHTML = `
+                    <div class="leader-item">
+                        <div>
+                            <div class="leader-name">Sin datos suficientes</div>
+                            <div class="leader-team">${msg}</div>
+                        </div>
+                        <div class="leader-stat">-</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const medals = ['gold-medal', 'silver-medal', 'bronze-medal'];
+            const medalIcons = ['🥇', '🥈', '🥉'];
+
+            container.innerHTML = lideres.map((lider, index) => {
+                let jugadorNombre, equipoNombre, valor;
+                
+                if (lider.jugador_nombre) {
+                    jugadorNombre = lider.jugador_nombre;
+                    equipoNombre = lider.equipo_nombre;
+                } else {
+                    const jugador = jugadores.find(j => j.id === lider.jugador_id);
+                    jugadorNombre = jugador ? jugador.nombre : 'Desconocido';
+                    equipoNombre = jugador ? jugador.equipo_nombre : '-';
+                }
+                
+                let statValue = lider[stat];
+                if (typeof statValue === 'string') {
+                    statValue = parseFloat(statValue);
+                }
+
+                if (isDecimal) {
+                    valor = statValue ? statValue.toFixed(3) : '0.000';
+                    if (stat === 'war' || stat === 'era' || stat === 'whip') {
+                        valor = statValue.toFixed(2);
+                    }
+                } else {
+                    valor = statValue || 0;
+                }
+                
+                const medalClass = medals[index] || '';
+                const medalIcon = medalIcons[index] || '🏅';
+
+                return `
+                    <div class="leader-item">
+                        <div>
+                            <div class="leader-name ${medalClass}">${medalIcon} ${jugadorNombre}</div>
+                            <div class="leader-team">${equipoNombre}</div>
+                        </div>
+                        <div class="leader-stat">${valor}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ========== ACTUALIZAR SELECTORES ==========
+
+        function actualizarSelectores() {
+            const selectores = ['equipoLocal', 'equipoVisitante', 'equipoJugador'];
+            
+            selectores.forEach(selectorId => {
+                const select = document.getElementById(selectorId);
+                if (select) {
+                    select.innerHTML = '<option value="">Seleccionar equipo...</option>';
+                    
+                    equipos.forEach(equipo => {
+                        const option = document.createElement('option');
+                        option.value = equipo.id;
+                        option.textContent = equipo.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            });
+
+            // Actualizar selector de jugadores para estadísticas
+            const jugadorStatsSelect = document.getElementById('jugadorStats');
+            if (jugadorStatsSelect) {
+                jugadorStatsSelect.innerHTML = '<option value="">Seleccionar jugador...</option>';
+                
+                jugadores.forEach(jugador => {
+                    const option = document.createElement('option');
+                    option.value = jugador.id;
+                    option.textContent = `${jugador.nombre} (${jugador.equipo_nombre} - ${jugador.posicion})`;
+                    jugadorStatsSelect.appendChild(option);
+                });
+            }
+            // Actualizar selectores para nuevos formularios
+            const pitcheoSelect = document.getElementById('jugadorPitcheo');
+            const defensivaSelect = document.getElementById('jugadorDefensivo');
+
+            if (pitcheoSelect) {
+                pitcheoSelect.innerHTML = '<option value="">Seleccionar jugador...</option>';
+                jugadores.filter(j => j.posicion === 'P').forEach(jugador => {
+                    pitcheoSelect.innerHTML += `<option value="${jugador.id}">${jugador.nombre} (${jugador.equipo_nombre})</option>`;
+                });
+            }
+
+            if (defensivaSelect) {
+                defensivaSelect.innerHTML = '<option value="">Seleccionar jugador...</option>';
+                jugadores.forEach(jugador => {
+                    defensivaSelect.innerHTML += `<option value="${jugador.id}">${jugador.nombre} (${jugador.equipo_nombre} - ${jugador.posicion})</option>`;
+                });
+            }
+        }
+
+        // ========== FUNCIONES PARA AGREGAR DATOS ==========
+
+        async function agregarEquipo() {
+            const nombre = document.getElementById('nombreEquipo').value.trim();
+            const manager = document.getElementById('managerEquipo').value.trim();
+            const ciudad = document.getElementById('ciudadEquipo').value.trim();
+
+            if (!nombre || !manager || !ciudad) {
+                mostrarError('equipoError', 'Por favor completa todos los campos');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/equipos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ nombre, manager, ciudad })
+                });
+
+                if (response.ok) {
+                    const nuevoEquipo = await response.json();
+                    equipos.push(nuevoEquipo);
+                    
+                    document.getElementById('nombreEquipo').value = '';
+                    document.getElementById('managerEquipo').value = '';
+                    document.getElementById('ciudadEquipo').value = '';
+                    
+                    mostrarExito('equipoMessage', `✅ Equipo "${nombre}" agregado correctamente`);
+                    actualizarTablaEquipos();
+                    actualizarSelectores();
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('equipoError', errorData.error || 'Error al agregar equipo');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('equipoError', 'Error de conexión al servidor');
+            }
+        }
+
+        async function registrarPartido() {
+            const equipoLocal = document.getElementById('equipoLocal').value;
+            const equipoVisitante = document.getElementById('equipoVisitante').value;
+            const carrerasLocal = parseInt(document.getElementById('carrerasLocal').value);
+            const carrerasVisitante = parseInt(document.getElementById('carrerasVisitante').value);
+            const inningsJugados = parseInt(document.getElementById('inningsJugados').value);
+            const fechaPartido = document.getElementById('fechaPartido').value;
+
+            if (!equipoLocal || !equipoVisitante || isNaN(carrerasLocal) || isNaN(carrerasVisitante) || !fechaPartido) {
+                mostrarError('partidoError', 'Por favor completa todos los campos');
+                return;
+            }
+
+            if (equipoLocal === equipoVisitante) {
+                mostrarError('partidoError', 'Los equipos local y visitante deben ser diferentes');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/partidos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        equipo_local_id: equipoLocal,
+                        equipo_visitante_id: equipoVisitante,
+                        carreras_local: carrerasLocal,
+                        carreras_visitante: carrerasVisitante,
+                        innings_jugados: inningsJugados,
+                        fecha_partido: fechaPartido
+                        // *** INICIO FASE 5: Enviar torneo activo ***
+                        // temporada: torneoActivo.nombre 
+                        // (SE HARÁ EN PASO 5.3)
+                        // *** FIN FASE 5 ***
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('equipoLocal').value = '';
+                    document.getElementById('equipoVisitante').value = '';
+                    document.getElementById('carrerasLocal').value = '';
+                    document.getElementById('carrerasVisitante').value = '';
+                    document.getElementById('inningsJugados').value = '9';
+                    
+                    const resultado = `${carrerasLocal} - ${carrerasVisitante}`;
+                    mostrarExito('partidoMessage', `✅ Partido registrado correctamente (${resultado})`);
+                    
+                    await cargarPartidos();
+                    calcularPosiciones();
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('partidoError', errorData.error || 'Error al registrar partido');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('partidoError', 'Error de conexión al servidor');
+            }
+        }
+
+        async function agregarJugador() {
+            const nombre = document.getElementById('nombreJugador').value.trim();
+            const equipoId = document.getElementById('equipoJugador').value;
+            const posicion = document.getElementById('posicionJugador').value;
+            const numero = document.getElementById('numeroJugador').value;
+
+            if (!nombre || !equipoId || !posicion) {
+                mostrarError('jugadorError', 'Por favor completa todos los campos obligatorios');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/jugadores', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nombre,
+                        equipo_id: equipoId,
+                        posicion,
+                        numero: numero || null
+                        // *** INICIO FASE 5: Enviar torneo activo ***
+                        // temporada: torneoActivo.nombre 
+                        // (SE HARÁ EN PASO 5.3)
+                        // *** FIN FASE 5 ***
+                    })
+                });
+
+                if (response.ok) {
+                    const nuevoJugador = await response.json();
+                    
+                    document.getElementById('nombreJugador').value = '';
+                    document.getElementById('equipoJugador').value = '';
+                    document.getElementById('posicionJugador').value = '';
+                    document.getElementById('numeroJugador').value = '';
+                    
+                    mostrarExito('jugadorMessage', `✅ Jugador "${nombre}" agregado correctamente`);
+                    await cargarJugadores();
+                    actualizarSelectores();
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('jugadorError', errorData.error || 'Error al agregar jugador');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('jugadorError', 'Error de conexión al servidor');
+            }
+        }
+
+        async function registrarEstadisticas() {
+            // *** INICIO FASE 5.5: Validar torneo activo ***
+            if (!torneoActivo.id) {
+                mostrarError('statsError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
+                return;
+            }
+            // *** FIN FASE 5.5 ***
+
+            const jugadorId = parseInt(document.getElementById('jugadorStats').value);
+            const atBats = parseInt(document.getElementById('atBats').value) || 0;
+            const hits = parseInt(document.getElementById('hits').value) || 0;
+            const homeRuns = parseInt(document.getElementById('homeRuns').value) || 0;
+            const rbi = parseInt(document.getElementById('rbi').value) || 0;
+            const runs = parseInt(document.getElementById('runs').value) || 0;
+            const walks = parseInt(document.getElementById('walks').value) || 0;
+            const stolenBases = parseInt(document.getElementById('stolenBases').value) || 0;
+
+            if (!jugadorId) {
+                mostrarError('statsError', 'Por favor selecciona un jugador');
+                return;
+            }
+
+            if (hits > atBats) {
+                mostrarError('statsError', 'Los hits no pueden ser mayores que los at-bats');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/estadisticas-ofensivas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jugador_id: jugadorId,
+                        at_bats: atBats,
+                        hits: hits,
+                        home_runs: homeRuns,
+                        rbi: rbi,
+                        runs: runs,
+                        walks: walks,
+                        stolen_bases: stolenBases,
+                        // *** INICIO FASE 5.3: Enviar torneo activo ***
+                        temporada: torneoActivo.nombre 
+                        // *** FIN FASE 5.3 ***
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error del servidor');
+                }
+                
+                limpiarFormulario('ofensiva');
+
+                const jugador = jugadores.find(j => j.id === jugadorId);
+                mostrarExito('statsMessage', `✅ Estadísticas de "${jugador ? jugador.nombre : 'Jugador'}" guardadas en la base de datos.`);
+                
+                await cargarEstadisticas();
+                actualizarLideres();
+                actualizarLideresPorPosicion();
+                cargarTablaEditarBateo();
+
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('statsError', `Error al registrar estadísticas: ${error.message}`);
+            }
+        }
+
+
+        // ========== FUNCIONES DE UTILIDAD ==========
+
+        function mostrarExito(elementId, mensaje) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = mensaje;
+                element.style.display = 'block';
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 4000);
+            }
+        }
+
+        function mostrarError(elementId, mensaje) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = mensaje;
+                element.style.display = 'block';
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+// ========== FUNCIONES DE EDICIÓN Y ELIMINACIÓN ==========
+
+// ========== EQUIPOS ==========
+async function editarEquipo(id) {
+    try {
+        const response = await fetch(`/api/equipos/${id}`);
+        if (!response.ok) throw new Error('Error obteniendo datos del equipo');
+        
+        const equipo = await response.json();
+        
+        document.getElementById('nombreEquipo').value = equipo.nombre;
+        document.getElementById('managerEquipo').value = equipo.manager;
+        document.getElementById('ciudadEquipo').value = equipo.ciudad;
+        
+        const btnAgregar = document.querySelector('.btn-primary[onclick="agregarEquipo()"]');
+        btnAgregar.textContent = '✏️ Actualizar Equipo';
+        btnAgregar.setAttribute('onclick', `actualizarEquipo(${id})`);
+        
+        mostrarExito('equipoMessage', `Editando equipo "${equipo.nombre}". Modifica los campos y presiona "Actualizar Equipo".`);
+        document.getElementById('nombreEquipo').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('nombreEquipo').focus();
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('equipoError', 'Error cargando datos del equipo para editar');
+    }
+}
+
+async function actualizarEquipo(id) {
+    const nombre = document.getElementById('nombreEquipo').value.trim();
+    const manager = document.getElementById('managerEquipo').value.trim();
+    const ciudad = document.getElementById('ciudadEquipo').value.trim();
+
+    if (!nombre || !manager || !ciudad) {
+        mostrarError('equipoError', 'Por favor completa todos los campos');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/equipos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, manager, ciudad })
+        });
+
+        if (response.ok) {
+            const equipoActualizado = await response.json();
+            
+            document.getElementById('nombreEquipo').value = '';
+            document.getElementById('managerEquipo').value = '';
+            document.getElementById('ciudadEquipo').value = '';
+            
+            const btnActualizar = document.querySelector('.btn-primary[onclick*="actualizarEquipo"]');
+            btnActualizar.textContent = '🏆 Agregar Equipo';
+            btnActualizar.setAttribute('onclick', 'agregarEquipo()');
+            
+            mostrarExito('equipoMessage', `✅ Equipo "${equipoActualizado.nombre}" actualizado correctamente`);
+            
+            await cargarEquipos();
+            actualizarSelectores();
+            calcularPosiciones();
+        } else {
+            const errorData = await response.json();
+            mostrarError('equipoError', errorData.error || 'Error al actualizar equipo');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('equipoError', 'Error de conexión al servidor');
+    }
+}
+
+async function eliminarEquipo(id) {
+    try {
+        const response = await fetch(`/api/equipos/${id}`);
+        const equipo = await response.json();
+        
+        if (confirm(`¿Estás seguro de eliminar el equipo "${equipo.nombre}"?\n\n⚠️ Esta acción eliminará todos los jugadores y partidos relacionados.`)) {
+            const deleteResponse = await fetch(`/api/equipos/${id}`, { method: 'DELETE' });
+
+            if (deleteResponse.ok) {
+                mostrarExito('equipoMessage', `✅ Equipo "${equipo.nombre}" eliminado correctamente`);
+                await cargarEquipos();
+                await cargarJugadores();
+                await cargarPartidos();
+                actualizarSelectores();
+                calcularPosiciones();
+            } else {
+                const errorData = await deleteResponse.json();
+                mostrarError('equipoError', errorData.error || 'Error al eliminar equipo');
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('equipoError', 'Error de conexión al servidor');
+    }
+}
+
+// ========== JUGADORES ==========
+async function editarJugador(id) {
+    try {
+        const response = await fetch(`/api/jugadores/${id}`);
+        if (!response.ok) throw new Error('Error obteniendo datos del jugador');
+        
+        const jugador = await response.json();
+        
+        document.getElementById('nombreJugador').value = jugador.nombre;
+        document.getElementById('equipoJugador').value = jugador.equipo_id;
+        document.getElementById('posicionJugador').value = jugador.posicion;
+        document.getElementById('numeroJugador').value = jugador.numero || '';
+        
+        const btnAgregar = document.querySelector('.btn-primary[onclick="agregarJugador()"]');
+        btnAgregar.textContent = '✏️ Actualizar Jugador';
+        btnAgregar.setAttribute('onclick', `actualizarJugador(${id})`);
+        
+        mostrarExito('jugadorMessage', `Editando jugador "${jugador.nombre}". Modifica los campos y presiona "Actualizar Jugador".`);
+        document.getElementById('nombreJugador').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('nombreJugador').focus();
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('jugadorError', 'Error cargando datos del jugador para editar');
+    }
+}
+
+async function actualizarJugador(id) {
+    const nombre = document.getElementById('nombreJugador').value.trim();
+    const equipoId = document.getElementById('equipoJugador').value;
+    const posicion = document.getElementById('posicionJugador').value;
+    const numero = document.getElementById('numeroJugador').value;
+
+    if (!nombre || !equipoId || !posicion) {
+        mostrarError('jugadorError', 'Por favor completa todos los campos obligatorios');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/jugadores/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, equipo_id: equipoId, posicion, numero: numero || null })
+        });
+
+        if (response.ok) {
+            const jugadorActualizado = await response.json();
+            
+            document.getElementById('nombreJugador').value = '';
+            document.getElementById('equipoJugador').value = '';
+            document.getElementById('posicionJugador').value = '';
+            document.getElementById('numeroJugador').value = '';
+            
+            const btnActualizar = document.querySelector('.btn-primary[onclick*="actualizarJugador"]');
+            btnActualizar.textContent = '👤 Agregar Jugador';
+            btnActualizar.setAttribute('onclick', 'agregarJugador()');
+            
+            mostrarExito('jugadorMessage', `✅ Jugador "${jugadorActualizado.nombre}" actualizado correctamente`);
+            
+            await cargarJugadores();
+            actualizarSelectores();
+        } else {
+            const errorData = await response.json();
+            mostrarError('jugadorError', errorData.error || 'Error al actualizar jugador');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('jugadorError', 'Error de conexión al servidor');
+    }
+}
+
+async function eliminarJugador(id) {
+    try {
+        const response = await fetch(`/api/jugadores/${id}`);
+        const jugador = await response.json();
+        
+        if (confirm(`¿Estás seguro de eliminar al jugador "${jugador.nombre}" del equipo "${jugador.equipo_nombre}"?`)) {
+            const deleteResponse = await fetch(`/api/jugadores/${id}`, { method: 'DELETE' });
+
+            if (deleteResponse.ok) {
+                mostrarExito('jugadorMessage', `✅ Jugador "${jugador.nombre}" eliminado correctamente`);
+                await cargarJugadores();
+                actualizarSelectores();
+                actualizarLideres();
+                actualizarLideresPorPosicion();
+            } else {
+                const errorData = await deleteResponse.json();
+                mostrarError('jugadorError', errorData.error || 'Error al eliminar jugador');
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('jugadorError', 'Error de conexión al servidor');
+    }
+}
+
+// ========== PARTIDOS ==========
+async function editarPartido(id) {
+    try {
+        const response = await fetch(`/api/partidos/${id}`);
+        if (!response.ok) throw new Error('Error obteniendo datos del partido');
+        
+        const partido = await response.json();
+        
+        document.getElementById('equipoLocal').value = partido.equipo_local_id;
+        document.getElementById('equipoVisitante').value = partido.equipo_visitante_id;
+        document.getElementById('carrerasLocal').value = partido.carreras_local;
+        document.getElementById('carrerasVisitante').value = partido.carreras_visitante;
+        document.getElementById('inningsJugados').value = partido.innings_jugados;
+        document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
+        
+        const btnAgregar = document.querySelector('.btn-primary[onclick="registrarPartido()"]');
+        btnAgregar.textContent = '✏️ Actualizar Partido';
+        btnAgregar.setAttribute('onclick', `actualizarPartido(${id})`);
+        
+        mostrarExito('partidoMessage', `Editando partido entre "${partido.equipo_local_nombre}" vs "${partido.equipo_visitante_nombre}". Modifica los campos y presiona "Actualizar Partido".`);
+        document.getElementById('equipoLocal').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('equipoLocal').focus();
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('partidoError', 'Error cargando datos del partido para editar');
+    }
+}
+
+async function actualizarPartido(id) {
+    const equipoLocal = document.getElementById('equipoLocal').value;
+    const equipoVisitante = document.getElementById('equipoVisitante').value;
+    const carrerasLocal = parseInt(document.getElementById('carrerasLocal').value);
+    const carrerasVisitante = parseInt(document.getElementById('carrerasVisitante').value);
+    const inningsJugados = parseInt(document.getElementById('inningsJugados').value);
+    const fechaPartido = document.getElementById('fechaPartido').value;
+
+    if (!equipoLocal || !equipoVisitante || isNaN(carrerasLocal) || isNaN(carrerasVisitante) || !fechaPartido) {
+        mostrarError('partidoError', 'Por favor completa todos los campos');
+        return;
+    }
+
+    if (equipoLocal === equipoVisitante) {
+        mostrarError('partidoError', 'Los equipos local y visitante deben ser diferentes');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/partidos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                equipo_local_id: equipoLocal,
+                equipo_visitante_id: equipoVisitante,
+                carreras_local: carrerasLocal,
+                carreras_visitante: carrerasVisitante,
+                innings_jugados: inningsJugados,
+                fecha_partido: fechaPartido
+            })
+        });
+
+        if (response.ok) {
+            document.getElementById('equipoLocal').value = '';
+            document.getElementById('equipoVisitante').value = '';
+            document.getElementById('carrerasLocal').value = '';
+            document.getElementById('carrerasVisitante').value = '';
+            document.getElementById('inningsJugados').value = '9';
+            
+            const btnActualizar = document.querySelector('.btn-primary[onclick*="actualizarPartido"]');
+            btnActualizar.textContent = '🎯 Registrar Partido';
+            btnActualizar.setAttribute('onclick', 'registrarPartido()');
+            
+            const resultado = `${carrerasLocal} - ${carrerasVisitante}`;
+            mostrarExito('partidoMessage', `✅ Partido actualizado correctamente (${resultado})`);
+            
+            await cargarPartidos();
+            calcularPosiciones();
+        } else {
+            const errorData = await response.json();
+            mostrarError('partidoError', errorData.error || 'Error al actualizar partido');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('partidoError', 'Error de conexión al servidor');
+    }
+}
+
+async function eliminarPartido(id) {
+    try {
+        const response = await fetch(`/api/partidos/${id}`);
+        const partido = await response.json();
+        
+        const resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+        if (confirm(`¿Estás seguro de eliminar el partido?\n\n"${partido.equipo_local_nombre}" vs "${partido.equipo_visitante_nombre}"\nResultado: ${resultado}\nFecha: ${new Date(partido.fecha_partido).toLocaleDateString('es-AR')}`)) {
+            const deleteResponse = await fetch(`/api/partidos/${id}`, { method: 'DELETE' });
+
+            if (deleteResponse.ok) {
+                mostrarExito('partidoMessage', `✅ Partido eliminado correctamente`);
+                await cargarPartidos();
+                calcularPosiciones();
+            } else {
+                const errorData = await deleteResponse.json();
+                mostrarError('partidoError', errorData.error || 'Error al eliminar partido');
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError('partidoError', 'Error de conexión al servidor');
+    }
+}
+
+   // FUNCIONES PARA ESTADÍSTICAS DE PITCHEO
+        async function registrarEstadisticasPitcheo() {
+            // *** INICIO FASE 5.5: Validar torneo activo ***
+            if (!torneoActivo.id) {
+                mostrarError('pitcheoError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
+                return;
+            }
+            // *** FIN FASE 5.5 ***
+
+            const jugadorId = parseInt(document.getElementById('jugadorPitcheo').value);
+            const inningsPitched = parseFloat(document.getElementById('inningsPitched').value) || 0;
+            const hitsAllowed = parseInt(document.getElementById('hitsAllowed').value) || 0;
+            const earnedRuns = parseInt(document.getElementById('earnedRuns').value) || 0;
+            const strikeouts = parseInt(document.getElementById('strikeouts').value) || 0;
+            const walksAllowed = parseInt(document.getElementById('walksAllowed').value) || 0;
+            const homeRunsAllowed = parseInt(document.getElementById('homeRunsAllowed').value) || 0;
+            const wins = parseInt(document.getElementById('wins').value) || 0;
+            const losses = parseInt(document.getElementById('losses').value) || 0;
+            const saves = parseInt(document.getElementById('saves').value) || 0;
+
+            if (!jugadorId) {
+                mostrarError('pitcheoError', 'Por favor selecciona un jugador');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/estadisticas-pitcheo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jugador_id: jugadorId,
+                        innings_pitched: inningsPitched,
+                        hits_allowed: hitsAllowed,
+                        earned_runs: earnedRuns,
+                        strikeouts: strikeouts,
+                        walks_allowed: walksAllowed,
+                        home_runs_allowed: homeRunsAllowed,
+                        wins: wins,
+                        losses: losses,
+                        saves: saves,
+                        // *** INICIO FASE 5.3: Enviar torneo activo ***
+                        temporada: torneoActivo.nombre 
+                        // *** FIN FASE 5.3 ***
+                    })
+                });
+
+                if (response.ok) {
+                    // Limpiar formulario
+                    limpiarFormulario('pitcheo');
+                    mostrarExito('pitcheoMessage', `✅ Estadísticas de pitcheo registradas correctamente`);
+                    cargarTablaEditarPitcheo(); // Refrescar la tabla de edición
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('pitcheoError', errorData.error || 'Error al registrar estadísticas');
+                }
+            } catch (error) {
+                mostrarError('pitcheoError', 'Error de conexión al servidor');
+            }
+        }
+
+        // FUNCIONES PARA ESTADÍSTICAS DEFENSIVAS
+        async function registrarEstadisticasDefensivas() {
+            // *** INICIO FASE 5.5: Validar torneo activo ***
+            if (!torneoActivo.id) {
+                mostrarError('defensivaError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
+                return;
+            }
+            // *** FIN FASE 5.5 ***
+            
+            const jugadorId = parseInt(document.getElementById('jugadorDefensivo').value);
+            const putouts = parseInt(document.getElementById('putouts').value) || 0;
+            const assists = parseInt(document.getElementById('assists').value) || 0;
+            const errors = parseInt(document.getElementById('defensiveErrors').value) || 0;
+            const doublePlays = parseInt(document.getElementById('doublePlays').value) || 0;
+            const passedBalls = parseInt(document.getElementById('passedBalls').value) || 0;
+
+            if (!jugadorId) {
+                mostrarError('defensivaError', 'Por favor selecciona un jugador');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/estadisticas-defensivas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jugador_id: jugadorId,
+                        putouts: putouts,
+                        assists: assists,
+                        errors: errors,
+                        double_plays: doublePlays,
+                        passed_balls: passedBalls,
+                        chances: putouts + assists + errors,
+                        // *** INICIO FASE 5.3: Enviar torneo activo ***
+                        temporada: torneoActivo.nombre 
+                        // *** FIN FASE 5.3 ***
+                    })
+                });
+
+                if (response.ok) {
+                    // Limpiar formulario
+                    limpiarFormulario('defensiva');
+                    mostrarExito('defensivaMessage', `✅ Estadísticas defensivas registradas correctamente`);
+                    
+                    // Actualizar la vista de líderes defensivos
+                    actualizarLideresPorPosicion();
+                    cargarTablaEditarDefensa(); // Refrescar la tabla de edición
+                } else {
+                    const errorData = await response.json();
+                    mostrarError('defensivaError', errorData.error || 'Error al registrar estadísticas');
+                }
+            } catch (error) {
+                mostrarError('defensivaError', 'Error de conexión al servidor');
+            }
+        }
+
+        // *** INICIO DE FUNCIONES DE EDICIÓN (FASE 4) ***
+        async function cargarTablaEditarBateo() {
+            const tbody = document.querySelector('#tablaEditarBateo tbody');
+            try {
+                const response = await fetch('/api/estadisticas-ofensivas');
+                if (!response.ok) throw new Error('Error al cargar');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay estadísticas de bateo registradas.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(stat => `
+                    <tr>
+                        <td>${stat.jugador_nombre}</td>
+                        <td>${stat.equipo_nombre}</td>
+                        <td>${stat.at_bats}</td>
+                        <td>${stat.hits}</td>
+                        <td>${stat.home_runs}</td>
+                        <td>${stat.rbi}</td>
+                        <td><button class="btn-secondary btn-edit" onclick="cargarParaEditar('ofensiva', ${stat.jugador_id})">✏️ Editar</button></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="error-message">${error.message}</td></tr>`;
+            }
+        }
+        
+        async function cargarTablaEditarPitcheo() {
+            const tbody = document.querySelector('#tablaEditarPitcheo tbody');
+             try {
+                const response = await fetch('/api/estadisticas-pitcheo');
+                if (!response.ok) throw new Error('Error al cargar');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay estadísticas de pitcheo registradas.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(stat => `
+                    <tr>
+                        <td>${stat.jugador_nombre}</td>
+                        <td>${stat.equipo_nombre}</td>
+                        <td>${stat.innings_pitched}</td>
+                        <td>${stat.earned_runs}</td>
+                        <td>${stat.wins}</td>
+                        <td>${stat.losses}</td>
+                        <td>${stat.saves}</td>
+                        <td><button class="btn-secondary btn-edit" onclick="cargarParaEditar('pitcheo', ${stat.jugador_id})">✏️ Editar</button></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="8" class="error-message">${error.message}</td></tr>`;
+            }
+        }
+        
+        async function cargarTablaEditarDefensa() {
+            const tbody = document.querySelector('#tablaEditarDefensa tbody');
+             try {
+                const response = await fetch('/api/estadisticas-defensivas');
+                if (!response.ok) throw new Error('Error al cargar');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay estadísticas defensivas registradas.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(stat => `
+                    <tr>
+                        <td>${stat.jugador_nombre}</td>
+                        <td>${stat.equipo_nombre}</td>
+                        <td>${stat.putouts}</td>
+                        <td>${stat.assists}</td>
+                        <td>${stat.errors}</td>
+                        <td>${stat.double_plays}</td>
+                        <td><button class="btn-secondary btn-edit" onclick="cargarParaEditar('defensiva', ${stat.jugador_id})">✏️ Editar</button></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="7" class="error-message">${error.message}</td></tr>`;
+            }
+        }
+        
+        // *** INICIO DE CORRECCIÓN: Lógica para Paso 4.3 ***
+        
+        // Función para limpiar formularios
+        function limpiarFormulario(tipo) {
+            if (tipo === 'ofensiva') {
+                document.getElementById('jugadorStats').value = '';
+                document.getElementById('atBats').value = '0';
+                document.getElementById('hits').value = '0';
+                document.getElementById('homeRuns').value = '0';
+                document.getElementById('rbi').value = '0';
+                document.getElementById('runs').value = '0';
+                document.getElementById('walks').value = '0';
+                document.getElementById('stolenBases').value = '0';
+            } else if (tipo === 'pitcheo') {
+                document.getElementById('jugadorPitcheo').value = '';
+                document.getElementById('inningsPitched').value = '0';
+                document.getElementById('hitsAllowed').value = '0';
+                document.getElementById('earnedRuns').value = '0';
+                document.getElementById('strikeouts').value = '0';
+                document.getElementById('walksAllowed').value = '0';
+                document.getElementById('homeRunsAllowed').value = '0';
+                document.getElementById('wins').value = '0';
+                document.getElementById('losses').value = '0';
+                document.getElementById('saves').value = '0';
+            } else if (tipo === 'defensiva') {
+                document.getElementById('jugadorDefensivo').value = '';
+                document.getElementById('putouts').value = '0';
+                document.getElementById('assists').value = '0';
+                document.getElementById('defensiveErrors').value = '0';
+                document.getElementById('doublePlays').value = '0';
+                document.getElementById('passedBalls').value = '0';
+            }
+        }
+
+        // Función para resetear el botón de registro/actualización
+        function resetearBoton(tipo) {
+            if (tipo === 'ofensiva') {
+                const btn = document.getElementById('btnRegistrarOfensiva');
+                btn.textContent = '📊 Registrar Estadísticas (Sumar)';
+                btn.classList.remove('btn-actualizar');
+                btn.setAttribute('onclick', 'registrarEstadisticas()');
+            } else if (tipo === 'pitcheo') {
+                const btn = document.getElementById('btnRegistrarPitcheo');
+                btn.textContent = '⚾ Registrar Estadísticas (Sumar)';
+                btn.classList.remove('btn-actualizar');
+                btn.setAttribute('onclick', 'registrarEstadisticasPitcheo()');
+            } else if (tipo === 'defensiva') {
+                const btn = document.getElementById('btnRegistrarDefensa');
+                btn.textContent = '🛡 Registrar Estadísticas (Sumar)';
+                btn.classList.remove('btn-actualizar');
+                btn.setAttribute('onclick', 'registrarEstadisticasDefensivas()');
+            }
+        }
+
+        // Cargar datos en el formulario para editar
+        async function cargarParaEditar(tipo, jugadorId) {
+            // Resetea todos los botones por si uno quedó trabado
+            resetearBoton('ofensiva');
+            resetearBoton('pitcheo');
+            resetearBoton('defensiva');
+
+            try {
+                let stat;
+                let endpointTipo = tipo;
+                
+                // *** CORRECCIÓN DE ERROR DE TIPEO (Ofensiva y Defensiva) ***
+                if (tipo === 'defensiva' || tipo === 'ofensiva') {
+                    endpointTipo = tipo + 's';
+                }
+                
+                // 1. Obtener los datos del jugador
+                const res = await fetch(`/api/estadisticas-${endpointTipo}/${jugadorId}`);
+                if (!res.ok) {
+                    throw new Error(`Estadísticas no encontradas para el jugador (ID: ${jugadorId}). Regístralas primero.`);
+                }
+                stat = await res.json();
+
+
+                // 2. Rellenar el formulario
+                if (tipo === 'ofensiva') {
+                    document.getElementById('jugadorStats').value = stat.jugador_id;
+                    document.getElementById('atBats').value = stat.at_bats;
+                    document.getElementById('hits').value = stat.hits;
+                    document.getElementById('homeRuns').value = stat.home_runs;
+                    document.getElementById('rbi').value = stat.rbi;
+                    document.getElementById('runs').value = stat.runs;
+                    document.getElementById('walks').value = stat.walks;
+                    document.getElementById('stolenBases').value = stat.stolen_bases;
+                    
+                    // 3. Cambiar el botón
+                    const btn = document.getElementById('btnRegistrarOfensiva');
+                    btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
+                    btn.classList.add('btn-actualizar');
+                    btn.setAttribute('onclick', `actualizarEstadistica('ofensiva', ${stat.jugador_id})`);
+                    
+                    document.getElementById('btnRegistrarOfensiva').scrollIntoView({ behavior: 'smooth' });
+                } else if (tipo === 'pitcheo') {
+                    document.getElementById('jugadorPitcheo').value = stat.jugador_id;
+                    document.getElementById('inningsPitched').value = stat.innings_pitched;
+                    document.getElementById('hitsAllowed').value = stat.hits_allowed;
+                    document.getElementById('earnedRuns').value = stat.earned_runs;
+                    document.getElementById('strikeouts').value = stat.strikeouts;
+                    document.getElementById('walksAllowed').value = stat.walks_allowed;
+                    document.getElementById('homeRunsAllowed').value = stat.home_runs_allowed;
+                    document.getElementById('wins').value = stat.wins;
+                    document.getElementById('losses').value = stat.losses;
+                    document.getElementById('saves').value = stat.saves;
+                    
+                    const btn = document.getElementById('btnRegistrarPitcheo');
+                    btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
+                    btn.classList.add('btn-actualizar');
+                    btn.setAttribute('onclick', `actualizarEstadistica('pitcheo', ${stat.jugador_id})`);
+
+                    document.getElementById('btnRegistrarPitcheo').scrollIntoView({ behavior: 'smooth' });
+                } else if (tipo === 'defensiva') {
+                    document.getElementById('jugadorDefensivo').value = stat.jugador_id;
+                    document.getElementById('putouts').value = stat.putouts;
+                    document.getElementById('assists').value = stat.assists;
+                    document.getElementById('defensiveErrors').value = stat.errors;
+                    document.getElementById('doublePlays').value = stat.double_plays;
+                    document.getElementById('passedBalls').value = stat.passed_balls;
+                    
+                    const btn = document.getElementById('btnRegistrarDefensa');
+                    btn.textContent = '✏️ Actualizar Estadísticas (Reemplazar)';
+                    btn.classList.add('btn-actualizar');
+                    btn.setAttribute('onclick', `actualizarEstadistica('defensiva', ${stat.jugador_id})`);
+                    
+                    document.getElementById('btnRegistrarDefensa').scrollIntoView({ behavior: 'smooth' });
+                }
+
+            } catch (error) {
+                mostrarError('statsError', `Error al cargar datos para editar: ${error.message}`);
+            }
+        }
+        
+        // Guardar los datos actualizados
+        async function actualizarEstadistica(tipo, jugadorId) {
+            // *** INICIO FASE 5.3: Enviar torneo activo ***
+            let body = { jugador_id: jugadorId, temporada: torneoActivo.nombre }; 
+            // *** FIN FASE 5.3 ***
+            let errorId = 'statsError'; // Default
+            let endpointTipo = tipo;
+            
+            try {
+                // 1. Recoger datos del formulario
+                if (tipo === 'ofensiva') {
+                    body.at_bats = parseInt(document.getElementById('atBats').value) || 0;
+                    body.hits = parseInt(document.getElementById('hits').value) || 0;
+                    body.home_runs = parseInt(document.getElementById('homeRuns').value) || 0;
+                    body.rbi = parseInt(document.getElementById('rbi').value) || 0;
+                    body.runs = parseInt(document.getElementById('runs').value) || 0;
+                    body.walks = parseInt(document.getElementById('walks').value) || 0;
+                    body.stolen_bases = parseInt(document.getElementById('stolenBases').value) || 0;
+                } else if (tipo === 'pitcheo') {
+                    errorId = 'pitcheoError';
+                    body.innings_pitched = parseFloat(document.getElementById('inningsPitched').value) || 0;
+                    body.hits_allowed = parseInt(document.getElementById('hitsAllowed').value) || 0;
+                    body.earned_runs = parseInt(document.getElementById('earnedRuns').value) || 0;
+                    body.strikeouts = parseInt(document.getElementById('strikeouts').value) || 0;
+                    body.walks_allowed = parseInt(document.getElementById('walksAllowed').value) || 0;
+                    body.home_runs_allowed = parseInt(document.getElementById('homeRunsAllowed').value) || 0;
+                    body.wins = parseInt(document.getElementById('wins').value) || 0;
+                    body.losses = parseInt(document.getElementById('losses').value) || 0;
+                    body.saves = parseInt(document.getElementById('saves').value) || 0;
+                } else if (tipo === 'defensiva') {
+                    errorId = 'defensivaError';
+                    endpointTipo = 'defensivas'; // *** CORRECCIÓN DE ERROR DE TIPEO ***
+                    body.putouts = parseInt(document.getElementById('putouts').value) || 0;
+                    body.assists = parseInt(document.getElementById('assists').value) || 0;
+                    body.errors = parseInt(document.getElementById('defensiveErrors').value) || 0;
+                    body.double_plays = parseInt(document.getElementById('doublePlays').value) || 0;
+                    body.passed_balls = parseInt(document.getElementById('passedBalls').value) || 0;
+                    body.chances = body.putouts + body.assists + body.errors;
+                }
+                
+                // 2. Enviar a la API PUT
+                const response = await fetch(`/api/estadisticas-${endpointTipo}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error del servidor');
+                }
+                
+                // 3. Limpiar y refrescar
+                limpiarFormulario(tipo);
+                resetearBoton(tipo);
+                mostrarExito(errorId.replace('Error', 'Message'), '✅ Estadísticas actualizadas (reemplazadas) correctamente.');
+                
+                // 4. Recargar todas las tablas y líderes
+                if (tipo === 'ofensiva') {
+                    await cargarEstadisticas(); // Recarga la tabla principal de bateo
+                    cargarTablaEditarBateo();
+                    actualizarLideres();
+                } else if (tipo === 'pitcheo') {
+                    cargarTablaEditarPitcheo();
+                } else if (tipo === 'defensiva') {
+                    cargarTablaEditarDefensa();
+                    actualizarLideresPorPosicion();
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError(errorId, `Error al actualizar: ${error.message}`);
+            }
+        }
+        // *** FIN DE FUNCIONES DE EDICIÓN (FASE 4) ***
     </script>
 </body>
 </html>
+
+}
+ok vamos a ver si es verdad, si estoy de acuerdo con este plan que me dices , comencemos ya mismo con el Paso 8.2: Filtro de Rosters por Equipo en admin.html.
