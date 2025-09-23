@@ -1039,7 +1039,3 @@ app.listen(PORT, () => {
 });
 
 }
-
-{
-type: uploaded file
-fileName: Captura de pantalla 2025-09-23 a la(s) 4.56.07 p. m..png
