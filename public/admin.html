@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -784,8 +783,8 @@
                         </div>
                         <div class="form-group">
                             <label for="posicionJugador">Posición:</label>
-                            <select id="posicionJugador" required>
-                                <option value="">Seleccionar posición...</option>
+                            <select id="posicionJugador">
+                                <option value="">(Opcional)</option>
                                 <option value="C">Catcher (C)</option>
                                 <option value="1B">Primera Base (1B)</option>
                                 <option value="2B">Segunda Base (2B)</option>
@@ -814,6 +813,17 @@
 
             <div class="card">
                 <h3>👥 Jugadores Registrados</h3>
+                <div class="form-group" style="margin-bottom: 5px;">
+                    <label for="buscadorJugadores">🔍 Buscar Jugador por Nombre:</label>
+                    <input type="text" id="buscadorJugadores" onkeyup="actualizarTablaJugadores()" placeholder="Escribe un nombre...">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="filtroRosterEquipo">🏅 Filtrar Roster por Equipo:</label>
+                    <select id="filtroRosterEquipo" onchange="actualizarTablaJugadores()">
+                        <option value="">-- Mostrar Todos los Equipos --</option>
+                        </select>
+                </div>
                 <div class="table-container">
                     <table id="jugadoresTable">
                         <thead>
@@ -1674,7 +1684,15 @@
             tbody.innerHTML = partidos.map(partido => {
                 const ganador = partido.carreras_local > partido.carreras_visitante ? 
                     partido.equipo_local_nombre : partido.equipo_visitante_nombre;
-                const resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+                // === INICIO CAMBIO FASE 7.1: Mostrar partidos sin resultado ===
+                let resultado = 'Pendiente';
+                let ganadorHtml = `<small style="color: #ff8c00;">Pendiente</small>`;
+
+                if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+                    resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
+                    ganadorHtml = `<small style="color: #4CAF50;">Ganó: ${ganador}</small>`;
+                }
+                // === FIN CAMBIO FASE 7.1 ===
                 
                 return `
                     <tr>
@@ -1682,7 +1700,7 @@
                         <td><strong>${partido.equipo_visitante_nombre}</strong></td>
                         <td>
                             <strong>${resultado}</strong><br>
-                            <small style="color: #4CAF50;">Ganó: ${ganador}</small>
+                            ${ganadorHtml}
                         </td>
                         <td>${partido.innings_jugados} inn</td>
                         <td>${new Date(partido.fecha_partido).toLocaleDateString('es-AR')}</td>
@@ -3116,6 +3134,3 @@ async function eliminarPartido(id) {
     </script>
 </body>
 </html>
-
-}
-ok vamos a ver si es verdad, si estoy de acuerdo con este plan que me dices , comencemos ya mismo con el Paso 8.2: Filtro de Rosters por Equipo en admin.html.
