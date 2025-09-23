@@ -32,7 +32,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 async function runMigrations() {
     const fs = require('fs');
     
-    // Función helper para ejecutar un archivo SQL
     const runSqlFile = async (fileName) => {
         try {
             const sqlPath = path.join(__dirname, fileName);
@@ -41,7 +40,6 @@ async function runMigrations() {
                 await pool.query(sql);
                 console.log(`✅ Migración ${fileName} ejecutada correctamente`);
                 
-                // Renombrar el archivo para que no se ejecute de nuevo
                 const executedPath = path.join(__dirname, fileName.replace('.sql', '.executed.sql'));
                 fs.renameSync(sqlPath, executedPath);
             }
@@ -50,7 +48,6 @@ async function runMigrations() {
         }
     };
 
-    // Lista de archivos de migración a ejecutar en orden
     await runSqlFile('setup-pitching-stats.sql');
     await runSqlFile('setup-offensive-stats.sql');
     await runSqlFile('setup-tournaments.sql');
@@ -80,9 +77,6 @@ app.get('/api/test', async (req, res) => {
 });
 
 // ====================== TORNEOS (FASE 5) ======================
-// *** ORDEN CORRECTO (Fase 5 Corregida) ***
-
-// GET /api/torneos (Obtener todos)
 app.get('/api/torneos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM torneos ORDER BY fecha_inicio DESC');
@@ -92,7 +86,6 @@ app.get('/api/torneos', async (req, res) => {
     }
 });
 
-// GET /api/torneos/activo (Ruta específica)
 app.get('/api/torneos/activo', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM torneos WHERE activo = true LIMIT 1');
@@ -106,7 +99,6 @@ app.get('/api/torneos/activo', async (req, res) => {
     }
 });
 
-// POST /api/torneos (Crear nuevo)
 app.post('/api/torneos', async (req, res) => {
     try {
         const { nombre } = req.body;
@@ -127,53 +119,33 @@ app.post('/api/torneos', async (req, res) => {
     }
 });
 
-// PUT /api/torneos/desactivar-todos (Ruta específica)
 app.put('/api/torneos/desactivar-todos', async (req, res) => {
-    console.log('🔷 Petición para DESACTIVAR TODOS los torneos...');
     try {
-        const queryText = 'UPDATE torneos SET activo = false';
-        console.log('   -> Ejecutando query:', queryText);
-        
-        await pool.query(queryText);
-        
-        console.log('   -> Query completada. Todos desactivados.');
+        await pool.query('UPDATE torneos SET activo = false');
         res.json({ message: 'Todos los torneos han sido desactivados.' });
     } catch (error) {
-        console.error('❌ Error en /api/torneos/desactivar-todos:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// PUT /api/torneos/:id/activar (Ruta dinámica específica)
 app.put('/api/torneos/:id/activar', async (req, res) => {
-    console.log(`🔷 Petición para ACTIVAR torneo ID: ${req.params.id}`);
     try {
         const { id } = req.params;
-        
-        console.log('   -> Desactivando todos los demás torneos...');
         await pool.query('UPDATE torneos SET activo = false');
-        console.log('   -> ¡Desactivados!');
-
-        console.log(`   -> Activando torneo ${id}...`);
         const result = await pool.query(
             'UPDATE torneos SET activo = true WHERE id = $1 RETURNING *',
             [id]
         );
-        console.log('   -> ¡Activado!');
-
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('❌ Error en /api/torneos/:id/activar:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// PUT /api/torneos/:id (Ruta dinámica general - DEBE IR DESPUÉS)
 app.put('/api/torneos/:id', async (req, res) => {
-    console.log(`🔷 Petición para EDITAR NOMBRE torneo ID: ${req.params.id}`);
     try {
         const { id } = req.params;
         const { nombre } = req.body;
@@ -192,41 +164,27 @@ app.put('/api/torneos/:id', async (req, res) => {
         if (error.code === '23505') {
             res.status(400).json({ error: 'Ya existe un torneo con ese nombre' });
         } else {
-            console.error('❌ Error en PUT /api/torneos/:id:', error.message);
             res.status(500).json({ error: 'Error interno del servidor' });
         }
     }
 });
 
-// DELETE /api/torneos/:id (Ruta dinámica)
 app.delete('/api/torneos/:id', async (req, res) => {
-    console.log(`🔷 Petición para ELIMINAR torneo ID: ${req.params.id}`);
     try {
         const { id } = req.params;
-        // Verificar si el torneo está activo
         const torneo = await pool.query('SELECT * FROM torneos WHERE id = $1', [id]);
         if (torneo.rows.length > 0 && torneo.rows[0].activo) {
-            console.log('   -> ERROR: Intento de borrar torneo activo');
-            return res.status(400).json({ error: 'No se puede eliminar un torneo activo. Activa otro primero o desactívalos todos.' });
+            return res.status(400).json({ error: 'No se puede eliminar un torneo activo.' });
         }
-        
-        console.log('   -> Torneo no está activo. Intentando eliminar...');
         const result = await pool.query('DELETE FROM torneos WHERE id = $1 RETURNING *', [id]);
-        
         if (result.rows.length === 0) {
-            console.log('   -> ERROR: Torneo no encontrado para eliminar');
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
-        
-        console.log('   -> ¡Torneo eliminado!');
         res.json({ message: 'Torneo eliminado correctamente' });
     } catch (error) {
-        // Manejar error de llave foránea (si hay stats que dependen de este torneo)
         if (error.code === '23503') {
-             console.log('   -> ERROR: Intento de borrar torneo con stats asociadas');
-             return res.status(400).json({ error: 'No se puede eliminar. Hay estadísticas (bateo, pitcheo, etc.) asociadas a este torneo.' });
+             return res.status(400).json({ error: 'No se puede eliminar. Hay estadísticas asociadas a este torneo.' });
         }
-        console.error('❌ Error en DELETE /api/torneos/:id:', error.message);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -237,7 +195,6 @@ app.get('/api/equipos', async (req, res) => {
         const result = await pool.query('SELECT * FROM equipos ORDER BY id');
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo equipos:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -250,7 +207,6 @@ app.get('/api/equipos/:id', async (req, res) => {
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error obteniendo equipo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -266,7 +222,6 @@ app.post('/api/equipos', async (req, res) => {
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error creando equipo:', error);
         if (error.code === '23505') {
             res.status(400).json({ error: 'Ya existe un equipo con ese nombre' });
         } else {
@@ -290,7 +245,6 @@ app.put('/api/equipos/:id', async (req, res) => {
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando equipo:', error);
         if (error.code === '23505') {
             res.status(400).json({ error: 'Ya existe un equipo con ese nombre' });
         } else {
@@ -301,21 +255,15 @@ app.put('/api/equipos/:id', async (req, res) => {
 app.delete('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const jugadores = await pool.query('SELECT COUNT(*) FROM jugadores WHERE equipo_id = $1', [id]);
-        if (parseInt(jugadores.rows[0].count) > 0) {
-            return res.status(400).json({ error: 'No se puede eliminar un equipo que tiene jugadores asociados. Elimina primero los jugadores.' });
-        }
-        const partidos = await pool.query('SELECT COUNT(*) FROM partidos WHERE equipo_local_id = $1 OR equipo_visitante_id = $1', [id]);
-        if (parseInt(partidos.rows[0].count) > 0) {
-            return res.status(400).json({ error: 'No se puede eliminar un equipo que tiene partidos registrados. Elimina primero los partidos.' });
-        }
         const result = await pool.query('DELETE FROM equipos WHERE id = $1 RETURNING *', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Equipo no encontrado' });
         }
         res.json({ message: 'Equipo eliminado correctamente' });
     } catch (error) {
-        console.error('Error eliminando equipo:', error);
+        if (error.code === '23503') {
+            return res.status(400).json({ error: 'No se puede eliminar. Hay jugadores o partidos asociados.' });
+        }
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -326,12 +274,11 @@ app.get('/api/jugadores', async (req, res) => {
         const result = await pool.query(`
             SELECT j.*, e.nombre as equipo_nombre
             FROM jugadores j
-            JOIN equipos e ON j.equipo_id = e.id
+            LEFT JOIN equipos e ON j.equipo_id = e.id
             ORDER BY j.equipo_id, j.nombre
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo jugadores:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -341,7 +288,7 @@ app.get('/api/jugadores/:id', async (req, res) => {
         const result = await pool.query(`
             SELECT j.*, e.nombre as equipo_nombre
             FROM jugadores j
-            JOIN equipos e ON j.equipo_id = e.id
+            LEFT JOIN equipos e ON j.equipo_id = e.id
             WHERE j.id = $1
         `, [id]);
         if (result.rows.length === 0) {
@@ -349,43 +296,45 @@ app.get('/api/jugadores/:id', async (req, res) => {
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error obteniendo jugador:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
+// ¡CAMBIO! Se quita la validación de 'posicion'
 app.post('/api/jugadores', async (req, res) => {
     try {
         const { nombre, equipo_id, posicion, numero } = req.body;
-        if (!nombre || !equipo_id || !posicion) {
-            return res.status(400).json({ error: 'Nombre, equipo y posición son requeridos' });
+        // Solo nombre y equipo son obligatorios
+        if (!nombre || !equipo_id) {
+            return res.status(400).json({ error: 'Nombre y equipo son requeridos' });
         }
         const result = await pool.query(
             'INSERT INTO jugadores (nombre, equipo_id, posicion, numero) VALUES ($1, $2, $3, $4) RETURNING *',
-            [nombre, equipo_id, posicion, numero]
+            [nombre, equipo_id, posicion || null, numero || null]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error creando jugador:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
+// ¡CAMBIO! Se quita la validación de 'posicion'
 app.put('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { nombre, equipo_id, posicion, numero } = req.body;
-        if (!nombre || !equipo_id || !posicion) {
-            return res.status(400).json({ error: 'Nombre, equipo y posición son requeridos' });
+        if (!nombre || !equipo_id) {
+            return res.status(400).json({ error: 'Nombre y equipo son requeridos' });
         }
         const result = await pool.query(
             'UPDATE jugadores SET nombre = $1, equipo_id = $2, posicion = $3, numero = $4 WHERE id = $5 RETURNING *',
-            [nombre, equipo_id, posicion, numero, id]
+            [nombre, equipo_id, posicion || null, numero || null, id]
         );
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando jugador:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -398,7 +347,9 @@ app.delete('/api/jugadores/:id', async (req, res) => {
         }
         res.json({ message: 'Jugador eliminado correctamente' });
     } catch (error) {
-        console.error('Error eliminando jugador:', error);
+        if (error.code === '23503') {
+            return res.status(400).json({ error: 'No se puede eliminar. El jugador tiene estadísticas asociadas.' });
+        }
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -417,7 +368,6 @@ app.get('/api/partidos', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo partidos:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -438,19 +388,14 @@ app.get('/api/partidos/:id', async (req, res) => {
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error obteniendo partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// *** ¡CORRECCIÓN FASE 7.1! ***
-// Esta es la versión que permite registrar partidos futuros (carreras = null)
 app.post('/api/partidos', async (req, res) => {
     try {
-        // Las carreras ahora son opcionales
         const { equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido } = req.body;
         
-        // Ahora solo validamos lo esencial para un partido a futuro
         if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
             return res.status(400).json({ error: 'Equipo local, equipo visitante y fecha son requeridos' });
         }
@@ -460,12 +405,10 @@ app.post('/api/partidos', async (req, res) => {
         
         const result = await pool.query(
             'INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            // Usamos || null para que guarde NULL en la BD si no se provee un resultado
             [equipo_local_id, equipo_visitante_id, carreras_local || null, carreras_visitante || null, innings_jugados || 9, fecha_partido]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error creando partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -475,7 +418,6 @@ app.put('/api/partidos/:id', async (req, res) => {
         const { id } = req.params;
         const { equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido } = req.body;
         
-        // ¡CORRECCIÓN FASE 7.1! Permitir actualizar a null o con valores
         if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
             return res.status(400).json({ error: 'Equipo local, visitante y fecha son obligatorios' });
         }
@@ -485,15 +427,13 @@ app.put('/api/partidos/:id', async (req, res) => {
         
         const result = await pool.query(
             'UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2, carreras_local = $3, carreras_visitante = $4, innings_jugados = $5, fecha_partido = $6 WHERE id = $7 RETURNING *',
-            // ¡CORRECCIÓN FASE 7.1! Usar || null
-            [equipo_local_id, equipo_visitante_id, carreras_local || null, carreras_visitante || null, innings_jugados || 9, fecha_partido, id]
+            [equipo_local_id, equipo_visitante_id, carreras_local === '' ? null : carreras_local, carreras_visitante === '' ? null : carreras_visitante, innings_jugados || 9, fecha_partido, id]
         );
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -506,7 +446,6 @@ app.delete('/api/partidos/:id', async (req, res) => {
         }
         res.json({ message: 'Partido eliminado correctamente' });
     } catch (error) {
-        console.error('Error eliminando partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -527,7 +466,6 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -547,7 +485,6 @@ app.get('/api/estadisticas-ofensivas/:jugadorId', async (req, res) => {
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error obteniendo estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -562,7 +499,7 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
         }
         
         if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
-             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+             return res.status(400).json({ error: 'No hay ningún torneo activo.' });
         }
         const activeTemporada = temporada;
 
@@ -573,7 +510,6 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
 
         let result;
         if (existing.rows.length > 0) {
-            // Actualizar (sumar)
             result = await pool.query(`
                 UPDATE estadisticas_ofensivas SET
                     at_bats = at_bats + $1,
@@ -596,7 +532,6 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
                 existing.rows[0].id
             ]);
         } else {
-            // Crear
             result = await pool.query(`
                 INSERT INTO estadisticas_ofensivas (
                     jugador_id, at_bats, hits, home_runs, rbi, 
@@ -617,7 +552,6 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
         }
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error registrando estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
@@ -652,7 +586,6 @@ app.get('/api/lideres-ofensivos', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo líderes ofensivos:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -666,7 +599,7 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
         if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
-             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+             return res.status(400).json({ error: 'No hay ningún torneo activo.' });
         }
         const activeTemporada = temporada;
 
@@ -692,11 +625,10 @@ app.put('/api/estadisticas-ofensivas', async (req, res) => {
             activeTemporada
         ]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
+            return res.status(404).json({ error: 'Estadísticas no encontradas. Regístralas primero.' });
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
@@ -715,7 +647,6 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo estadísticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -737,7 +668,6 @@ app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error obteniendo estadísticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -751,7 +681,7 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
         if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
-             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+             return res.status(400).json({ error: 'No hay ningún torneo activo.' });
         }
         const activeTemporada = temporada;
 
@@ -761,7 +691,6 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
         );
         let result;
         if (existing.rows.length > 0) {
-            // Actualizar (sumar)
             result = await pool.query(`
                 UPDATE estadisticas_pitcheo SET
                     innings_pitched = innings_pitched + $1,
@@ -788,7 +717,6 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
                 existing.rows[0].id
             ]);
         } else {
-            // Crear
             result = await pool.query(`
                 INSERT INTO estadisticas_pitcheo (
                     jugador_id, innings_pitched, hits_allowed, earned_runs, strikeouts,
@@ -811,7 +739,6 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
         }
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error registrando estadísticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
@@ -825,7 +752,7 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
         if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
-             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+             return res.status(400).json({ error: 'No hay ningún torneo activo.' });
         }
         const activeTemporada = temporada;
 
@@ -856,11 +783,10 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
             activeTemporada
         ]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
+            return res.status(404).json({ error: 'Estadísticas no encontradas. Regístralas primero.' });
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando estadísticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
@@ -878,7 +804,6 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo estadísticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -899,7 +824,6 @@ app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error obteniendo estadísticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -913,7 +837,7 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
         if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
-             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+             return res.status(400).json({ error: 'No hay ningún torneo activo.' });
         }
         const activeTemporada = temporada;
 
@@ -923,7 +847,6 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         );
         let result;
         if (existing.rows.length > 0) {
-            // Actualizar (sumar)
             result = await pool.query(`
                 UPDATE estadisticas_defensivas SET
                     putouts = putouts + $1,
@@ -944,7 +867,6 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                 existing.rows[0].id
             ]);
         } else {
-            // Crear
             result = await pool.query(`
                 INSERT INTO estadisticas_defensivas (
                     jugador_id, putouts, assists, errors, double_plays,
@@ -964,7 +886,6 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         }
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error registrando estadísticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -978,7 +899,7 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
             return res.status(400).json({ error: 'Jugador ID es requerido' });
         }
         if (!temporada || temporada === 'null' || temporada === 'NINGUNO') {
-             return res.status(400).json({ error: 'No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.' });
+             return res.status(400).json({ error: 'No hay ningún torneo activo.' });
         }
         const activeTemporada = temporada;
         
@@ -1003,11 +924,10 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
             activeTemporada
         ]);
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas para ese jugador no encontradas. Regístralas primero.' });
+            return res.status(404).json({ error: 'Estadísticas no encontradas. Regístralas primero.' });
         }
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando estadísticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
@@ -1034,7 +954,6 @@ app.get('/api/lideres-pitcheo', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo líderes de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1053,7 +972,6 @@ app.get('/api/lideres-defensivos', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo líderes defensivos:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1119,3 +1037,9 @@ app.listen(PORT, () => {
     // Ejecutar migraciones después de que el servidor esté funcionando
     runMigrations();
 });
+
+}
+
+{
+type: uploaded file
+fileName: Captura de pantalla 2025-09-23 a la(s) 4.56.07 p. m..png
