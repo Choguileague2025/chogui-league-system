@@ -861,6 +861,17 @@
 
             <div class="card">
                 <h3>👥 Jugadores Registrados</h3>
+                <div class="form-group" style="margin-bottom: 5px;">
+                    <label for="buscadorJugadores">🔍 Buscar Jugador por Nombre:</label>
+                    <input type="text" id="buscadorJugadores" onkeyup="actualizarTablaJugadores()" placeholder="Escribe un nombre...">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label for="filtroRosterEquipo">🏅 Filtrar Roster por Equipo:</label>
+                    <select id="filtroRosterEquipo" onchange="actualizarTablaJugadores()">
+                        <option value="">-- Mostrar Todos los Equipos --</option>
+                        </select>
+                </div>
                 <div class="table-container">
                     <table id="jugadoresTable">
                         <thead>
@@ -1385,13 +1396,11 @@
                 const hoy = new Date().toISOString().split('T')[0];
                 fechaInput.value = hoy;
             }
-            // === INICIO CAMBIO FASE 7.2: Establecer fecha en calendario ===
             const fechaCalendarioInput = document.getElementById('fechaInicioCalendario');
             if(fechaCalendarioInput) {
                 const hoy = new Date().toISOString().split('T')[0];
                 fechaCalendarioInput.value = hoy;
             }
-            // === FIN CAMBIO FASE 7.2 ===
         }
 
         // Configurar event listeners
@@ -1753,7 +1762,8 @@
                 return;
             }
 
-            tbody.innerHTML = partidos.map(partido => {
+            // ¡CAMBIO FASE 7.4! Ordenar por fecha ASC (más viejo primero)
+            tbody.innerHTML = [...partidos].sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido)).map(partido => {
                 // === INICIO CAMBIO FASE 7.1: Mostrar partidos sin resultado ===
                 let resultado = 'Pendiente';
                 let ganadorHtml = `<small style="color: #ff8c00;">Pendiente</small>`;
@@ -1785,16 +1795,34 @@
             }).join('');
         }
 
+        // ¡FUNCIÓN ACTUALIZADA CON FASE 8.2!
         function actualizarTablaJugadores() {
             const tbody = document.querySelector('#jugadoresTable tbody');
             
-            if (jugadores.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay jugadores registrados</td></tr>';
+            // INICIO FASE 8: Lógica de Filtro
+            const filtroNombre = document.getElementById('buscadorJugadores') ? document.getElementById('buscadorJugadores').value.toLowerCase() : '';
+            // ¡NUEVO! FASE 8.2
+            const filtroEquipo = document.getElementById('filtroRosterEquipo') ? document.getElementById('filtroRosterEquipo').value : ''; // ID del equipo
+
+            const jugadoresFiltrados = jugadores.filter(j => {
+                const matchNombre = j.nombre.toLowerCase().includes(filtroNombre) || 
+                                    (filtroNombre.length > 2 && j.equipo_nombre.toLowerCase().includes(filtroNombre)); // Buscar por equipo también
+                // ¡NUEVO! FASE 8.2
+                const matchEquipo = (filtroEquipo === '') || (j.equipo_id == filtroEquipo); // '==' para comparar string y numero
+                return matchNombre && matchEquipo;
+            });
+            // FIN FASE 8
+
+            if (jugadoresFiltrados.length === 0) { // Usar la lista filtrada
+                if(filtroNombre.length > 0 || filtroEquipo.length > 0) { // <-- Modificado
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No se encontraron jugadores con ese filtro.</td></tr>';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay jugadores registrados.</td></tr>';
+                }
                 return;
             }
 
-            tbody.innerHTML = jugadores.map(jugador => `
-                <tr>
+            tbody.innerHTML = jugadoresFiltrados.map(jugador => ` <tr>
                     <td>${jugador.numero || '-'}</td>
                     <td><strong>${jugador.nombre}</strong></td>
                     <td>${jugador.equipo_nombre}</td>
@@ -1806,6 +1834,7 @@
                 </tr>
             `).join('');
         }
+
 
         function actualizarTablaEstadisticas() {
             const tbody = document.querySelector('#statsTable tbody');
@@ -1950,7 +1979,7 @@
             }).join('');
         }
         
-        // ========== INICIO LÓGICA FASE 6 (TOP 6 / 8 JUEGOS) ==========
+        // ========== INICIO LÓGICA FASE 6 (OPCIÓN B - 10 JUEGOS) ==========
         function calcularPosiciones() {
             const tbody = document.querySelector('#posicionesTable tbody');
             // ¡CAMBIO! La temporada es de 10 juegos (Opción B)
@@ -1984,10 +2013,10 @@
                 const visitanteId = partido.equipo_visitante_id;
                 if (estadisticasEquipos[localId] && estadisticasEquipos[visitanteId]) {
                     
-                    estadisticasEquipos[localId].partidos_jugados++;
-                    estadisticasEquipos[visitanteId].partidos_jugados++;
-                    
+                    // Contar partido solo si tiene resultado
                     if (partido.carreras_local !== null && partido.carreras_visitante !== null) {
+                        estadisticasEquipos[localId].partidos_jugados++;
+                        estadisticasEquipos[visitanteId].partidos_jugados++;
                         estadisticasEquipos[localId].carreras_favor += partido.carreras_local;
                         estadisticasEquipos[localId].carreras_contra += partido.carreras_visitante;
                         estadisticasEquipos[visitanteId].carreras_favor += partido.carreras_visitante;
@@ -2014,6 +2043,11 @@
                 }))
                 .sort((a, b) => {
                     if (b.porcentaje !== a.porcentaje) return b.porcentaje - a.porcentaje;
+                    // ¡NUEVO! Desempate por Carreras en Contra (CE)
+                    if (a.carreras_contra !== b.carreras_contra) {
+                        return a.carreras_contra - b.carreras_contra;
+                    }
+                    // Desempate final por Diferencia
                     return b.diferencia - a.diferencia;
                 });
 
@@ -2219,23 +2253,34 @@
             }).join('');
         }
 
-        // ========== ACTUALIZAR SELECTORES ==========
+        // ========== ACTUALIZAR SELECTORES (¡CON FASE 8.2!) ==========
 
         function actualizarSelectores() {
             const selectores = ['equipoLocal', 'equipoVisitante', 'equipoJugador'];
-            
+            // ¡NUEVO! FASE 8.2
+            const filtroRosterSelect = document.getElementById('filtroRosterEquipo'); 
+
+            // Limpiar selectores
             selectores.forEach(selectorId => {
                 const select = document.getElementById(selectorId);
                 if (select) {
                     select.innerHTML = '<option value="">Seleccionar equipo...</option>';
-                    
-                    equipos.forEach(equipo => {
-                        const option = document.createElement('option');
-                        option.value = equipo.id;
-                        option.textContent = equipo.nombre;
-                        select.appendChild(option);
-                    });
                 }
+            });
+            // ¡NUEVO! FASE 8.2
+            if(filtroRosterSelect) filtroRosterSelect.innerHTML = '<option value="">-- Mostrar Todos los Equipos --</option>'; 
+
+            // Llenar selectores
+            equipos.forEach(equipo => {
+                const option = document.createElement('option');
+                option.value = equipo.id;
+                option.textContent = equipo.nombre;
+                
+                selectores.forEach(selectorId => {
+                    document.getElementById(selectorId).appendChild(option.cloneNode(true));
+                });
+                // ¡NUEVO! FASE 8.2
+                if(filtroRosterSelect) filtroRosterSelect.appendChild(option.cloneNode(true)); 
             });
 
             // Actualizar selector de jugadores para estadísticas
@@ -2319,8 +2364,6 @@
             const inningsJugados = parseInt(document.getElementById('inningsJugados').value);
             const fechaPartido = document.getElementById('fechaPartido').value;
 
-            // === INICIO CAMBIO FASE 7.1: Validación de carreras ===
-            // Ya no son obligatorias, pero si se pone una, se debe poner la otra.
             if (!equipoLocal || !equipoVisitante || !fechaPartido) {
                 mostrarError('partidoError', 'Equipo local, visitante y fecha son obligatorios.');
                 return;
@@ -2330,7 +2373,6 @@
                  mostrarError('partidoError', 'Si registras carreras, debes registrar tanto local como visitante.');
                 return;
             }
-            // === FIN CAMBIO FASE 7.1 ===
 
             if (equipoLocal === equipoVisitante) {
                 mostrarError('partidoError', 'Los equipos local y visitante deben ser diferentes');
@@ -2346,10 +2388,8 @@
                     body: JSON.stringify({
                         equipo_local_id: equipoLocal,
                         equipo_visitante_id: equipoVisitante,
-                        // === INICIO CAMBIO FASE 7.1: Enviar null si está vacío ===
                         carreras_local: isNaN(carrerasLocal) ? null : carrerasLocal,
                         carreras_visitante: isNaN(carrerasVisitante) ? null : carrerasVisitante,
-                        // === FIN CAMBIO FASE 7.1 ===
                         innings_jugados: inningsJugados,
                         fecha_partido: fechaPartido
                     })
@@ -2423,12 +2463,10 @@
         }
 
         async function registrarEstadisticas() {
-            // *** INICIO FASE 5.5: Validar torneo activo ***
             if (!torneoActivo.id) {
                 mostrarError('statsError', 'Error: No hay ningún torneo activo. Ve a la pestaña "Torneos" y activa uno.');
                 return;
             }
-            // *** FIN FASE 5.5 ***
 
             const jugadorId = parseInt(document.getElementById('jugadorStats').value);
             const atBats = parseInt(document.getElementById('atBats').value) || 0;
@@ -2713,10 +2751,8 @@ async function editarPartido(id) {
         
         document.getElementById('equipoLocal').value = partido.equipo_local_id;
         document.getElementById('equipoVisitante').value = partido.equipo_visitante_id;
-        // === INICIO CAMBIO FASE 7.1: Mostrar 'null' como vacío ===
         document.getElementById('carrerasLocal').value = partido.carreras_local || '';
         document.getElementById('carrerasVisitante').value = partido.carreras_visitante || '';
-        // === FIN CAMBIO FASE 7.1 ===
         document.getElementById('inningsJugados').value = partido.innings_jugados;
         document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
         
@@ -2741,7 +2777,6 @@ async function actualizarPartido(id) {
     const inningsJugados = parseInt(document.getElementById('inningsJugados').value);
     const fechaPartido = document.getElementById('fechaPartido').value;
 
-    // === INICIO CAMBIO FASE 7.1: Validación de carreras ===
     if (!equipoLocal || !equipoVisitante || !fechaPartido) {
         mostrarError('partidoError', 'Equipo local, visitante y fecha son obligatorios.');
         return;
@@ -2750,7 +2785,6 @@ async function actualizarPartido(id) {
          mostrarError('partidoError', 'Si registras carreras, debes registrar tanto local como visitante.');
         return;
     }
-    // === FIN CAMBIO FASE 7.1 ===
 
     if (equipoLocal === equipoVisitante) {
         mostrarError('partidoError', 'Los equipos local y visitante deben ser diferentes');
@@ -2764,10 +2798,8 @@ async function actualizarPartido(id) {
             body: JSON.stringify({
                 equipo_local_id: equipoLocal,
                 equipo_visitante_id: equipoVisitante,
-                // === INICIO CAMBIO FASE 7.1: Enviar null si está vacío ===
                 carreras_local: isNaN(carrerasLocal) ? null : carrerasLocal,
                 carreras_visitante: isNaN(carrerasVisitante) ? null : carrerasVisitante,
-                // === FIN CAMBIO FASE 7.1 ===
                 innings_jugados: inningsJugados,
                 fecha_partido: fechaPartido
             })
@@ -3413,3 +3445,5 @@ async function eliminarPartido(id) {
     </script>
 </body>
 </html>
+
+}
