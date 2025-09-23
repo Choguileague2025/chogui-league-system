@@ -76,7 +76,11 @@ app.get('/api/test', async (req, res) => {
     }
 });
 
-// ====================== TORNEOS (FASE 5) ======================
+// =================================================================
+// ====================== RUTAS DE LA API ==========================
+// =================================================================
+
+// ====================== TORNEOS ======================
 app.get('/api/torneos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM torneos ORDER BY fecha_inicio DESC');
@@ -91,9 +95,8 @@ app.get('/api/torneos/activo', async (req, res) => {
         const result = await pool.query('SELECT * FROM torneos WHERE activo = true LIMIT 1');
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'No hay ningún torneo activo' });
-        } else {
-            res.json(result.rows[0]);
         }
+        res.json(result.rows[0]);
     } catch (error) {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
@@ -198,6 +201,7 @@ app.get('/api/equipos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.get('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -210,6 +214,7 @@ app.get('/api/equipos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.post('/api/equipos', async (req, res) => {
     try {
         const { nombre, manager, ciudad } = req.body;
@@ -229,6 +234,7 @@ app.post('/api/equipos', async (req, res) => {
         }
     }
 });
+
 app.put('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -252,6 +258,7 @@ app.put('/api/equipos/:id', async (req, res) => {
         }
     }
 });
+
 app.delete('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -282,6 +289,7 @@ app.get('/api/jugadores', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.get('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -300,11 +308,9 @@ app.get('/api/jugadores/:id', async (req, res) => {
     }
 });
 
-// ¡CAMBIO! Se quita la validación de 'posicion'
 app.post('/api/jugadores', async (req, res) => {
     try {
         const { nombre, equipo_id, posicion, numero } = req.body;
-        // Solo nombre y equipo son obligatorios
         if (!nombre || !equipo_id) {
             return res.status(400).json({ error: 'Nombre y equipo son requeridos' });
         }
@@ -318,7 +324,6 @@ app.post('/api/jugadores', async (req, res) => {
     }
 });
 
-// ¡CAMBIO! Se quita la validación de 'posicion'
 app.put('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -338,6 +343,7 @@ app.put('/api/jugadores/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.delete('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -371,6 +377,7 @@ app.get('/api/partidos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.get('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -437,6 +444,7 @@ app.put('/api/partidos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.delete('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -469,6 +477,7 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.get('/api/estadisticas-ofensivas/:jugadorId', async (req, res) => {
     try {
         const { jugadorId } = req.params;
@@ -488,6 +497,7 @@ app.get('/api/estadisticas-ofensivas/:jugadorId', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.post('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const {
@@ -555,40 +565,7 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
-app.get('/api/lideres-ofensivos', async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT 
-                j.nombre as jugador_nombre, e.nombre as equipo_nombre, j.posicion,
-                eo.at_bats, eo.hits, eo.home_runs, eo.rbi, eo.runs, eo.walks, eo.stolen_bases,
-                CASE 
-                    WHEN eo.at_bats > 0 THEN (eo.hits::DECIMAL / eo.at_bats)
-                    ELSE 0 
-                END as avg,
-                CASE 
-                    WHEN (eo.at_bats + eo.walks) > 0 THEN (eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks)
-                    ELSE 0 
-                END as obp,
-                CASE 
-                    WHEN eo.at_bats > 0 THEN (eo.hits + (eo.home_runs * 3))::DECIMAL / eo.at_bats
-                    ELSE 0 
-                END as slg,
-                CASE 
-                    WHEN (eo.at_bats + eo.walks) > 0 AND eo.at_bats > 0 THEN 
-                        ((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks)) + 
-                        ((eo.hits + (eo.home_runs * 3))::DECIMAL / eo.at_bats)
-                    ELSE 0 
-                END as ops
-            FROM estadisticas_ofensivas eo
-            JOIN jugadores j ON eo.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE eo.at_bats >= 10
-        `);
-        res.json(result.rows);
-    } catch (error) {
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
+
 app.put('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const {
@@ -650,6 +627,7 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
     try {
         const { jugadorId } = req.params;
@@ -671,6 +649,7 @@ app.get('/api/estadisticas-pitcheo/:jugadorId', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.post('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const {
@@ -742,6 +721,7 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
     }
 });
+
 app.put('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const {
@@ -807,6 +787,7 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
     try {
         const { jugadorId } = req.params;
@@ -827,6 +808,7 @@ app.get('/api/estadisticas-defensivas/:jugadorId', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.post('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const {
@@ -889,6 +871,7 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.put('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const {
@@ -932,7 +915,42 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
     }
 });
 
-// ====================== LÍDERES (Rutas GET) ======================
+// ====================== LÍDERES (Rutas GET especializadas) ======================
+app.get('/api/lideres-ofensivos', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                j.nombre as jugador_nombre, e.nombre as equipo_nombre, j.posicion,
+                eo.at_bats, eo.hits, eo.home_runs, eo.rbi, eo.runs, eo.walks, eo.stolen_bases,
+                CASE 
+                    WHEN eo.at_bats > 0 THEN (eo.hits::DECIMAL / eo.at_bats)
+                    ELSE 0 
+                END as avg,
+                CASE 
+                    WHEN (eo.at_bats + eo.walks) > 0 THEN (eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks)
+                    ELSE 0 
+                END as obp,
+                CASE 
+                    WHEN eo.at_bats > 0 THEN (eo.hits + (eo.home_runs * 3))::DECIMAL / eo.at_bats
+                    ELSE 0 
+                END as slg,
+                CASE 
+                    WHEN (eo.at_bats + eo.walks) > 0 AND eo.at_bats > 0 THEN 
+                        ((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks)) + 
+                        ((eo.hits + (eo.home_runs * 3))::DECIMAL / eo.at_bats)
+                    ELSE 0 
+                END as ops
+            FROM estadisticas_ofensivas eo
+            JOIN jugadores j ON eo.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            WHERE eo.at_bats >= 10
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 app.get('/api/lideres-pitcheo', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -957,6 +975,7 @@ app.get('/api/lideres-pitcheo', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+
 app.get('/api/lideres-defensivos', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -976,7 +995,10 @@ app.get('/api/lideres-defensivos', async (req, res) => {
     }
 });
 
-// ====================== RUTAS HTML ======================
+// =================================================================
+// ====================== RUTAS DE ARCHIVOS HTML ===================
+// =================================================================
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/index.html'));
 });
@@ -990,7 +1012,10 @@ app.get('/public', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/public.html'));
 });
 
-// ====================== INICIAR SERVIDOR ======================
+// =================================================================
+// ====================== INICIAR SERVIDOR =========================
+// =================================================================
+
 app.listen(PORT, () => {
     console.log(`🚀 Servidor Chogui League corriendo en puerto ${PORT}`);
     console.log(`📱 Accede en: http://localhost:${PORT}`);
@@ -999,10 +1024,10 @@ app.listen(PORT, () => {
     console.log(`   - GET  /api/test (prueba de conexión)`);
     console.log(`   - GET  /api/torneos`);
     console.log(`   - POST /api/torneos`);
-    console.log(`   - PUT  /api/torneos/:id              <-- ¡NUEVA!`);
+    console.log(`   - PUT  /api/torneos/:id`);
     console.log(`   - PUT  /api/torneos/:id/activar`);
-    console.log(`   - PUT  /api/torneos/desactivar-todos <-- ¡NUEVA!`);
-    console.log(`   - DELETE /api/torneos/:id            <-- ¡NUEVA!`);
+    console.log(`   - PUT  /api/torneos/desactivar-todos`);
+    console.log(`   - DELETE /api/torneos/:id`);
     console.log(`   - GET  /api/equipos`);
     console.log(`   - GET  /api/equipos/:id`);
     console.log(`   - POST /api/equipos`);
@@ -1020,22 +1045,20 @@ app.listen(PORT, () => {
     console.log(`   - DELETE /api/partidos/:id`);
     console.log(`   - GET  /api/estadisticas-ofensivas`);
     console.log(`   - GET  /api/estadisticas-ofensivas/:jugadorId`);
-    console.log(`   - POST /api/estadisticas-ofensivas   (Actualizado)`);
-    console.log(`   - PUT  /api/estadisticas-ofensivas   (Actualizado)`);
+    console.log(`   - POST /api/estadisticas-ofensivas`);
+    console.log(`   - PUT  /api/estadisticas-ofensivas`);
     console.log(`   - GET  /api/lideres-ofensivos`);
     console.log(`   - GET  /api/estadisticas-pitcheo`);
     console.log(`   - GET  /api/estadisticas-pitcheo/:jugadorId`);
-    console.log(`   - POST /api/estadisticas-pitcheo   (Actualizado)`);
-    console.log(`   - PUT  /api/estadisticas-pitcheo   (Actualizado)`);
+    console.log(`   - POST /api/estadisticas-pitcheo`);
+    console.log(`   - PUT  /api/estadisticas-pitcheo`);
     console.log(`   - GET  /api/estadisticas-defensivas`);
     console.log(`   - GET  /api/estadisticas-defensivas/:jugadorId`);
-    console.log(`   - POST /api/estadisticas-defensivas   (Actualizado)`);
-    console.log(`   - PUT  /api/estadisticas-defensivas   (Actualizado)`);
+    console.log(`   - POST /api/estadisticas-defensivas`);
+    console.log(`   - PUT  /api/estadisticas-defensivas`);
     console.log(`   - GET  /api/lideres-pitcheo`);
     console.log(`   - GET  /api/lideres-defensivos`);
     
     // Ejecutar migraciones después de que el servidor esté funcionando
     runMigrations();
 });
-
-}
