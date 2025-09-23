@@ -1201,7 +1201,7 @@
             return Math.max(warTotal, -2.0);
         }
 
-        // ========== FUNCIÓN DE CÁLCULO DE POSICIONES (NUEVA LÓGICA FASE 6) ==========
+        // ========== FUNCIÓN DE CÁLCULO DE POSICIONES (¡CORREGIDA A OPCIÓN B!) ==========
 
         function calcularPosiciones() {
             const tbody = document.querySelector('#posicionesTable tbody');
@@ -1264,6 +1264,11 @@
                 }))
                 .sort((a, b) => {
                     if (b.porcentaje !== a.porcentaje) return b.porcentaje - a.porcentaje;
+                    // ¡NUEVO! Desempate por Carreras en Contra (CE)
+                    if (a.carreras_contra !== b.carreras_contra) {
+                        return a.carreras_contra - b.carreras_contra;
+                    }
+                    // Desempate final por Diferencia
                     return b.diferencia - a.diferencia;
                 });
 
@@ -1331,9 +1336,9 @@
                 return;
             }
 
-            // Ordenar partidos por fecha más reciente
+            // Ordenar partidos por fecha (¡CAMBIO! Más recientes al final)
             const partidosOrdenados = [...partidos]
-                .sort((a, b) => new Date(b.fecha_partido) - new Date(a.fecha_partido));
+                .sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido));
 
             tbody.innerHTML = partidosOrdenados.map(partido => {
                 // === INICIO CAMBIO FASE 7.1: Mostrar partidos sin resultado ===
@@ -1464,11 +1469,14 @@
                 }
 
                 if (isDecimal) {
+                    // Para ERA, WHIP, AVG, etc.
                     valor = statValue ? statValue.toFixed(3) : '0.000';
+                    // Caso especial para ERA y WHIP que pueden ser 0.00
                     if (stat === 'era' || stat === 'whip') {
                         valor = statValue.toFixed(2);
                     }
                 } else {
+                    // Para HR, RBI, Wins, etc.
                     valor = statValue || 0;
                 }
                 
@@ -1527,6 +1535,11 @@
                     }))
                     .sort((a, b) => {
                         if (b.porcentaje !== a.porcentaje) return b.porcentaje - a.porcentaje;
+                        // ¡NUEVO! Desempate por Carreras en Contra (CE)
+                        if (a.carreras_contra !== b.carreras_contra) {
+                            return a.carreras_contra - b.carreras_contra;
+                        }
+                        // Desempate final por Diferencia
                         return b.diferencia - a.diferencia;
                     });
             }
@@ -1572,7 +1585,7 @@
                 `;
             }
 
-            // *** CORRECCIÓN DE REGLA (Turno 113) ***
+            // *** ¡CORRECCIÓN DE REGLA (Opción 2)! ***
             // Regla del Wildcard (Mejor Perdedor por resultado del juego)
             html += `
                 <div class="card" style="background: linear-gradient(145deg, #ff9800, #f57c00); margin: 0;">
