@@ -443,13 +443,13 @@ app.get('/api/partidos/:id', async (req, res) => {
     }
 });
 
-// *** INICIO DE CORRECCIÓN FASE 7.1 ***
+// *** ¡CORRECCIÓN FASE 7.1! ***
+// Esta es la versión que permite registrar partidos futuros (carreras = null)
 app.post('/api/partidos', async (req, res) => {
     try {
         // Las carreras ahora son opcionales
         const { equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido } = req.body;
         
-        // Quitado: carreras_local === undefined || carreras_visitante === undefined
         // Ahora solo validamos lo esencial para un partido a futuro
         if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
             return res.status(400).json({ error: 'Equipo local, equipo visitante y fecha son requeridos' });
@@ -469,21 +469,24 @@ app.post('/api/partidos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-// *** FIN DE CORRECCIÓN FASE 7.1 ***
 
 app.put('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido } = req.body;
-        if (!equipo_local_id || !equipo_visitante_id || carreras_local === undefined || carreras_visitante === undefined) {
-            return res.status(400).json({ error: 'Todos los campos son requeridos' });
+        
+        // ¡CORRECCIÓN FASE 7.1! Permitir actualizar a null o con valores
+        if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
+            return res.status(400).json({ error: 'Equipo local, visitante y fecha son obligatorios' });
         }
         if (equipo_local_id === equipo_visitante_id) {
             return res.status(400).json({ error: 'Los equipos local y visitante deben ser diferentes' });
         }
+        
         const result = await pool.query(
             'UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2, carreras_local = $3, carreras_visitante = $4, innings_jugados = $5, fecha_partido = $6 WHERE id = $7 RETURNING *',
-            [equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados || 9, fecha_partido, id]
+            // ¡CORRECCIÓN FASE 7.1! Usar || null
+            [equipo_local_id, equipo_visitante_id, carreras_local || null, carreras_visitante || null, innings_jugados || 9, fecha_partido, id]
         );
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
