@@ -158,36 +158,46 @@
     </div>
 
     <script>
-        // Usuarios predefinidos
-        const users = {
-            'admin1': { password: 'chogui2024', role: 'admin' },
-            'admin2': { password: 'league2024', role: 'admin' }
-        };
-
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const messageDiv = document.getElementById('message');
             
-            // Validar credenciales
-            if (users[username] && users[username].password === password) {
-                // Login exitoso
-                showMessage('✅ Login exitoso. Redirigiendo...', 'success');
-                
-                // Guardar usuario
-                localStorage.setItem('userRole', users[username].role);
-                localStorage.setItem('username', username);
-                
-                // Redirigir a admin
-                setTimeout(() => {
-                    window.location.href = 'admin.html';
-                }, 1500);
-                
-            } else {
-                // Login fallido
-                showMessage('❌ Usuario o contraseña incorrectos', 'error');
+            try {
+                // Enviar datos al servidor (backend)
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Login exitoso
+                    showMessage('✅ Login exitoso. Redirigiendo...', 'success');
+                    
+                    // Guardar los datos del usuario en localStorage
+                    localStorage.setItem('userRole', data.user.role);
+                    localStorage.setItem('username', data.user.username);
+                    
+                    // Redirigir al panel de administración
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 1500);
+                    
+                } else {
+                    // Login fallido (respuesta del servidor)
+                    showMessage(`❌ ${data.message || 'Error en el login'}`, 'error');
+                }
+
+            } catch (error) {
+                // Error de conexión
+                console.error('Error de conexión:', error);
+                showMessage('❌ No se pudo conectar con el servidor.', 'error');
             }
         });
         
@@ -200,7 +210,7 @@
             if (type === 'error') {
                 setTimeout(() => {
                     messageDiv.style.display = 'none';
-                }, 3000);
+                }, 4000);
             }
         }
     </script>
