@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS partidos (
     id SERIAL PRIMARY KEY,
     equipo_local_id INTEGER REFERENCES equipos(id),
     equipo_visitante_id INTEGER REFERENCES equipos(id),
-    carreras_local INTEGER NOT NULL DEFAULT 0,
-    carreras_visitante INTEGER NOT NULL DEFAULT 0,
+    carreras_local INTEGER,
+    carreras_visitante INTEGER,
     innings_jugados INTEGER DEFAULT 9,
     fecha_partido DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -24,10 +24,26 @@ CREATE TABLE IF NOT EXISTS jugadores (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     equipo_id INTEGER REFERENCES equipos(id),
-    posicion VARCHAR(10) NOT NULL,
+    posicion VARCHAR(10),
     numero INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Crear tabla de usuarios para el login
+CREATE TABLE IF NOT EXISTS usuarios (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'admin',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insertar un usuario administrador inicial (contraseña: admin)
+-- La contraseña está encriptada por seguridad (hashed)
+INSERT INTO usuarios (username, password, role) VALUES
+('admin', '$2b$10$f.B4.6tP9jZ3a/uP3iU.a.URaG23S.g2u7y.j2zYj2y.x2C6p3dO6', 'admin')
+ON CONFLICT (username) DO NOTHING;
+
 
 -- Insertar datos de ejemplo
 INSERT INTO equipos (nombre, manager, ciudad) VALUES 
