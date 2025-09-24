@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 const pool = require('./database');
 
@@ -79,6 +80,53 @@ app.get('/api/test', async (req, res) => {
 // =================================================================
 // ====================== RUTAS DE LA API ==========================
 // =================================================================
+
+// =================================================================
+// ====================== AUTENTICACIÓN ============================
+// =================================================================
+
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ success: false, message: 'Usuario y contraseña son requeridos' });
+        }
+
+        // 1. Buscar el usuario en la base de datos
+        const userResult = await pool.query('SELECT * FROM usuarios WHERE username = $1', [username]);
+
+        if (userResult.rows.length === 0) {
+            // Si el usuario no existe
+            return res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos' });
+        }
+
+        const user = userResult.rows[0];
+
+        // 2. Comparar la contraseña enviada con la encriptada en la DB
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (isMatch) {
+            // 3. Si la contraseña es correcta
+            res.json({
+                success: true,
+                message: 'Login exitoso',
+                user: {
+                    username: user.username,
+                    role: user.role
+                }
+            });
+        } else {
+            // 4. Si la contraseña es incorrecta
+            return res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos' });
+        }
+
+    } catch (error) {
+        console.error('Error en el login:', error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+});
+
 
 // ====================== TORNEOS ======================
 app.get('/api/torneos', async (req, res) => {
@@ -1022,6 +1070,7 @@ app.listen(PORT, () => {
     console.log(`🔧 Modo: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🗄️ APIs disponibles:`);
     console.log(`   - GET  /api/test (prueba de conexión)`);
+    console.log(`   - POST /api/login`);
     console.log(`   - GET  /api/torneos`);
     console.log(`   - POST /api/torneos`);
     console.log(`   - PUT  /api/torneos/:id`);
