@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
-const bcrypt = require('bcryptjs'); // <-- ESTE ES EL ÚNICO CAMBIO
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 const pool = require('./database');
 
@@ -48,6 +48,10 @@ async function runMigrations() {
             console.error(`❌ Error ejecutando migración ${fileName}:`, error.message);
         }
     };
+    
+    // ▼▼▼▼▼ LÍNEA AÑADIDA AQUÍ ▼▼▼▼▼
+    await runSqlFile('init-db.sql');
+    // ▲▲▲▲▲ LÍNEA AÑADIDA AQUÍ ▲▲▲▲▲
 
     await runSqlFile('setup-pitching-stats.sql');
     await runSqlFile('setup-offensive-stats.sql');
@@ -1111,5 +1115,3 @@ app.listen(PORT, () => {
     // Ejecutar migraciones después de que el servidor esté funcionando
     runMigrations();
 });
-
-// ... (El resto del archivo server.js se mantiene igual)
