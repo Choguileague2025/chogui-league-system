@@ -1,4 +1,4 @@
-// ESTA ES UNA PRUEBA PARA FORZAR EL GUARDADO
+
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
