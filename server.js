@@ -273,7 +273,6 @@ app.post('/api/login', async (req, res) => {
                 message: 'Usuario o contraseña incorrectos' 
             });
         }
-
         const user = userResult.rows[0];
         const isMatch = await bcrypt.compare(password, user.password);
         

@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 -- Insertar un usuario administrador inicial (contraseña: admin)
 -- La contraseña está encriptada por seguridad (hashed)
 INSERT INTO usuarios (username, password, role) VALUES
-('admin', '$2b$10$f.B4.6tP9jZ3a/uP3iU.a.URaG23S.g2u7y.j2zYj2y.x2C6p3dO6', 'admin')
+('admin', '$2a$10$3lJEVf/Y1D9T/mI3u.o.4uHqg8gBqY0.u0B.0B.0B.0B.0B.0B', 'admin')
 ON CONFLICT (username) DO NOTHING;
 
 
