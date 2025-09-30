@@ -629,10 +629,10 @@
         /* AÑADIDO: CSS para Mejoras UX */
         .form-group { position: relative; }
         .field-error {
-           color: #dc143c;
-           font-size: 0.8rem;
-           margin-top: 5px;
-           animation: fadeIn 0.3s ease;
+            color: #dc143c;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            animation: fadeIn 0.3s ease;
         }
         @keyframes fadeInOut {
             0%, 100% { opacity: 0; }
@@ -746,12 +746,37 @@
             50% { opacity: 1; transform: scale(1.2); }
         }
         /* Como no hay .loading::after, no se puede aplicar el estilo directamente sin cambiar HTML, lo cual está prohibido.
-           Se deja la animación spin para .loading-spinner para no romper la funcionalidad visual existente. */
+            Se deja la animación spin para .loading-spinner para no romper la funcionalidad visual existente. */
         /* ----- FIN CORRECCIÓN 1 ----- */
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        .alerta {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .alerta-warning {
+            background-color: rgba(255, 165, 0, 0.2);
+            border-color: #ffa500;
+            color: #ffa500;
+        }
+        .alerta-info {
+            background-color: rgba(0, 191, 255, 0.2);
+            border-color: #00bfff;
+            color: #00bfff;
+        }
+        .alerta-success {
+            background-color: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+            color: #4CAF50;
         }
     </style>
 </head>
@@ -1712,431 +1737,1724 @@
                 }
             }
         }
-        
-        // ... (resto de funciones de carga y gestión sin cambios) ...
-        async function cargarTorneoActivo() { /* ... */ }
-        async function cargarTorneos() { /* ... */ }
-        async function crearTorneo() { /* ... */ }
-        async function editarTorneo(id, nombreActual) { /* ... */ }
-        async function activarTorneo(id) { /* ... */ }
-        async function desactivarTodosLosTorneos() { /* ... */ }
-        async function eliminarTorneo(id) { /* ... */ }
-        
+
+        // ===============================================
+        // == INICIO DE LAS 13 FUNCIONES CORREGIDAS ==
+        // ===============================================
+
+        async function agregarJugador() {
+            const nombre = document.getElementById('nombreJugador').value.trim();
+            const equipoId = document.getElementById('equipoJugador').value;
+            const posicion = document.getElementById('posicionJugador').value;
+            const numero = document.getElementById('numeroJugador').value;
+
+            if (!nombre || nombre.length < 3) {
+                alert('El nombre del jugador debe tener al menos 3 caracteres');
+                return;
+            }
+
+            const jugadorData = {
+                nombre: nombre,
+                equipo_id: equipoId || null,
+                posicion: posicion || null,
+                numero: numero || null
+            };
+
+            try {
+                const response = await fetch('/api/jugadores', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(jugadorData)
+                });
+
+                if (response.ok) {
+                    alert(`Jugador "${nombre}" agregado exitosamente`);
+                    document.getElementById('jugadorForm').reset();
+                    await cargarJugadores();
+                } else {
+                    const error = await response.text();
+                    alert(`Error: ${error}`);
+                }
+            } catch (error) {
+                console.error('Error agregando jugador:', error);
+                alert('Error de conexión al servidor');
+            }
+        }
+
+        function calcularOBP(h, bb, ab) {
+            if (ab + bb === 0) return 0;
+            return (h + bb) / (ab + bb);
+        }
+
+        function calcularSLG(h, hr, ab) {
+            if (ab === 0) return 0;
+            return (h + hr * 3) / ab;
+        }
+
         async function cargarEquipos() {
             try {
                 const response = await fetch('/api/equipos');
-                if (response.ok) {
-                    equipos = await response.json();
-                    equiposFiltrados = [...equipos];
-                    actualizarTablaEquipos();
-                } else {
-                    throw new Error('Error cargando equipos');
-                }
-            } catch (error) { console.error('Error:', error); }
+                if (!response.ok) throw new Error('Error cargando equipos');
+                
+                equipos = await response.json();
+                equiposFiltrados = [...equipos];
+                actualizarTablaEquipos();
+            } catch (error) {
+                console.error('Error cargando equipos:', error);
+                alert('Error cargando equipos');
+            }
         }
 
         async function cargarPartidos() {
             try {
                 const response = await fetch('/api/partidos');
-                partidos = response.ok ? await response.json() : [];
+                if (!response.ok) throw new Error('Error cargando partidos');
+                
+                partidos = await response.json();
                 actualizarTablaPartidos();
-            } catch (error) { console.error('Error:', error); partidos = []; }
+            } catch (error) {
+                console.error('Error cargando partidos:', error);
+                alert('Error cargando partidos');
+            }
         }
-        
+
         async function cargarJugadores() {
             try {
                 const response = await fetch('/api/jugadores');
-                jugadores = response.ok ? await response.json() : [];
+                if (!response.ok) throw new Error('Error cargando jugadores');
+                
+                jugadores = await response.json();
                 jugadoresFiltrados = [...jugadores];
+                
                 setTimeout(() => {
                     configurarFiltrosEnTiempoReal();
                     actualizarTablaJugadores();
                 }, 100);
-            } catch (error) { console.error('Error:', error); jugadores = []; }
+            } catch (error) {
+                console.error('Error cargando jugadores:', error);
+                alert('Error cargando jugadores');
+            }
         }
 
-        async function cargarEstadisticas() { /* ... */ }
-        function calcularOBP(h, bb, ab) { return ab > 0 ? (h + bb) / (ab + bb) : 0; }
-        function calcularSLG(h, hr, ab) { return ab > 0 ? (h + (hr * 3)) / ab : 0; }
-        function calcularOPS(obp, slg) { return obp + slg; }
-        function calcularWAR(jugador, stats) { /* ... */ return 0; }
-        function actualizarTablaEstadisticas() { /* ... */ }
-        async function actualizarLideresPorPosicion() { /* ... */ }
-        function calcularPosiciones() { /* ... */ }
-        async function actualizarLideres() { /* ... */ }
-        function mostrarLideresVacios(containerId) { /* ... */ }
-        function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) { /* ... */ }
-        function actualizarSelectores() { /* ... */ }
-        
-        // ... (funciones de agregar/editar/eliminar sin cambios) ...
-        async function agregarEquipo() { /* ... */ }
-        async function registrarPartido() { /* ... */ }
-        
-        // ----- INICIO CORRECCIÓN 4 PARTE B: MODIFICAR FUNCIÓN JS -----
-        async function agregarJugador() {
-          const nombre = document.getElementById('nombreJugador').value.trim();
-          const equipoId = document.getElementById('equipoJugador').value || null;
-          
-          if (!nombre) {
-            if (window.notificationManager) {
-              window.notificationManager.warning('El nombre del jugador es requerido', 'Validación');
-            } else {
-              alert('El nombre del jugador es requerido');
-            }
-            return;
-          }
-          
-          if (nombre.length < 3) {
-            if (window.notificationManager) {
-              window.notificationManager.warning('El nombre debe tener al menos 3 caracteres', 'Validación');
-            } else {
-              alert('El nombre debe tener al menos 3 caracteres');
-            }
-            return;
-          }
-          
-          const jugadorData = {
-            nombre: nombre,
-            equipo_id: equipoId,
-            numero: null,
-            posicion: null,
-            altura: null,
-            peso: null
-          };
-          
-          if (window.loadingManager) {
-            window.loadingManager.show('btn-agregar-jugador');
-          }
-          
-          try {
-            const response = await fetch('/api/jugadores', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(jugadorData)
-            });
-            
-            if (response.ok) {
-              if (window.notificationManager) {
-                window.notificationManager.success(`Jugador "${nombre}" agregado exitosamente`, 'Éxito');
-              } else {
-                alert(`Jugador "${nombre}" agregado exitosamente`);
-              }
-              document.getElementById('jugadorForm').reset();
-              await cargarJugadores();
-            } else {
-              const error = await response.text();
-              if (window.notificationManager) {
-                window.notificationManager.error(`Error: ${error}`, 'Error del Servidor');
-              } else {
-                alert(`Error: ${error}`);
-              }
-            }
-          } catch (error) {
-            console.error('Error agregando jugador:', error);
-            if (window.notificationManager) {
-              window.notificationManager.error('Error de conexión al servidor', 'Error de Red');
-            } else {
-              alert('Error de conexión al servidor');
-            }
-          } finally {
-            if (window.loadingManager) {
-              window.loadingManager.hide('btn-agregar-jugador');
-            }
-          }
-        }
-        // ----- FIN CORRECCIÓN 4 PARTE B -----
-
-        async function registrarEstadisticas() { /* ... */ }
-        async function eliminarEquipo(id) { /* ... */ }
-        async function editarEquipo(id) { /* ... */ }
-        async function actualizarEquipo(id) { /* ... */ }
-        async function editarJugador(id) { /* ... */ }
-        async function actualizarJugador(id) { /* ... */ }
-        async function eliminarJugador(id) { /* ... */ }
-        async function editarPartido(id) { /* ... */ }
-        async function actualizarPartido(id) { /* ... */ }
-        async function eliminarPartido(id) { /* ... */ }
-        async function registrarEstadisticasPitcheo() { /* ... */ }
-        async function registrarEstadisticasDefensivas() { /* ... */ }
-        async function cargarTablaEditarBateo() { /* ... */ }
-        async function cargarTablaEditarPitcheo() { /* ... */ }
-        async function cargarTablaEditarDefensa() { /* ... */ }
-        function limpiarFormulario(tipo) { /* ... */ }
-        function resetearBoton(tipo) { /* ... */ }
-        async function cargarParaEditar(tipo, jugadorId) { /* ... */ }
-        async function actualizarEstadistica(tipo, jugadorId) { /* ... */ }
-
-        // ... (funciones de filtros y ordenamiento sin cambios) ...
-        let ordenJugadores = { campo: 'nombre', direccion: 'asc' };
-        let ordenEquipos = { campo: 'nombre', direccion: 'asc' };
-        let jugadoresFiltrados = [];
-        let equiposFiltrados = [];
-        function renderizarTablaEquipos() { /* ... */ }
-        function ordenarTablaEquipos(campo) { /* ... */ }
-        function limpiarFiltrosEquipos() { /* ... */ }
-        function limpiarFiltrosPartidos() { /* ... */ }
-        function renderizarTablaJugadores() { /* ... */ }
-        function limpiarFiltrosJugadores() { /* ... */ }
-        
         function actualizarTablaJugadores() {
             const buscador = document.getElementById('buscadorJugadores').value.toLowerCase().trim();
             const filtroEquipo = document.getElementById('filtroRosterEquipo').value;
             const filtroPosicion = document.getElementById('filtroPosicion')?.value || '';
+
+            // Filtrar jugadores
             jugadoresFiltrados = jugadores.filter(jugador => {
                 const coincideNombre = jugador.nombre.toLowerCase().includes(buscador);
                 const coincideEquipo = !filtroEquipo || jugador.equipo_id == filtroEquipo;
                 const coincidePosicion = !filtroPosicion || jugador.posicion === filtroPosicion;
                 return coincideNombre && coincideEquipo && coincidePosicion;
             });
+
+            // Aplicar ordenamiento si existe
             if (ordenJugadores.campo) {
                 jugadoresFiltrados.sort((a, b) => {
                     let valorA = a[ordenJugadores.campo] || '';
                     let valorB = b[ordenJugadores.campo] || '';
+
                     if (ordenJugadores.campo === 'equipo_nombre') {
                         valorA = a.equipo_nombre || '';
                         valorB = b.equipo_nombre || '';
                     }
+
                     if (typeof valorA === 'string') {
                         valorA = valorA.toLowerCase();
                         valorB = valorB.toLowerCase();
                     }
+
                     let comparacion = valorA < valorB ? -1 : valorA > valorB ? 1 : 0;
                     return ordenJugadores.direccion === 'desc' ? -comparacion : comparacion;
                 });
             }
+
+            // Actualizar contador
             const counter = document.getElementById('jugadores-count');
-            if (counter) counter.textContent = `Total: ${jugadoresFiltrados.length} jugadores`;
+            if (counter) {
+                counter.textContent = `Total: ${jugadoresFiltrados.length} jugadores`;
+            }
+
+            // Renderizar tabla
             renderizarTablaJugadores();
         }
 
         function ordenarTablaJugadores(campo) {
+            console.log('Ordenando por campo:', campo);
+
+            // Cambiar dirección si es el mismo campo
             if (ordenJugadores.campo === campo) {
                 ordenJugadores.direccion = ordenJugadores.direccion === 'asc' ? 'desc' : 'asc';
             } else {
                 ordenJugadores.campo = campo;
                 ordenJugadores.direccion = 'asc';
             }
+
+            // Limpiar todos los indicadores
             document.querySelectorAll('#jugadoresTable .sort-indicator').forEach(el => {
                 el.className = 'sort-indicator';
             });
+
+            // Agregar indicador al campo activo
             const targetHeader = document.querySelector(`#jugadoresTable th[onclick*="${campo}"] .sort-indicator`);
-            if (targetHeader) targetHeader.className = `sort-indicator ${ordenJugadores.direccion}`;
+            if (targetHeader) {
+                targetHeader.className = `sort-indicator ${ordenJugadores.direccion}`;
+            }
+
+            // Actualizar tabla
             actualizarTablaJugadores();
+            console.log(`Ordenado por ${campo} ${ordenJugadores.direccion}`);
         }
-        
+
         function actualizarTablaEquipos() {
             const buscador = document.getElementById('buscadorEquipos')?.value?.toLowerCase().trim() || '';
-            equiposFiltrados = equipos.filter(equipo => 
-                equipo.nombre.toLowerCase().includes(buscador) ||
-                equipo.manager.toLowerCase().includes(buscador) ||
-                equipo.ciudad.toLowerCase().includes(buscador)
-            );
+
+            equiposFiltrados = equipos.filter(equipo => {
+                return equipo.nombre.toLowerCase().includes(buscador) ||
+                    equipo.manager.toLowerCase().includes(buscador) ||
+                    equipo.ciudad.toLowerCase().includes(buscador);
+            });
+
+            // Aplicar ordenamiento
             if (ordenEquipos.campo) {
                 equiposFiltrados.sort((a, b) => {
-                    let valorA = ordenEquipos.campo === 'fecha_creacion' ? a.fecha_creacion : a[ordenEquipos.campo] || '';
-                    let valorB = ordenEquipos.campo === 'fecha_creacion' ? b.fecha_creacion : b[ordenEquipos.campo] || '';
+                    let valorA = a[ordenEquipos.campo] || '';
+                    let valorB = b[ordenEquipos.campo] || '';
+
                     if (typeof valorA === 'string') {
                         valorA = valorA.toLowerCase();
                         valorB = valorB.toLowerCase();
                     }
-                    let comparacion = valorA < valorB ? -1 : (valorA > valorB ? 1 : 0);
+
+                    let comparacion = valorA < valorB ? -1 : valorA > valorB ? 1 : 0;
                     return ordenEquipos.direccion === 'desc' ? -comparacion : comparacion;
                 });
             }
-            if(document.getElementById('equipos-count')) document.getElementById('equipos-count').textContent = `Total: ${equiposFiltrados.length} equipos`;
+
+            // Actualizar contador
+            if (document.getElementById('equipos-count')) {
+                document.getElementById('equipos-count').textContent = `Total: ${equiposFiltrados.length} equipos`;
+            }
+
             renderizarTablaEquipos();
         }
 
         function actualizarTablaPartidos() {
-            const tbody = document.querySelector('#partidosTable tbody');
-            const filtroEquipo = document.getElementById('filtroEquipoPartidos')?.value;
-            const filtroEstado = document.getElementById('filtroEstadoPartidos')?.value;
-            const filtroFecha = document.getElementById('filtroFechaPartidos')?.value;
+            const filtroEquipo = document.getElementById('filtroEquipoPartidos')?.value || '';
+            const filtroEstado = document.getElementById('filtroEstadoPartidos')?.value || '';
+            const filtroFecha = document.getElementById('filtroFechaPartidos')?.value || '';
 
-            const partidosFiltrados = partidos.filter(partido => {
-                const coincideEquipo = !filtroEquipo || partido.equipo_local_id == filtroEquipo || partido.equipo_visitante_id == filtroEquipo;
-                const estadoActual = partido.carreras_local !== null ? 'finalizado' : 'pendiente';
-                const coincideEstado = !filtroEstado || estadoActual === filtroEstado;
-                const coincideFecha = !filtroFecha || partido.fecha_partido.startsWith(filtroFecha);
+            let partidosFiltrados = partidos.filter(partido => {
+                const coincideEquipo = !filtroEquipo || 
+                    partido.equipo_local_id == filtroEquipo || 
+                    partido.equipo_visitante_id == filtroEquipo;
+                
+                const coincideEstado = !filtroEstado || 
+                    (filtroEstado === 'finalizado' && partido.carreras_local !== null) ||
+                    (filtroEstado === 'pendiente' && partido.carreras_local === null);
+                
+                const coincideFecha = !filtroFecha || 
+                    partido.fecha_partido?.startsWith(filtroFecha);
+
                 return coincideEquipo && coincideEstado && coincideFecha;
             });
-            
-            if(document.getElementById('partidos-count')) document.getElementById('partidos-count').textContent = `Total: ${partidosFiltrados.length} partidos`;
+
+            // Actualizar contador
+            if (document.getElementById('partidos-count')) {
+                document.getElementById('partidos-count').textContent = `Total: ${partidosFiltrados.length} partidos`;
+            }
+
+            // Renderizar tabla
+            const tbody = document.querySelector('#partidosTable tbody');
+            if (!tbody) return;
 
             if (partidosFiltrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No hay partidos que coincidan con los filtros.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No se encontraron partidos</td></tr>';
                 return;
             }
-            
+
             tbody.innerHTML = partidosFiltrados.map(partido => {
-                const equipoLocalNombre = partido.equipo_local_nombre || 'Equipo Local';
-                const equipoVisitanteNombre = partido.equipo_visitante_nombre || 'Equipo Visitante';
-                let resultado = 'Pendiente';
-                let ganadorHtml = `<small style="color: #ff8c00;">Pendiente</small>`;
-                if (partido.carreras_local !== null) {
-                    resultado = `${partido.carreras_local} - ${partido.carreras_visitante}`;
-                    const ganador = partido.carreras_local > partido.carreras_visitante ? equipoLocalNombre : equipoVisitanteNombre;
-                    ganadorHtml = `<small style="color: #4CAF50;">Ganó: ${ganador}</small>`;
-                }
-                return `<tr><td><strong>${equipoLocalNombre}</strong></td><td><strong>${equipoVisitanteNombre}</strong></td><td><strong>${resultado}</strong><br>${ganadorHtml}</td><td>${partido.innings_jugados || 9} inn</td><td>${new Date(partido.fecha_partido).toLocaleDateString('es-AR')}</td><td><button class="btn-secondary" onclick="editarPartido(${partido.id})">✏️</button><button class="btn-secondary" onclick="eliminarPartido(${partido.id})" style="background: #dc143c;">🗑️</button></td></tr>`;
+                const resultado = partido.carreras_local !== null 
+                    ? `${partido.carreras_local} - ${partido.carreras_visitante}`
+                    : 'Pendiente';
+                
+                const ganador = partido.carreras_local !== null
+                    ? (partido.carreras_local > partido.carreras_visitante 
+                        ? partido.equipo_local_nombre 
+                        : partido.equipo_visitante_nombre)
+                    : '-';
+
+                const fecha = partido.fecha_partido 
+                    ? new Date(partido.fecha_partido).toLocaleDateString('es-AR')
+                    : '-';
+
+                return `
+                    <tr>
+                        <td>${partido.equipo_local_nombre}</td>
+                        <td>${partido.equipo_visitante_nombre}</td>
+                        <td>${resultado}</td>
+                        <td>${partido.innings || '9'}</td>
+                        <td>${fecha}</td>
+                        <td>
+                            <button class="btn-secondary btn-edit" onclick="editarPartido(${partido.id})">✏️</button>
+                            <button class="btn-secondary" onclick="eliminarPartido(${partido.id})" style="background: #dc143c;">🗑️</button>
+                        </td>
+                    </tr>
+                `;
             }).join('');
         }
 
         function configurarFiltrosEnTiempoReal() {
-            ['buscadorJugadores', 'filtroRosterEquipo', 'filtroPosicion'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', actualizarTablaJugadores);
-            });
-            ['buscadorEquipos'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.addEventListener('input', actualizarTablaEquipos);
-            });
-            ['filtroEquipoPartidos', 'filtroEstadoPartidos', 'filtroFechaPartidos'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', actualizarTablaPartidos);
-            });
-        }
-        
-        // ... (Clases UX de PASO 4) ...
-        class FormValidator { /* ... */ }
-        class LoadingManager { /* ... */ }
-        class ConfirmationManager { /* ... */ }
-        class NotificationManager { /* ... */ }
-        class ShortcutManager { /* ... */ }
-        class AutoSaveManager { /* ... */ }
-        function initializeUXSystems() { /* ... */ }
-        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initializeUXSystems); } else { initializeUXSystems(); }
-        
-        // ... (Funciones de exportación de PASO 5) ...
-        function exportarTabla(tabla, formato) { /* ... */ }
-        function exportarCSV(datos, headers, filename, tabla) { /* ... */ }
+            console.log('Configurando filtros en tiempo real...');
 
-        // ========== PASO 6: DASHBOARD DE ESTADÍSTICAS ==========
-        function cargarDashboard() {
-            console.log('Cargando dashboard...');
-            
-            // KPIs básicos
-            document.getElementById('total-equipos').textContent = equipos.length;
-            document.getElementById('total-jugadores').textContent = jugadores.length;
-            document.getElementById('total-partidos').textContent = partidos.length;
-            
-            const equiposConPartidos = new Set();
-            partidos.forEach(partido => {
-                if (partido.carreras_local !== null) {
-                    equiposConPartidos.add(partido.equipo_local_id);
-                    equiposConPartidos.add(partido.equipo_visitante_id);
-                }
-            });
-            document.getElementById('equipos-activos').textContent = equiposConPartidos.size;
-            
-            const partidosFinalizados = partidos.filter(p => p.carreras_local !== null).length;
-            document.getElementById('partidos-finalizados').textContent = partidosFinalizados;
-            
-            const porcentajeFinalizacion = partidos.length > 0 ? Math.round((partidosFinalizados / partidos.length) * 100) : 0;
-            document.getElementById('porcentaje-finalizacion').textContent = porcentajeFinalizacion + '%';
-            
-            const jugadoresConStats = estadisticas.length;
-            document.getElementById('jugadores-stats').textContent = jugadoresConStats;
-            
-            if (torneoActivo && torneoActivo.id) {
-                document.getElementById('torneo-nombre').textContent = torneoActivo.nombre;
-                document.getElementById('torneo-status').textContent = '✅';
-            } else {
-                document.getElementById('torneo-nombre').textContent = 'Sin Torneo Activo';
-                document.getElementById('torneo-status').textContent = '❌';
+            // Jugadores
+            const buscadorJugadores = document.getElementById('buscadorJugadores');
+            const filtroEquipo = document.getElementById('filtroRosterEquipo');
+            const filtroPosicion = document.getElementById('filtroPosicion');
+
+            if (buscadorJugadores) {
+                buscadorJugadores.removeEventListener('input', actualizarTablaJugadores);
+                buscadorJugadores.addEventListener('input', actualizarTablaJugadores);
+                console.log('✅ Buscador de jugadores configurado');
             }
-            
-            document.getElementById('ultima-actualizacion').textContent = new Date().toLocaleTimeString('es-AR');
-            
-            if (estadisticas.length > 0) {
-                const totalAB = estadisticas.reduce((sum, stat) => sum + (parseInt(stat.at_bats) || 0), 0);
-                const totalH = estadisticas.reduce((sum, stat) => sum + (parseInt(stat.hits) || 0), 0);
-                const avgGeneral = totalAB > 0 ? (totalH / totalAB).toFixed(3) : '.000';
+
+            if (filtroEquipo) {
+                filtroEquipo.removeEventListener('change', actualizarTablaJugadores);
+                filtroEquipo.addEventListener('change', actualizarTablaJugadores);
+                console.log('✅ Filtro de equipo configurado');
+            }
+
+            if (filtroPosicion) {
+                filtroPosicion.removeEventListener('change', actualizarTablaJugadores);
+                filtroPosicion.addEventListener('change', actualizarTablaJugadores);
+                console.log('✅ Filtro de posición configurado');
+            }
+
+            // Equipos
+            const buscadorEquipos = document.getElementById('buscadorEquipos');
+            if (buscadorEquipos) {
+                buscadorEquipos.removeEventListener('input', actualizarTablaEquipos);
+                buscadorEquipos.addEventListener('input', actualizarTablaEquipos);
+                console.log('✅ Buscador de equipos configurado');
+            }
+
+            // Partidos
+            const filtroEquipoPartidos = document.getElementById('filtroEquipoPartidos');
+            const filtroEstadoPartidos = document.getElementById('filtroEstadoPartidos');
+            const filtroFechaPartidos = document.getElementById('filtroFechaPartidos');
+
+            if (filtroEquipoPartidos) {
+                filtroEquipoPartidos.removeEventListener('change', actualizarTablaPartidos);
+                filtroEquipoPartidos.addEventListener('change', actualizarTablaPartidos);
+            }
+
+            if (filtroEstadoPartidos) {
+                filtroEstadoPartidos.removeEventListener('change', actualizarTablaPartidos);
+                filtroEstadoPartidos.addEventListener('change', actualizarTablaPartidos);
+            }
+
+            if (filtroFechaPartidos) {
+                filtroFechaPartidos.removeEventListener('change', actualizarTablaPartidos);
+                filtroFechaPartidos.addEventListener('change', actualizarTablaPartidos);
+            }
+
+            console.log('Filtros configurados correctamente');
+        }
+
+        async function cargarDashboard() {
+            try {
+                // KPIs principales
+                document.getElementById('total-equipos').textContent = equipos.length;
+                document.getElementById('total-jugadores').textContent = jugadores.length;
+                document.getElementById('total-partidos').textContent = partidos.length;
+
+                // Equipos activos (con partidos jugados)
+                const equiposActivos = new Set();
+                partidos.forEach(p => {
+                    if (p.carreras_local !== null) {
+                        equiposActivos.add(p.equipo_local_id);
+                        equiposActivos.add(p.equipo_visitante_id);
+                    }
+                });
+                document.getElementById('equipos-activos').textContent = equiposActivos.size;
+
+                // Partidos finalizados
+                const partidosFinalizados = partidos.filter(p => p.carreras_local !== null).length;
+                document.getElementById('partidos-finalizados').textContent = partidosFinalizados;
+
+                // Porcentaje de finalización
+                const porcentaje = partidos.length > 0 
+                    ? Math.round((partidosFinalizados / partidos.length) * 100)
+                    : 0;
+                document.getElementById('porcentaje-finalizacion').textContent = `${porcentaje}%`;
+
+                // Jugadores con estadísticas
+                document.getElementById('jugadores-stats').textContent = estadisticas.length;
+
+                // Torneo activo
+                document.getElementById('torneo-nombre').textContent = torneoActivo.nombre || 'NINGUNO';
+                document.getElementById('torneo-status').textContent = torneoActivo.id ? '✅ Activo' : '⚠️ Inactivo';
+
+                // Última actualización
+                const ahora = new Date();
+                document.getElementById('ultima-actualizacion').textContent = 
+                    ahora.toLocaleTimeString('es-AR');
+
+                // Promedio general de bateo
+                const avgGeneral = estadisticas.length > 0
+                    ? (estadisticas.reduce((sum, e) => sum + (e.promedio_bateo || 0), 0) / estadisticas.length).toFixed(3)
+                    : '0.000';
                 document.getElementById('avg-general').textContent = avgGeneral;
-            }
-            
-            if (partidosFinalizados > 0) {
-                const totalCarreras = partidos
-                    .filter(p => p.carreras_local !== null)
-                    .reduce((sum, p) => sum + p.carreras_local + p.carreras_visitante, 0);
-                const carrerasPromedio = (totalCarreras / partidosFinalizados).toFixed(1);
-                document.getElementById('carreras-promedio').textContent = carrerasPromedio;
-            }
-            
-            if (equipos.length > 0 && partidos.length > 0) {
-                const estadisticasEquipos = {};
-                equipos.forEach(equipo => {
-                    estadisticasEquipos[equipo.id] = { nombre: equipo.nombre, ganados: 0, perdidos: 0 };
-                });
-                partidos.forEach(partido => {
-                    if (partido.carreras_local !== null) {
-                        if (partido.carreras_local > partido.carreras_visitante) {
-                            estadisticasEquipos[partido.equipo_local_id].ganados++;
-                            estadisticasEquipos[partido.equipo_visitante_id].perdidos++;
-                        } else if (partido.carreras_local < partido.carreras_visitante) {
-                            estadisticasEquipos[partido.equipo_visitante_id].ganados++;
-                            estadisticasEquipos[partido.equipo_local_id].perdidos++;
-                        }
-                    }
-                });
-                let equipoLider = null;
-                let mejorPorcentaje = -1;
-                Object.values(estadisticasEquipos).forEach(equipo => {
-                    const total = equipo.ganados + equipo.perdidos;
-                    if (total > 0) {
-                        const porcentaje = equipo.ganados / total;
-                        if (porcentaje > mejorPorcentaje) {
-                            mejorPorcentaje = porcentaje;
-                            equipoLider = equipo;
-                        }
-                    }
-                });
-                if (equipoLider) {
-                    document.getElementById('equipo-lider').textContent = equipoLider.nombre;
-                    document.getElementById('record-lider').textContent = `${equipoLider.ganados}-${equipoLider.perdidos}`;
-                }
-            }
-            
-            if (partidos.length > 0) {
-                const ultimoPartido = partidos[partidos.length - 1];
-                const fecha = new Date(ultimoPartido.fecha_partido).toLocaleDateString('es-AR');
-                document.getElementById('ultimo-partido').textContent = `${ultimoPartido.equipo_local_nombre || 'Equipo'} vs ${ultimoPartido.equipo_visitante_nombre || 'Equipo'} (${fecha})`;
-            }
-            if (jugadores.length > 0) {
-                const ultimoJugador = jugadores[jugadores.length - 1];
-                document.getElementById('ultimo-jugador').textContent = `${ultimoJugador.nombre} - ${ultimoJugador.equipo_nombre || 'Sin equipo'}`;
-            }
-            if (equipos.length > 0) {
-                const ultimoEquipo = equipos[equipos.length - 1];
-                document.getElementById('ultimo-equipo').textContent = ultimoEquipo.nombre;
-            }
-            
-            generarAlertas();
-        }
 
+                // Carreras promedio por partido
+                const carrerasPromedio = partidosFinalizados > 0
+                    ? Math.round(
+                        partidos
+                            .filter(p => p.carreras_local !== null)
+                            .reduce((sum, p) => sum + p.carreras_local + p.carreras_visitante, 0) 
+                        / partidosFinalizados
+                    )
+                    : 0;
+                document.getElementById('carreras-promedio').textContent = carrerasPromedio;
+
+                // Equipo líder
+                if (equipos.length > 0) {
+                    const posiciones = calcularPosiciones();
+                    if (posiciones && posiciones.length > 0) {
+                        const lider = posiciones[0];
+                        document.getElementById('equipo-lider').textContent = lider.nombre;
+                        document.getElementById('record-lider').textContent = 
+                            `${lider.victorias}-${lider.derrotas} (${lider.porcentaje}%)`;
+                    } else {
+                        document.getElementById('equipo-lider').textContent = 'N/A';
+                        document.getElementById('record-lider').textContent = '0-0';
+                    }
+                }
+
+                // Últimos registros
+                if (partidos.length > 0) {
+                    const ultimoPartido = partidos[partidos.length - 1];
+                    document.getElementById('ultimo-partido').textContent = 
+                        `${ultimoPartido.equipo_local_nombre} vs ${ultimoPartido.equipo_visitante_nombre}`;
+                }
+
+                if (jugadores.length > 0) {
+                    const ultimoJugador = jugadores[jugadores.length - 1];
+                    document.getElementById('ultimo-jugador').textContent = ultimoJugador.nombre;
+                }
+
+                if (equipos.length > 0) {
+                    const ultimoEquipo = equipos[equipos.length - 1];
+                    document.getElementById('ultimo-equipo').textContent = ultimoEquipo.nombre;
+                }
+
+                // Generar alertas
+                generarAlertas();
+
+            } catch (error) {
+                console.error('Error cargando dashboard:', error);
+            }
+        }
+        
         function generarAlertas() {
             const alertasContainer = document.getElementById('alertas-container');
-            alertasContainer.innerHTML = ''; // Limpiar alertas previas
-            let alertas = [];
-            
-            if (!torneoActivo || !torneoActivo.id) {
-                alertas.push({ mensaje: 'No hay torneo activo - Las estadísticas no se guardarán', color: '#ff8c00' });
-            }
-            const partidosFinalizados = partidos.filter(p => p.carreras_local !== null).length;
-            if (partidos.length > 0 && partidosFinalizados < partidos.length) {
-                alertas.push({ mensaje: `${partidos.length - partidosFinalizados} partidos pendientes de finalizar`, color: '#007BFF' });
-            }
-            if (jugadores.length > estadisticas.length) {
-                alertas.push({ mensaje: `${jugadores.length - estadisticas.length} jugadores sin estadísticas de bateo`, color: '#ff8c00' });
-            }
-            
-            if (alertas.length === 0) {
-                alertasContainer.innerHTML = `<div class="leader-item"><div class="leader-name">Sistema funcionando correctamente</div><div class="leader-stat" style="color: #4CAF50;">✅</div></div>`;
-            } else {
-                alertas.forEach(alerta => {
-                    alertasContainer.innerHTML += `<div class="leader-item"><div class="leader-name">${alerta.mensaje}</div><div class="leader-stat" style="color: ${alerta.color};">⚠️</div></div>`;
+            if (!alertasContainer) return;
+
+            const alertas = [];
+
+            // Alerta de torneo activo
+            if (!torneoActivo.id) {
+                alertas.push({
+                    tipo: 'warning',
+                    mensaje: '⚠️ No hay torneo activo. Activa un torneo para comenzar a registrar partidos.',
+                    accion: 'Activar Torneo'
                 });
             }
+
+            // Partidos pendientes
+            const partidosPendientes = partidos.filter(p => p.carreras_local === null).length;
+            if (partidosPendientes > 0) {
+                alertas.push({
+                    tipo: 'info',
+                    mensaje: `📅 Hay ${partidosPendientes} partido(s) pendiente(s) de completar.`,
+                    accion: 'Ver Partidos'
+                });
+            }
+
+            // Jugadores sin estadísticas
+            const jugadoresSinStats = jugadores.length - estadisticas.length;
+            if (jugadoresSinStats > 0) {
+                alertas.push({
+                    tipo: 'info',
+                    mensaje: `📊 ${jugadoresSinStats} jugador(es) sin estadísticas registradas.`,
+                    accion: 'Registrar Estadísticas'
+                });
+            }
+
+            // Renderizar alertas
+            if (alertas.length === 0) {
+                alertasContainer.innerHTML = `
+                    <div class="alerta alerta-success">
+                        <strong>✅ Sistema funcionando correctamente</strong>
+                        <p>No hay alertas pendientes</p>
+                    </div>
+                `;
+            } else {
+                alertasContainer.innerHTML = alertas.map(alerta => `
+                    <div class="alerta alerta-${alerta.tipo}">
+                        <strong>${alerta.mensaje}</strong>
+                        ${alerta.accion ? `<button class="btn-secondary">${alerta.accion}</button>` : ''}
+                    </div>
+                `).join('');
+            }
+        }
+
+        // ===============================================
+        // == FIN DE LAS 13 FUNCIONES CORREGIDAS ==
+        // ===============================================
+        
+        async function cargarTorneoActivo() {
+            try {
+                const response = await fetch('/api/torneos/activo');
+                if (response.ok) {
+                    const data = await response.json();
+                    torneoActivo = (data && data.id) ? data : { id: null, nombre: 'NINGUNO' };
+                } else {
+                    torneoActivo = { id: null, nombre: 'NINGUNO' };
+                }
+            } catch (error) {
+                console.error('Error al cargar torneo activo:', error);
+                torneoActivo = { id: null, nombre: 'NINGUNO' };
+            }
+        }
+
+        async function cargarTorneos() {
+            try {
+                const response = await fetch('/api/torneos');
+                const torneosList = await response.json();
+                const tbody = document.querySelector('#torneosTable tbody');
+                if (!tbody) return;
+
+                if (torneosList.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No se han creado torneos.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = torneosList.map(torneo => `
+                    <tr>
+                        <td>${torneo.id}</td>
+                        <td><strong>${torneo.nombre}</strong></td>
+                        <td>${new Date(torneo.fecha_creacion).toLocaleDateString('es-AR')}</td>
+                        <td>
+                            <span style="color: ${torneo.activo ? '#4CAF50' : '#ff8c00'}; font-weight: bold;">
+                                ${torneo.activo ? '✅ ACTIVO' : '⚪ Inactivo'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-activar" onclick="activarTorneo(${torneo.id})" ${torneo.activo ? 'disabled' : ''}>
+                                Activar
+                            </button>
+                            <button class="btn-edit" onclick="editarTorneo(${torneo.id}, '${torneo.nombre.replace(/'/g, "\\'")}')">✏️</button>
+                            <button class="btn-secondary" onclick="eliminarTorneo(${torneo.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error al cargar torneos:', error);
+                const tbody = document.querySelector('#torneosTable tbody');
+                if(tbody) tbody.innerHTML = '<tr><td colspan="5" class="empty-state" style="color:#dc143c;">Error al cargar torneos.</td></tr>';
+            }
+        }
+
+        async function crearTorneo() {
+            const nombreInput = document.getElementById('nombreTorneo');
+            const nombre = nombreInput.value.trim();
+            if (!nombre) {
+                alert('El nombre del torneo es obligatorio.');
+                return;
+            }
+            try {
+                const response = await fetch('/api/torneos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre })
+                });
+                if (response.ok) {
+                    alert('Torneo creado exitosamente.');
+                    nombreInput.value = '';
+                    await cargarTorneos();
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message || 'No se pudo crear el torneo.'}`);
+                }
+            } catch (error) {
+                alert('Error de conexión al crear torneo.');
+            }
+        }
+
+        async function editarTorneo(id, nombreActual) {
+            const nuevoNombre = prompt("Editar nombre del torneo:", nombreActual);
+            if (nuevoNombre && nuevoNombre.trim() && nuevoNombre.trim() !== nombreActual) {
+                try {
+                    const response = await fetch(`/api/torneos/${id}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ nombre: nuevoNombre.trim() })
+                    });
+                    if (response.ok) {
+                        alert('Torneo actualizado.');
+                        await cargarTorneos();
+                        if (torneoActivo.id === id) {
+                            await cargarTorneoActivo();
+                        }
+                    } else {
+                        alert('No se pudo actualizar el torneo.');
+                    }
+                } catch (e) {
+                    alert('Error de conexión.');
+                }
+            }
+        }
+
+        async function activarTorneo(id) {
+            try {
+                const response = await fetch(`/api/torneos/${id}/activar`, { method: 'PUT' });
+                if (response.ok) {
+                    alert('Torneo activado.');
+                    await cargarTorneoActivo();
+                    await cargarTorneos();
+                } else {
+                    alert('Error al activar el torneo.');
+                }
+            } catch(e) {
+                alert('Error de conexión.');
+            }
+        }
+
+        async function desactivarTodosLosTorneos() {
+            if (!confirm('¿Desactivar todos los torneos? Ninguno quedará como activo.')) return;
+            try {
+                const response = await fetch(`/api/torneos/desactivar-todos`, { method: 'PUT' });
+                if (response.ok) {
+                    alert('Todos los torneos desactivados.');
+                    await cargarTorneoActivo();
+                    await cargarTorneos();
+                } else {
+                    alert('Error al desactivar torneos.');
+                }
+            } catch(e) {
+                alert('Error de conexión.');
+            }
+        }
+
+        async function eliminarTorneo(id) {
+            if (!confirm('¿Seguro que quieres eliminar este torneo? Se borrarán todas sus estadísticas asociadas.')) return;
+            try {
+                const response = await fetch(`/api/torneos/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    alert('Torneo eliminado.');
+                    await cargarTorneos();
+                    if(torneoActivo.id === id) {
+                        await cargarTorneoActivo();
+                    }
+                } else {
+                    alert('Error al eliminar el torneo.');
+                }
+            } catch(e) {
+                alert('Error de conexión.');
+            }
+        }
+
+        async function cargarEstadisticas() {
+            try {
+                const [ofensivasRes, defensivasRes, pitcheoRes] = await Promise.all([
+                    fetch('/api/estadisticas-ofensivas'),
+                    fetch('/api/estadisticas-defensivas'),
+                    fetch('/api/estadisticas-pitcheo')
+                ]);
+
+                const ofensivas = ofensivasRes.ok ? await ofensivasRes.json() : [];
+                const defensivas = defensivasRes.ok ? await defensivasRes.json() : [];
+                const pitcheo = pitcheoRes.ok ? await pitcheoRes.json() : [];
+
+                const statsMap = new Map();
+
+                const mergeStats = (statList) => {
+                    statList.forEach(stat => {
+                        const existing = statsMap.get(stat.jugador_id) || { jugador_id: stat.jugador_id };
+                        statsMap.set(stat.jugador_id, { ...existing, ...stat });
+                    });
+                };
+
+                mergeStats(ofensivas);
+                mergeStats(defensivas);
+                mergeStats(pitcheo);
+
+                estadisticas = Array.from(statsMap.values());
+                actualizarTablaEstadisticas();
+            } catch (error) {
+                console.error("Error cargando todas las estadísticas:", error);
+                estadisticas = [];
+            }
+        }
+
+        function calcularWAR(jugador, stats) {
+            const { at_bats = 0, hits = 0, home_runs = 0, walks = 0 } = stats;
+            const pa = at_bats + walks;
+            if (pa === 0) return 0;
+
+            const wOBA = (0.69 * walks + 0.89 * (hits - home_runs) + 2.1 * home_runs) / pa;
+            const leagueWOBA = 0.320;
+            const wRAA = ((wOBA - leagueWOBA) / 1.25) * pa;
+
+            const positionalAdjustment = AJUSTES_POSICIONALES[jugador.posicion] || 0;
+            const replacementRuns = (pa / 600) * 20;
+            
+            const totalRuns = wRAA + positionalAdjustment - replacementRuns;
+            const war = totalRuns / 10;
+            return isNaN(war) ? 0.0 : war;
+        }
+
+        function actualizarTablaEstadisticas() {
+            const tbody = document.querySelector('#statsTable tbody');
+            if (!tbody) return;
+
+            const statsConJugador = estadisticas.map(stat => {
+                const jugador = jugadores.find(j => j.id === stat.jugador_id);
+                if (!jugador) return null;
+                return { ...stat, ...jugador, jugador_nombre: jugador.nombre, equipo_nombre: jugador.equipo_nombre };
+            }).filter(Boolean);
+
+            if (statsConJugador.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No hay estadísticas para mostrar.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = statsConJugador.map(s => {
+                const ab = s.at_bats || 0;
+                const h = s.hits || 0;
+                const hr = s.home_runs || 0;
+                const bb = s.walks || 0;
+                const avg = ab > 0 ? (h / ab).toFixed(3) : '.000';
+                const obp = calcularOBP(h, bb, ab);
+                const slg = calcularSLG(h, hr, ab);
+                const ops = (obp + slg).toFixed(3);
+                const war = calcularWAR(s, s).toFixed(2);
+
+                return `
+                    <tr>
+                        <td><strong>${s.jugador_nombre}</strong></td>
+                        <td>${s.equipo_nombre}</td>
+                        <td>${s.posicion || 'N/A'}</td>
+                        <td>${ab}</td>
+                        <td>${h}</td>
+                        <td style="font-weight: bold; color: #ffd700;">${avg}</td>
+                        <td>${obp.toFixed(3)}</td>
+                        <td style="font-weight: bold; color: #ff8c00;">${ops}</td>
+                        <td>${hr || 0}</td>
+                        <td>${s.rbi || 0}</td>
+                        <td style="font-weight: bold; color: #4CAF50;">${war}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function actualizarLideresPorPosicion() {
+            try {
+                const response = await fetch('/api/estadisticas-defensivas');
+                if (!response.ok) throw new Error('Failed to fetch defensive stats');
+                const defensivas = await response.json();
+                
+                const grid = document.getElementById('positionLeadersGrid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                
+                const posGroups = {};
+                defensivas.forEach(stat => {
+                    const player = jugadores.find(j => j.id === stat.jugador_id);
+                    if (!player || !player.posicion) return;
+                    
+                    if (!posGroups[player.posicion]) posGroups[player.posicion] = [];
+                    const po = stat.putouts || 0;
+                    const a = stat.assists || 0;
+                    const e = stat.errors || 0;
+                    const chances = po + a + e;
+                    const rating = chances > 0 ? ((po + a) / chances) : 1;
+                    posGroups[player.posicion].push({ ...player, rating: rating.toFixed(3) });
+                });
+                
+                Object.keys(AJUSTES_POSICIONALES).forEach(pos => {
+                    const leaders = (posGroups[pos] || []).sort((a,b) => b.rating - a.rating).slice(0,3);
+                    
+                    let leaderHtml = `<div class="position-leader empty-state" style="padding: 10px 0;">Sin datos</div>`;
+                    if (leaders.length > 0) {
+                        leaderHtml = leaders.map(l => `
+                            <div class="position-leader-item">
+                                <div class="position-player-container">
+                                    <div>
+                                        <div class="position-player">${l.nombre}</div>
+                                        <div class="position-team">${l.equipo_nombre}</div>
+                                    </div>
+                                    <div class="position-rating">${l.rating}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    
+                    grid.innerHTML += `
+                        <div class="position-card">
+                            <div class="position-title">🛡️ MEJORES ${pos} (FLD%)</div>
+                            <div class="position-leader">${leaderHtml}</div>
+                        </div>`;
+                });
+                if(grid.innerHTML === '') grid.innerHTML = `<p class="empty-state">No hay suficientes datos defensivos.</p>`;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function calcularPosiciones() {
+            const tbody = document.querySelector('#posicionesTable tbody');
+            if (!tbody) return []; // Retornar array vacío para el dashboard
+            if (equipos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No hay equipos registrados.</td></tr>`;
+                return [];
+            }
+
+            const standings = new Map(equipos.map(e => [e.id, { id: e.id, nombre: e.nombre, PJ: 0, PG: 0, PP: 0, CF: 0, CE: 0 }]));
+            
+            partidos.forEach(p => {
+                if (p.carreras_local !== null && p.carreras_visitante !== null) {
+                    const local = standings.get(p.equipo_local_id);
+                    const visitante = standings.get(p.equipo_visitante_id);
+                    
+                    if (!local || !visitante) return;
+                    
+                    local.PJ++; visitante.PJ++;
+                    local.CF += p.carreras_local; visitante.CF += p.carreras_visitante;
+                    local.CE += p.carreras_visitante; visitante.CE += p.carreras_local;
+
+                    if (p.carreras_local > p.carreras_visitante) {
+                        local.PG++; visitante.PP++;
+                    } else if (p.carreras_visitante > p.carreras_local) {
+                        visitante.PG++; local.PP++;
+                    }
+                }
+            });
+
+            const sorted = [...standings.values()].sort((a, b) => {
+                const pctA = a.PJ > 0 ? a.PG / a.PJ : 0;
+                const pctB = b.PJ > 0 ? b.PG / b.PJ : 0;
+                if (pctB > pctA) return 1;
+                if (pctA > pctB) return -1;
+                const diffA = a.CF - a.CE;
+                const diffB = b.CF - b.CE;
+                return diffB - diffA;
+            });
+            
+            if (sorted.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No hay partidos jugados.</td></tr>`;
+                return [];
+            }
+
+            tbody.innerHTML = sorted.map((team, index) => {
+                const pct = team.PJ > 0 ? (team.PG / team.PJ).toFixed(3) : '.000';
+                const diff = team.CF - team.CE;
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${team.nombre}</strong></td>
+                        <td>${team.PJ}</td>
+                        <td style="color:#4CAF50;">${team.PG}</td>
+                        <td style="color:#dc143c;">${team.PP}</td>
+                        <td>${pct}</td>
+                        <td>${team.CF}</td>
+                        <td>${team.CE}</td>
+                        <td>${diff > 0 ? `+${diff}` : diff}</td>
+                        <td>-</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Devolver para el dashboard
+            return sorted.map(t => ({
+                nombre: t.nombre,
+                victorias: t.PG,
+                derrotas: t.PP,
+                porcentaje: t.PJ > 0 ? ((t.PG / t.PJ) * 100).toFixed(1) : '0.0'
+            }));
+        }
+
+
+        async function actualizarLideres() {
+            if (estadisticas.length === 0 || jugadores.length === 0) {
+                ['avgLeaders', 'hrLeaders', 'rbiLeaders', 'opsLeaders', 'warLeaders', 'sbLeaders'].forEach(mostrarLideresVacios);
+                return;
+            }
+            const minAB = 10;
+            const enrichedStats = estadisticas
+                .map(stat => {
+                    const jugador = jugadores.find(j => j.id === stat.jugador_id);
+                    return jugador ? { ...stat, ...jugador, jugador_nombre: jugador.nombre, equipo_nombre: jugador.equipo_nombre } : null;
+                })
+                .filter(s => s && s.at_bats > 0);
+
+            const qualified = enrichedStats.filter(s => s.at_bats >= minAB);
+
+            actualizarLideresHTML('avgLeaders', [...qualified].sort((a,b) => (b.hits/b.at_bats) - (a.hits/a.at_bats)).slice(0,3), 'avg', true);
+            actualizarLideresHTML('hrLeaders', [...enrichedStats].sort((a,b) => (b.home_runs || 0) - (a.home_runs || 0)).slice(0,3), 'home_runs');
+            actualizarLideresHTML('rbiLeaders', [...enrichedStats].sort((a,b) => (b.rbi || 0) - (a.rbi || 0)).slice(0,3), 'rbi');
+            actualizarLideresHTML('sbLeaders', [...enrichedStats].sort((a,b) => (b.stolen_bases || 0) - (a.stolen_bases || 0)).slice(0,3), 'stolen_bases');
+
+            const opsLeaders = qualified.map(s => {
+                const obp = calcularOBP(s.hits || 0, s.walks || 0, s.at_bats);
+                const slg = calcularSLG(s.hits || 0, s.home_runs || 0, s.at_bats);
+                s.ops = obp + slg;
+                return s;
+            }).sort((a,b) => b.ops - a.ops).slice(0,3);
+            actualizarLideresHTML('opsLeaders', opsLeaders, 'ops', true);
+
+            const warLeaders = enrichedStats.map(s => {
+                s.war = calcularWAR(s, s);
+                return s;
+            }).sort((a,b) => b.war - a.war).slice(0,3);
+            actualizarLideresHTML('warLeaders', warLeaders, 'war', true);
+        }
+
+        function mostrarLideresVacios(containerId) {
+            const container = document.getElementById(containerId);
+            if(container) container.innerHTML = `<div class="leader-item"><div class="leader-name" style="font-style: italic; color: #aaa;">Sin datos suficientes</div></div>`;
+        }
+
+        function actualizarLideresHTML(containerId, lideres, stat, isDecimal = false) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (!lideres || lideres.length === 0) {
+                mostrarLideresVacios(containerId);
+                return;
+            }
+            const medals = ['🥇', '🥈', '🥉'];
+            const medalClasses = ['gold-medal', 'silver-medal', 'bronze-medal'];
+
+            container.innerHTML = lideres.map((l, index) => {
+                let statValue;
+                if (stat === 'avg') statValue = (l.hits / l.at_bats).toFixed(3);
+                else if (stat === 'ops') statValue = l.ops.toFixed(3);
+                else if (stat === 'war') statValue = l.war.toFixed(2);
+                else statValue = l[stat] || 0;
+                
+                return `
+                <div class="leader-item">
+                    <div>
+                        <div class="leader-name ${medalClasses[index]}">${medals[index]} ${l.jugador_nombre}</div>
+                        <div class="leader-team">${l.equipo_nombre || 'Sin equipo'}</div>
+                    </div>
+                    <div class="leader-stat">${statValue}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function actualizarSelectores() {
+            const equipoOptions = equipos.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+            ['equipoLocal', 'equipoVisitante', 'equipoJugador', 'filtroEquipoPartidos', 'filtroRosterEquipo'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    const first = select.options[0].outerHTML;
+                    select.innerHTML = first + equipoOptions;
+                }
+            });
+            const jugadorOptions = jugadores.map(j => `<option value="${j.id}">${j.nombre} (${j.equipo_nombre || 'N/A'})</option>`).join('');
+            ['jugadorStats', 'jugadorPitcheo', 'jugadorDefensivo'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    const first = select.options[0].outerHTML;
+                    select.innerHTML = first + jugadorOptions;
+                }
+            });
+        }
+
+        async function agregarEquipo() {
+            const nombre = document.getElementById('nombreEquipo').value.trim();
+            const manager = document.getElementById('managerEquipo').value.trim();
+            const ciudad = document.getElementById('ciudadEquipo').value.trim();
+            if(!nombre || !manager || !ciudad) {
+                alert('Todos los campos son requeridos.');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/equipos', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ nombre, manager, ciudad })
+                });
+                if(res.ok) {
+                    alert('Equipo agregado exitosamente.');
+                    document.getElementById('nombreEquipo').value = '';
+                    document.getElementById('managerEquipo').value = '';
+                    document.getElementById('ciudadEquipo').value = '';
+                    await cargarEquipos();
+                    actualizarSelectores();
+                } else {
+                    alert('Error al agregar equipo.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function registrarPartido() {
+            const equipo_local_id = document.getElementById('equipoLocal').value;
+            const equipo_visitante_id = document.getElementById('equipoVisitante').value;
+            const carreras_local = document.getElementById('carrerasLocal').value;
+            const carreras_visitante = document.getElementById('carrerasVisitante').value;
+            const fecha_partido = document.getElementById('fechaPartido').value;
+
+            if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
+                alert('Equipos y fecha son obligatorios.');
+                return;
+            }
+            if (equipo_local_id === equipo_visitante_id) {
+                alert('Un equipo no puede jugar contra sí mismo.');
+                return;
+            }
+
+            const body = {
+                equipo_local_id,
+                equipo_visitante_id,
+                fecha_partido,
+                carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
+                carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
+            };
+
+            try {
+                const res = await fetch('/api/partidos', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    alert('Partido registrado exitosamente.');
+                    await cargarPartidos();
+                    calcularPosiciones();
+                    document.getElementById('equipoLocal').value = '';
+                    document.getElementById('equipoVisitante').value = '';
+                    document.getElementById('carrerasLocal').value = '';
+                    document.getElementById('carrerasVisitante').value = '';
+                } else {
+                    alert('Error al registrar partido.');
+                }
+            } catch (e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function registrarEstadisticas() {
+            const jugador_id = document.getElementById('jugadorStats').value;
+            if (!jugador_id) {
+                alert('Selecciona un jugador.');
+                return;
+            }
+            
+            const data = {
+                jugador_id: parseInt(jugador_id),
+                at_bats: parseInt(document.getElementById('atBats').value) || 0,
+                hits: parseInt(document.getElementById('hits').value) || 0,
+                home_runs: parseInt(document.getElementById('homeRuns').value) || 0,
+                rbi: parseInt(document.getElementById('rbi').value) || 0,
+                runs: parseInt(document.getElementById('runs').value) || 0,
+                walks: parseInt(document.getElementById('walks').value) || 0,
+                stolen_bases: parseInt(document.getElementById('stolenBases').value) || 0
+            };
+            
+            try {
+                const res = await fetch('/api/estadisticas-ofensivas', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    alert('Estadísticas registradas exitosamente.');
+                    await cargarEstadisticas();
+                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases').forEach(el => el.value = 0);
+                } else {
+                    alert('Error al registrar estadísticas.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function eliminarEquipo(id) {
+            if (!confirm('¿Eliminar este equipo?')) return;
+            try {
+                const res = await fetch(`/api/equipos/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Equipo eliminado.');
+                    await cargarEquipos();
+                } else {
+                    alert('Error al eliminar.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function editarEquipo(id) {
+            const equipo = equipos.find(e => e.id === id);
+            if (!equipo) return;
+            document.getElementById('nombreEquipo').value = equipo.nombre;
+            document.getElementById('managerEquipo').value = equipo.manager;
+            document.getElementById('ciudadEquipo').value = equipo.ciudad;
+            document.getElementById('btn-agregar-equipo').textContent = '✅ Actualizar';
+            document.getElementById('btn-agregar-equipo').onclick = () => actualizarEquipo(id);
+        }
+
+        async function actualizarEquipo(id) {
+            const nombre = document.getElementById('nombreEquipo').value.trim();
+            const manager = document.getElementById('managerEquipo').value.trim();
+            const ciudad = document.getElementById('ciudadEquipo').value.trim();
+            if(!nombre || !manager || !ciudad) {
+                alert('Todos los campos son requeridos.');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`/api/equipos/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ nombre, manager, ciudad })
+                });
+                if(res.ok) {
+                    alert('Equipo actualizado.');
+                    document.getElementById('nombreEquipo').value = '';
+                    document.getElementById('managerEquipo').value = '';
+                    document.getElementById('ciudadEquipo').value = '';
+                    document.getElementById('btn-agregar-equipo').textContent = '🏆 Agregar Equipo';
+                    document.getElementById('btn-agregar-equipo').onclick = agregarEquipo;
+                    await cargarEquipos();
+                } else {
+                    alert('Error al actualizar equipo.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function editarJugador(id) {
+            const jugador = jugadores.find(j => j.id === id);
+            if (!jugador) return;
+            document.getElementById('nombreJugador').value = jugador.nombre;
+            document.getElementById('equipoJugador').value = jugador.equipo_id || '';
+            document.getElementById('posicionJugador').value = jugador.posicion || '';
+            document.getElementById('numeroJugador').value = jugador.numero || '';
+            document.getElementById('btn-agregar-jugador').textContent = '✅ Actualizar';
+            document.getElementById('btn-agregar-jugador').onclick = () => actualizarJugador(id);
+        }
+
+        async function actualizarJugador(id) {
+            const nombre = document.getElementById('nombreJugador').value.trim();
+            const equipo_id = document.getElementById('equipoJugador').value || null;
+            const posicion = document.getElementById('posicionJugador').value || null;
+            const numero = document.getElementById('numeroJugador').value || null;
+            
+            if (!nombre || nombre.length < 3) {
+                alert('El nombre debe tener al menos 3 caracteres.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/jugadores/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, equipo_id, posicion, numero: numero ? parseInt(numero) : null })
+                });
+                
+                if (response.ok) {
+                    alert('Jugador actualizado exitosamente.');
+                    document.getElementById('jugadorForm').reset();
+                    document.getElementById('btn-agregar-jugador').textContent = '👤 Agregar Jugador';
+                    document.getElementById('btn-agregar-jugador').onclick = agregarJugador;
+                    await cargarJugadores();
+                } else {
+                    alert('Error al actualizar jugador.');
+                }
+            } catch (error) {
+                alert('Error de conexión.');
+                }
+        }
+
+        async function eliminarJugador(id) {
+            if (!confirm('¿Eliminar este jugador?')) return;
+            try {
+                const res = await fetch(`/api/jugadores/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Jugador eliminado.');
+                    await cargarJugadores();
+                } else {
+                    alert('Error al eliminar.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function editarPartido(id) {
+            const partido = partidos.find(p => p.id === id);
+            if (!partido) return;
+            document.getElementById('equipoLocal').value = partido.equipo_local_id;
+            document.getElementById('equipoVisitante').value = partido.equipo_visitante_id;
+            document.getElementById('carrerasLocal').value = partido.carreras_local || '';
+            document.getElementById('carrerasVisitante').value = partido.carreras_visitante || '';
+            document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
+            document.getElementById('btn-registrar-partido').textContent = '✅ Actualizar';
+            document.getElementById('btn-registrar-partido').onclick = () => actualizarPartido(id);
+        }
+
+        async function actualizarPartido(id) {
+            const equipo_local_id = document.getElementById('equipoLocal').value;
+            const equipo_visitante_id = document.getElementById('equipoVisitante').value;
+            const carreras_local = document.getElementById('carrerasLocal').value;
+            const carreras_visitante = document.getElementById('carrerasVisitante').value;
+            const fecha_partido = document.getElementById('fechaPartido').value;
+
+            if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
+                alert('Equipos y fecha son obligatorios.');
+                return;
+            }
+
+            const body = {
+                equipo_local_id,
+                equipo_visitante_id,
+                fecha_partido,
+                carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
+                carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
+            };
+
+            try {
+                const res = await fetch(`/api/partidos/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    alert('Partido actualizado.');
+                    document.getElementById('equipoLocal').value = '';
+                    document.getElementById('equipoVisitante').value = '';
+                    document.getElementById('carrerasLocal').value = '';
+                    document.getElementById('carrerasVisitante').value = '';
+                    document.getElementById('btn-registrar-partido').textContent = '🎯 Registrar Partido';
+                    document.getElementById('btn-registrar-partido').onclick = registrarPartido;
+                    await cargarPartidos();
+                    calcularPosiciones();
+                } else {
+                    alert('Error al actualizar partido.');
+                }
+            } catch (e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function eliminarPartido(id) {
+            if (!confirm('¿Eliminar este partido?')) return;
+            try {
+                const res = await fetch(`/api/partidos/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Partido eliminado.');
+                    await cargarPartidos();
+                    calcularPosiciones();
+                } else {
+                    alert('Error al eliminar.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function registrarEstadisticasPitcheo() {
+            const jugador_id = document.getElementById('jugadorPitcheo').value;
+            if (!jugador_id) {
+                alert('Selecciona un pitcher.');
+                return;
+            }
+            
+            const data = {
+                jugador_id: parseInt(jugador_id),
+                innings_pitched: parseFloat(document.getElementById('inningsPitched').value) || 0,
+                hits_allowed: parseInt(document.getElementById('hitsAllowed').value) || 0,
+                earned_runs: parseInt(document.getElementById('earnedRuns').value) || 0,
+                strikeouts: parseInt(document.getElementById('strikeouts').value) || 0,
+                walks_allowed: parseInt(document.getElementById('walksAllowed').value) || 0,
+                home_runs_allowed: parseInt(document.getElementById('homeRunsAllowed').value) || 0,
+                wins: parseInt(document.getElementById('wins').value) || 0,
+                losses: parseInt(document.getElementById('losses').value) || 0,
+                saves: parseInt(document.getElementById('saves').value) || 0
+            };
+            
+            try {
+                const res = await fetch('/api/estadisticas-pitcheo', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    alert('Estadísticas de pitcheo registradas.');
+                    await cargarEstadisticas();
+                    document.querySelectorAll('#inningsPitched, #hitsAllowed, #earnedRuns, #strikeouts, #walksAllowed, #homeRunsAllowed, #wins, #losses, #saves').forEach(el => el.value = 0);
+                } else {
+                    alert('Error al registrar estadísticas.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function registrarEstadisticasDefensivas() {
+            const jugador_id = document.getElementById('jugadorDefensivo').value;
+            if (!jugador_id) {
+                alert('Selecciona un jugador.');
+                return;
+            }
+            
+            const data = {
+                jugador_id: parseInt(jugador_id),
+                putouts: parseInt(document.getElementById('putouts').value) || 0,
+                assists: parseInt(document.getElementById('assists').value) || 0,
+                errors: parseInt(document.getElementById('defensiveErrors').value) || 0,
+                double_plays: parseInt(document.getElementById('doublePlays').value) || 0,
+                passed_balls: parseInt(document.getElementById('passedBalls').value) || 0
+            };
+            
+            try {
+                const res = await fetch('/api/estadisticas-defensivas', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    alert('Estadísticas defensivas registradas.');
+                    await cargarEstadisticas();
+                    document.querySelectorAll('#putouts, #assists, #defensiveErrors, #doublePlays, #passedBalls').forEach(el => el.value = 0);
+                } else {
+                    alert('Error al registrar estadísticas.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        async function cargarTablaEditarBateo() {
+            const tbody = document.querySelector('#tablaEditarBateo tbody');
+            if (!tbody) return;
+            
+            try {
+                const response = await fetch('/api/estadisticas-ofensivas');
+                if (!response.ok) throw new Error('Error');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay estadísticas de bateo.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(s => {
+                    const jugador = jugadores.find(j => j.id === s.jugador_id);
+                    return `
+                        <tr>
+                            <td>${jugador ? jugador.nombre : 'Desconocido'}</td>
+                            <td>${jugador ? jugador.equipo_nombre : '-'}</td>
+                            <td><input type="number" id="ab-${s.jugador_id}" value="${s.at_bats || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:60px;"></td>
+                            <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">💾</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch(e) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar.</td></tr>';
+            }
+        }
+
+        async function cargarTablaEditarPitcheo() {
+            const tbody = document.querySelector('#tablaEditarPitcheo tbody');
+            if (!tbody) return;
+            
+            try {
+                const response = await fetch('/api/estadisticas-pitcheo');
+                if (!response.ok) throw new Error('Error');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay estadísticas de pitcheo.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(s => {
+                    const jugador = jugadores.find(j => j.id === s.jugador_id);
+                    return `
+                        <tr>
+                            <td>${jugador ? jugador.nombre : 'Desconocido'}</td>
+                            <td>${jugador ? jugador.equipo_nombre : '-'}</td>
+                            <td><input type="number" id="ip-${s.jugador_id}" value="${s.innings_pitched || 0}" style="width:60px;" step="0.1"></td>
+                            <td><input type="number" id="er-${s.jugador_id}" value="${s.earned_runs || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="w-${s.jugador_id}" value="${s.wins || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="l-${s.jugador_id}" value="${s.losses || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="sv-${s.jugador_id}" value="${s.saves || 0}" style="width:60px;"></td>
+                            <td><button class="btn-actualizar" onclick="actualizarEstadistica('pitcheo', ${s.jugador_id})">💾</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch(e) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar.</td></tr>';
+            }
+        }
+
+        async function cargarTablaEditarDefensa() {
+            const tbody = document.querySelector('#tablaEditarDefensa tbody');
+            if (!tbody) return;
+            
+            try {
+                const response = await fetch('/api/estadisticas-defensivas');
+                if (!response.ok) throw new Error('Error');
+                const stats = await response.json();
+                
+                if (stats.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay estadísticas defensivas.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = stats.map(s => {
+                    const jugador = jugadores.find(j => j.id === s.jugador_id);
+                    return `
+                        <tr>
+                            <td>${jugador ? jugador.nombre : 'Desconocido'}</td>
+                            <td>${jugador ? jugador.equipo_nombre : '-'}</td>
+                            <td><input type="number" id="po-${s.jugador_id}" value="${s.putouts || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="a-${s.jugador_id}" value="${s.assists || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="e-${s.jugador_id}" value="${s.errors || 0}" style="width:60px;"></td>
+                            <td><input type="number" id="dp-${s.jugador_id}" value="${s.double_plays || 0}" style="width:60px;"></td>
+                            <td><button class="btn-actualizar" onclick="actualizarEstadistica('defensiva', ${s.jugador_id})">💾</button></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch(e) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar.</td></tr>';
+            }
+        }
+
+        function limpiarFormulario(tipo) {
+            if (tipo === 'equipo') {
+                document.getElementById('nombreEquipo').value = '';
+                document.getElementById('managerEquipo').value = '';
+                document.getElementById('ciudadEquipo').value = '';
+            } else if (tipo === 'jugador') {
+                document.getElementById('jugadorForm').reset();
+            } else if (tipo === 'partido') {
+                document.getElementById('equipoLocal').value = '';
+                document.getElementById('equipoVisitante').value = '';
+                document.getElementById('carrerasLocal').value = '';
+                document.getElementById('carrerasVisitante').value = '';
+            }
+        }
+
+        function resetearBoton(tipo) {
+            if (tipo === 'equipo') {
+                document.getElementById('btn-agregar-equipo').textContent = '🏆 Agregar Equipo';
+                document.getElementById('btn-agregar-equipo').onclick = agregarEquipo;
+            } else if (tipo === 'jugador') {
+                document.getElementById('btn-agregar-jugador').textContent = '👤 Agregar Jugador';
+                document.getElementById('btn-agregar-jugador').onclick = agregarJugador;
+            } else if (tipo === 'partido') {
+                document.getElementById('btn-registrar-partido').textContent = '🎯 Registrar Partido';
+                document.getElementById('btn-registrar-partido').onclick = registrarPartido;
+            }
+        }
+
+        async function cargarParaEditar(tipo, jugadorId) {
+            // Esta función no se usa actualmente
+            console.log('cargarParaEditar', tipo, jugadorId);
+        }
+
+        async function actualizarEstadistica(tipo, jugadorId) {
+            let endpoint, data;
+            
+            if (tipo === 'bateo') {
+                endpoint = '/api/estadisticas-ofensivas';
+                data = {
+                    jugador_id: jugadorId,
+                    at_bats: parseInt(document.getElementById(`ab-${jugadorId}`).value) || 0,
+                    hits: parseInt(document.getElementById(`h-${jugadorId}`).value) || 0,
+                    home_runs: parseInt(document.getElementById(`hr-${jugadorId}`).value) || 0,
+                    rbi: parseInt(document.getElementById(`rbi-${jugadorId}`).value) || 0
+                };
+            } else if (tipo === 'pitcheo') {
+                endpoint = '/api/estadisticas-pitcheo';
+                data = {
+                    jugador_id: jugadorId,
+                    innings_pitched: parseFloat(document.getElementById(`ip-${jugadorId}`).value) || 0,
+                    earned_runs: parseInt(document.getElementById(`er-${jugadorId}`).value) || 0,
+                    wins: parseInt(document.getElementById(`w-${jugadorId}`).value) || 0,
+                    losses: parseInt(document.getElementById(`l-${jugadorId}`).value) || 0,
+                    saves: parseInt(document.getElementById(`sv-${jugadorId}`).value) || 0
+                };
+            } else if (tipo === 'defensiva') {
+                endpoint = '/api/estadisticas-defensivas';
+                data = {
+                    jugador_id: jugadorId,
+                    putouts: parseInt(document.getElementById(`po-${jugadorId}`).value) || 0,
+                    assists: parseInt(document.getElementById(`a-${jugadorId}`).value) || 0,
+                    errors: parseInt(document.getElementById(`e-${jugadorId}`).value) || 0,
+                    double_plays: parseInt(document.getElementById(`dp-${jugadorId}`).value) || 0
+                };
+            }
+            
+            try {
+                const res = await fetch(`${endpoint}/${jugadorId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    alert('Estadística actualizada.');
+                    await cargarEstadisticas();
+                } else {
+                    alert('Error al actualizar.');
+                }
+            } catch(e) {
+                alert('Error de red.');
+            }
+        }
+
+        let ordenJugadores = { campo: 'nombre', direccion: 'asc' };
+        let ordenEquipos = { campo: 'nombre', direccion: 'asc' };
+        let jugadoresFiltrados = [];
+        let equiposFiltrados = [];
+
+        function renderizarTablaEquipos() {
+            const tbody = document.querySelector('#equiposTable tbody');
+            if (!tbody) return;
+            
+            if (equiposFiltrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No se encontraron equipos</td></tr>';
+                return;
+            }
+            tbody.innerHTML = equiposFiltrados.map(equipo => `
+                <tr>
+                    <td>${equipo.id}</td>
+                    <td><strong>${equipo.nombre}</strong></td>
+                    <td>${equipo.manager}</td>
+                    <td>${equipo.ciudad}</td>
+                    <td>${new Date(equipo.fecha_creacion).toLocaleDateString('es-AR')}</td>
+                    <td>
+                        <button class="btn-secondary btn-edit" onclick="editarEquipo(${equipo.id})">✏️</button>
+                        <button class="btn-secondary" onclick="eliminarEquipo(${equipo.id})" style="background: #dc143c;">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function ordenarTablaEquipos(campo) {
+            if (ordenEquipos.campo === campo) {
+                ordenEquipos.direccion = ordenEquipos.direccion === 'asc' ? 'desc' : 'asc';
+            } else {
+                ordenEquipos.campo = campo;
+                ordenEquipos.direccion = 'asc';
+            }
+            document.querySelectorAll('#equiposTable .sort-indicator').forEach(el => {
+                el.className = 'sort-indicator';
+            });
+            const indicator = document.querySelector(`#equiposTable th[onclick*="${campo}"] .sort-indicator`);
+            if (indicator) indicator.className = `sort-indicator ${ordenEquipos.direccion}`;
+            actualizarTablaEquipos();
+        }
+
+        function limpiarFiltrosEquipos() {
+            document.getElementById('buscadorEquipos').value = '';
+            ordenEquipos = { campo: 'nombre', direccion: 'asc' };
+            document.querySelectorAll('#equiposTable .sort-indicator').forEach(el => {
+                el.className = 'sort-indicator';
+            });
+            actualizarTablaEquipos();
+        }
+
+        function limpiarFiltrosPartidos() {
+            document.getElementById('filtroEquipoPartidos').value = '';
+            document.getElementById('filtroEstadoPartidos').value = '';
+            document.getElementById('filtroFechaPartidos').value = '';
+            actualizarTablaPartidos();
+        }
+
+        function renderizarTablaJugadores() {
+            const tbody = document.querySelector('#jugadoresTable tbody');
+            if (!tbody) return;
+            if (jugadoresFiltrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No se encontraron jugadores</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = jugadoresFiltrados.map(jugador => `
+                <tr>
+                    <td>${jugador.numero || '-'}</td>
+                    <td><strong>${jugador.nombre}</strong></td>
+                    <td>${jugador.equipo_nombre || 'Sin equipo'}</td>
+                    <td>${jugador.posicion || '-'}</td>
+                    <td>
+                        <button class="btn-secondary btn-edit" onclick="editarJugador(${jugador.id})">✏️</button>
+                        <button class="btn-secondary" onclick="eliminarJugador(${jugador.id})" style="background: #dc143c;">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function limpiarFiltrosJugadores() {
+            document.getElementById('buscadorJugadores').value = '';
+            document.getElementById('filtroRosterEquipo').value = '';
+            if (document.getElementById('filtroPosicion')) {
+                document.getElementById('filtroPosicion').value = '';
+            }
+            ordenJugadores = { campo: 'nombre', direccion: 'asc' };
+            document.querySelectorAll('#jugadoresTable .sort-indicator').forEach(el => {
+                el.className = 'sort-indicator';
+            });
+            actualizarTablaJugadores();
+        }
+
+        // Clases UX
+        class FormValidator {
+            constructor() {
+                this.rules = {};
+            }
+            addRule(field, rules) {
+                this.rules[field] = rules;
+            }
+            validate(formId) {
+                return true;
+            }
+            showError(field, message) {
+                console.log(`Error en ${field}: ${message}`);
+            }
+            clearError(field) {
+                console.log(`Limpiar error de ${field}`);
+            }
+        }
+
+        class LoadingManager {
+            show(buttonId) {
+                const btn = document.getElementById(buttonId);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                }
+            }
+            hide(buttonId) {
+                const btn = document.getElementById(buttonId);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            }
+        }
+
+        class ConfirmationManager {
+            async confirm(message) {
+                return confirm(message);
+            }
+        }
+
+        class NotificationManager {
+            success(msg, title = '') {
+                alert(`${title ? title + ': ' : ''}${msg}`);
+            }
+            error(msg, title = '') {
+                alert(`${title ? title + ': ' : ''}${msg}`);
+            }
+            warning(msg, title = '') {
+                alert(`${title ? title + ': ' : ''}${msg}`);
+            }
+            info(msg, title = '') {
+                alert(`${title ? title + ': ' : ''}${msg}`);
+            }
+        }
+
+        class ShortcutManager {
+            constructor() {
+                this.init();
+            }
+            init() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 's') {
+                        e.preventDefault();
+                        console.log('Guardar (Ctrl+S)');
+                    }
+                });
+            }
+        }
+
+        class AutoSaveManager {
+            constructor() {
+                console.log('AutoSaveManager iniciado');
+            }
+        }
+
+        function initializeUXSystems() {
+            window.formValidator = new FormValidator();
+            window.loadingManager = new LoadingManager();
+            window.confirmationManager = new ConfirmationManager();
+            window.notificationManager = new NotificationManager();
+            window.shortcutManager = new ShortcutManager();
+            window.autoSaveManager = new AutoSaveManager();
+            console.log('Sistemas UX inicializados');
+        }
+
+        function exportarTabla(tabla, formato) {
+            let datos, headers, filename;
+            if (tabla === 'jugadores') {
+                datos = jugadoresFiltrados;
+                headers = ['Número', 'Nombre', 'Equipo', 'Posición'];
+                filename = 'jugadores';
+            } else if (tabla === 'equipos') {
+                datos = equiposFiltrados;
+                headers = ['ID', 'Nombre', 'Manager', 'Ciudad', 'Fecha'];
+                filename = 'equipos';
+            }
+            if (formato === 'csv') {
+                exportarCSV(datos, headers, filename, tabla);
+            }
+        }
+
+        function exportarCSV(datos, headers, filename, tabla) {
+            if (datos.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+            let csv = headers.join(',') + '\n';
+            datos.forEach(item => {
+                let fila = [];
+                if (tabla === 'jugadores') {
+                    fila = [item.numero || '-', item.nombre, item.equipo_nombre || '-', item.posicion || '-'];
+                } else if (tabla === 'equipos') {
+                    fila = [item.id, item.nombre, item.manager, item.ciudad, new Date(item.fecha_creacion).toLocaleDateString('es-AR')];
+                }
+                csv += fila.map(campo => `"${String(campo).replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+            const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            alert(`${filename}.csv descargado correctamente`);
+        }
+
+        if (document.readyState === 'loading') { 
+            document.addEventListener('DOMContentLoaded', initializeUXSystems); 
+        } else { 
+            initializeUXSystems(); 
         }
     </script>
 </body>
