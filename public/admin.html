@@ -1794,45 +1794,83 @@
         async function cargarEquipos() {
             try {
                 const response = await fetch('/api/equipos');
-                if (!response.ok) throw new Error('Error cargando equipos');
+                if (!response.ok) {
+                    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+                }
                 
-                equipos = await response.json();
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
+                    equipos = data;
+                    console.log(`✅ Equipos cargados: ${equipos.length} elementos.`);
+                } else {
+                    console.error('Error: La respuesta de la API de equipos no es un array. Se inicializa como vacío.', data);
+                    equipos = [];
+                }
+            } catch (error) {
+                console.error('Error crítico al cargar equipos:', error);
+                // Asegura que 'equipos' sea siempre un array para evitar errores en cascada.
+                equipos = [];
+            } finally {
+                // Se ejecuta siempre, haya error o no, para mantener la UI consistente.
                 equiposFiltrados = [...equipos];
                 actualizarTablaEquipos();
-            } catch (error) {
-                console.error('Error cargando equipos:', error);
-                alert('Error cargando equipos');
             }
         }
 
         async function cargarPartidos() {
             try {
                 const response = await fetch('/api/partidos');
-                if (!response.ok) throw new Error('Error cargando partidos');
-                
-                partidos = await response.json();
-                actualizarTablaPartidos();
+                if (!response.ok) {
+                    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
+                    partidos = data;
+                    console.log(`✅ Partidos cargados: ${partidos.length} elementos.`);
+                } else {
+                    console.error('Error: La respuesta de la API de partidos no es un array. Se inicializa como vacío.', data);
+                    partidos = [];
+                }
             } catch (error) {
-                console.error('Error cargando partidos:', error);
-                alert('Error cargando partidos');
+                console.error('Error crítico al cargar partidos:', error);
+                // Garantiza que 'partidos' sea siempre un array.
+                partidos = [];
+            } finally {
+                actualizarTablaPartidos();
             }
         }
 
         async function cargarJugadores() {
             try {
                 const response = await fetch('/api/jugadores');
-                if (!response.ok) throw new Error('Error cargando jugadores');
+                if (!response.ok) {
+                    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+                }
                 
-                jugadores = await response.json();
+                const data = await response.json();
+
+                if (Array.isArray(data)) {
+                    jugadores = data;
+                    console.log(`✅ Jugadores cargados: ${jugadores.length} elementos.`);
+                } else {
+                    console.error('Error: La respuesta de la API de jugadores no es un array. Se inicializa como vacío.', data);
+                    jugadores = [];
+                }
+            } catch (error) {
+                console.error('Error crítico al cargar jugadores:', error);
+                // Garantiza que 'jugadores' sea siempre un array.
+                jugadores = [];
+            } finally {
                 jugadoresFiltrados = [...jugadores];
                 
+                // La lógica de retardo se mantiene como fue solicitado.
                 setTimeout(() => {
                     configurarFiltrosEnTiempoReal();
                     actualizarTablaJugadores();
                 }, 100);
-            } catch (error) {
-                console.error('Error cargando jugadores:', error);
-                alert('Error cargando jugadores');
             }
         }
 
