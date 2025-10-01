@@ -998,21 +998,20 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="posicionJugador">⚾ Posición (Opcional):</label>
-                                <select id="posicionJugador">
-                                    <option value="">(Opcional)</option>
-                                    <option value="C">Catcher (C)</option>
-                                    <option value="1B">Primera Base (1B)</option>
-                                    <option value="2B">Segunda Base (2B)</option>
-                                    <option value="3B">Tercera Base (3B)</option>
-                                    <option value="SS">Shortstop (SS)</option>
-                                    <option value="LF">Left Field (LF)</option>
-                                    <option value="CF">Center Field (CF)</option>
-                                    <option value="RF">Right Field (RF)</option>
-                                    <option value="P">Pitcher (P)</option>
+                                <label for="posicionJugador">⚾ Posición:</label>
+                                <select id="posicionJugador" style="width: 100%; padding: 12px; border: 2px solid rgba(255, 215, 0, 0.3); border-radius: 10px; background: rgba(26, 26, 46, 0.8); color: #ffd700; font-size: 14px;">
+                                    <option value="UTIL">UTIL (Utilidad)</option>
+                                    <option value="P">P (Pitcher)</option>
+                                    <option value="C">C (Catcher)</option>
+                                    <option value="1B">1B (Primera Base)</option>
+                                    <option value="2B">2B (Segunda Base)</option>
+                                    <option value="3B">3B (Tercera Base)</option>
+                                    <option value="SS">SS (Shortstop)</option>
+                                    <option value="LF">LF (Left Field)</option>
+                                    <option value="CF">CF (Center Field)</option>
+                                    <option value="RF">RF (Right Field)</option>
                                 </select>
                             </div>
-                        </div>
                         <div>
                             <div class="form-group">
                                 <label for="numeroJugador">🔢 Número (Opcional):</label>
@@ -1629,12 +1628,14 @@
     </div>
 
     <script>
-        // Variables globales
+        // ===== INICIO CORRECCIÓN 1 =====
+        // Variables globales inicializadas como arrays vacíos
         let equipos = [];
         let partidos = [];
         let jugadores = [];
         let estadisticas = [];
         let torneoActivo = { id: null, nombre: 'NINGUNO' };
+        // ===== FIN CORRECCIÓN 1 =====
         
         const AJUSTES_POSICIONALES = {
             'C': 12.5, 'SS': 7.5, 'CF': 2.5, '2B': 3.0, '3B': 2.0,
@@ -1742,23 +1743,32 @@
         // == INICIO DE LAS 13 FUNCIONES CORREGIDAS ==
         // ===============================================
 
+        // ===== INICIO CORRECCIÓN 5 =====
         async function agregarJugador() {
-            const nombre = document.getElementById('nombreJugador').value.trim();
-            const equipoId = document.getElementById('equipoJugador').value;
-            const posicion = document.getElementById('posicionJugador').value;
-            const numero = document.getElementById('numeroJugador').value;
+            const nombre = document.getElementById('nombreJugador')?.value?.trim();
+            const equipoId = document.getElementById('equipoJugador')?.value;
+            const posicion = document.getElementById('posicionJugador')?.value || 'UTIL';
+            const numero = document.getElementById('numeroJugador')?.value;
 
-            if (!nombre || nombre.length < 3) {
-                alert('El nombre del jugador debe tener al menos 3 caracteres');
+            // Validaciones
+            if (!nombre) {
+                alert('❌ El nombre del jugador es obligatorio');
+                return;
+            }
+
+            if (nombre.length < 3) {
+                alert('❌ El nombre debe tener al menos 3 caracteres');
                 return;
             }
 
             const jugadorData = {
                 nombre: nombre,
-                equipo_id: equipoId || null,
-                posicion: posicion || null,
-                numero: numero || null
+                equipo_id: equipoId ? parseInt(equipoId) : null,
+                posicion: posicion,
+                numero: numero ? parseInt(numero) : null
             };
+
+            console.log('📤 Enviando jugador:', jugadorData);
 
             try {
                 const response = await fetch('/api/jugadores', {
@@ -1767,19 +1777,24 @@
                     body: JSON.stringify(jugadorData)
                 });
 
-                if (response.ok) {
-                    alert(`Jugador "${nombre}" agregado exitosamente`);
-                    document.getElementById('jugadorForm').reset();
-                    await cargarJugadores();
-                } else {
-                    const error = await response.text();
-                    alert(`Error: ${error}`);
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Error ${response.status}: ${errorData}`);
                 }
+
+                const resultado = await response.json();
+                console.log('✅ Jugador creado:', resultado);
+                
+                alert('✅ Jugador agregado exitosamente');
+                document.getElementById('jugadorForm').reset();
+                await cargarJugadores();
+                
             } catch (error) {
-                console.error('Error agregando jugador:', error);
-                alert('Error de conexión al servidor');
+                console.error('❌ Error agregando jugador:', error);
+                alert(`❌ Error: ${error.message}`);
             }
         }
+        // ===== FIN CORRECCIÓN 5 =====
 
         function calcularOBP(h, bb, ab) {
             if (ab + bb === 0) return 0;
@@ -1791,88 +1806,134 @@
             return (h + hr * 3) / ab;
         }
 
+        // ===== INICIO CORRECCIÓN 2 =====
         async function cargarEquipos() {
             try {
+                console.log('🔄 Cargando equipos...');
                 const response = await fetch('/api/equipos');
+                
                 if (!response.ok) {
-                    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
-
-                if (Array.isArray(data)) {
-                    equipos = data;
-                    console.log(`✅ Equipos cargados: ${equipos.length} elementos.`);
-                } else {
-                    console.error('Error: La respuesta de la API de equipos no es un array. Se inicializa como vacío.', data);
-                    equipos = [];
-                }
-            } catch (error) {
-                console.error('Error crítico al cargar equipos:', error);
-                // Asegura que 'equipos' sea siempre un array para evitar errores en cascada.
-                equipos = [];
-            } finally {
-                // Se ejecuta siempre, haya error o no, para mantener la UI consistente.
+                console.log('📦 Datos recibidos de /api/equipos:', data);
+                
+                // Asegurar que sea un array
+                equipos = Array.isArray(data) ? data : [];
+                
+                console.log(`✅ Equipos cargados correctamente: ${equipos.length} registros`);
                 equiposFiltrados = [...equipos];
                 actualizarTablaEquipos();
+                actualizarSelectores();
+                
+            } catch (error) {
+                console.error('❌ Error cargando equipos:', error);
+                equipos = [];
+                equiposFiltrados = [];
+                
+                const errorContainer = document.getElementById('equipoError');
+                if (errorContainer) {
+                    errorContainer.textContent = 'Error al cargar equipos. Intenta recargar la página.';
+                    errorContainer.style.display = 'block';
+                }
             }
         }
+        // ===== FIN CORRECCIÓN 2 =====
 
+        // ===== INICIO CORRECCIÓN 4 =====
         async function cargarPartidos() {
             try {
-                const response = await fetch('/api/partidos');
+                console.log('🔄 Cargando partidos...');
+                const response = await fetch('/api/partidos?limit=1000');
+                
                 if (!response.ok) {
-                    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-
+                
                 const data = await response.json();
-
-                if (Array.isArray(data)) {
-                    partidos = data;
-                    console.log(`✅ Partidos cargados: ${partidos.length} elementos.`);
+                console.log('📦 Datos recibidos de /api/partidos:', data);
+                
+                // CORRECCIÓN CRÍTICA: Extraer array del objeto de paginación
+                if (data && typeof data === 'object') {
+                    if (Array.isArray(data)) {
+                        partidos = data;
+                    } else if (Array.isArray(data.partidos)) {
+                        partidos = data.partidos;
+                    } else {
+                        console.warn('⚠️ Formato inesperado de partidos, inicializando array vacío');
+                        partidos = [];
+                    }
                 } else {
-                    console.error('Error: La respuesta de la API de partidos no es un array. Se inicializa como vacío.', data);
                     partidos = [];
                 }
-            } catch (error) {
-                console.error('Error crítico al cargar partidos:', error);
-                // Garantiza que 'partidos' sea siempre un array.
-                partidos = [];
-            } finally {
+                
+                console.log(`✅ Partidos cargados correctamente: ${partidos.length} registros`);
                 actualizarTablaPartidos();
+                
+            } catch (error) {
+                console.error('❌ Error cargando partidos:', error);
+                partidos = [];
+                
+                const errorContainer = document.getElementById('partidoError');
+                if (errorContainer) {
+                    errorContainer.textContent = 'Error al cargar partidos. Intenta recargar la página.';
+                    errorContainer.style.display = 'block';
+                }
             }
         }
+        // ===== FIN CORRECCIÓN 4 =====
 
+        // ===== INICIO CORRECCIÓN 3 =====
         async function cargarJugadores() {
             try {
-                const response = await fetch('/api/jugadores');
+                console.log('🔄 Cargando jugadores...');
+                const response = await fetch('/api/jugadores?limit=1000');
+                
                 if (!response.ok) {
-                    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
-
-                if (Array.isArray(data)) {
-                    jugadores = data;
-                    console.log(`✅ Jugadores cargados: ${jugadores.length} elementos.`);
+                console.log('📦 Datos recibidos de /api/jugadores:', data);
+                
+                // CORRECCIÓN CRÍTICA: Extraer array del objeto de paginación
+                if (data && typeof data === 'object') {
+                    if (Array.isArray(data)) {
+                        jugadores = data;
+                    } else if (Array.isArray(data.jugadores)) {
+                        jugadores = data.jugadores;
+                    } else {
+                        console.warn('⚠️ Formato inesperado de jugadores, inicializando array vacío');
+                        jugadores = [];
+                    }
                 } else {
-                    console.error('Error: La respuesta de la API de jugadores no es un array. Se inicializa como vacío.', data);
                     jugadores = [];
                 }
-            } catch (error) {
-                console.error('Error crítico al cargar jugadores:', error);
-                // Garantiza que 'jugadores' sea siempre un array.
-                jugadores = [];
-            } finally {
+                
+                console.log(`✅ Jugadores cargados correctamente: ${jugadores.length} registros`);
                 jugadoresFiltrados = [...jugadores];
                 
-                // La lógica de retardo se mantiene como fue solicitado.
                 setTimeout(() => {
                     configurarFiltrosEnTiempoReal();
                     actualizarTablaJugadores();
                 }, 100);
+                
+                actualizarSelectores();
+                
+            } catch (error) {
+                console.error('❌ Error cargando jugadores:', error);
+                jugadores = [];
+                jugadoresFiltrados = [];
+                
+                const errorContainer = document.getElementById('jugadorError');
+                if (errorContainer) {
+                    errorContainer.textContent = 'Error al cargar jugadores. Intenta recargar la página.';
+                    errorContainer.style.display = 'block';
+                }
             }
         }
+        // ===== FIN CORRECCIÓN 3 =====
 
         function actualizarTablaJugadores() {
             const buscador = document.getElementById('buscadorJugadores').value.toLowerCase().trim();
