@@ -48,7 +48,6 @@
             background: linear-gradient(45deg, #ffd700, #ff8c00, #ff6b35);
             border-radius: 20px;
             box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
-            /* Corrección 1: Animación desactivada para evitar distracción */
             /* animation: float 6s ease-in-out infinite; */
             position: relative;
             overflow: hidden;
@@ -65,13 +64,10 @@
             animation: shine 3s infinite;
         }
 
-        /* Corrección 1: Keyframes de la animación comentados ya que no se usan */
-        /*
-        @keyframes float {
+        /* @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-10px) rotate(1deg); }
-        }
-        */
+        } */
 
         @keyframes shine {
             0% { transform: rotate(0deg); }
@@ -782,9 +778,149 @@
             border-color: #4CAF50;
             color: #4CAF50;
         }
+
+        /* ===== SISTEMA DE TOAST NOTIFICATIONS ===== */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease-out;
+            min-width: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+        .toast::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+        }
+        .toast-success {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.95), rgba(56, 142, 60, 0.95));
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+        .toast-success::before {
+            background: #4CAF50;
+        }
+        .toast-error {
+            background: linear-gradient(135deg, rgba(220, 20, 60, 0.95), rgba(183, 28, 28, 0.95));
+            border: 1px solid rgba(220, 20, 60, 0.5);
+        }
+        .toast-error::before {
+            background: #dc143c;
+        }
+        .toast-warning {
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.95), rgba(230, 126, 34, 0.95));
+            border: 1px solid rgba(255, 165, 0, 0.5);
+        }
+        .toast-warning::before {
+            background: #ffa500;
+        }
+        .toast-info {
+            background: linear-gradient(135deg, rgba(0, 191, 255, 0.95), rgba(3, 155, 229, 0.95));
+            border: 1px solid rgba(0, 191, 255, 0.5);
+        }
+        .toast-info::before {
+            background: #00bfff;
+        }
+        .toast-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+        .toast-content {
+            flex: 1;
+            color: #ffffff;
+        }
+        .toast-title {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 4px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        .toast-message {
+            font-size: 13px;
+            opacity: 0.95;
+            line-height: 1.4;
+        }
+        .toast-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #ffffff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .toast-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        .toast.hiding {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+        @media (max-width: 768px) {
+            .toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+                .toast {
+                min-width: auto;
+            }
+        }
     </style>
 </head>
 <body>
+    <div id="toast-container" class="toast-container"></div>
     <div class="admin-controls">
         <a href="index.html" class="admin-btn">👁️ Vista Pública</a>
         <button onclick="logout()" class="admin-btn">🚪 Salir</button>
@@ -1643,6 +1779,64 @@
         let torneoActivo = { id: null, nombre: 'NINGUNO' };
         // ===== FIN CORRECCIÓN 1 =====
         
+        // ===== SISTEMA DE TOAST NOTIFICATIONS =====
+        class ToastManager {
+            constructor() {
+                this.container = document.getElementById('toast-container');
+                if (!this.container) {
+                    this.container = document.createElement('div');
+                    this.container.id = 'toast-container';
+                    this.container.className = 'toast-container';
+                    document.body.insertBefore(this.container, document.body.firstChild);
+                }
+            }
+            show(message, type = 'info', duration = 4000) {
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                        const icons = {
+                    success: '✓',
+                    error: '✗',
+                    warning: '⚠',
+                    info: 'ℹ'
+                };
+                        const titles = {
+                    success: 'Éxito',
+                    error: 'Error',
+                    warning: 'Advertencia',
+                    info: 'Información'
+                };
+                        toast.innerHTML = `
+                    <div class="toast-icon">${icons[type]}</div>
+                    <div class="toast-content">
+                        <div class="toast-title">${titles[type]}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+                `;
+                        this.container.appendChild(toast);
+                        // Auto-remove
+                setTimeout(() => {
+                    toast.classList.add('hiding');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+                        return toast;
+            }
+                success(message, duration) {
+                return this.show(message, 'success', duration || 3000);
+            }
+                error(message, duration) {
+                return this.show(message, 'error', duration || 5000);
+            }
+                warning(message, duration) {
+                return this.show(message, 'warning', duration || 4000);
+            }
+                info(message, duration) {
+                return this.show(message, 'info', duration || 4000);
+            }
+        }
+        // Instancia global
+        const toast = new ToastManager();
+
         const AJUSTES_POSICIONALES = {
             'C': 12.5, 'SS': 7.5, 'CF': 2.5, '2B': 3.0, '3B': 2.0,
             'RF': -7.5, 'LF': -7.0, '1B': -12.5, 'P': 0.0
@@ -1663,14 +1857,14 @@
         function verificarAutenticacion() {
             const userRole = localStorage.getItem('userRole');
             if (!userRole || userRole !== 'admin') {
-                alert('⛔ Acceso denegado. Solo administradores pueden acceder.');
+                toast.error('Acceso denegado. Solo administradores pueden acceder.');
                 window.location.href = 'login.html';
             }
         }
 
         function logout() {
             localStorage.clear();
-            alert('👋 Sesión cerrada correctamente');
+            toast.success('Sesión cerrada correctamente');
             window.location.href = 'login.html';
         }
 
@@ -1739,9 +1933,7 @@
 
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                if (window.notificationManager) {
-                    window.notificationManager.error('Error de conexión al servidor', 'Fallo de Carga');
-                }
+                toast.error('Error de conexión con el servidor');
             }
         }
 
@@ -1753,19 +1945,17 @@
         async function agregarJugador() {
             const nombre = document.getElementById('nombreJugador')?.value?.trim();
             const equipoId = document.getElementById('equipoJugador')?.value;
-            // Corrección 2: Se elimina el valor por defecto 'UTIL' para que la posición sea opcional.
-            // Si el campo está vacío, se enviará null al backend.
             const posicion = document.getElementById('posicionJugador')?.value.trim() || null;
             const numero = document.getElementById('numeroJugador')?.value;
 
             // Validaciones
             if (!nombre) {
-                alert('❌ El nombre del jugador es obligatorio');
+                toast.warning('El nombre del jugador es obligatorio');
                 return;
             }
 
             if (nombre.length < 3) {
-                alert('❌ El nombre debe tener al menos 3 caracteres');
+                toast.warning('El nombre debe tener al menos 3 caracteres');
                 return;
             }
 
@@ -1793,13 +1983,13 @@
                 const resultado = await response.json();
                 console.log('✅ Jugador creado:', resultado);
                 
-                alert('✅ Jugador agregado exitosamente');
+                toast.success('Jugador agregado exitosamente');
                 document.getElementById('jugadorForm').reset();
                 await cargarJugadores();
                 
             } catch (error) {
                 console.error('❌ Error agregando jugador:', error);
-                alert(`❌ Error: ${error.message}`);
+                toast.error(`Error: ${error.message}`);
             }
         }
         // ===== FIN CORRECCIÓN 5 =====
@@ -2378,7 +2568,7 @@
             const nombreInput = document.getElementById('nombreTorneo');
             const nombre = nombreInput.value.trim();
             if (!nombre) {
-                alert('El nombre del torneo es obligatorio.');
+                toast.warning('El nombre del torneo es obligatorio.');
                 return;
             }
             try {
@@ -2388,15 +2578,15 @@
                     body: JSON.stringify({ nombre })
                 });
                 if (response.ok) {
-                    alert('Torneo creado exitosamente.');
+                    toast.success('Torneo creado exitosamente.');
                     nombreInput.value = '';
                     await cargarTorneos();
                 } else {
                     const error = await response.json();
-                    alert(`Error: ${error.message || 'No se pudo crear el torneo.'}`);
+                    toast.error(error.message || 'No se pudo crear el torneo.');
                 }
             } catch (error) {
-                alert('Error de conexión al crear torneo.');
+                toast.error('Error de conexión al crear torneo.');
             }
         }
 
@@ -2410,16 +2600,16 @@
                         body: JSON.stringify({ nombre: nuevoNombre.trim() })
                     });
                     if (response.ok) {
-                        alert('Torneo actualizado.');
+                        toast.success('Torneo actualizado correctamente.');
                         await cargarTorneos();
                         if (torneoActivo.id === id) {
                             await cargarTorneoActivo();
                         }
                     } else {
-                        alert('No se pudo actualizar el torneo.');
+                        toast.error('No se pudo actualizar el torneo.');
                     }
                 } catch (e) {
-                    alert('Error de conexión.');
+                    toast.error('Error de conexión.');
                 }
             }
         }
@@ -2428,14 +2618,14 @@
             try {
                 const response = await fetch(`/api/torneos/${id}/activar`, { method: 'PUT' });
                 if (response.ok) {
-                    alert('Torneo activado.');
+                    toast.success('Torneo activado.');
                     await cargarTorneoActivo();
                     await cargarTorneos();
                 } else {
-                    alert('Error al activar el torneo.');
+                    toast.error('Error al activar el torneo.');
                 }
             } catch(e) {
-                alert('Error de conexión.');
+                toast.error('Error de conexión.');
             }
         }
 
@@ -2444,14 +2634,14 @@
             try {
                 const response = await fetch(`/api/torneos/desactivar-todos`, { method: 'PUT' });
                 if (response.ok) {
-                    alert('Todos los torneos desactivados.');
+                    toast.info('Todos los torneos han sido desactivados.');
                     await cargarTorneoActivo();
                     await cargarTorneos();
                 } else {
-                    alert('Error al desactivar torneos.');
+                    toast.error('Error al desactivar torneos.');
                 }
             } catch(e) {
-                alert('Error de conexión.');
+                toast.error('Error de conexión.');
             }
         }
 
@@ -2460,16 +2650,16 @@
             try {
                 const response = await fetch(`/api/torneos/${id}`, { method: 'DELETE' });
                 if (response.ok) {
-                    alert('Torneo eliminado.');
+                    toast.success('Torneo eliminado correctamente.');
                     await cargarTorneos();
                     if(torneoActivo.id === id) {
                         await cargarTorneoActivo();
                     }
                 } else {
-                    alert('Error al eliminar el torneo.');
+                    toast.error('Error al eliminar el torneo.');
                 }
             } catch(e) {
-                alert('Error de conexión.');
+                toast.error('Error de conexión.');
             }
         }
 
@@ -2786,7 +2976,7 @@
             const manager = document.getElementById('managerEquipo').value.trim();
             const ciudad = document.getElementById('ciudadEquipo').value.trim();
             if(!nombre || !manager || !ciudad) {
-                alert('Todos los campos son requeridos.');
+                toast.warning('Todos los campos son obligatorios');
                 return;
             }
             
@@ -2797,17 +2987,17 @@
                     body: JSON.stringify({ nombre, manager, ciudad })
                 });
                 if(res.ok) {
-                    alert('Equipo agregado exitosamente.');
+                    toast.success('Equipo agregado exitosamente.');
                     document.getElementById('nombreEquipo').value = '';
                     document.getElementById('managerEquipo').value = '';
                     document.getElementById('ciudadEquipo').value = '';
                     await cargarEquipos();
                     actualizarSelectores();
                 } else {
-                    alert('Error al agregar equipo.');
+                    toast.error('No se pudo agregar el equipo');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
@@ -2819,11 +3009,11 @@
             const fecha_partido = document.getElementById('fechaPartido').value;
 
             if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
-                alert('Equipos y fecha son obligatorios.');
+                toast.warning('Equipos y fecha son obligatorios.');
                 return;
             }
             if (equipo_local_id === equipo_visitante_id) {
-                alert('Un equipo no puede jugar contra sí mismo.');
+                toast.warning('Un equipo no puede jugar contra sí mismo.');
                 return;
             }
 
@@ -2842,7 +3032,7 @@
                     body: JSON.stringify(body)
                 });
                 if (res.ok) {
-                    alert('Partido registrado exitosamente.');
+                    toast.success('Partido registrado exitosamente.');
                     await cargarPartidos();
                     calcularPosiciones();
                     document.getElementById('equipoLocal').value = '';
@@ -2850,17 +3040,17 @@
                     document.getElementById('carrerasLocal').value = '';
                     document.getElementById('carrerasVisitante').value = '';
                 } else {
-                    alert('Error al registrar partido.');
+                    toast.error('No se pudo registrar el partido');
                 }
             } catch (e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
         async function registrarEstadisticas() {
             const jugador_id = document.getElementById('jugadorStats').value;
             if (!jugador_id) {
-                alert('Selecciona un jugador.');
+                toast.warning('Selecciona un jugador.');
                 return;
             }
             
@@ -2882,14 +3072,14 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    alert('Estadísticas registradas exitosamente.');
+                    toast.success('Estadísticas registradas exitosamente.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases').forEach(el => el.value = 0);
                 } else {
-                    alert('Error al registrar estadísticas.');
+                    toast.error('Error al registrar estadísticas.');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
@@ -2898,13 +3088,13 @@
             try {
                 const res = await fetch(`/api/equipos/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    alert('Equipo eliminado.');
+                    toast.success('Equipo eliminado correctamente.');
                     await cargarEquipos();
                 } else {
-                    alert('Error al eliminar.');
+                    toast.error('Error al eliminar.');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
@@ -2923,7 +3113,7 @@
             const manager = document.getElementById('managerEquipo').value.trim();
             const ciudad = document.getElementById('ciudadEquipo').value.trim();
             if(!nombre || !manager || !ciudad) {
-                alert('Todos los campos son requeridos.');
+                toast.warning('Todos los campos son obligatorios');
                 return;
             }
             
@@ -2934,7 +3124,7 @@
                     body: JSON.stringify({ nombre, manager, ciudad })
                 });
                 if(res.ok) {
-                    alert('Equipo actualizado.');
+                    toast.success('Equipo actualizado correctamente.');
                     document.getElementById('nombreEquipo').value = '';
                     document.getElementById('managerEquipo').value = '';
                     document.getElementById('ciudadEquipo').value = '';
@@ -2942,10 +3132,10 @@
                     document.getElementById('btn-agregar-equipo').onclick = agregarEquipo;
                     await cargarEquipos();
                 } else {
-                    alert('Error al actualizar equipo.');
+                    toast.error('Error al actualizar equipo.');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
@@ -2967,7 +3157,7 @@
             const numero = document.getElementById('numeroJugador').value || null;
             
             if (!nombre || nombre.length < 3) {
-                alert('El nombre debe tener al menos 3 caracteres.');
+                toast.warning('El nombre debe tener al menos 3 caracteres.');
                 return;
             }
             
@@ -2979,16 +3169,16 @@
                 });
                 
                 if (response.ok) {
-                    alert('Jugador actualizado exitosamente.');
+                    toast.success('Jugador actualizado correctamente.');
                     document.getElementById('jugadorForm').reset();
                     document.getElementById('btn-agregar-jugador').textContent = '👤 Agregar Jugador';
                     document.getElementById('btn-agregar-jugador').onclick = agregarJugador;
                     await cargarJugadores();
                 } else {
-                    alert('Error al actualizar jugador.');
+                    toast.error('Error al actualizar jugador.');
                 }
             } catch (error) {
-                alert('Error de conexión.');
+                toast.error('Error de conexión.');
                 }
         }
 
@@ -2997,13 +3187,13 @@
             try {
                 const res = await fetch(`/api/jugadores/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    alert('Jugador eliminado.');
+                    toast.success('Jugador eliminado correctamente.');
                     await cargarJugadores();
                 } else {
-                    alert('Error al eliminar.');
+                    toast.error('Error al eliminar.');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
@@ -3027,7 +3217,7 @@
             const fecha_partido = document.getElementById('fechaPartido').value;
 
             if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
-                alert('Equipos y fecha son obligatorios.');
+                toast.warning('Equipos y fecha son obligatorios.');
                 return;
             }
 
@@ -3046,7 +3236,7 @@
                     body: JSON.stringify(body)
                 });
                 if (res.ok) {
-                    alert('Partido actualizado.');
+                    toast.success('Partido actualizado correctamente.');
                     document.getElementById('equipoLocal').value = '';
                     document.getElementById('equipoVisitante').value = '';
                     document.getElementById('carrerasLocal').value = '';
@@ -3056,10 +3246,10 @@
                     await cargarPartidos();
                     calcularPosiciones();
                 } else {
-                    alert('Error al actualizar partido.');
+                    toast.error('Error al actualizar partido.');
                 }
             } catch (e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
@@ -3068,21 +3258,21 @@
             try {
                 const res = await fetch(`/api/partidos/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    alert('Partido eliminado.');
+                    toast.success('Partido eliminado correctamente.');
                     await cargarPartidos();
                     calcularPosiciones();
                 } else {
-                    alert('Error al eliminar.');
+                    toast.error('Error al eliminar.');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
         async function registrarEstadisticasPitcheo() {
             const jugador_id = document.getElementById('jugadorPitcheo').value;
             if (!jugador_id) {
-                alert('Selecciona un pitcher.');
+                toast.warning('Selecciona un pitcher.');
                 return;
             }
             
@@ -3106,21 +3296,21 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    alert('Estadísticas de pitcheo registradas.');
+                    toast.success('Estadísticas de pitcheo registradas.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#inningsPitched, #hitsAllowed, #earnedRuns, #strikeouts, #walksAllowed, #homeRunsAllowed, #wins, #losses, #saves').forEach(el => el.value = 0);
                 } else {
-                    alert('Error al registrar estadísticas.');
+                    toast.error('Error al registrar estadísticas.');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
         async function registrarEstadisticasDefensivas() {
             const jugador_id = document.getElementById('jugadorDefensivo').value;
             if (!jugador_id) {
-                alert('Selecciona un jugador.');
+                toast.warning('Selecciona un jugador.');
                 return;
             }
             
@@ -3140,14 +3330,14 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    alert('Estadísticas defensivas registradas.');
+                    toast.success('Estadísticas defensivas registradas.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#putouts, #assists, #defensiveErrors, #doublePlays, #passedBalls').forEach(el => el.value = 0);
                 } else {
-                    alert('Error al registrar estadísticas.');
+                    toast.error('Error al registrar estadísticas.');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
@@ -3324,13 +3514,13 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    alert('Estadística actualizada.');
+                    toast.success('Estadística actualizada.');
                     await cargarEstadisticas();
                 } else {
-                    alert('Error al actualizar.');
+                    toast.error('Error al actualizar.');
                 }
             } catch(e) {
-                alert('Error de red.');
+                toast.error('Error de red.');
             }
         }
 
@@ -3472,16 +3662,16 @@
 
         class NotificationManager {
             success(msg, title = '') {
-                alert(`${title ? title + ': ' : ''}${msg}`);
+                toast.success(`${title ? title + ': ' : ''}${msg}`);
             }
             error(msg, title = '') {
-                alert(`${title ? title + ': ' : ''}${msg}`);
+                toast.error(`${title ? title + ': ' : ''}${msg}`);
             }
             warning(msg, title = '') {
-                alert(`${title ? title + ': ' : ''}${msg}`);
+                toast.warning(`${title ? title + ': ' : ''}${msg}`);
             }
             info(msg, title = '') {
-                alert(`${title ? title + ': ' : ''}${msg}`);
+                toast.info(`${title ? title + ': ' : ''}${msg}`);
             }
         }
 
@@ -3533,7 +3723,7 @@
 
         function exportarCSV(datos, headers, filename, tabla) {
             if (datos.length === 0) {
-                alert('No hay datos para exportar');
+                toast.warning('No hay datos para exportar');
                 return;
             }
             let csv = headers.join(',') + '\n';
@@ -3555,7 +3745,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            alert(`${filename}.csv descargado correctamente`);
+            toast.success(`${filename}.csv descargado correctamente`);
         }
 
         if (document.readyState === 'loading') { 
