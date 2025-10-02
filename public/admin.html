@@ -48,7 +48,8 @@
             background: linear-gradient(45deg, #ffd700, #ff8c00, #ff6b35);
             border-radius: 20px;
             box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
-            animation: float 6s ease-in-out infinite;
+            /* Corrección 1: Animación desactivada para evitar distracción */
+            /* animation: float 6s ease-in-out infinite; */
             position: relative;
             overflow: hidden;
         }
@@ -64,10 +65,13 @@
             animation: shine 3s infinite;
         }
 
+        /* Corrección 1: Keyframes de la animación comentados ya que no se usan */
+        /*
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             50% { transform: translateY(-10px) rotate(1deg); }
         }
+        */
 
         @keyframes shine {
             0% { transform: rotate(0deg); }
@@ -1000,6 +1004,7 @@
                             <div class="form-group">
                                 <label for="posicionJugador">⚾ Posición:</label>
                                 <select id="posicionJugador" style="width: 100%; padding: 12px; border: 2px solid rgba(255, 215, 0, 0.3); border-radius: 10px; background: rgba(26, 26, 46, 0.8); color: #ffd700; font-size: 14px;">
+                                    <option value="">-- Sin Posición --</option>
                                     <option value="UTIL">UTIL (Utilidad)</option>
                                     <option value="P">P (Pitcher)</option>
                                     <option value="C">C (Catcher)</option>
@@ -1748,7 +1753,9 @@
         async function agregarJugador() {
             const nombre = document.getElementById('nombreJugador')?.value?.trim();
             const equipoId = document.getElementById('equipoJugador')?.value;
-            const posicion = document.getElementById('posicionJugador')?.value || 'UTIL';
+            // Corrección 2: Se elimina el valor por defecto 'UTIL' para que la posición sea opcional.
+            // Si el campo está vacío, se enviará null al backend.
+            const posicion = document.getElementById('posicionJugador')?.value.trim() || null;
             const numero = document.getElementById('numeroJugador')?.value;
 
             // Validaciones
