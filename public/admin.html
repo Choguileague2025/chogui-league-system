@@ -1152,7 +1152,50 @@
 
         <div id="partidos" class="tab-content">
             <div class="card">
-                <h3>⚾ Registrar Nuevo Partido</h3>
+                <h3>📅 PROGRAMAR PRÓXIMO PARTIDO</h3>
+                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">
+                    Para partidos que aún NO se han jugado. Los resultados se registrarán después.
+                </p>
+                <div class="form-container">
+                    <div>
+                        <div class="form-group">
+                            <label for="equipoLocalFuturo">Equipo Local:</label>
+                            <select id="equipoLocalFuturo" required>
+                                <option value="">Seleccionar equipo...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="equipoVisitanteFuturo">Equipo Visitante:</label>
+                            <select id="equipoVisitanteFuturo" required>
+                                <option value="">Seleccionar equipo...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaPartidoFuturo">📅 Fecha del Partido:</label>
+                            <input type="date" id="fechaPartidoFuturo" required>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label for="horaPartidoFuturo">⏰ Hora del Partido:</label>
+                            <input type="time" id="horaPartidoFuturo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lugarPartido">🏟️ Lugar/Estadio (Opcional):</label>
+                            <input type="text" id="lugarPartido" placeholder="Ej: Estadio Municipal">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn-primary" onclick="programarPartido()">📅 Programar Partido</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>⚾ REGISTRAR RESULTADO DE PARTIDO</h3>
+                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">
+                    Para partidos que YA se jugaron. Ingresa las carreras de cada equipo.
+                </p>
                 <div class="form-container">
                     <div>
                         <div class="form-group">
@@ -1205,8 +1248,9 @@
                         <label for="filtroEstadoPartidos">Estado del Partido:</label>
                         <select id="filtroEstadoPartidos" style="border-radius: 20px;">
                             <option value="">-- Todos --</option>
-                            <option value="finalizado">Finalizados</option>
-                            <option value="pendiente">Pendientes</option>
+                            <option value="programado">📅 Programados</option>
+                            <option value="finalizado">✅ Finalizados</option>
+                            <option value="cancelado">❌ Cancelados</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1233,14 +1277,15 @@
                                 <th>Local</th>
                                 <th>Visitante</th>
                                 <th>Resultado</th>
-                                <th>Innings</th>
                                 <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="6" class="loading">Cargando partidos...</td>
+                                <td colspan="7" class="loading">Cargando partidos...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -2436,8 +2481,9 @@
                     partido.equipo_visitante_id == filtroEquipo;
                 
                 const coincideEstado = !filtroEstado || 
-                    (filtroEstado === 'finalizado' && partido.carreras_local !== null) ||
-                    (filtroEstado === 'pendiente' && partido.carreras_local === null);
+                    (filtroEstado === 'programado' && partido.estado === 'programado') ||
+                    (filtroEstado === 'finalizado' && partido.estado === 'finalizado') ||
+                    (filtroEstado === 'cancelado' && partido.estado === 'cancelado');
                 
                 const coincideFecha = !filtroFecha || 
                     partido.fecha_partido?.startsWith(filtroFecha);
@@ -2455,32 +2501,36 @@
             if (!tbody) return;
 
             if (partidosFiltrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No se encontraron partidos</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No se encontraron partidos</td></tr>';
                 return;
             }
 
             tbody.innerHTML = partidosFiltrados.map(partido => {
                 const resultado = partido.carreras_local !== null 
                     ? `${partido.carreras_local} - ${partido.carreras_visitante}`
-                    : 'Pendiente';
+                    : '---';
                 
-                const ganador = partido.carreras_local !== null
-                    ? (partido.carreras_local > partido.carreras_visitante 
-                        ? partido.equipo_local_nombre 
-                        : partido.equipo_visitante_nombre)
-                    : '-';
-
                 const fecha = partido.fecha_partido 
                     ? new Date(partido.fecha_partido).toLocaleDateString('es-AR')
                     : '-';
+                
+                const hora = partido.hora || '---';
+
+                const estadoBadge = 
+                    partido.estado === 'programado' ? '<span style="color: #ffd700;">📅 Programado</span>' :
+                    partido.estado === 'finalizado' ? '<span style="color: #4CAF50;">✅ Finalizado</span>' :
+                    partido.estado === 'cancelado' ? '<span style="color: #dc143c;">❌ Cancelado</span>' :
+                    (partido.carreras_local !== null ? '<span style="color: #4CAF50;">✅ Finalizado</span>' : '---');
+
 
                 return `
                     <tr>
                         <td>${partido.equipo_local_nombre}</td>
                         <td>${partido.equipo_visitante_nombre}</td>
                         <td>${resultado}</td>
-                        <td>${partido.innings || '9'}</td>
                         <td>${fecha}</td>
+                        <td>${hora}</td>
+                        <td>${estadoBadge}</td>
                         <td>
                             <button class="btn-secondary btn-edit" onclick="editarPartido(${partido.id})">✏️</button>
                             <button class="btn-secondary" onclick="eliminarPartido(${partido.id})" style="background: #dc143c;">🗑️</button>
@@ -3142,7 +3192,16 @@
 
         function actualizarSelectores() {
             const equipoOptions = equipos.map(e => `<option value="${e.id}">${e.nombre}</option>`).join('');
+            // Selectores existentes
             ['equipoLocal', 'equipoVisitante', 'equipoJugador', 'filtroEquipoPartidos', 'filtroRosterEquipo'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    const first = select.options[0].outerHTML;
+                    select.innerHTML = first + equipoOptions;
+                }
+            });
+            // NUEVO: Selectores para programar partido
+            ['equipoLocalFuturo', 'equipoVisitanteFuturo'].forEach(id => {
                 const select = document.getElementById(id);
                 if (select) {
                     const first = select.options[0].outerHTML;
@@ -3189,6 +3248,68 @@
             }
         }
 
+        async function programarPartido() {
+            const equipo_local_id = document.getElementById('equipoLocalFuturo').value;
+            const equipo_visitante_id = document.getElementById('equipoVisitanteFuturo').value;
+            const fecha_partido = document.getElementById('fechaPartidoFuturo').value;
+            const hora = document.getElementById('horaPartidoFuturo').value;
+            const lugar = document.getElementById('lugarPartido').value.trim();
+            // Validaciones
+            if (!equipo_local_id || !equipo_visitante_id) {
+                toast.warning('Debes seleccionar ambos equipos');
+                return;
+            }
+            if (equipo_local_id === equipo_visitante_id) {
+                toast.warning('Un equipo no puede jugar contra sí mismo');
+                return;
+            }
+            if (!fecha_partido) {
+                toast.warning('La fecha del partido es obligatoria');
+                return;
+            }
+            if (!hora) {
+                toast.warning('La hora del partido es obligatoria');
+                return;
+            }
+            const body = {
+                equipo_local_id: parseInt(equipo_local_id),
+                equipo_visitante_id: parseInt(equipo_visitante_id),
+                fecha_partido,
+                hora,
+                estado: 'programado',
+                lugar: lugar || null,
+                carreras_local: null,
+                carreras_visitante: null,
+                innings: null
+            };
+            console.log('📤 Programando partido:', body);
+            try {
+                const res = await fetch('/api/partidos', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
+                        
+                if (res.ok) {
+                    toast.success('Partido programado exitosamente');
+                    // Limpiar formulario
+                    document.getElementById('equipoLocalFuturo').value = '';
+                    document.getElementById('equipoVisitanteFuturo').value = '';
+                    document.getElementById('fechaPartidoFuturo').value = '';
+                    document.getElementById('horaPartidoFuturo').value = '';
+                    document.getElementById('lugarPartido').value = '';
+                    // Recargar tabla
+                    await cargarPartidos();
+                } else {
+                    const error = await res.text();
+                    toast.error('Error al programar partido: ' + error);
+                }
+            } catch (e) {
+                console.error('Error:', e);
+                toast.error('Error de conexión con el servidor');
+            }
+        }
+
         async function registrarPartido() {
             const equipo_local_id = document.getElementById('equipoLocal').value;
             const equipo_visitante_id = document.getElementById('equipoVisitante').value;
@@ -3211,6 +3332,7 @@
                 fecha_partido,
                 carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
                 carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
+                estado: 'finalizado'
             };
 
             try {
@@ -3388,21 +3510,44 @@
         async function editarPartido(id) {
             const partido = partidos.find(p => p.id === id);
             if (!partido) return;
-            document.getElementById('equipoLocal').value = partido.equipo_local_id;
-            document.getElementById('equipoVisitante').value = partido.equipo_visitante_id;
-            document.getElementById('carrerasLocal').value = partido.carreras_local || '';
-            document.getElementById('carrerasVisitante').value = partido.carreras_visitante || '';
-            document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
-            document.getElementById('btn-registrar-partido').textContent = '✅ Actualizar';
-            document.getElementById('btn-registrar-partido').onclick = () => actualizarPartido(id);
+
+            // Decide qué formulario usar
+            if (partido.estado === 'programado' || (partido.carreras_local === null && partido.estado !== 'finalizado')) {
+                // Rellena el formulario de programar
+                document.getElementById('equipoLocalFuturo').value = partido.equipo_local_id;
+                document.getElementById('equipoVisitanteFuturo').value = partido.equipo_visitante_id;
+                document.getElementById('fechaPartidoFuturo').value = partido.fecha_partido.split('T')[0];
+                document.getElementById('horaPartidoFuturo').value = partido.hora || '';
+                document.getElementById('lugarPartido').value = partido.lugar || '';
+                
+                // Cambia el botón para actualizar
+                const btn = document.querySelector('#partidos .card:first-child .btn-primary');
+                btn.textContent = '✅ Actualizar Partido Programado';
+                btn.onclick = () => actualizarPartido(id);
+
+                toast.info('Editando partido programado. Puede añadir los resultados en el formulario de abajo.');
+
+            } else {
+                 // Rellena el formulario de resultados
+                document.getElementById('equipoLocal').value = partido.equipo_local_id;
+                document.getElementById('equipoVisitante').value = partido.equipo_visitante_id;
+                document.getElementById('carrerasLocal').value = partido.carreras_local || '';
+                document.getElementById('carrerasVisitante').value = partido.carreras_visitante || '';
+                document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
+                document.getElementById('btn-registrar-partido').textContent = '✅ Actualizar Resultado';
+                document.getElementById('btn-registrar-partido').onclick = () => actualizarPartido(id);
+            }
         }
 
         async function actualizarPartido(id) {
-            const equipo_local_id = document.getElementById('equipoLocal').value;
-            const equipo_visitante_id = document.getElementById('equipoVisitante').value;
+            // Unificar lógica de actualización
+            const equipo_local_id = document.getElementById('equipoLocal').value || document.getElementById('equipoLocalFuturo').value;
+            const equipo_visitante_id = document.getElementById('equipoVisitante').value || document.getElementById('equipoVisitanteFuturo').value;
             const carreras_local = document.getElementById('carrerasLocal').value;
             const carreras_visitante = document.getElementById('carrerasVisitante').value;
-            const fecha_partido = document.getElementById('fechaPartido').value;
+            const fecha_partido = document.getElementById('fechaPartido').value || document.getElementById('fechaPartidoFuturo').value;
+            const hora = document.getElementById('horaPartidoFuturo').value;
+            const lugar = document.getElementById('lugarPartido').value;
 
             if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
                 toast.warning('Equipos y fecha son obligatorios.');
@@ -3413,8 +3558,11 @@
                 equipo_local_id,
                 equipo_visitante_id,
                 fecha_partido,
+                hora: hora || null,
+                lugar: lugar || null,
                 carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
                 carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
+                estado: (carreras_local !== "" && carreras_visitante !== "") ? 'finalizado' : 'programado'
             };
 
             try {
@@ -3425,12 +3573,23 @@
                 });
                 if (res.ok) {
                     toast.success('Partido actualizado correctamente.');
+                    // Resetear ambos formularios y botones
                     document.getElementById('equipoLocal').value = '';
                     document.getElementById('equipoVisitante').value = '';
                     document.getElementById('carrerasLocal').value = '';
                     document.getElementById('carrerasVisitante').value = '';
                     document.getElementById('btn-registrar-partido').textContent = '🎯 Registrar Partido';
                     document.getElementById('btn-registrar-partido').onclick = registrarPartido;
+                    
+                    document.getElementById('equipoLocalFuturo').value = '';
+                    document.getElementById('equipoVisitanteFuturo').value = '';
+                    document.getElementById('fechaPartidoFuturo').value = '';
+                    document.getElementById('horaPartidoFuturo').value = '';
+                    document.getElementById('lugarPartido').value = '';
+                    const btnProg = document.querySelector('#partidos .card:first-child .btn-primary');
+                    btnProg.textContent = '📅 Programar Partido';
+                    btnProg.onclick = programarPartido;
+
                     await cargarPartidos();
                     calcularPosiciones();
                 } else {
