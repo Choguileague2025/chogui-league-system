@@ -917,6 +917,133 @@
                 min-width: auto;
             }
         }
+
+        /* ===== CONTROLES DE TABLA ===== */
+        .table-controls {
+            background: rgba(22, 33, 62, 0.6);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        .table-controls h4 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .search-box {
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            background: rgba(26, 26, 46, 0.8);
+            color: #ffd700;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .search-box input:focus {
+            border-color: #ffd700;
+            outline: none;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+        .search-box::after {
+            content: '🔍';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+        }
+        .filter-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            background: rgba(26, 26, 46, 0.8);
+            color: #ffd700;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .results-info {
+            color: #ffd700;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .pagination-btn {
+            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background: linear-gradient(145deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            transform: translateY(-2px);
+        }
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .pagination-btn.active {
+            background: linear-gradient(145deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        .page-numbers {
+            display: flex;
+            gap: 5px;
+        }
+        .page-btn {
+            background: rgba(26, 26, 46, 0.8);
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            min-width: 36px;
+            text-align: center;
+        }
+        .page-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+        }
+        .page-btn.active {
+            background: linear-gradient(145deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        @media (max-width: 768px) {
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+                .pagination-controls {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1837,6 +1964,67 @@
         // Instancia global
         const toast = new ToastManager();
 
+        // ===== SISTEMA DE PAGINACIÓN PARA TABLAS DE ESTADÍSTICAS =====
+        class TablePagination {
+            constructor(tableId, itemsPerPage = 20) {
+                this.tableId = tableId;
+                this.itemsPerPage = itemsPerPage;
+                this.currentPage = 1;
+                this.allData = [];
+                this.filteredData = [];
+                this.searchTerm = '';
+                this.selectedTeam = '';
+            }
+                setData(data) {
+                this.allData = data;
+                this.applyFilters();
+            }
+                applyFilters() {
+                this.filteredData = this.allData.filter(item => {
+                    const matchesSearch = !this.searchTerm || 
+                        item.nombre.toLowerCase().includes(this.searchTerm.toLowerCase());
+                    const matchesTeam = !this.selectedTeam || 
+                        item.equipo_id == this.selectedTeam;
+                    return matchesSearch && matchesTeam;
+                });
+                this.currentPage = 1; // Reset to first page
+                this.render();
+            }
+                setSearch(term) {
+                this.searchTerm = term;
+                this.applyFilters();
+            }
+                setTeamFilter(teamId) {
+                this.selectedTeam = teamId;
+                this.applyFilters();
+            }
+                getTotalPages() {
+                return Math.ceil(this.filteredData.length / this.itemsPerPage);
+            }
+                getCurrentPageData() {
+                const start = (this.currentPage - 1) * this.itemsPerPage;
+                const end = start + this.itemsPerPage;
+                return this.filteredData.slice(start, end);
+            }
+                goToPage(page) {
+                const totalPages = this.getTotalPages();
+                if (page < 1 || (totalPages > 0 && page > totalPages)) return;
+                this.currentPage = page;
+                this.render();
+            }
+                nextPage() {
+                this.goToPage(this.currentPage + 1);
+            }
+                prevPage() {
+                this.goToPage(this.currentPage - 1);
+            }
+                render() {
+                // Implementado específicamente para cada tabla
+            }
+        }
+        // Instancias globales
+        let paginationBateo, paginationPitcheo, paginationDefensa;
+
         const AJUSTES_POSICIONALES = {
             'C': 12.5, 'SS': 7.5, 'CF': 2.5, '2B': 3.0, '3B': 2.0,
             'RF': -7.5, 'LF': -7.0, '1B': -12.5, 'P': 0.0
@@ -1916,9 +2104,9 @@
                 await cargarTorneoActivo();
                 await Promise.all([
                     cargarEquipos(),
-                    cargarPartidos(),
-                    cargarJugadores()
+                    cargarJugadores() // Cargar jugadores primero
                 ]);
+                await cargarPartidos(); // Cargar partidos después
                 await cargarEstadisticas();
                 actualizarSelectores();
                 calcularPosiciones();
@@ -3344,100 +3532,318 @@
         async function cargarTablaEditarBateo() {
             const tbody = document.querySelector('#tablaEditarBateo tbody');
             if (!tbody) return;
-            
+            // Crear controles si no existen
+            const table = document.getElementById('tablaEditarBateo');
+            if (!document.getElementById('controls-bateo')) {
+                const controls = document.createElement('div');
+                controls.id = 'controls-bateo';
+                controls.className = 'table-controls';
+                controls.innerHTML = `
+                    <h4>🔍 Filtros de Búsqueda</h4>
+                    <div class="filters-grid">
+                        <div class="search-box">
+                            <input type="text" id="search-bateo" placeholder="Buscar jugador por nombre...">
+                        </div>
+                        <select id="filter-team-bateo" class="filter-select">
+                            <option value="">-- Todos los Equipos --</option>
+                        </select>
+                    </div>
+                    <div class="results-info">
+                        <span id="count-bateo">Total: 0 jugadores</span>
+                        <button class="btn-secondary" onclick="limpiarFiltrosBateo()" style="background: #ff8c00; padding: 8px 16px;">🗑️ Limpiar</button>
+                    </div>
+                `;
+                table.parentElement.insertBefore(controls, table);
+                // Poblar select de equipos
+                const teamSelect = document.getElementById('filter-team-bateo');
+                equipos.forEach(e => {
+                    const option = document.createElement('option');
+                    option.value = e.id;
+                    option.textContent = e.nombre;
+                    teamSelect.appendChild(option);
+                });
+                // Event listeners
+                document.getElementById('search-bateo').addEventListener('input', (e) => {
+                    if (paginationBateo) paginationBateo.setSearch(e.target.value);
+                });
+                document.getElementById('filter-team-bateo').addEventListener('change', (e) => {
+                    if (paginationBateo) paginationBateo.setTeamFilter(e.target.value);
+                });
+            }
             try {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando estadísticas...</td></tr>';
                 const response = await fetch('/api/estadisticas-ofensivas');
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
                 
-                if (stats.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay estadísticas de bateo.</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = stats.map(s => {
+                // Enriquecer con datos de jugador (esto es clave)
+                const enrichedStats = stats.map(s => {
                     const jugador = jugadores.find(j => j.id === s.jugador_id);
-                    return `
-                        <tr>
-                            <td>${jugador ? jugador.nombre : 'Desconocido'}</td>
-                            <td>${jugador ? jugador.equipo_nombre : '-'}</td>
-                            <td><input type="number" id="ab-${s.jugador_id}" value="${s.at_bats || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:60px;"></td>
-                            <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">💾</button></td>
-                        </tr>
-                    `;
-                }).join('');
+                    return jugador ? { ...s, nombre: jugador.nombre, equipo_nombre: jugador.equipo_nombre, equipo_id: jugador.equipo_id } : null;
+                }).filter(Boolean); // Filtrar nulos si un jugador no se encontró
+                
+                // Inicializar paginación
+                paginationBateo = new TablePagination('tablaEditarBateo', 20);
+                paginationBateo.render = function() {
+                    const data = this.getCurrentPageData();
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No se encontraron jugadores con los filtros aplicados.</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.map(s => `
+                            <tr>
+                                <td>${s.nombre}</td>
+                                <td>${s.equipo_nombre || '-'}</td>
+                                <td><input type="number" id="ab-${s.jugador_id}" value="${s.at_bats || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:60px;"></td>
+                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">💾</button></td>
+                            </tr>
+                        `).join('');
+                    }
+                    // Actualizar contador
+                    document.getElementById('count-bateo').textContent = `Mostrando ${data.length} de ${this.filteredData.length} jugadores`;
+                    // Renderizar paginación
+                    renderPagination('bateo', this);
+                };
+                paginationBateo.setData(enrichedStats);
             } catch(e) {
                 tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar.</td></tr>';
+                console.error(e);
+            }
+        }
+
+        function renderPagination(type, pagination) {
+            const totalPages = pagination.getTotalPages();
+            const currentPage = pagination.currentPage;
+            const typeCapitalized = type.charAt(0).toUpperCase() + type.slice(1);
+
+            let container = document.getElementById(`pagination-${type}`);
+            if (!container) {
+                container = document.createElement('div');
+                container.id = `pagination-${type}`;
+                container.className = 'pagination-controls';
+                const table = document.getElementById(`tablaEditar${typeCapitalized}`);
+                table.parentElement.appendChild(container);
+            }
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            let html = `
+                <button class="pagination-btn" onclick="pagination${typeCapitalized}.prevPage()" ${currentPage === 1 ? 'disabled' : ''}>
+                    ← Anterior
+                </button>
+                <div class="page-numbers">
+            `;
+            // Mostrar páginas (máximo 5 botones)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (endPage - startPage < 4) {
+                if (startPage === 1) {
+                    endPage = Math.min(totalPages, 5);
+                } else if (endPage === totalPages) {
+                    startPage = Math.max(1, totalPages - 4);
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `
+                    <button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="pagination${typeCapitalized}.goToPage(${i})">
+                        ${i}
+                    </button>
+                `;
+            }
+            html += `
+                </div>
+                <button class="pagination-btn" onclick="pagination${typeCapitalized}.nextPage()" ${currentPage === totalPages ? 'disabled' : ''}>
+                    Siguiente →
+                </button>
+            `;
+            container.innerHTML = html;
+        }
+
+        function limpiarFiltrosBateo() {
+            document.getElementById('search-bateo').value = '';
+            document.getElementById('filter-team-bateo').value = '';
+            if (paginationBateo) {
+                paginationBateo.setSearch('');
+                paginationBateo.setTeamFilter('');
             }
         }
 
         async function cargarTablaEditarPitcheo() {
             const tbody = document.querySelector('#tablaEditarPitcheo tbody');
             if (!tbody) return;
-            
+            const table = document.getElementById('tablaEditarPitcheo');
+            if (!document.getElementById('controls-pitcheo')) {
+                const controls = document.createElement('div');
+                controls.id = 'controls-pitcheo';
+                controls.className = 'table-controls';
+                controls.innerHTML = `
+                    <h4>🔍 Filtros de Búsqueda</h4>
+                    <div class="filters-grid">
+                        <div class="search-box">
+                            <input type="text" id="search-pitcheo" placeholder="Buscar pitcher por nombre...">
+                        </div>
+                        <select id="filter-team-pitcheo" class="filter-select">
+                            <option value="">-- Todos los Equipos --</option>
+                        </select>
+                    </div>
+                    <div class="results-info">
+                        <span id="count-pitcheo">Total: 0 jugadores</span>
+                        <button class="btn-secondary" onclick="limpiarFiltrosPitcheo()" style="background: #ff8c00; padding: 8px 16px;">🗑️ Limpiar</button>
+                    </div>
+                `;
+                table.parentElement.insertBefore(controls, table);
+                const teamSelect = document.getElementById('filter-team-pitcheo');
+                equipos.forEach(e => {
+                    const option = document.createElement('option');
+                    option.value = e.id;
+                    option.textContent = e.nombre;
+                    teamSelect.appendChild(option);
+                });
+                document.getElementById('search-pitcheo').addEventListener('input', (e) => {
+                    if (paginationPitcheo) paginationPitcheo.setSearch(e.target.value);
+                });
+                document.getElementById('filter-team-pitcheo').addEventListener('change', (e) => {
+                    if (paginationPitcheo) paginationPitcheo.setTeamFilter(e.target.value);
+                });
+            }
             try {
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">Cargando estadísticas...</td></tr>';
                 const response = await fetch('/api/estadisticas-pitcheo');
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
                 
-                if (stats.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay estadísticas de pitcheo.</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = stats.map(s => {
+                const enrichedStats = stats.map(s => {
                     const jugador = jugadores.find(j => j.id === s.jugador_id);
-                    return `
-                        <tr>
-                            <td>${jugador ? jugador.nombre : 'Desconocido'}</td>
-                            <td>${jugador ? jugador.equipo_nombre : '-'}</td>
-                            <td><input type="number" id="ip-${s.jugador_id}" value="${s.innings_pitched || 0}" style="width:60px;" step="0.1"></td>
-                            <td><input type="number" id="er-${s.jugador_id}" value="${s.earned_runs || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="w-${s.jugador_id}" value="${s.wins || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="l-${s.jugador_id}" value="${s.losses || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="sv-${s.jugador_id}" value="${s.saves || 0}" style="width:60px;"></td>
-                            <td><button class="btn-actualizar" onclick="actualizarEstadistica('pitcheo', ${s.jugador_id})">💾</button></td>
-                        </tr>
-                    `;
-                }).join('');
+                    return jugador ? { ...s, nombre: jugador.nombre, equipo_nombre: jugador.equipo_nombre, equipo_id: jugador.equipo_id } : null;
+                }).filter(Boolean);
+                
+                paginationPitcheo = new TablePagination('tablaEditarPitcheo', 20);
+                paginationPitcheo.render = function() {
+                    const data = this.getCurrentPageData();
+                    if (data.length === 0) {
+                         tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No se encontraron jugadores.</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.map(s => `
+                            <tr>
+                                <td>${s.nombre}</td>
+                                <td>${s.equipo_nombre || '-'}</td>
+                                <td><input type="number" id="ip-${s.jugador_id}" value="${s.innings_pitched || 0}" style="width:60px;" step="0.1"></td>
+                                <td><input type="number" id="er-${s.jugador_id}" value="${s.earned_runs || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="w-${s.jugador_id}" value="${s.wins || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="l-${s.jugador_id}" value="${s.losses || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="sv-${s.jugador_id}" value="${s.saves || 0}" style="width:60px;"></td>
+                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('pitcheo', ${s.jugador_id})">💾</button></td>
+                            </tr>
+                        `).join('');
+                    }
+                    document.getElementById('count-pitcheo').textContent = `Mostrando ${data.length} de ${this.filteredData.length} jugadores`;
+                    renderPagination('pitcheo', this);
+                };
+                paginationPitcheo.setData(enrichedStats);
             } catch(e) {
                 tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Error al cargar.</td></tr>';
+                console.error(e);
+            }
+        }
+
+        function limpiarFiltrosPitcheo() {
+            document.getElementById('search-pitcheo').value = '';
+            document.getElementById('filter-team-pitcheo').value = '';
+            if (paginationPitcheo) {
+                paginationPitcheo.setSearch('');
+                paginationPitcheo.setTeamFilter('');
             }
         }
 
         async function cargarTablaEditarDefensa() {
             const tbody = document.querySelector('#tablaEditarDefensa tbody');
             if (!tbody) return;
-            
+            const table = document.getElementById('tablaEditarDefensa');
+            if (!document.getElementById('controls-defensa')) {
+                const controls = document.createElement('div');
+                controls.id = 'controls-defensa';
+                controls.className = 'table-controls';
+                controls.innerHTML = `
+                    <h4>🔍 Filtros de Búsqueda</h4>
+                    <div class="filters-grid">
+                        <div class="search-box">
+                            <input type="text" id="search-defensa" placeholder="Buscar jugador por nombre...">
+                        </div>
+                        <select id="filter-team-defensa" class="filter-select">
+                            <option value="">-- Todos los Equipos --</option>
+                        </select>
+                    </div>
+                    <div class="results-info">
+                        <span id="count-defensa">Total: 0 jugadores</span>
+                        <button class="btn-secondary" onclick="limpiarFiltrosDefensa()" style="background: #ff8c00; padding: 8px 16px;">🗑️ Limpiar</button>
+                    </div>
+                `;
+                table.parentElement.insertBefore(controls, table);
+                const teamSelect = document.getElementById('filter-team-defensa');
+                equipos.forEach(e => {
+                    const option = document.createElement('option');
+                    option.value = e.id;
+                    option.textContent = e.nombre;
+                    teamSelect.appendChild(option);
+                });
+                document.getElementById('search-defensa').addEventListener('input', (e) => {
+                    if (paginationDefensa) paginationDefensa.setSearch(e.target.value);
+                });
+                document.getElementById('filter-team-defensa').addEventListener('change', (e) => {
+                    if (paginationDefensa) paginationDefensa.setTeamFilter(e.target.value);
+                });
+            }
             try {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando estadísticas...</td></tr>';
                 const response = await fetch('/api/estadisticas-defensivas');
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
                 
-                if (stats.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay estadísticas defensivas.</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = stats.map(s => {
+                const enrichedStats = stats.map(s => {
                     const jugador = jugadores.find(j => j.id === s.jugador_id);
-                    return `
-                        <tr>
-                            <td>${jugador ? jugador.nombre : 'Desconocido'}</td>
-                            <td>${jugador ? jugador.equipo_nombre : '-'}</td>
-                            <td><input type="number" id="po-${s.jugador_id}" value="${s.putouts || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="a-${s.jugador_id}" value="${s.assists || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="e-${s.jugador_id}" value="${s.errors || 0}" style="width:60px;"></td>
-                            <td><input type="number" id="dp-${s.jugador_id}" value="${s.double_plays || 0}" style="width:60px;"></td>
-                            <td><button class="btn-actualizar" onclick="actualizarEstadistica('defensiva', ${s.jugador_id})">💾</button></td>
-                        </tr>
-                    `;
-                }).join('');
+                    return jugador ? { ...s, nombre: jugador.nombre, equipo_nombre: jugador.equipo_nombre, equipo_id: jugador.equipo_id } : null;
+                }).filter(Boolean);
+                
+                paginationDefensa = new TablePagination('tablaEditarDefensa', 20);
+                paginationDefensa.render = function() {
+                    const data = this.getCurrentPageData();
+                     if (data.length === 0) {
+                         tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No se encontraron jugadores.</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.map(s => `
+                            <tr>
+                                <td>${s.nombre}</td>
+                                <td>${s.equipo_nombre || '-'}</td>
+                                <td><input type="number" id="po-${s.jugador_id}" value="${s.putouts || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="a-${s.jugador_id}" value="${s.assists || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="e-${s.jugador_id}" value="${s.errors || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="dp-${s.jugador_id}" value="${s.double_plays || 0}" style="width:60px;"></td>
+                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('defensiva', ${s.jugador_id})">💾</button></td>
+                            </tr>
+                        `).join('');
+                    }
+                    document.getElementById('count-defensa').textContent = `Mostrando ${data.length} de ${this.filteredData.length} jugadores`;
+                    renderPagination('defensa', this);
+                };
+                paginationDefensa.setData(enrichedStats);
             } catch(e) {
                 tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar.</td></tr>';
+                console.error(e);
+            }
+        }
+
+        function limpiarFiltrosDefensa() {
+            document.getElementById('search-defensa').value = '';
+            document.getElementById('filter-team-defensa').value = '';
+            if (paginationDefensa) {
+                paginationDefensa.setSearch('');
+                paginationDefensa.setTeamFilter('');
             }
         }
 
