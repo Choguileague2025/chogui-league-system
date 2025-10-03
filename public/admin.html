@@ -615,16 +615,6 @@
             color: #fff;
             font-weight: bold;
         }
-
-        @media (max-width: 768px) {
-            .form-container, .stats-form-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .leaders-grid, .position-leaders-grid {
-                grid-template-columns: 1fr;
-            }
-        }
         
         /* AÑADIDO: CSS para Mejoras UX */
         .form-group { position: relative; }
@@ -664,59 +654,6 @@
             color: #1a1a2e;
             opacity: 1;
         }
-        .table-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .pagination-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .pagination-btn {
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
-            color: #ffd700;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            padding: 8px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-        .pagination-btn:hover:not(:disabled) {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
-        }
-        .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .pagination-btn.active {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
-        }
-        .items-per-page {
-            color: #ffd700;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .items-per-page select {
-            background: rgba(26, 26, 46, 0.8);
-            color: #ffd700;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 8px;
-            padding: 4px 8px;
-            font-size: 0.8rem;
-        }
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -738,16 +675,6 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
-        
-        /* ----- INICIO CORRECCIÓN 1: CAMBIAR SPINNER ----- */
-        /* La clase .loading::after no se encontró. Se busca .loading-spinner y se reemplaza su animación. */
-        @keyframes pulse {
-            0%, 100% { opacity: 0.4; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-        /* Como no hay .loading::after, no se puede aplicar el estilo directamente sin cambiar HTML, lo cual está prohibido.
-            Se deja la animación spin para .loading-spinner para no romper la funcionalidad visual existente. */
-        /* ----- FIN CORRECCIÓN 1 ----- */
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -906,18 +833,7 @@
         .toast.hiding {
             animation: slideOut 0.3s ease-out forwards;
         }
-        @media (max-width: 768px) {
-            .toast-container {
-                top: 10px;
-                right: 10px;
-                left: 10px;
-                max-width: none;
-            }
-                .toast {
-                min-width: auto;
-            }
-        }
-
+        
         /* ===== CONTROLES DE TABLA ===== */
         .table-controls {
             background: rgba(22, 33, 62, 0.6);
@@ -1036,12 +952,89 @@
             color: #1a1a2e;
             font-weight: bold;
         }
+
         @media (max-width: 768px) {
+            /* Filtros en columna única */
             .filters-grid {
                 grid-template-columns: 1fr;
             }
-                .pagination-controls {
+            /* Paginación responsive */
+            .pagination-controls {
                 flex-direction: column;
+                gap: 15px;
+            }
+            /* Formularios en columna única */
+            .form-container {
+                grid-template-columns: 1fr !important;
+            }
+            .stats-form-container {
+                grid-template-columns: 1fr !important;
+            }
+            /* Headers de tablas con scroll horizontal */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            /* Reducir padding en mobile */
+            .card {
+                padding: 15px;
+            }
+            .container {
+                padding: 15px;
+                padding-top: 70px;
+            }
+            /* Botones más grandes para touch */
+            .btn-primary, .btn-secondary {
+                min-height: 44px;
+                padding: 12px 20px;
+            }
+            /* Header responsive */
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .header p {
+                font-size: 0.85rem;
+            }
+            /* Tabs responsive */
+            .nav-tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                justify-content: flex-start;
+                padding-bottom: 10px;
+            }
+            .nav-tab {
+                min-width: 100px;
+                flex-shrink: 0;
+            }
+            /* Controles admin responsive */
+            .admin-controls {
+                top: 10px;
+                right: 10px;
+                flex-direction: column;
+                gap: 5px;
+            }
+            .admin-btn {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+            /* Toast container mobile */
+            .toast-container {
+                top: 70px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+            .toast {
+                min-width: auto;
+            }
+        }
+        /* Tablets (768px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .form-container {
+                grid-template-columns: 1fr !important;
+            }
+            .container {
+                padding: 20px;
             }
         }
         /* Indicador de búsqueda activa */
@@ -1061,9 +1054,80 @@
             0%, 100% { opacity: 0.4; }
             50% { opacity: 1; }
         }
+        
+        /* Skeleton loaders para mejor UX */
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                rgba(255, 215, 0, 0.1) 0%,
+                rgba(255, 215, 0, 0.2) 50%,
+                rgba(255, 215, 0, 0.1) 100%
+            );
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+        }
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        .skeleton-text {
+            height: 16px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .skeleton-card {
+            height: 120px;
+            border-radius: 15px;
+        }
+        /* Loading state mejorado */
+        .loading {
+            color: #ffd700;
+            font-style: normal;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        /* Mejoras de accesibilidad */
+        :focus-visible {
+            outline: 2px solid #ffd700;
+            outline-offset: 2px;
+        }
+        /* Mejorar contraste en estados hover */
+        .btn-primary:hover, .btn-secondary:hover, .nav-tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+        }
+        /* Labels más legibles */
+        label {
+            cursor: pointer;
+            user-select: none;
+        }
+        /* Focus en inputs más visible */
+        input:focus,select:focus,textarea:focus {
+            border-color: #ffd700 !important;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2) !important;
+        }
+        /* Skip to content para navegación por teclado */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #ffd700;
+            color: #1a1a2e;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 10000;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
     <div id="toast-container" class="toast-container"></div>
     <div class="admin-controls">
         <a href="index.html" class="admin-btn">👁️ Vista Pública</a>
@@ -1314,7 +1378,7 @@
             <div class="card">
                 <h3>👤 Agregar Nuevo Jugador</h3>
                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px; opacity: 0.9;">
-                    💡 Solo el nombre es obligatorio. Equipo, posición y número se pueden asignar después.
+                    💡 Solo el nombre es obligatorio. Equipo, posición y número son opcionales.
                 </p>
                 <form id="jugadorForm">
                     <div class="form-container">
@@ -1323,8 +1387,6 @@
                                 <label for="nombreJugador">👤 Nombre Completo del Jugador:</label>
                                 <input type="text" id="nombreJugador" required placeholder="Ejemplo: Miguel Calderón">
                             </div>
-                        </div>
-                        <div>
                             <div class="form-group">
                                 <label for="equipoJugador">🏅 Equipo (Opcional):</label>
                                 <select id="equipoJugador">
@@ -1332,10 +1394,29 @@
                                 </select>
                             </div>
                         </div>
+                        <div>
+                            <div class="form-group">
+                                <label for="posicionJugador">⚾ Posición (Opcional):</label>
+                                <select id="posicionJugador">
+                                    <option value="">-- Sin Posición --</option>
+                                    <option value="UTIL">UTIL (Utilidad)</option>
+                                    <option value="P">P (Pitcher)</option>
+                                    <option value="C">C (Catcher)</option>
+                                    <option value="1B">1B (Primera Base)</option>
+                                    <option value="2B">2B (Segunda Base)</option>
+                                    <option value="3B">3B (Tercera Base)</option>
+                                    <option value="SS">SS (Shortstop)</option>
+                                    <option value="LF">LF (Left Field)</option>
+                                    <option value="CF">CF (Center Field)</option>
+                                    <option value="RF">RF (Right Field)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="numeroJugador">🔢 Número (Opcional):</label>
+                                <input type="number" id="numeroJugador" min="0" max="99" placeholder="Ej: 24">
+                            </div>
+                        </div>
                     </div>
-            
-                    <input type="hidden" id="posicionJugador" value="">
-                    <input type="hidden" id="numeroJugador" value="">
             
                     <button type="button" id="btn-agregar-jugador" class="btn-primary" onclick="agregarJugador()">👤 Agregar Jugador</button>
                 </form>
@@ -1777,7 +1858,7 @@
         <div id="torneos" class="tab-content">
             <div class="card">
                 <h3>➕ Crear Nuevo Torneo</h3>
-                <div class="form-container" style="grid-template-columns: 1fr;">
+                <div class="form-container">
                     <div>
                         <div class="form-group">
                             <label for="nombreTorneo">Nombre del Torneo:</label>
@@ -2165,18 +2246,30 @@
 
         async function cargarTodosLosDatos() {
             try {
+                // Mostrar indicador de carga global
+                console.log('🚀 Iniciando carga de datos del sistema...');
+                const startTime = performance.now();
+        
+                // Cargar torneo activo primero (crítico)
                 await cargarTorneoActivo();
+        
+                // Cargar datos principales en paralelo (optimización)
                 await Promise.all([
                     cargarEquipos(),
-                    cargarJugadores() // Cargar jugadores primero
+                    cargarJugadores(),
+                    cargarPartidos()
                 ]);
-                await cargarPartidos(); // Cargar partidos después
+        
+                // Cargar estadísticas después (no bloqueante)
                 await cargarEstadisticas();
+        
+                // Actualizar UI
                 actualizarSelectores();
                 calcularPosiciones();
                 actualizarLideres();
                 actualizarLideresPorPosicion();
-                
+        
+                // Configurar filtros y validaciones
                 setTimeout(() => {
                     if (typeof configurarFiltrosEnTiempoReal === 'function') {
                         configurarFiltrosEnTiempoReal();
@@ -2186,7 +2279,12 @@
                     }
                     console.log('✅ Validaciones en tiempo real activadas');
                 }, 500);
-
+        
+                // Log de performance
+                const endTime = performance.now();
+                const loadTime = ((endTime - startTime) / 1000).toFixed(2);
+                console.log(`✅ Sistema cargado en ${loadTime} segundos`);
+        
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 toast.error('Error de conexión con el servidor');
@@ -2196,60 +2294,66 @@
         async function agregarJugador() {
             const nombre = document.getElementById('nombreJugador')?.value?.trim();
             const equipoId = document.getElementById('equipoJugador')?.value;
-            const posicion = document.getElementById('posicionJugador')?.value.trim() || null;
-            const numero = document.getElementById('numeroJugador')?.value;
-
+            const posicion = document.getElementById('posicionJugador')?.value || null;
+            const numeroInput = document.getElementById('numeroJugador')?.value;
+            const numero = numeroInput ? parseInt(numeroInput) : null;
+        
             // Validaciones
-            if (!nombre || nombre.length < 3 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
-                toast.warning('El nombre del jugador es inválido o muy corto.');
+            if (!nombre) {
+                toast.warning('El nombre del jugador es obligatorio');
                 return;
             }
-
+            if (nombre.length < 3) {
+                toast.warning('El nombre debe tener al menos 3 caracteres');
+                return;
+            }
+        
             const jugadorData = {
                 nombre: nombre,
                 equipo_id: equipoId ? parseInt(equipoId) : null,
                 posicion: posicion,
-                numero: numero ? parseInt(numero) : null
+                numero: numero
             };
-
+        
             console.log('📤 Enviando jugador:', jugadorData);
-
+        
             try {
                 const response = await fetch('/api/jugadores', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(jugadorData)
                 });
-
+        
                 if (!response.ok) {
                     const errorData = await response.text();
                     throw new Error(`Error ${response.status}: ${errorData}`);
                 }
-
+        
                 const resultado = await response.json();
                 console.log('✅ Jugador creado:', resultado);
-                
+        
                 toast.success('Jugador agregado exitosamente');
                 document.getElementById('jugadorForm').reset();
-                // Resetear validación visual
+        
+                // Limpiar validación visual
                 const nombreInput = document.getElementById('nombreJugador');
                 const errorDiv = document.getElementById('nombreJugador-error');
-                if(nombreInput && errorDiv) {
-                    nombreInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
-                    errorDiv.style.display = 'none';
-                }
+                if (nombreInput) nombreInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+                if (errorDiv) errorDiv.style.display = 'none';
+        
                 await cargarJugadores();
-                
+        
             } catch (error) {
                 console.error('❌ Error agregando jugador:', error);
                 toast.error(`Error: ${error.message}`);
             }
         }
-
+        
         // Validación en tiempo real para el formulario de jugadores
         function configurarValidacionJugador() {
             const nombreInput = document.getElementById('nombreJugador');
             if (!nombreInput) return;
+        
             // Crear contenedor de error si no existe
             if (!document.getElementById('nombreJugador-error')) {
                 const errorDiv = document.createElement('div');
@@ -2258,10 +2362,12 @@
                 errorDiv.style.display = 'none';
                 nombreInput.parentElement.appendChild(errorDiv);
             }
+        
             nombreInput.addEventListener('input', debounce(function() {
                 const valor = this.value.trim();
                 const errorDiv = document.getElementById('nombreJugador-error');
                 const btnAgregar = document.getElementById('btn-agregar-jugador');
+        
                 if (valor.length === 0) {
                     errorDiv.textContent = '';
                     errorDiv.style.display = 'none';
@@ -4432,4 +4538,3 @@
         }
     </script>
 </body>
-</html>
