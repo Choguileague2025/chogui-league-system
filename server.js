@@ -124,6 +124,8 @@ async function inicializarBaseDeDatos() {
                     carreras_visitante INTEGER, 
                     innings_jugados INTEGER DEFAULT 9, 
                     fecha_partido DATE NOT NULL, 
+                    hora TIME,
+                    estado VARCHAR(20) DEFAULT 'programado',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );`
             },
@@ -203,6 +205,31 @@ async function inicializarBaseDeDatos() {
         for (const table of tables) {
             await pool.query(table.query);
             console.log(`✅ Tabla ${table.name} verificada`);
+        }
+
+        // FASE 2A: Migración para agregar columnas faltantes a partidos
+        try {
+            await pool.query(`
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='partidos' AND column_name='hora'
+                    ) THEN
+                        ALTER TABLE partidos ADD COLUMN hora TIME;
+                    END IF;
+                                        
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='partidos' AND column_name='estado'
+                    ) THEN
+                        ALTER TABLE partidos ADD COLUMN estado VARCHAR(20) DEFAULT 'programado';
+                    END IF;
+                END $$;
+            `);
+            console.log('✅ Migración de partidos completada');
+        } catch (error) {
+            console.error('⚠️ Error en migración de partidos:', error.message);
         }
 
         // Crear índices para optimización
@@ -600,15 +627,9 @@ app.put('/api/equipos/:id', async (req, res) => {
     }
 });
 
-// =================================================
-// INICIO DE CORRECCIÓN 1 (Línea 737 aprox.)
-// =================================================
 app.delete('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-
-        // CORRECCIÓN FASE 2: Permitir eliminación gracias a ON DELETE SET NULL
-        // Los jugadores asociados tendrán equipo_id = NULL automáticamente
 
         const result = await pool.query(
             'DELETE FROM equipos WHERE id = $1 RETURNING *',
@@ -628,9 +649,6 @@ app.delete('/api/equipos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-// =================================================
-// FIN DE CORRECCIÓN 1
-// =================================================
 
 // ====================== JUGADORES COMPLETADOS =========================
 
@@ -851,15 +869,9 @@ app.put('/api/jugadores/:id', async (req, res) => {
     }
 });
 
-// =================================================
-// INICIO DE CORRECCIÓN 2 (Línea 937 aprox.)
-// =================================================
 app.delete('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
-
-        // CORRECCIÓN FASE 2: Permitir eliminación gracias a ON DELETE CASCADE
-        // Las estadísticas asociadas se eliminarán automáticamente
 
         const result = await pool.query(
             'DELETE FROM jugadores WHERE id = $1 RETURNING *',
@@ -879,9 +891,6 @@ app.delete('/api/jugadores/:id', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-// =================================================
-// FIN DE CORRECCIÓN 2
-// =================================================
 
 
 // ====================== PARTIDOS COMPLETADOS =========================
@@ -1000,7 +1009,9 @@ app.post('/api/partidos', async (req, res) => {
             carreras_local, 
             carreras_visitante, 
             innings_jugados, 
-            fecha_partido 
+            fecha_partido,
+            hora,
+            estado
         } = req.body;
 
         // Validaciones básicas
@@ -1023,11 +1034,9 @@ app.post('/api/partidos', async (req, res) => {
         if (equiposCheck.rows.length !== 2) {
             return res.status(400).json({ error: 'Uno o ambos equipos no existen' });
         }
-        // CORRECCIÓN FASE 2A: Permitir NULL en carreras para partidos programados
+        // Validar carreras (NULL para partidos programados)
         let carrerasLocalFinal = null;
         let carrerasVisitanteFinal = null;
-        let inningsJugadosFinal = 9;
-        // Solo validar si vienen como números
         if (carreras_local !== null && carreras_local !== undefined && carreras_local !== '') {
             carrerasLocalFinal = parseInt(carreras_local);
             if (isNaN(carrerasLocalFinal) || carrerasLocalFinal < 0) {
@@ -1040,35 +1049,39 @@ app.post('/api/partidos', async (req, res) => {
                 return res.status(400).json({ error: 'Las carreras visitantes deben ser un número positivo' });
             }
         }
-        if (innings_jugados !== null && innings_jugados !== undefined && innings_jugados !== '') {
-            inningsJugadosFinal = parseInt(innings_jugados);
-            if (isNaN(inningsJugadosFinal) || inningsJugadosFinal < 1 || inningsJugadosFinal > 20) {
-                return res.status(400).json({ 
-                    error: 'Los innings jugados deben estar entre 1 y 20' 
-                });
-            }
+        // Validar innings
+        const inningsJugadosFinal = innings_jugados ? parseInt(innings_jugados) : 9;
+        if (inningsJugadosFinal < 1 || inningsJugadosFinal > 20) {
+            return res.status(400).json({ 
+                error: 'Los innings jugados deben estar entre 1 y 20' 
+            });
         }
-        // Validar fecha (no muy en el futuro ni en el pasado lejano)
+        // Validar fecha
         const fechaPartidoDate = new Date(fecha_partido);
         const fechaMinima = new Date('2020-01-01');
         const fechaLimite = new Date();
-        fechaLimite.setFullYear(fechaLimite.getFullYear() + 2); // Máximo 2 años en el futuro
+        fechaLimite.setFullYear(fechaLimite.getFullYear() + 2);
         
         if (fechaPartidoDate < fechaMinima || fechaPartidoDate > fechaLimite) {
             return res.status(400).json({ 
                 error: 'La fecha del partido debe estar entre 2020 y 2 años en el futuro' 
             });
         }
-        // INSERT con valores seguros
+        // Validar estado
+        const estadosValidos = ['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'];
+        const estadoFinal = estado && estadosValidos.includes(estado) ? estado : 'programado';
+        // INSERT con nuevos campos
         const result = await pool.query(
-            `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local,                                    carreras_visitante, innings_jugados, fecha_partido)              VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local,                                    carreras_visitante, innings_jugados, fecha_partido, hora, estado)              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
             [
                 equipo_local_id, 
                 equipo_visitante_id, 
                 carrerasLocalFinal, 
                 carrerasVisitanteFinal, 
                 inningsJugadosFinal, 
-                fecha_partido
+                fecha_partido,
+                hora || null,
+                estadoFinal
             ]
         );
         
@@ -1164,6 +1177,8 @@ app.get('/api/proximos-partidos', async (req, res) => {
             SELECT 
                 p.id,
                 p.fecha_partido,
+                p.hora,
+                p.estado,
                 p.equipo_local_id,
                 p.equipo_visitante_id,
                 p.carreras_local,
@@ -1177,8 +1192,8 @@ app.get('/api/proximos-partidos', async (req, res) => {
             LEFT JOIN equipos el ON p.equipo_local_id = el.id
             LEFT JOIN equipos ev ON p.equipo_visitante_id = ev.id
             WHERE p.fecha_partido >= CURRENT_DATE
-              AND (p.carreras_local IS NULL OR p.carreras_visitante IS NULL)
-            ORDER BY p.fecha_partido ASC
+              AND (p.estado = 'programado' OR p.estado IS NULL)
+            ORDER BY p.fecha_partido ASC, p.hora ASC NULLS LAST
             LIMIT 5
         `;
         
