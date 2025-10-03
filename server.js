@@ -992,9 +992,6 @@ app.get('/api/partidos/:id', async (req, res) => {
     }
 });
 
-// =================================================
-// INICIO DE CORRECCIÓN 3 (Línea 1007 aprox.)
-// =================================================
 app.post('/api/partidos', async (req, res) => {
     try {
         const { 
@@ -1002,23 +999,21 @@ app.post('/api/partidos', async (req, res) => {
             equipo_visitante_id, 
             carreras_local, 
             carreras_visitante, 
-            innings_jugados = 9, 
+            innings_jugados, 
             fecha_partido 
         } = req.body;
-        
-        // CORRECCIÓN FASE 2: Validaciones mejoradas para partidos programados
+
+        // Validaciones básicas
         if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
             return res.status(400).json({ 
                 error: 'Equipo local, equipo visitante y fecha son requeridos' 
             });
         }
-
         if (equipo_local_id === equipo_visitante_id) {
             return res.status(400).json({ 
                 error: 'El equipo local y visitante deben ser diferentes' 
             });
         }
-
         // Verificar que ambos equipos existen
         const equiposCheck = await pool.query(
             'SELECT id FROM equipos WHERE id IN ($1, $2)', 
@@ -1028,54 +1023,64 @@ app.post('/api/partidos', async (req, res) => {
         if (equiposCheck.rows.length !== 2) {
             return res.status(400).json({ error: 'Uno o ambos equipos no existen' });
         }
-
-        // CORRECCIÓN: Validar carreras solo si se proporcionan (partidos programados pueden tener NULL)
-        if (carreras_local !== null && carreras_local !== undefined) {
-            if (carreras_local < 0 || !Number.isInteger(carreras_local)) {
-                return res.status(400).json({ error: 'Las carreras locales deben ser un número entero positivo' });
+        // CORRECCIÓN FASE 2A: Permitir NULL en carreras para partidos programados
+        let carrerasLocalFinal = null;
+        let carrerasVisitanteFinal = null;
+        let inningsJugadosFinal = 9;
+        // Solo validar si vienen como números
+        if (carreras_local !== null && carreras_local !== undefined && carreras_local !== '') {
+            carrerasLocalFinal = parseInt(carreras_local);
+            if (isNaN(carrerasLocalFinal) || carrerasLocalFinal < 0) {
+                return res.status(400).json({ error: 'Las carreras locales deben ser un número positivo' });
             }
         }
-        if (carreras_visitante !== null && carreras_visitante !== undefined) {
-            if (carreras_visitante < 0 || !Number.isInteger(carreras_visitante)) {
-                return res.status(400).json({ error: 'Las carreras visitantes deben ser un número entero positivo' });
+        if (carreras_visitante !== null && carreras_visitante !== undefined && carreras_visitante !== '') {
+            carrerasVisitanteFinal = parseInt(carreras_visitante);
+            if (isNaN(carrerasVisitanteFinal) || carrerasVisitanteFinal < 0) {
+                return res.status(400).json({ error: 'Las carreras visitantes deben ser un número positivo' });
             }
         }
-
-        // Validar innings
-        if (innings_jugados && (innings_jugados < 1 || innings_jugados > 20)) {
-            return res.status(400).json({ 
-                error: 'Los innings jugados deben estar entre 1 y 20' 
-            });
+        if (innings_jugados !== null && innings_jugados !== undefined && innings_jugados !== '') {
+            inningsJugadosFinal = parseInt(innings_jugados);
+            if (isNaN(inningsJugadosFinal) || inningsJugadosFinal < 1 || inningsJugadosFinal > 20) {
+                return res.status(400).json({ 
+                    error: 'Los innings jugados deben estar entre 1 y 20' 
+                });
+            }
         }
-
-        // Validar fecha (no muy en el futuro)
+        // Validar fecha (no muy en el futuro ni en el pasado lejano)
         const fechaPartidoDate = new Date(fecha_partido);
+        const fechaMinima = new Date('2020-01-01');
         const fechaLimite = new Date();
-        fechaLimite.setDate(fechaLimite.getDate() + 365); // Máximo 1 año en el futuro
+        fechaLimite.setFullYear(fechaLimite.getFullYear() + 2); // Máximo 2 años en el futuro
         
-        if (fechaPartidoDate > fechaLimite) {
+        if (fechaPartidoDate < fechaMinima || fechaPartidoDate > fechaLimite) {
             return res.status(400).json({ 
-                error: 'La fecha del partido no puede ser más de 1 año en el futuro' 
+                error: 'La fecha del partido debe estar entre 2020 y 2 años en el futuro' 
             });
         }
-
+        // INSERT con valores seguros
         const result = await pool.query(
-            `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local, 
-                                  carreras_visitante, innings_jugados, fecha_partido) 
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [equipo_local_id, equipo_visitante_id, carreras_local || null, 
-             carreras_visitante || null, innings_jugados, fecha_partido]
+            `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local,                                    carreras_visitante, innings_jugados, fecha_partido)              VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [
+                equipo_local_id, 
+                equipo_visitante_id, 
+                carrerasLocalFinal, 
+                carrerasVisitanteFinal, 
+                inningsJugadosFinal, 
+                fecha_partido
+            ]
         );
         
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error creando partido:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.status(500).json({ 
+            error: 'Error interno del servidor',
+            detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
-// =================================================
-// FIN DE CORRECCIÓN 3
-// =================================================
 
 
 app.put('/api/partidos/:id', async (req, res) => {
