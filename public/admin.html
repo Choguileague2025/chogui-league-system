@@ -1296,46 +1296,31 @@
         <div id="jugadores" class="tab-content">
             <div class="card">
                 <h3>👤 Agregar Nuevo Jugador</h3>
+                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px; opacity: 0.9;">
+                    💡 Solo el nombre es obligatorio. Equipo, posición y número se pueden asignar después.
+                </p>
                 <form id="jugadorForm">
                     <div class="form-container">
                         <div>
                             <div class="form-group">
-                                <label for="nombreJugador">Nombre del Jugador:</label>
-                                <input type="text" id="nombreJugador" required>
+                                <label for="nombreJugador">👤 Nombre Completo del Jugador:</label>
+                                <input type="text" id="nombreJugador" required placeholder="Ejemplo: Miguel Calderón">
                             </div>
-                            <div class="form-group">
-                                <label for="equipoJugador">Equipo:</label>
-                                <select id="equipoJugador">
-                                    <option value="">Seleccionar equipo...</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="posicionJugador">⚾ Posición:</label>
-                                <select id="posicionJugador" style="width: 100%; padding: 12px; border: 2px solid rgba(255, 215, 0, 0.3); border-radius: 10px; background: rgba(26, 26, 46, 0.8); color: #ffd700; font-size: 14px;">
-                                    <option value="">-- Sin Posición --</option>
-                                    <option value="UTIL">UTIL (Utilidad)</option>
-                                    <option value="P">P (Pitcher)</option>
-                                    <option value="C">C (Catcher)</option>
-                                    <option value="1B">1B (Primera Base)</option>
-                                    <option value="2B">2B (Segunda Base)</option>
-                                    <option value="3B">3B (Tercera Base)</option>
-                                    <option value="SS">SS (Shortstop)</option>
-                                    <option value="LF">LF (Left Field)</option>
-                                    <option value="CF">CF (Center Field)</option>
-                                    <option value="RF">RF (Right Field)</option>
-                                </select>
-                            </div>
-                            </div>
+                        </div>
                         <div>
                             <div class="form-group">
-                                <label for="numeroJugador">🔢 Número (Opcional):</label>
-                                <input type="number" id="numeroJugador" min="1" max="99" placeholder="Ejemplo: 24 (Opcional)">
-                            </div>
-                            <div class="form-group">
-                                <button type="button" id="btn-agregar-jugador" class="btn-primary" onclick="agregarJugador()">👤 Agregar Jugador</button>
+                                <label for="equipoJugador">🏅 Equipo (Opcional):</label>
+                                <select id="equipoJugador">
+                                    <option value="">Sin equipo asignado</option>
+                                </select>
                             </div>
                         </div>
                     </div>
+            
+                    <input type="hidden" id="posicionJugador" value="">
+                    <input type="hidden" id="numeroJugador" value="">
+            
+                    <button type="button" id="btn-agregar-jugador" class="btn-primary" onclick="agregarJugador()">👤 Agregar Jugador</button>
                 </form>
                 <div id="jugadorMessage" class="success-message"></div>
                 <div id="jugadorError" class="error-message"></div>
@@ -2174,7 +2159,6 @@
         // == INICIO DE LAS FUNCIONES CORREGIDAS ==
         // ===============================================
 
-        // ===== INICIO CORRECCIÓN 5 =====
         async function agregarJugador() {
             const nombre = document.getElementById('nombreJugador')?.value?.trim();
             const equipoId = document.getElementById('equipoJugador')?.value;
@@ -2225,7 +2209,6 @@
                 toast.error(`Error: ${error.message}`);
             }
         }
-        // ===== FIN CORRECCIÓN 5 =====
 
         function calcularOBP(h, bb, ab) {
             if (ab + bb === 0) return 0;
@@ -2237,7 +2220,6 @@
             return (h + hr * 3) / ab;
         }
 
-        // ===== INICIO CORRECCIÓN 2 =====
         async function cargarEquipos() {
             try {
                 console.log('🔄 Cargando equipos...');
@@ -2270,32 +2252,30 @@
                 }
             }
         }
-        // ===== FIN CORRECCIÓN 2 =====
 
-        // ===== INICIO CORRECCIÓN 4 =====
         async function cargarPartidos() {
             try {
                 console.log('🔄 Cargando partidos...');
                 const response = await fetch('/api/partidos?limit=1000');
-                
+                        
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+                        
                 const data = await response.json();
                 console.log('📦 Datos recibidos de /api/partidos:', data);
-                
-                // CORRECCIÓN CRÍTICA: Extraer array del objeto de paginación
-                if (data && typeof data === 'object') {
-                    if (Array.isArray(data)) {
-                        partidos = data;
-                    } else if (Array.isArray(data.partidos)) {
-                        partidos = data.partidos;
-                    } else {
-                        console.warn('⚠️ Formato inesperado de partidos, inicializando array vacío');
-                        partidos = [];
-                    }
+                        
+                // CORRECCIÓN: Manejo robusto de diferentes formatos de respuesta
+                if (!data) {
+                    partidos = [];
+                } else if (Array.isArray(data)) {
+                    partidos = data;
+                } else if (data.partidos && Array.isArray(data.partidos)) {
+                    partidos = data.partidos;
+                } else if (data.data && Array.isArray(data.data)) {
+                    partidos = data.data;
                 } else {
+                    console.warn('⚠️ Formato inesperado de partidos:', data);
                     partidos = [];
                 }
                 
@@ -2313,32 +2293,30 @@
                 }
             }
         }
-        // ===== FIN CORRECCIÓN 4 =====
 
-        // ===== INICIO CORRECCIÓN 3 =====
         async function cargarJugadores() {
             try {
                 console.log('🔄 Cargando jugadores...');
                 const response = await fetch('/api/jugadores?limit=1000');
-                
+                        
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+                        
                 const data = await response.json();
                 console.log('📦 Datos recibidos de /api/jugadores:', data);
-                
-                // CORRECCIÓN CRÍTICA: Extraer array del objeto de paginación
-                if (data && typeof data === 'object') {
-                    if (Array.isArray(data)) {
-                        jugadores = data;
-                    } else if (Array.isArray(data.jugadores)) {
-                        jugadores = data.jugadores;
-                    } else {
-                        console.warn('⚠️ Formato inesperado de jugadores, inicializando array vacío');
-                        jugadores = [];
-                    }
+                        
+                // CORRECCIÓN: Manejo robusto de diferentes formatos de respuesta
+                if (!data) {
+                    jugadores = [];
+                } else if (Array.isArray(data)) {
+                    jugadores = data;
+                } else if (data.jugadores && Array.isArray(data.jugadores)) {
+                    jugadores = data.jugadores;
+                } else if (data.data && Array.isArray(data.data)) {
+                    jugadores = data.data;
                 } else {
+                    console.warn('⚠️ Formato inesperado de jugadores:', data);
                     jugadores = [];
                 }
                 
@@ -2364,7 +2342,6 @@
                 }
             }
         }
-        // ===== FIN CORRECCIÓN 3 =====
 
         function actualizarTablaJugadores() {
             const buscador = document.getElementById('buscadorJugadores').value.toLowerCase().trim();
@@ -2501,7 +2478,17 @@
             if (!tbody) return;
 
             if (partidosFiltrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No se encontraron partidos</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state" style="padding: 40px 20px;">
+                            <div style="font-size: 3rem; margin-bottom: 15px;">🎯</div>
+                            <h3 style="color: #ffd700; margin-bottom: 10px;">No se encontraron partidos</h3>
+                            <p style="color: #fff; opacity: 0.7; font-size: 0.9rem;">
+                                Intenta ajustar los filtros o programa un nuevo partido usando los formularios de arriba
+                            </p>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
 
@@ -4099,7 +4086,17 @@
             if (!tbody) return;
             
             if (equiposFiltrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No se encontraron equipos</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state" style="padding: 40px 20px;">
+                            <div style="font-size: 3rem; margin-bottom: 15px;">🏆</div>
+                            <h3 style="color: #ffd700; margin-bottom: 10px;">No se encontraron equipos</h3>
+                            <p style="color: #fff; opacity: 0.7; font-size: 0.9rem;">
+                                Intenta ajustar los filtros o agrega un nuevo equipo usando el formulario de arriba
+                            </p>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
             tbody.innerHTML = equiposFiltrados.map(equipo => `
@@ -4152,7 +4149,17 @@
             const tbody = document.querySelector('#jugadoresTable tbody');
             if (!tbody) return;
             if (jugadoresFiltrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No se encontraron jugadores</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state" style="padding: 40px 20px;">
+                            <div style="font-size: 3rem; margin-bottom: 15px;">👤</div>
+                            <h3 style="color: #ffd700; margin-bottom: 10px;">No se encontraron jugadores</h3>
+                            <p style="color: #fff; opacity: 0.7; font-size: 0.9rem;">
+                                Intenta ajustar los filtros o agrega un nuevo jugador usando el formulario de arriba
+                            </p>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
             
