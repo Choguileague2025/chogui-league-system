@@ -1059,7 +1059,7 @@ app.post('/api/partidos', async (req, res) => {
 
         const result = await pool.query(
             `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local, 
-                                   carreras_visitante, innings_jugados, fecha_partido) 
+                                     carreras_visitante, innings_jugados, fecha_partido) 
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [equipo_local_id, equipo_visitante_id, carreras_local || null, 
              carreras_visitante || null, innings_jugados, fecha_partido]
@@ -1108,8 +1108,8 @@ app.put('/api/partidos/:id', async (req, res) => {
 
         const result = await pool.query(
             `UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2, 
-                                 carreras_local = $3, carreras_visitante = $4, 
-                                 innings_jugados = $5, fecha_partido = $6 
+                                   carreras_local = $3, carreras_visitante = $4, 
+                                   innings_jugados = $5, fecha_partido = $6 
              WHERE id = $7 RETURNING *`,
             [equipo_local_id, equipo_visitante_id, carreras_local || null, 
              carreras_visitante || null, innings_jugados || 9, fecha_partido, id]
@@ -1143,6 +1143,83 @@ app.delete('/api/partidos/:id', async (req, res) => {
     } catch (error) {
         console.error('Error eliminando partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// ====================== PRÓXIMOS PARTIDOS =========================
+app.get('/api/proximos-partidos', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                p.id,
+                p.fecha_partido,
+                p.equipo_local_id,
+                p.equipo_visitante_id,
+                p.carreras_local,
+                p.carreras_visitante,
+                p.innings_jugados,
+                el.nombre as equipo_local_nombre,
+                ev.nombre as equipo_visitante_nombre,
+                el.ciudad as ciudad_local,
+                ev.ciudad as ciudad_visitante
+            FROM partidos p
+            LEFT JOIN equipos el ON p.equipo_local_id = el.id
+            LEFT JOIN equipos ev ON p.equipo_visitante_id = ev.id
+            WHERE p.fecha_partido >= CURRENT_DATE
+              AND (p.carreras_local IS NULL OR p.carreras_visitante IS NULL)
+            ORDER BY p.fecha_partido ASC
+            LIMIT 5
+        `;
+                
+        const result = await pool.query(query);
+                
+        // Calcular records de equipos para cada partido
+        const partidosConRecords = await Promise.all(result.rows.map(async (partido) => {
+            // Calcular record del equipo local
+            const recordLocal = await pool.query(`
+                SELECT 
+                    COUNT(*) FILTER (WHERE 
+                        (equipo_local_id = $1 AND carreras_local > carreras_visitante) OR
+                        (equipo_visitante_id = $1 AND carreras_visitante > carreras_local)
+                    ) as victorias,
+                    COUNT(*) FILTER (WHERE 
+                        (equipo_local_id = $1 AND carreras_local < carreras_visitante) OR
+                        (equipo_visitante_id = $1 AND carreras_visitante < carreras_local)
+                    ) as derrotas
+                FROM partidos 
+                WHERE (equipo_local_id = $1 OR equipo_visitante_id = $1) 
+                  AND carreras_local IS NOT NULL 
+                  AND carreras_visitante IS NOT NULL
+            `, [partido.equipo_local_id]);
+                        
+            // Calcular record del equipo visitante
+            const recordVisitante = await pool.query(`
+                SELECT 
+                    COUNT(*) FILTER (WHERE 
+                        (equipo_local_id = $1 AND carreras_local > carreras_visitante) OR
+                        (equipo_visitante_id = $1 AND carreras_visitante > carreras_local)
+                    ) as victorias,
+                    COUNT(*) FILTER (WHERE 
+                        (equipo_local_id = $1 AND carreras_local < carreras_visitante) OR
+                        (equipo_visitante_id = $1 AND carreras_visitante < carreras_local)
+                    ) as derrotas
+                FROM partidos 
+                WHERE (equipo_local_id = $1 OR equipo_visitante_id = $1) 
+                  AND carreras_local IS NOT NULL 
+                  AND carreras_visitante IS NOT NULL
+            `, [partido.equipo_visitante_id]);
+                        
+            return {
+                ...partido,
+                record_local: `${recordLocal.rows[0].victorias}-${recordLocal.rows[0].derrotas}`,
+                record_visitante: `${recordVisitante.rows[0].victorias}-${recordVisitante.rows[0].derrotas}`
+            };
+        }));
+                
+        res.json(partidosConRecords);
+    } catch (error) {
+        console.error('Error obteniendo próximos partidos:', error);
+        res.status(500).json({ error: 'Error interno del servidor obteniendo próximos partidos' });
     }
 });
 
