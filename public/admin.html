@@ -1044,6 +1044,23 @@
                 flex-direction: column;
             }
         }
+        /* Indicador de búsqueda activa */
+        .searching {
+            position: relative;
+        }
+        .searching::after {
+            content: '🔍';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: pulse 1s ease-in-out infinite;
+            font-size: 16px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -1927,14 +1944,31 @@
     </div>
 
     <script>
-        // ===== INICIO CORRECCIÓN 1 =====
-        // Variables globales inicializadas como arrays vacíos
+        // Variables globales
         let equipos = [];
         let partidos = [];
         let jugadores = [];
         let estadisticas = [];
         let torneoActivo = { id: null, nombre: 'NINGUNO' };
-        // ===== FIN CORRECCIÓN 1 =====
+        
+        // Sistema de debounce para optimizar búsquedas
+        let debounceTimers = {};
+        function debounce(func, delay, key) {
+            return function(...args) {
+                if (debounceTimers[key]) {
+                    clearTimeout(debounceTimers[key]);
+                }
+                debounceTimers[key] = setTimeout(() => {
+                    func.apply(this, args);
+                    delete debounceTimers[key];
+                }, delay);
+            };
+        }
+        
+        // Versiones con debounce de las funciones de actualización
+        const actualizarTablaJugadoresDebounced = debounce(actualizarTablaJugadores, 300, 'jugadores');
+        const actualizarTablaEquiposDebounced = debounce(actualizarTablaEquipos, 300, 'equipos');
+        const actualizarTablaPartidosDebounced = debounce(actualizarTablaPartidos, 300, 'partidos');
         
         // ===== SISTEMA DE TOAST NOTIFICATIONS =====
         class ToastManager {
@@ -2060,16 +2094,16 @@
             'RF': -7.5, 'LF': -7.0, '1B': -12.5, 'P': 0.0
         };
         
+        let ordenJugadores = { campo: 'nombre', direccion: 'asc' };
+        let ordenEquipos = { campo: 'nombre', direccion: 'asc' };
+        let jugadoresFiltrados = [];
+        let equiposFiltrados = [];
+
         document.addEventListener('DOMContentLoaded', function() {
             verificarAutenticacion();
             configurarEventListeners();
             cargarTodosLosDatos();
             establecerFechaActual();
-            setTimeout(() => {
-                if (window.setupRealtimeValidation) {
-                    setupRealtimeValidation();
-                }
-            }, 1000);
         });
 
         function verificarAutenticacion() {
@@ -2147,6 +2181,10 @@
                     if (typeof configurarFiltrosEnTiempoReal === 'function') {
                         configurarFiltrosEnTiempoReal();
                     }
+                    if (typeof configurarValidacionJugador === 'function') {
+                        configurarValidacionJugador();
+                    }
+                    console.log('✅ Validaciones en tiempo real activadas');
                 }, 500);
 
             } catch (error) {
@@ -2155,10 +2193,6 @@
             }
         }
 
-        // ===============================================
-        // == INICIO DE LAS FUNCIONES CORREGIDAS ==
-        // ===============================================
-
         async function agregarJugador() {
             const nombre = document.getElementById('nombreJugador')?.value?.trim();
             const equipoId = document.getElementById('equipoJugador')?.value;
@@ -2166,13 +2200,8 @@
             const numero = document.getElementById('numeroJugador')?.value;
 
             // Validaciones
-            if (!nombre) {
-                toast.warning('El nombre del jugador es obligatorio');
-                return;
-            }
-
-            if (nombre.length < 3) {
-                toast.warning('El nombre debe tener al menos 3 caracteres');
+            if (!nombre || nombre.length < 3 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+                toast.warning('El nombre del jugador es inválido o muy corto.');
                 return;
             }
 
@@ -2202,12 +2231,62 @@
                 
                 toast.success('Jugador agregado exitosamente');
                 document.getElementById('jugadorForm').reset();
+                // Resetear validación visual
+                const nombreInput = document.getElementById('nombreJugador');
+                const errorDiv = document.getElementById('nombreJugador-error');
+                if(nombreInput && errorDiv) {
+                    nombreInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+                    errorDiv.style.display = 'none';
+                }
                 await cargarJugadores();
                 
             } catch (error) {
                 console.error('❌ Error agregando jugador:', error);
                 toast.error(`Error: ${error.message}`);
             }
+        }
+
+        // Validación en tiempo real para el formulario de jugadores
+        function configurarValidacionJugador() {
+            const nombreInput = document.getElementById('nombreJugador');
+            if (!nombreInput) return;
+            // Crear contenedor de error si no existe
+            if (!document.getElementById('nombreJugador-error')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'nombreJugador-error';
+                errorDiv.className = 'field-error';
+                errorDiv.style.display = 'none';
+                nombreInput.parentElement.appendChild(errorDiv);
+            }
+            nombreInput.addEventListener('input', debounce(function() {
+                const valor = this.value.trim();
+                const errorDiv = document.getElementById('nombreJugador-error');
+                const btnAgregar = document.getElementById('btn-agregar-jugador');
+                if (valor.length === 0) {
+                    errorDiv.textContent = '';
+                    errorDiv.style.display = 'none';
+                    nombreInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
+                    btnAgregar.disabled = false;
+                } else if (valor.length < 3) {
+                    errorDiv.textContent = '⚠️ El nombre debe tener al menos 3 caracteres';
+                    errorDiv.style.display = 'block';
+                    errorDiv.style.color = '#ffa500';
+                    nombreInput.style.borderColor = '#ffa500';
+                    btnAgregar.disabled = true;
+                } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(valor)) {
+                    errorDiv.textContent = '⚠️ Solo se permiten letras y espacios';
+                    errorDiv.style.display = 'block';
+                    errorDiv.style.color = '#ffa500';
+                    nombreInput.style.borderColor = '#ffa500';
+                    btnAgregar.disabled = true;
+                } else {
+                    errorDiv.textContent = '✓ Nombre válido';
+                    errorDiv.style.display = 'block';
+                    errorDiv.style.color = '#4CAF50';
+                    nombreInput.style.borderColor = '#4CAF50';
+                    btnAgregar.disabled = false;
+                }
+            }, 300, 'validacion-jugador'));
         }
 
         function calcularOBP(h, bb, ab) {
@@ -2532,21 +2611,20 @@
 
             // Jugadores
             const buscadorJugadores = document.getElementById('buscadorJugadores');
-            const filtroEquipo = document.getElementById('filtroRosterEquipo');
-            const filtroPosicion = document.getElementById('filtroPosicion');
-
             if (buscadorJugadores) {
-                buscadorJugadores.removeEventListener('input', actualizarTablaJugadores);
-                buscadorJugadores.addEventListener('input', actualizarTablaJugadores);
-                console.log('✅ Buscador de jugadores configurado');
+                buscadorJugadores.removeEventListener('input', actualizarTablaJugadoresDebounced);
+                buscadorJugadores.addEventListener('input', actualizarTablaJugadoresDebounced);
+                console.log('✅ Buscador de jugadores configurado con debounce (300ms)');
             }
 
+            const filtroEquipo = document.getElementById('filtroRosterEquipo');
             if (filtroEquipo) {
                 filtroEquipo.removeEventListener('change', actualizarTablaJugadores);
                 filtroEquipo.addEventListener('change', actualizarTablaJugadores);
                 console.log('✅ Filtro de equipo configurado');
             }
 
+            const filtroPosicion = document.getElementById('filtroPosicion');
             if (filtroPosicion) {
                 filtroPosicion.removeEventListener('change', actualizarTablaJugadores);
                 filtroPosicion.addEventListener('change', actualizarTablaJugadores);
@@ -2556,9 +2634,9 @@
             // Equipos
             const buscadorEquipos = document.getElementById('buscadorEquipos');
             if (buscadorEquipos) {
-                buscadorEquipos.removeEventListener('input', actualizarTablaEquipos);
-                buscadorEquipos.addEventListener('input', actualizarTablaEquipos);
-                console.log('✅ Buscador de equipos configurado');
+                buscadorEquipos.removeEventListener('input', actualizarTablaEquiposDebounced);
+                buscadorEquipos.addEventListener('input', actualizarTablaEquiposDebounced);
+                console.log('✅ Buscador de equipos configurado con debounce (300ms)');
             }
 
             // Partidos
@@ -2731,10 +2809,6 @@
                 `).join('');
             }
         }
-
-        // ===============================================
-        // == FIN DE LAS FUNCIONES CORREGIDAS ==
-        // ===============================================
         
         async function cargarTorneoActivo() {
             try {
@@ -3381,17 +3455,35 @@
         }
 
         async function eliminarEquipo(id) {
-            if (!confirm('¿Eliminar este equipo?')) return;
+            const equipo = equipos.find(e => e.id === id);
+            const nombreEquipo = equipo ? equipo.nombre : 'este equipo';
+        
+            // Confirmación mejorada
+            const confirmacion = confirm(
+                `⚠️ ELIMINAR EQUIPO\n\n` +
+                `¿Estás seguro de eliminar al equipo "${nombreEquipo}"?\n\n` +
+                `Esta acción NO se puede deshacer y se eliminarán:\n` +
+                `• Todos los jugadores asociados\n` +
+                `• Historial de partidos\n` +
+                `• Estadísticas del equipo\n\n` +
+                `Presiona OK para confirmar o Cancelar para abortar.`
+            );
+        
+            if (!confirmacion) {
+                toast.info('Eliminación cancelada');
+                return;
+            }
+        
             try {
                 const res = await fetch(`/api/equipos/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    toast.success('Equipo eliminado correctamente.');
+                    toast.success(`Equipo "${nombreEquipo}" eliminado correctamente.`);
                     await cargarEquipos();
                 } else {
-                    toast.error('Error al eliminar.');
+                    toast.error('Error al eliminar el equipo.');
                 }
             } catch(e) {
-                toast.error('Error de red.');
+                toast.error('Error de conexión con el servidor.');
             }
         }
 
@@ -3480,17 +3572,35 @@
         }
 
         async function eliminarJugador(id) {
-            if (!confirm('¿Eliminar este jugador?')) return;
+            const jugador = jugadores.find(j => j.id === id);
+            const nombreJugador = jugador ? jugador.nombre : 'este jugador';
+        
+            // Confirmación mejorada
+            const confirmacion = confirm(
+                `⚠️ ELIMINAR JUGADOR\n\n` +
+                `¿Estás seguro de eliminar a "${nombreJugador}"?\n\n` +
+                `Esta acción NO se puede deshacer y se eliminarán:\n` +
+                `• Todas sus estadísticas\n` +
+                `• Su historial de partidos\n` +
+                `• Datos asociados\n\n` +
+                `Presiona OK para confirmar o Cancelar para abortar.`
+            );
+        
+            if (!confirmacion) {
+                toast.info('Eliminación cancelada');
+                return;
+            }
+        
             try {
                 const res = await fetch(`/api/jugadores/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    toast.success('Jugador eliminado correctamente.');
+                    toast.success(`Jugador "${nombreJugador}" eliminado correctamente.`);
                     await cargarJugadores();
                 } else {
-                    toast.error('Error al eliminar.');
+                    toast.error('Error al eliminar el jugador.');
                 }
             } catch(e) {
-                toast.error('Error de red.');
+                toast.error('Error de conexión con el servidor.');
             }
         }
 
@@ -4075,11 +4185,6 @@
                 toast.error('Error de red.');
             }
         }
-
-        let ordenJugadores = { campo: 'nombre', direccion: 'asc' };
-        let ordenEquipos = { campo: 'nombre', direccion: 'asc' };
-        let jugadoresFiltrados = [];
-        let equiposFiltrados = [];
 
         function renderizarTablaEquipos() {
             const tbody = document.querySelector('#equiposTable tbody');
