@@ -600,37 +600,37 @@ app.put('/api/equipos/:id', async (req, res) => {
     }
 });
 
+// =================================================
+// INICIO DE CORRECCIÓN 1 (Línea 737 aprox.)
+// =================================================
 app.delete('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
-        // Verificar si el equipo tiene jugadores asociados
-        const jugadoresCheck = await pool.query(
-            'SELECT COUNT(*) as count FROM jugadores WHERE equipo_id = $1', 
-            [id]
-        );
-        
-        if (parseInt(jugadoresCheck.rows[0].count) > 0) {
-            return res.status(400).json({ 
-                error: 'No se puede eliminar el equipo porque tiene jugadores asociados' 
-            });
-        }
-        
+
+        // CORRECCIÓN FASE 2: Permitir eliminación gracias a ON DELETE SET NULL
+        // Los jugadores asociados tendrán equipo_id = NULL automáticamente
+
         const result = await pool.query(
             'DELETE FROM equipos WHERE id = $1 RETURNING *',
             [id]
         );
-        
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Equipo no encontrado' });
         }
-        
-        res.json({ message: 'Equipo eliminado correctamente' });
+
+        res.json({ 
+            message: 'Equipo eliminado correctamente',
+            jugadores_afectados: 'Se desvincularon automáticamente del equipo'
+        });
     } catch (error) {
         console.error('Error eliminando equipo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+// =================================================
+// FIN DE CORRECCIÓN 1
+// =================================================
 
 // ====================== JUGADORES COMPLETADOS =========================
 
@@ -851,42 +851,38 @@ app.put('/api/jugadores/:id', async (req, res) => {
     }
 });
 
+// =================================================
+// INICIO DE CORRECCIÓN 2 (Línea 937 aprox.)
+// =================================================
 app.delete('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
-        // Verificar si el jugador tiene estadísticas asociadas
-        const statsCheck = await pool.query(`
-            SELECT COUNT(*) as count FROM (
-                SELECT 1 FROM estadisticas_ofensivas WHERE jugador_id = $1
-                UNION ALL
-                SELECT 1 FROM estadisticas_pitcheo WHERE jugador_id = $1
-                UNION ALL
-                SELECT 1 FROM estadisticas_defensivas WHERE jugador_id = $1
-            ) as stats
-        `, [id]);
-        
-        if (parseInt(statsCheck.rows[0].count) > 0) {
-            return res.status(400).json({ 
-                error: 'No se puede eliminar el jugador porque tiene estadísticas asociadas' 
-            });
-        }
-        
+
+        // CORRECCIÓN FASE 2: Permitir eliminación gracias a ON DELETE CASCADE
+        // Las estadísticas asociadas se eliminarán automáticamente
+
         const result = await pool.query(
             'DELETE FROM jugadores WHERE id = $1 RETURNING *',
             [id]
         );
-        
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
-        
-        res.json({ message: 'Jugador eliminado correctamente' });
+
+        res.json({ 
+            message: 'Jugador eliminado correctamente',
+            estadisticas_eliminadas: 'Se eliminaron automáticamente en cascada'
+        });
     } catch (error) {
         console.error('Error eliminando jugador:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+// =================================================
+// FIN DE CORRECCIÓN 2
+// =================================================
+
 
 // ====================== PARTIDOS COMPLETADOS =========================
 
@@ -996,6 +992,9 @@ app.get('/api/partidos/:id', async (req, res) => {
     }
 });
 
+// =================================================
+// INICIO DE CORRECCIÓN 3 (Línea 1007 aprox.)
+// =================================================
 app.post('/api/partidos', async (req, res) => {
     try {
         const { 
@@ -1007,7 +1006,7 @@ app.post('/api/partidos', async (req, res) => {
             fecha_partido 
         } = req.body;
         
-        // Validaciones robustas
+        // CORRECCIÓN FASE 2: Validaciones mejoradas para partidos programados
         if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
             return res.status(400).json({ 
                 error: 'Equipo local, equipo visitante y fecha son requeridos' 
@@ -1030,17 +1029,20 @@ app.post('/api/partidos', async (req, res) => {
             return res.status(400).json({ error: 'Uno o ambos equipos no existen' });
         }
 
-        // Validar carreras si se proporcionan
-        if (carreras_local !== null && carreras_local !== undefined && carreras_local < 0) {
-            return res.status(400).json({ error: 'Las carreras no pueden ser negativas' });
+        // CORRECCIÓN: Validar carreras solo si se proporcionan (partidos programados pueden tener NULL)
+        if (carreras_local !== null && carreras_local !== undefined) {
+            if (carreras_local < 0 || !Number.isInteger(carreras_local)) {
+                return res.status(400).json({ error: 'Las carreras locales deben ser un número entero positivo' });
+            }
         }
-
-        if (carreras_visitante !== null && carreras_visitante !== undefined && carreras_visitante < 0) {
-            return res.status(400).json({ error: 'Las carreras no pueden ser negativas' });
+        if (carreras_visitante !== null && carreras_visitante !== undefined) {
+            if (carreras_visitante < 0 || !Number.isInteger(carreras_visitante)) {
+                return res.status(400).json({ error: 'Las carreras visitantes deben ser un número entero positivo' });
+            }
         }
 
         // Validar innings
-        if (innings_jugados < 1 || innings_jugados > 20) {
+        if (innings_jugados && (innings_jugados < 1 || innings_jugados > 20)) {
             return res.status(400).json({ 
                 error: 'Los innings jugados deben estar entre 1 y 20' 
             });
@@ -1059,7 +1061,7 @@ app.post('/api/partidos', async (req, res) => {
 
         const result = await pool.query(
             `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local, 
-                                     carreras_visitante, innings_jugados, fecha_partido) 
+                                  carreras_visitante, innings_jugados, fecha_partido) 
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [equipo_local_id, equipo_visitante_id, carreras_local || null, 
              carreras_visitante || null, innings_jugados, fecha_partido]
@@ -1071,6 +1073,10 @@ app.post('/api/partidos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
+// =================================================
+// FIN DE CORRECCIÓN 3
+// =================================================
+
 
 app.put('/api/partidos/:id', async (req, res) => {
     try {
@@ -1108,8 +1114,8 @@ app.put('/api/partidos/:id', async (req, res) => {
 
         const result = await pool.query(
             `UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2, 
-                                   carreras_local = $3, carreras_visitante = $4, 
-                                   innings_jugados = $5, fecha_partido = $6 
+                                 carreras_local = $3, carreras_visitante = $4, 
+                                 innings_jugados = $5, fecha_partido = $6 
              WHERE id = $7 RETURNING *`,
             [equipo_local_id, equipo_visitante_id, carreras_local || null, 
              carreras_visitante || null, innings_jugados || 9, fecha_partido, id]
@@ -1170,9 +1176,9 @@ app.get('/api/proximos-partidos', async (req, res) => {
             ORDER BY p.fecha_partido ASC
             LIMIT 5
         `;
-                
+        
         const result = await pool.query(query);
-                
+        
         // Calcular records de equipos para cada partido
         const partidosConRecords = await Promise.all(result.rows.map(async (partido) => {
             // Calcular record del equipo local
@@ -1191,7 +1197,7 @@ app.get('/api/proximos-partidos', async (req, res) => {
                   AND carreras_local IS NOT NULL 
                   AND carreras_visitante IS NOT NULL
             `, [partido.equipo_local_id]);
-                        
+                    
             // Calcular record del equipo visitante
             const recordVisitante = await pool.query(`
                 SELECT 
@@ -1208,14 +1214,14 @@ app.get('/api/proximos-partidos', async (req, res) => {
                   AND carreras_local IS NOT NULL 
                   AND carreras_visitante IS NOT NULL
             `, [partido.equipo_visitante_id]);
-                        
+                    
             return {
                 ...partido,
                 record_local: `${recordLocal.rows[0].victorias}-${recordLocal.rows[0].derrotas}`,
                 record_visitante: `${recordVisitante.rows[0].victorias}-${recordVisitante.rows[0].derrotas}`
             };
         }));
-                
+        
         res.json(partidosConRecords);
     } catch (error) {
         console.error('Error obteniendo próximos partidos:', error);
@@ -1813,3 +1819,4 @@ process.on('SIGTERM', () => {
 });
 
 startServer();
+
