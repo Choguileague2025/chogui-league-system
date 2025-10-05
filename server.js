@@ -19,7 +19,7 @@ const logger = (req, res, next) => {
 };
 
 // ===============================================================
-// ============= MIDDLEWARE DE VALIDACIÓN GLOBAL ================
+// ============= MIDDLEWARE DE VALIDACIÃ“N GLOBAL ================
 // ===============================================================
 const validateRequest = (req, res, next) => {
     const dangerousHeaders = ['x-forwarded-for', 'x-real-ip'];
@@ -32,7 +32,7 @@ const validateRequest = (req, res, next) => {
 };
 
 // ===============================================================
-// ================ CONFIGURACIÓN CORS MEJORADA =================
+// ================ CONFIGURACIÃ“N CORS MEJORADA =================
 // ===============================================================
 app.use(cors({
     origin: [
@@ -55,7 +55,7 @@ app.use(validateRequest);
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 
-// Servir archivos estáticos con caché
+// Servir archivos estÃ¡ticos con cachÃ©
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: '1d',
     etag: false
@@ -73,7 +73,7 @@ const errorHandler = (err, req, res, next) => {
     }
     
     if (err.code === '23503') {
-        return res.status(400).json({ error: 'Referencia inválida en base de datos' });
+        return res.status(400).json({ error: 'Referencia invÃ¡lida en base de datos' });
     }
     
     res.status(500).json({ 
@@ -83,13 +83,13 @@ const errorHandler = (err, req, res, next) => {
 };
 
 // ===============================================================
-// ============= FUNCIÓN INICIALIZAR BASE DE DATOS ==============
+// ============= FUNCIÃ“N INICIALIZAR BASE DE DATOS ==============
 // ===============================================================
 async function inicializarBaseDeDatos() {
     try {
-        console.log('🔄 Verificando conexión a base de datos...');
+        console.log('ðŸ”„ Verificando conexiÃ³n a base de datos...');
         await pool.query('SELECT NOW()');
-        console.log('✅ Conexión a base de datos establecida');
+        console.log('âœ… ConexiÃ³n a base de datos establecida');
 
         // Crear tablas principales
         const tables = [
@@ -204,10 +204,10 @@ async function inicializarBaseDeDatos() {
 
         for (const table of tables) {
             await pool.query(table.query);
-            console.log(`✅ Tabla ${table.name} verificada`);
+            console.log(`âœ… Tabla ${table.name} verificada`);
         }
 
-        // FASE 2A: Migración para agregar columnas faltantes a partidos
+        // FASE 2A: MigraciÃ³n para agregar columnas faltantes a partidos
         try {
             await pool.query(`
                 DO $$ 
@@ -227,7 +227,7 @@ async function inicializarBaseDeDatos() {
                     END IF;
                 END $$;
             `);
-            console.log('✅ Migración de partidos completada');
+            console.log('âœ… MigraciÃ³n de partidos completada');
 
         // Asegurar que carreras_local y carreras_visitante permitan NULL (para partidos 'programado')
         try {
@@ -248,7 +248,7 @@ async function inicializarBaseDeDatos() {
                     END IF;
                 END $$;
             `);
-            console.log('✅ Columnas de carreras permiten NULL (ok para partidos programados)');
+            console.log('âœ… Columnas de carreras permiten NULL (ok para partidos programados)');
 
         // Asegurar que jugadores.posicion y jugadores.numero permitan NULL
         try {
@@ -269,19 +269,19 @@ async function inicializarBaseDeDatos() {
                     END IF;
                 END $$;
             `);
-            console.log('✅ Columnas jugadores.posicion/numero permiten NULL');
+            console.log('âœ… Columnas jugadores.posicion/numero permiten NULL');
         } catch (e) {
-            console.warn('⚠️ No se pudo ajustar NOT NULL de jugadores.posicion/numero:', e.message);
+            console.warn('âš ï¸ No se pudo ajustar NOT NULL de jugadores.posicion/numero:', e.message);
         }
 
         } catch (e) {
-            console.warn('⚠️ No se pudo ajustar NOT NULL de carreras_*:', e.message);
+            console.warn('âš ï¸ No se pudo ajustar NOT NULL de carreras_*:', e.message);
         }
         } catch (error) {
-            console.error('⚠️ Error en migración de partidos:', error.message);
+            console.error('âš ï¸ Error en migraciÃ³n de partidos:', error.message);
         }
 
-        // Crear índices para optimización
+        // Crear Ã­ndices para optimizaciÃ³n
         const indexes = [
             'CREATE INDEX IF NOT EXISTS idx_jugadores_equipo ON jugadores(equipo_id);',
             'CREATE INDEX IF NOT EXISTS idx_partidos_equipos ON partidos(equipo_local_id, equipo_visitante_id);',
@@ -292,7 +292,7 @@ async function inicializarBaseDeDatos() {
         for (const indexQuery of indexes) {
             await pool.query(indexQuery);
         }
-        console.log('✅ Índices de base de datos optimizados');
+        console.log('âœ… Ãndices de base de datos optimizados');
 
         // Crear usuario administrador
         const adminUsername = 'admin';
@@ -305,11 +305,11 @@ async function inicializarBaseDeDatos() {
             [adminUsername, hashedPassword]
         );
         
-        console.log('✅ Usuario administrador configurado');
-        console.log('✅ Base de datos inicializada correctamente');
+        console.log('âœ… Usuario administrador configurado');
+        console.log('âœ… Base de datos inicializada correctamente');
 
     } catch (error) {
-        console.error('❌ Error fatal al inicializar la base de datos:', error);
+        console.error('âŒ Error fatal al inicializar la base de datos:', error);
         throw error;
     }
 }
@@ -318,8 +318,8 @@ async function inicializarBaseDeDatos() {
 // ======================= RUTAS API ============================
 // ===============================================================
 
-// ... (TODAS TUS RUTAS API VAN AQUÍ, SIN CAMBIOS) ...
-// ====================== AUTENTICACIÓN =========================
+// ... (TODAS TUS RUTAS API VAN AQUÃ, SIN CAMBIOS) ...
+// ====================== AUTENTICACIÃ“N =========================
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -327,14 +327,14 @@ app.post('/api/login', async (req, res) => {
         if (!username || !password) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'Usuario y contraseña son requeridos' 
+                message: 'Usuario y contraseÃ±a son requeridos' 
             });
         }
 
         if (username.length > 50 || password.length > 100) {
             return res.status(400).json({
                 success: false,
-                message: 'Credenciales inválidas'
+                message: 'Credenciales invÃ¡lidas'
             });
         }
 
@@ -346,7 +346,7 @@ app.post('/api/login', async (req, res) => {
         if (userResult.rows.length === 0) {
             return res.status(401).json({ 
                 success: false, 
-                message: 'Usuario o contraseña incorrectos' 
+                message: 'Usuario o contraseÃ±a incorrectos' 
             });
         }
         const user = userResult.rows[0];
@@ -364,7 +364,7 @@ app.post('/api/login', async (req, res) => {
         } else {
             return res.status(401).json({ 
                 success: false, 
-                message: 'Usuario o contraseña incorrectos' 
+                message: 'Usuario o contraseÃ±a incorrectos' 
             });
         }
     } catch (error) {
@@ -499,7 +499,7 @@ app.delete('/api/torneos/:id', async (req, res) => {
         
         if (parseInt(statsCheck.rows[0].count) > 0) {
             return res.status(400).json({ 
-                error: 'No se puede eliminar el torneo porque tiene estadísticas asociadas' 
+                error: 'No se puede eliminar el torneo porque tiene estadÃ­sticas asociadas' 
             });
         }
         
@@ -595,7 +595,7 @@ app.get('/api/equipos/:id/estadisticas/ofensivas', async (req, res) => {
         
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo estadísticas ofensivas del equipo:', error);
+        console.error('Error obteniendo estadÃ­sticas ofensivas del equipo:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
@@ -631,7 +631,7 @@ app.post('/api/equipos', async (req, res) => {
     }
 });
 // ====================== EQUIPOS COMPLETADOS =========================
-// (Agregar después de las rutas de equipos existentes)
+// (Agregar despuÃ©s de las rutas de equipos existentes)
 
 app.put('/api/equipos/:id', async (req, res) => {
     try {
@@ -691,7 +691,7 @@ app.delete('/api/equipos/:id', async (req, res) => {
 
         res.json({ 
             message: 'Equipo eliminado correctamente',
-            jugadores_afectados: 'Se desvincularon automáticamente del equipo'
+            jugadores_afectados: 'Se desvincularon automÃ¡ticamente del equipo'
         });
     } catch (error) {
         console.error('Error eliminando equipo:', error);
@@ -739,7 +739,7 @@ app.get('/api/jugadores', async (req, res) => {
 
         const result = await pool.query(query, params);
         
-        // Contar total para paginación
+        // Contar total para paginaciÃ³n
         let countQuery = 'SELECT COUNT(*) FROM jugadores j WHERE 1=1';
         const countParams = [];
         let countParamIndex = 1;
@@ -811,12 +811,12 @@ app.post('/api/jugadores', async (req, res) => {
             return res.status(400).json({ error: 'El nombre debe tener entre 2 y 100 caracteres' });
         }
 
-        // Si se envía equipo_id, validar que exista
+        // Si se envÃ­a equipo_id, validar que exista
         let equipoIdFinal = null;
         if (equipo_id !== undefined && equipo_id !== null && `${equipo_id}` !== '') {
             equipoIdFinal = parseInt(equipo_id, 10);
             if (Number.isNaN(equipoIdFinal)) {
-                return res.status(400).json({ error: 'Equipo inválido' });
+                return res.status(400).json({ error: 'Equipo invÃ¡lido' });
             }
             const eq = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipoIdFinal]);
             if (eq.rows.length === 0) {
@@ -824,28 +824,28 @@ app.post('/api/jugadores', async (req, res) => {
             }
         }
 
-        // Validar posición solo si viene con valor
+        // Validar posiciÃ³n solo si viene con valor
         const posicionesValidas = ['C','1B','2B','3B','SS','LF','CF','RF','P','UTIL','DH'];
         let posicionFinal = null;
         if (posicion !== undefined && posicion !== null && `${posicion}`.trim() !== '') {
             if (!posicionesValidas.includes(posicion)) {
-                return res.status(400).json({ error: 'Posición inválida' });
+                return res.status(400).json({ error: 'PosiciÃ³n invÃ¡lida' });
             }
             posicionFinal = posicion;
         }
 
-        // Número opcional
+        // NÃºmero opcional
         let numeroFinal = null;
         if (numero !== undefined && numero !== null && `${numero}` !== '') {
             numeroFinal = parseInt(numero,10);
             if (Number.isNaN(numeroFinal) || numeroFinal < 0) {
-                return res.status(400).json({ error: 'Número inválido' });
+                return res.status(400).json({ error: 'NÃºmero invÃ¡lido' });
             }
             // Unicidad por equipo solo si hay equipo
             if (equipoIdFinal !== null) {
                 const numeroExists = await pool.query('SELECT 1 FROM jugadores WHERE equipo_id=$1 AND numero=$2',[equipoIdFinal, numeroFinal]);
                 if (numeroExists.rows.length>0) {
-                    return res.status(409).json({ error: 'Ya existe un jugador con ese número en el equipo' });
+                    return res.status(409).json({ error: 'Ya existe un jugador con ese nÃºmero en el equipo' });
                 }
             }
         }
@@ -886,15 +886,15 @@ app.put('/api/jugadores/:id', async (req, res) => {
             return res.status(400).json({ error: 'El equipo especificado no existe' });
         }
 
-        // Validar posición
+        // Validar posiciÃ³n
         const posicionesValidas = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P'];
         if (posicion && !posicionesValidas.includes(posicion)) {
             return res.status(400).json({ 
-                error: 'Posición inválida. Debe ser una de: ' + posicionesValidas.join(', ') 
+                error: 'PosiciÃ³n invÃ¡lida. Debe ser una de: ' + posicionesValidas.join(', ') 
             });
         }
 
-        // Validar número único por equipo (excluyendo el jugador actual)
+        // Validar nÃºmero Ãºnico por equipo (excluyendo el jugador actual)
         if (numero) {
             const numeroExists = await pool.query(
                 'SELECT id FROM jugadores WHERE equipo_id = $1 AND numero = $2 AND id != $3', 
@@ -902,7 +902,7 @@ app.put('/api/jugadores/:id', async (req, res) => {
             );
             if (numeroExists.rows.length > 0) {
                 return res.status(409).json({ 
-                    error: 'Ya existe otro jugador con ese número en el equipo' 
+                    error: 'Ya existe otro jugador con ese nÃºmero en el equipo' 
                 });
             }
         }
@@ -938,7 +938,7 @@ app.delete('/api/jugadores/:id', async (req, res) => {
 
         res.json({ 
             message: 'Jugador eliminado correctamente',
-            estadisticas_eliminadas: 'Se eliminaron automáticamente en cascada'
+            estadisticas_eliminadas: 'Se eliminaron automÃ¡ticamente en cascada'
         });
     } catch (error) {
         console.error('Error eliminando jugador:', error);
@@ -1030,13 +1030,10 @@ app.get('/api/partidos', async (req, res) => {
     }
 });
 
-
-app.get('/api/partidos/:id', async (req, res, next) => {
+app.get('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        // Si no es numérico, dejamos que otras rutas coincidan (por ejemplo /api/partidos/proximos)
-        if (!/^\d+$/.test(id)) return next();
-        const partidoId = parseInt(id, 10);
+        
         const result = await pool.query(`
             SELECT p.*, 
                    el.nombre as equipo_local_nombre,
@@ -1045,17 +1042,10 @@ app.get('/api/partidos/:id', async (req, res, next) => {
             LEFT JOIN equipos el ON p.equipo_local_id = el.id
             LEFT JOIN equipos ev ON p.equipo_visitante_id = ev.id
             WHERE p.id = $1
-        `, [partidoId]);
+        `, [id]);
+        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error obteniendo partido:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
         }
         
         res.json(result.rows[0]);
@@ -1078,7 +1068,7 @@ app.post('/api/partidos', async (req, res) => {
             estado
         } = req.body;
 
-        // Validaciones básicas
+        // Validaciones bÃ¡sicas
         if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
             return res.status(400).json({ 
                 error: 'Equipo local, equipo visitante y fecha son requeridos' 
@@ -1104,13 +1094,13 @@ app.post('/api/partidos', async (req, res) => {
         if (carreras_local !== null && carreras_local !== undefined && carreras_local !== '') {
             carrerasLocalFinal = parseInt(carreras_local);
             if (isNaN(carrerasLocalFinal) || carrerasLocalFinal < 0) {
-                return res.status(400).json({ error: 'Las carreras locales deben ser un número positivo' });
+                return res.status(400).json({ error: 'Las carreras locales deben ser un nÃºmero positivo' });
             }
         }
         if (carreras_visitante !== null && carreras_visitante !== undefined && carreras_visitante !== '') {
             carrerasVisitanteFinal = parseInt(carreras_visitante);
             if (isNaN(carrerasVisitanteFinal) || carrerasVisitanteFinal < 0) {
-                return res.status(400).json({ error: 'Las carreras visitantes deben ser un número positivo' });
+                return res.status(400).json({ error: 'Las carreras visitantes deben ser un nÃºmero positivo' });
             }
         }
         // Validar innings
@@ -1128,18 +1118,18 @@ app.post('/api/partidos', async (req, res) => {
         
         if (fechaPartidoDate < fechaMinima || fechaPartidoDate > fechaLimite) {
             return res.status(400).json({ 
-                error: 'La fecha del partido debe estar entre 2020 y 2 años en el futuro' 
+                error: 'La fecha del partido debe estar entre 2020 y 2 aÃ±os en el futuro' 
             });
         }
         
-        // CORRECCIÓN: Lógica de estado automática
+        // CORRECCIÃ“N: LÃ³gica de estado automÃ¡tica
         let estadoFinal;
                 
         if (estado && ['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'].includes(estado)) {
-            // Si se envía un estado válido explícitamente, usarlo
+            // Si se envÃ­a un estado vÃ¡lido explÃ­citamente, usarlo
             estadoFinal = estado;
         } else {
-            // Detectar automáticamente según si tiene resultados
+            // Detectar automÃ¡ticamente segÃºn si tiene resultados
             if (carrerasLocalFinal !== null && carrerasVisitanteFinal !== null) {
                 estadoFinal = 'finalizado'; // Tiene resultados = partido jugado
             } else {
@@ -1247,7 +1237,7 @@ app.delete('/api/partidos/:id', async (req, res) => {
     }
 });
 
-// ====================== PRÓXIMOS PARTIDOS =========================
+// ====================== PRÃ“XIMOS PARTIDOS =========================
 app.get('/api/proximos-partidos', async (req, res) => {
     try {
         const query = `
@@ -1321,12 +1311,12 @@ app.get('/api/proximos-partidos', async (req, res) => {
         
         res.json(partidosConRecords);
     } catch (error) {
-        console.error('Error obteniendo próximos partidos:', error);
-        res.status(500).json({ error: 'Error interno del servidor obteniendo próximos partidos' });
+        console.error('Error obteniendo prÃ³ximos partidos:', error);
+        res.status(500).json({ error: 'Error interno del servidor obteniendo prÃ³ximos partidos' });
     }
 });
 
-// ====================== ESTADÍSTICAS MEJORADAS =========================
+// ====================== ESTADÃSTICAS MEJORADAS =========================
 
 app.get('/api/estadisticas-ofensivas', async (req, res) => {
     try {
@@ -1377,7 +1367,7 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
         
         res.json(jugadoresConOPS);
     } catch (error) {
-        console.error('Error obteniendo estadísticas ofensivas:', error);
+        console.error('Error obteniendo estadÃ­sticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1405,13 +1395,13 @@ app.get('/api/lideres-ofensivos', async (req, res) => {
         
         res.json(jugadoresConOPS);
     } catch (error) {
-        console.error('Error obteniendo líderes ofensivos:', error);
+        console.error('Error obteniendo lÃ­deres ofensivos:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// Rutas similares para estadísticas de pitcheo y defensivas...
-// (Agregar según sea necesario)
+// Rutas similares para estadÃ­sticas de pitcheo y defensivas...
+// (Agregar segÃºn sea necesario)
 
 // ====================== NUEVA RUTA PARA DASHBOARD =========================
 
@@ -1431,12 +1421,12 @@ app.get('/api/dashboard/stats', async (req, res) => {
             jugadores_con_stats: parseInt(stats[3].rows[0].total)
         });
     } catch (error) {
-        console.error('Error obteniendo estadísticas del dashboard:', error);
+        console.error('Error obteniendo estadÃ­sticas del dashboard:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// ====================== ESTADÍSTICAS PITCHEO =========================
+// ====================== ESTADÃSTICAS PITCHEO =========================
 app.get('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -1456,7 +1446,7 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo estadísticas de pitcheo:', error);
+        console.error('Error obteniendo estadÃ­sticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1473,12 +1463,12 @@ app.get('/api/estadisticas-pitcheo/:id', async (req, res) => {
         `, [id]);
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
+            return res.status(404).json({ error: 'EstadÃ­sticas de pitcheo no encontradas' });
         }
         
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error obteniendo estadísticas de pitcheo:', error);
+        console.error('Error obteniendo estadÃ­sticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1517,7 +1507,7 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
         
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error creando estadísticas de pitcheo:', error);
+        console.error('Error creando estadÃ­sticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1545,17 +1535,17 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
             saves || 0, jugador_id, temporada || 'Default']);
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
+            return res.status(404).json({ error: 'EstadÃ­sticas de pitcheo no encontradas' });
         }
         
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando estadísticas de pitcheo:', error);
+        console.error('Error actualizando estadÃ­sticas de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// ====================== ESTADÍSTICAS DEFENSIVAS =========================
+// ====================== ESTADÃSTICAS DEFENSIVAS =========================
 app.get('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -1571,7 +1561,7 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo estadísticas defensivas:', error);
+        console.error('Error obteniendo estadÃ­sticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1588,12 +1578,12 @@ app.get('/api/estadisticas-defensivas/:id', async (req, res) => {
         `, [id]);
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
+            return res.status(404).json({ error: 'EstadÃ­sticas defensivas no encontradas' });
         }
         
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error obteniendo estadísticas defensivas:', error);
+        console.error('Error obteniendo estadÃ­sticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1628,7 +1618,7 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
         
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error creando estadísticas defensivas:', error);
+        console.error('Error creando estadÃ­sticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1654,17 +1644,17 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
             passed_balls || 0, chances || 0, jugador_id, temporada || 'Default']);
         
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
+            return res.status(404).json({ error: 'EstadÃ­sticas defensivas no encontradas' });
         }
         
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando estadísticas defensivas:', error);
+        console.error('Error actualizando estadÃ­sticas defensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// ====================== LÍDERES DEFENSIVOS =========================
+// ====================== LÃDERES DEFENSIVOS =========================
 app.get('/api/lideres-defensivos', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -1682,12 +1672,12 @@ app.get('/api/lideres-defensivos', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo líderes defensivos:', error);
+        console.error('Error obteniendo lÃ­deres defensivos:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// ====================== LÍDERES PITCHEO =========================
+// ====================== LÃDERES PITCHEO =========================
 app.get('/api/lideres-pitcheo', async (req, res) => {
     try {
         const result = await pool.query(`
@@ -1708,12 +1698,12 @@ app.get('/api/lideres-pitcheo', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo líderes de pitcheo:', error);
+        console.error('Error obteniendo lÃ­deres de pitcheo:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// ====================== ESTADÍSTICAS OFENSIVAS MEJORADAS =========================
+// ====================== ESTADÃSTICAS OFENSIVAS MEJORADAS =========================
 app.post('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const { 
@@ -1747,13 +1737,13 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
         
         res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error('Error creando estadísticas ofensivas:', error);
+        console.error('Error creando estadÃ­sticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
 
-// Handler compartido para actualizar/crear estadísticas ofensivas
+// Handler compartido para actualizar/crear estadÃ­sticas ofensivas
 async function upsertEstadisticasOfensivas(req, res) {
     try {
         const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, temporada } = req.body;
@@ -1789,14 +1779,14 @@ async function upsertEstadisticasOfensivas(req, res) {
 
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error upsert estadísticas ofensivas:', error);
+        console.error('Error upsert estadÃ­sticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 }
 
 app.put('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
 app.post('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
-// Alias para compatibilidad con versión anterior (guión bajo)
+// Alias para compatibilidad con versiÃ³n anterior (guiÃ³n bajo)
 app.put('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
 app.post('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
 
@@ -1811,22 +1801,22 @@ app.get('/public', (req, res) => res.sendFile(path.join(__dirname, 'public/publi
 
 
 // ==================== OPTIMIZACIONES PARA RAILWAY ====================
-// const path = require('path'); // Ya está requerido al inicio del archivo
+// const path = require('path'); // Ya estÃ¡ requerido al inicio del archivo
 
-// Servir archivos estáticos optimizados
+// Servir archivos estÃ¡ticos optimizados
 app.use(express.static('.', {
   maxAge: '1d',
   etag: true,
   lastModified: true
 }));
 
-// Servir logos estáticos con headers optimizados
+// Servir logos estÃ¡ticos con headers optimizados
 app.use('/public/images/logos', express.static(path.join(__dirname, 'public/images/logos'), {
-  maxAge: '7d', // Cache de 7 días para logos
+  maxAge: '7d', // Cache de 7 dÃ­as para logos
   etag: true,
   lastModified: true,
   setHeaders: (res, filePath) => {
-    res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 días
+    res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 dÃ­as
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
 }));
@@ -1838,7 +1828,7 @@ function verificarLogos() {
   const logosPath = path.join(__dirname, 'public/images/logos');
   
   if (!fs.existsSync(logosPath)) {
-    console.warn('⚠️ Carpeta de logos no encontrada, creando...');
+    console.warn('âš ï¸ Carpeta de logos no encontrada, creando...');
     fs.mkdirSync(logosPath, { recursive: true });
   }
   
@@ -1866,14 +1856,14 @@ function verificarLogos() {
   });
   
   if (logosFaltantes.length > 0) {
-    console.warn('⚠️ Logos faltantes:', logosFaltantes);
-    console.log('💡 Sugerencia: Agregar archivos PNG a /public/images/logos/');
+    console.warn('âš ï¸ Logos faltantes:', logosFaltantes);
+    console.log('ðŸ’¡ Sugerencia: Agregar archivos PNG a /public/images/logos/');
   } else {
-    console.log('✅ Todos los logos están disponibles');
+    console.log('âœ… Todos los logos estÃ¡n disponibles');
   }
 }
 
-// // Manejo de 404 para SPA - ELIMINADO SEGÚN INSTRUCCIONES
+// // Manejo de 404 para SPA - ELIMINADO SEGÃšN INSTRUCCIONES
 // app.get('*', (req, res) => {
 //   if (req.path.startsWith('/api/')) {
 //     res.status(404).json({ error: 'Endpoint no encontrado' });
@@ -1882,10 +1872,10 @@ function verificarLogos() {
 //   }
 // });
 
-// Ejecutar verificación al iniciar servidor
+// Ejecutar verificaciÃ³n al iniciar servidor
 verificarLogos();
 
-console.log('🚀 Chogui League System optimizado para Railway');
+console.log('ðŸš€ Chogui League System optimizado para Railway');
 
 
 // ===============================================================
@@ -1898,33 +1888,33 @@ app.use(errorHandler);
 // ===============================================================
 async function startServer() {
     try {
-        console.log('🚀 Iniciando Chogui League System...');
-        console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
+        console.log('ðŸš€ Iniciando Chogui League System...');
+        console.log(`ðŸ“Š Entorno: ${process.env.NODE_ENV || 'development'}`);
         
         await inicializarBaseDeDatos();
         
         app.listen(PORT, () => {
-            console.log(`\n🔥 =====================================`);
-            console.log(`🏆 CHOGUI LEAGUE SYSTEM ACTIVO`);
-            console.log(`🔥 =====================================`);
-            console.log(`🌐 Puerto: ${PORT}`);
-            console.log(`📊 Base de datos: Conectada`);
-            console.log(`✅ APIs: Optimizadas`);
-            console.log(`🛡️  Seguridad: Activa`);
-            console.log(`🔥 =====================================\n`);
+            console.log(`\nðŸ”¥ =====================================`);
+            console.log(`ðŸ† CHOGUI LEAGUE SYSTEM ACTIVO`);
+            console.log(`ðŸ”¥ =====================================`);
+            console.log(`ðŸŒ Puerto: ${PORT}`);
+            console.log(`ðŸ“Š Base de datos: Conectada`);
+            console.log(`âœ… APIs: Optimizadas`);
+            console.log(`ðŸ›¡ï¸  Seguridad: Activa`);
+            console.log(`ðŸ”¥ =====================================\n`);
         });
         
     } catch (error) {
-        console.error("❌ No se pudo iniciar el servidor:", error);
+        console.error("âŒ No se pudo iniciar el servidor:", error);
         process.exit(1);
     }
 }
 
 // Manejo graceful de cierre del servidor
 process.on('SIGTERM', () => {
-    console.log('🔄 Cerrando servidor...');
+    console.log('ðŸ”„ Cerrando servidor...');
     pool.end(() => {
-        console.log('✅ Conexiones de base de datos cerradas');
+        console.log('âœ… Conexiones de base de datos cerradas');
         process.exit(0);
     });
 });
@@ -1932,7 +1922,7 @@ process.on('SIGTERM', () => {
 
 // ====== Compatibilidad extra ======
 
-// 1) Rutas con ID en el path para estadísticas ofensivas (PUT/POST y con guión o guion_bajo)
+// 1) Rutas con ID en el path para estadÃ­sticas ofensivas (PUT/POST y con guiÃ³n o guion_bajo)
 app.put('/api/estadisticas-ofensivas/:jugadorId', (req, res) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
     return upsertEstadisticasOfensivas(req, res);
@@ -1950,7 +1940,7 @@ app.post('/api/estadisticas_ofensivas/:jugadorId', (req, res) => {
     return upsertEstadisticasOfensivas(req, res);
 });
 
-// 2) Alias para próximos partidos
+// 2) Alias para prÃ³ximos partidos
 app.get('/api/partidos/proximos', async (req, res) => {
     // handler equivalente a /api/proximos-partidos
     try {
@@ -1969,7 +1959,7 @@ app.get('/api/partidos/proximos', async (req, res) => {
         const result = await pool.query(query);
         res.json(result.rows);
     } catch (error) {
-        console.error('Error obteniendo próximos partidos (alias):', error);
+        console.error('Error obteniendo prÃ³ximos partidos (alias):', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
