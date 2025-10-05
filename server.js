@@ -1301,7 +1301,8 @@ app.get('/api/proximos-partidos', async (req, res) => {
                   AND carreras_local IS NOT NULL 
                   AND carreras_visitante IS NOT NULL
             `, [partido.equipo_visitante_id]);
-                    
+            
+            // ✅ CORRECCIÓN: Sintaxis de retorno validada (ya estaba bien, se mantiene)
             return {
                 ...partido,
                 record_local: `${recordLocal.rows[0].victorias}-${recordLocal.rows[0].derrotas}`,
@@ -1311,8 +1312,9 @@ app.get('/api/proximos-partidos', async (req, res) => {
         
         res.json(partidosConRecords);
     } catch (error) {
+        // ✅ CORRECCIÓN: Manejo de errores con el mensaje y formato solicitado
         console.error('Error obteniendo próximos partidos:', error);
-        res.status(500).json({ error: 'Error interno del servidor obteniendo próximos partidos' });
+        res.status(500).json({ error: 'Error obteniendo próximos partidos' });
     }
 });
 
@@ -1759,13 +1761,14 @@ async function upsertEstadisticasOfensivas(req, res) {
         const runsV = parseInt(runs || 0, 10);
         const bb = parseInt(walks || 0, 10);
         const sb = parseInt(stolen_bases || 0, 10);
-        const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : 'Default';
+        // ✅ CORRECCIÓN: Se usa '2025' como temporada por defecto si no viene en el body.
+        const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : '2025';
 
         if (h > ab) return res.status(400).json({ error: 'Los hits no pueden ser mayores que los at-bats' });
 
         const result = await pool.query(`
             INSERT INTO estadisticas_ofensivas (jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT (jugador_id, temporada) DO UPDATE SET
                 at_bats = EXCLUDED.at_bats,
                 hits = EXCLUDED.hits,
@@ -1779,8 +1782,9 @@ async function upsertEstadisticasOfensivas(req, res) {
 
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error upsert estadísticas ofensivas:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        // ✅ CORRECCIÓN: Log de error y respuesta JSON clara en caso de fallo de DB.
+        console.error('Error al actualizar/crear estadísticas ofensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor al procesar estadísticas' });
     }
 }
 
@@ -2013,9 +2017,15 @@ app.get('/api/posiciones', async (req, res) => {
 // ====== Catch‑all robusto para rutas antiguas de estadísticas ofensivas ======
 // Acepta: /api/estadisticas-ofensivas/:id  ó  /api/estadisticas_ofensivas/:id  (PUT o POST)
 // Insensible a mayúsculas y a guión vs guion_bajo
-app.all(/^\/api\/estadisticas[-_]ofensivas\/(\d+)$/i, (req, res) => {
-  if (!['PUT','POST'].includes(req.method)) return res.status(405).json({error:'Method Not Allowed'});
+app.all(/^\/api\/estadisticas[-_]ofensivas\/(\d+)$/i, (req, res, next) => {
+  if (!['PUT','POST'].includes(req.method)) {
+      // Si no es PUT o POST, podemos devolver un 405 o simplemente pasar al siguiente handler
+      return res.status(405).json({error:'Method Not Allowed'});
+  }
   const jugadorId = parseInt(req.params[0], 10);
+  if (isNaN(jugadorId)) {
+      return res.status(400).json({ error: 'ID de jugador inválido' });
+  }
   req.body = { ...req.body, jugador_id: jugadorId };
   return upsertEstadisticasOfensivas(req, res);
 });
