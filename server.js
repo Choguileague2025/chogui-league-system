@@ -776,55 +776,60 @@ app.get('/api/jugadores/:id', async (req, res) => {
     }
 });
 
+
 app.post('/api/jugadores', async (req, res) => {
     try {
         const { nombre, equipo_id, posicion, numero } = req.body;
-        
-        // Validaciones mejoradas
-        if (!nombre || !equipo_id) {
-            return res.status(400).json({ 
-                error: 'Nombre y equipo son requeridos' 
-            });
+
+        // Solo el nombre es obligatorio
+        if (!nombre || nombre.trim().length < 2 || nombre.trim().length > 100) {
+            return res.status(400).json({ error: 'El nombre debe tener entre 2 y 100 caracteres' });
         }
 
-        if (nombre.length < 2 || nombre.length > 100) {
-            return res.status(400).json({ 
-                error: 'El nombre debe tener entre 2 y 100 caracteres' 
-            });
+        // Si se envía equipo_id, validar que exista
+        let equipoIdFinal = null;
+        if (equipo_id !== undefined && equipo_id !== null && `${equipo_id}` !== '') {
+            equipoIdFinal = parseInt(equipo_id, 10);
+            if (Number.isNaN(equipoIdFinal)) {
+                return res.status(400).json({ error: 'Equipo inválido' });
+            }
+            const eq = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipoIdFinal]);
+            if (eq.rows.length === 0) {
+                return res.status(400).json({ error: 'El equipo seleccionado no existe' });
+            }
         }
 
-        // Verificar que el equipo existe
-        const equipoExists = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipo_id]);
-        if (equipoExists.rows.length === 0) {
-            return res.status(400).json({ error: 'El equipo especificado no existe' });
+        // Validar posición solo si viene con valor
+        const posicionesValidas = ['C','1B','2B','3B','SS','LF','CF','RF','P'];
+        let posicionFinal = null;
+        if (posicion !== undefined && posicion !== null && `${posicion}`.trim() !== '') {
+            if (!posicionesValidas.includes(posicion)) {
+                return res.status(400).json({ error: 'Posición inválida' });
+            }
+            posicionFinal = posicion;
         }
 
-        // Validar posición si se proporciona
-        const posicionesValidas = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P'];
-        if (posicion && !posicionesValidas.includes(posicion)) {
-            return res.status(400).json({ 
-                error: 'Posición inválida. Debe ser una de: ' + posicionesValidas.join(', ') 
-            });
-        }
-
-        // Validar número único por equipo si se proporciona
-        if (numero) {
-            const numeroExists = await pool.query(
-                'SELECT id FROM jugadores WHERE equipo_id = $1 AND numero = $2', 
-                [equipo_id, numero]
-            );
-            if (numeroExists.rows.length > 0) {
-                return res.status(409).json({ 
-                    error: 'Ya existe un jugador con ese número en el equipo' 
-                });
+        // Número opcional
+        let numeroFinal = null;
+        if (numero !== undefined && numero !== null && `${numero}` !== '') {
+            numeroFinal = parseInt(numero,10);
+            if (Number.isNaN(numeroFinal) || numeroFinal < 0) {
+                return res.status(400).json({ error: 'Número inválido' });
+            }
+            // Unicidad por equipo solo si hay equipo
+            if (equipoIdFinal !== null) {
+                const numeroExists = await pool.query('SELECT 1 FROM jugadores WHERE equipo_id=$1 AND numero=$2',[equipoIdFinal, numeroFinal]);
+                if (numeroExists.rows.length>0) {
+                    return res.status(409).json({ error: 'Ya existe un jugador con ese número en el equipo' });
+                }
             }
         }
 
         const result = await pool.query(
-            'INSERT INTO jugadores (nombre, equipo_id, posicion, numero) VALUES ($1, $2, $3, $4) RETURNING *',
-            [nombre.trim(), equipo_id, posicion || null, numero || null]
+            'INSERT INTO jugadores (nombre, equipo_id, posicion, numero) VALUES ($1,$2,$3,$4) RETURNING *',
+            [nombre.trim(), equipoIdFinal, posicionFinal, numeroFinal]
         );
-        
+
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error creando jugador:', error);
@@ -1712,39 +1717,51 @@ app.post('/api/estadisticas-ofensivas', async (req, res) => {
     }
 });
 
-app.put('/api/estadisticas-ofensivas', async (req, res) => {
+
+// Handler compartido para actualizar/crear estadísticas ofensivas
+async function upsertEstadisticasOfensivas(req, res) {
     try {
-        const { 
-            jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, temporada 
-        } = req.body;
-        
+        const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, temporada } = req.body;
+
         if (!jugador_id) {
             return res.status(400).json({ error: 'ID del jugador es requerido' });
         }
 
-        if (hits > at_bats) {
-            return res.status(400).json({ error: 'Los hits no pueden ser mayores que los at-bats' });
-        }
+        const ab = parseInt(at_bats || 0, 10);
+        const h = parseInt(hits || 0, 10);
+        const hr = parseInt(home_runs || 0, 10);
+        const rbiV = parseInt(rbi || 0, 10);
+        const runsV = parseInt(runs || 0, 10);
+        const bb = parseInt(walks || 0, 10);
+        const sb = parseInt(stolen_bases || 0, 10);
+        const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : 'Default';
+
+        if (h > ab) return res.status(400).json({ error: 'Los hits no pueden ser mayores que los at-bats' });
 
         const result = await pool.query(`
-            UPDATE estadisticas_ofensivas SET 
-                at_bats = $1, hits = $2, home_runs = $3, rbi = $4,
-                runs = $5, walks = $6, stolen_bases = $7
-            WHERE jugador_id = $8 AND temporada = $9
-            RETURNING *
-        `, [at_bats || 0, hits || 0, home_runs || 0, rbi || 0,
-            runs || 0, walks || 0, stolen_bases || 0, jugador_id, temporada || 'Default']);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas ofensivas no encontradas' });
-        }
-        
+            INSERT INTO estadisticas_ofensivas (jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+            ON CONFLICT (jugador_id, temporada) DO UPDATE SET
+                at_bats = EXCLUDED.at_bats,
+                hits = EXCLUDED.hits,
+                home_runs = EXCLUDED.home_runs,
+                rbi = EXCLUDED.rbi,
+                runs = EXCLUDED.runs,
+                walks = EXCLUDED.walks,
+                stolen_bases = EXCLUDED.stolen_bases
+            RETURNING *;
+        `, [jugador_id, temp, ab, h, hr, rbiV, runsV, bb, sb]);
+
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error actualizando estadísticas ofensivas:', error);
+        console.error('Error upsert estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
-});
+}
+
+app.put('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
+// Alias para compatibilidad con versión anterior (guión bajo)
+app.put('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
 
 // ===============================================================
 // =================== RUTAS DE ARCHIVOS HTML =================
