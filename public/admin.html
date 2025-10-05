@@ -1141,16 +1141,140 @@
             </div>
 
         <div class="nav-tabs">
-            <button class="nav-tab active" data-tab="equipos">🏅 Equipos</button>
+            <button class="nav-tab active" data-tab="dashboard">📈 Dashboard</button>
+            <button class="nav-tab" data-tab="equipos">🏅 Equipos</button>
             <button class="nav-tab" data-tab="partidos">🎯 Partidos</button>
             <button class="nav-tab" data-tab="jugadores">👤 Jugadores</button>
             <button class="nav-tab" data-tab="lideres">🏆 Líderes</button>
             <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
             <button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
-            <button class="nav-tab" data-tab="dashboard">📈 Dashboard</button>
         </div>
 
-        <div id="equipos" class="tab-content active">
+        <div id="dashboard" class="tab-content active">
+            <div class="card">
+                <h3>📊 Resumen Ejecutivo de la Liga</h3>
+                <div class="leaders-grid">
+                    <div class="leader-card">
+                        <h4>🏆 EQUIPOS TOTALES</h4>
+                        <div class="leader-item">
+                            <div class="leader-name">Equipos Registrados</div>
+                            <div class="leader-stat" id="total-equipos">0</div>
+                        </div>
+                        <div class="leader-item">
+                            <div class="leader-name">Con Partidos Jugados</div>
+                            <div class="leader-stat" id="equipos-activos">0</div>
+                        </div>
+                    </div>
+        
+                    <div class="leader-card">
+                        <h4>👥 JUGADORES TOTALES</h4>
+                        <div class="leader-item">
+                            <div class="leader-name">Jugadores Registrados</div>
+                            <div class="leader-stat" id="total-jugadores">0</div>
+                        </div>
+                        <div class="leader-item">
+                            <div class="leader-name">Con Estadísticas</div>
+                            <div class="leader-stat" id="jugadores-stats">0</div>
+                        </div>
+                    </div>
+        
+                    <div class="leader-card">
+                        <h4>🎯 PARTIDOS TOTALES</h4>
+                        <div class="leader-item">
+                            <div class="leader-name">Partidos Registrados</div>
+                            <div class="leader-stat" id="total-partidos">0</div>
+                        </div>
+                        <div class="leader-item">
+                            <div class="leader-name">Partidos Finalizados</div>
+                            <div class="leader-stat" id="partidos-finalizados">0</div>
+                        </div>
+                    </div>
+        
+                    <div class="leader-card">
+                        <h4>🗓️ TORNEO ACTUAL</h4>
+                        <div class="leader-item">
+                            <div class="leader-name" id="torneo-nombre">Sin Torneo Activo</div>
+                            <div class="leader-stat" id="torneo-status">❌</div>
+                        </div>
+                        <div class="leader-item">
+                            <div class="leader-name">Última Actualización</div>
+                            <div class="leader-stat" id="ultima-actualizacion">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="card">
+                <h3>📈 Estadísticas de Rendimiento</h3>
+                <div class="position-leaders-grid">
+                    <div class="position-card">
+                        <div class="position-title">⚾ PROMEDIO GENERAL DE BATEO</div>
+                        <div class="position-leader">
+                            <div class="leader-stat" style="font-size: 2rem; color: #ffd700;" id="avg-general">.000</div>
+                            <div class="leader-team">Liga completa</div>
+                        </div>
+                    </div>
+        
+                    <div class="position-card">
+                        <div class="position-title">🏃 CARRERAS POR PARTIDO</div>
+                        <div class="position-leader">
+                            <div class="leader-stat" style="font-size: 2rem; color: #ff8c00;" id="carreras-promedio">0.0</div>
+                            <div class="leader-team">Promedio por equipo</div>
+                        </div>
+                    </div>
+        
+                    <div class="position-card">
+                        <div class="position-title">🎯 PORCENTAJE DE FINALIZACIÓN</div>
+                        <div class="position-leader">
+                            <div class="leader-stat" style="font-size: 2rem; color: #4CAF50;" id="porcentaje-finalizacion">0%</div>
+                            <div class="leader-team">Partidos completados</div>
+                        </div>
+                    </div>
+        
+                    <div class="position-card">
+                        <div class="position-title">🏆 EQUIPO LÍDER</div>
+                        <div class="position-leader">
+                            <div class="leader-stat" style="font-size: 1.5rem; color: #ffd700;" id="equipo-lider">Sin datos</div>
+                            <div class="leader-team" id="record-lider">0-0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="card">
+                <h3>⚠️ Alertas y Estado del Sistema</h3>
+                <div id="alertas-container">
+                    <div class="leader-item">
+                        <div class="leader-name">Estado de la Base de Datos</div>
+                        <div class="leader-stat" style="color: #4CAF50;">✅ Operativa</div>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="card">
+                <h3>📊 Comparativas Temporales</h3>
+                <div class="stats-form-container">
+                    <div class="form-group">
+                        <label>📅 Último Partido Registrado:</label>
+                        <div id="ultimo-partido" style="color: #ffd700; font-weight: bold;">Sin partidos</div>
+                    </div>
+                    <div class="form-group">
+                        <label>👤 Último Jugador Agregado:</label>
+                        <div id="ultimo-jugador" style="color: #ffd700; font-weight: bold;">Sin jugadores</div>
+                    </div>
+                    <div class="form-group">
+                        <label>🏆 Último Equipo Creado:</label>
+                        <div id="ultimo-equipo" style="color: #ffd700; font-weight: bold;">Sin equipos</div>
+                    </div>
+                    <div class="form-group">
+                        <label>📈 Actividad Reciente:</label>
+                        <div id="actividad-reciente" style="color: #ff8c00; font-weight: bold;">Sistema iniciado</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="equipos" class="tab-content">
             <div class="card">
                 <h3>➕ Agregar Nuevo Equipo</h3>
                 <div class="form-container">
@@ -1897,134 +2021,28 @@
                 </div>
             </div>
         </div>
-        
-        <div id="dashboard" class="tab-content">
-            <div class="card">
-                <h3>📊 Resumen Ejecutivo de la Liga</h3>
-                <div class="leaders-grid">
-                    <div class="leader-card">
-                        <h4>🏆 EQUIPOS TOTALES</h4>
-                        <div class="leader-item">
-                            <div class="leader-name">Equipos Registrados</div>
-                            <div class="leader-stat" id="total-equipos">0</div>
-                        </div>
-                        <div class="leader-item">
-                            <div class="leader-name">Con Partidos Jugados</div>
-                            <div class="leader-stat" id="equipos-activos">0</div>
-                        </div>
-                    </div>
-        
-                    <div class="leader-card">
-                        <h4>👥 JUGADORES TOTALES</h4>
-                        <div class="leader-item">
-                            <div class="leader-name">Jugadores Registrados</div>
-                            <div class="leader-stat" id="total-jugadores">0</div>
-                        </div>
-                        <div class="leader-item">
-                            <div class="leader-name">Con Estadísticas</div>
-                            <div class="leader-stat" id="jugadores-stats">0</div>
-                        </div>
-                    </div>
-        
-                    <div class="leader-card">
-                        <h4>🎯 PARTIDOS TOTALES</h4>
-                        <div class="leader-item">
-                            <div class="leader-name">Partidos Registrados</div>
-                            <div class="leader-stat" id="total-partidos">0</div>
-                        </div>
-                        <div class="leader-item">
-                            <div class="leader-name">Partidos Finalizados</div>
-                            <div class="leader-stat" id="partidos-finalizados">0</div>
-                        </div>
-                    </div>
-        
-                    <div class="leader-card">
-                        <h4>🗓️ TORNEO ACTUAL</h4>
-                        <div class="leader-item">
-                            <div class="leader-name" id="torneo-nombre">Sin Torneo Activo</div>
-                            <div class="leader-stat" id="torneo-status">❌</div>
-                        </div>
-                        <div class="leader-item">
-                            <div class="leader-name">Última Actualización</div>
-                            <div class="leader-stat" id="ultima-actualizacion">--</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            <div class="card">
-                <h3>📈 Estadísticas de Rendimiento</h3>
-                <div class="position-leaders-grid">
-                    <div class="position-card">
-                        <div class="position-title">⚾ PROMEDIO GENERAL DE BATEO</div>
-                        <div class="position-leader">
-                            <div class="leader-stat" style="font-size: 2rem; color: #ffd700;" id="avg-general">.000</div>
-                            <div class="leader-team">Liga completa</div>
-                        </div>
-                    </div>
-        
-                    <div class="position-card">
-                        <div class="position-title">🏃 CARRERAS POR PARTIDO</div>
-                        <div class="position-leader">
-                            <div class="leader-stat" style="font-size: 2rem; color: #ff8c00;" id="carreras-promedio">0.0</div>
-                            <div class="leader-team">Promedio por equipo</div>
-                        </div>
-                    </div>
-        
-                    <div class="position-card">
-                        <div class="position-title">🎯 PORCENTAJE DE FINALIZACIÓN</div>
-                        <div class="position-leader">
-                            <div class="leader-stat" style="font-size: 2rem; color: #4CAF50;" id="porcentaje-finalizacion">0%</div>
-                            <div class="leader-team">Partidos completados</div>
-                        </div>
-                    </div>
-        
-                    <div class="position-card">
-                        <div class="position-title">🏆 EQUIPO LÍDER</div>
-                        <div class="position-leader">
-                            <div class="leader-stat" style="font-size: 1.5rem; color: #ffd700;" id="equipo-lider">Sin datos</div>
-                            <div class="leader-team" id="record-lider">0-0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            <div class="card">
-                <h3>⚠️ Alertas y Estado del Sistema</h3>
-                <div id="alertas-container">
-                    <div class="leader-item">
-                        <div class="leader-name">Estado de la Base de Datos</div>
-                        <div class="leader-stat" style="color: #4CAF50;">✅ Operativa</div>
-                    </div>
-                </div>
-            </div>
-        
-            <div class="card">
-                <h3>📊 Comparativas Temporales</h3>
-                <div class="stats-form-container">
-                    <div class="form-group">
-                        <label>📅 Último Partido Registrado:</label>
-                        <div id="ultimo-partido" style="color: #ffd700; font-weight: bold;">Sin partidos</div>
-                    </div>
-                    <div class="form-group">
-                        <label>👤 Último Jugador Agregado:</label>
-                        <div id="ultimo-jugador" style="color: #ffd700; font-weight: bold;">Sin jugadores</div>
-                    </div>
-                    <div class="form-group">
-                        <label>🏆 Último Equipo Creado:</label>
-                        <div id="ultimo-equipo" style="color: #ffd700; font-weight: bold;">Sin equipos</div>
-                    </div>
-                    <div class="form-group">
-                        <label>📈 Actividad Reciente:</label>
-                        <div id="actividad-reciente" style="color: #ff8c00; font-weight: bold;">Sistema iniciado</div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
     </div>
 
     <script>
+        // ✅ INICIO CORRECCIÓN: Script de navegación para el Dashboard
+        function irATab(tabName, panelId) {
+            // Activa la pestaña correcta usando el atributo data-tab
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`.nav-tab[data-tab="${tabName.toLowerCase()}"]`);
+            if (btn) btn.classList.add('active');
+
+            // Muestra el panel de contenido correspondiente
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.add('active');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        // ✅ FIN CORRECCIÓN
+
         // Variables globales
         let equipos = [];
         let partidos = [];
@@ -2907,13 +2925,31 @@
                     </div>
                 `;
             } else {
-                alertasContainer.innerHTML = alertas.map(alerta => `
-                    <div class="alerta alerta-${alerta.tipo}">
-                        <strong>${alerta.mensaje}</strong>
-                        ${alerta.accion ? `<button class="btn-secondary">${alerta.accion}</button>` : ''}
-                    </div>
-                `).join('');
+                // ✅ INICIO CORRECCIÓN: Añadir IDs a los botones
+                alertasContainer.innerHTML = alertas.map(alerta => {
+                    let buttonHtml = '';
+                    if (alerta.accion) {
+                        let buttonId = '';
+                        if (alerta.accion === 'Ver Partidos') {
+                            buttonId = 'id="btnVerPartidos"';
+                        } else if (alerta.accion === 'Registrar Estadísticas') {
+                            buttonId = 'id="btnRegistrarStats"';
+                        }
+                        buttonHtml = `<button ${buttonId} class="btn-secondary">${alerta.accion}</button>`;
+                    }
+                    return `
+                        <div class="alerta alerta-${alerta.tipo}">
+                            <strong>${alerta.mensaje}</strong>
+                            ${buttonHtml}
+                        </div>
+                    `;
+                }).join('');
             }
+            
+            // ✅ CORRECCIÓN: Asignar eventos a los botones recién creados
+            document.getElementById('btnVerPartidos')?.addEventListener('click', () => irATab('partidos', 'partidos'));
+            document.getElementById('btnRegistrarStats')?.addEventListener('click', () => irATab('lideres', 'lideres'));
+            // ✅ FIN CORRECCIÓN
         }
         
         async function cargarTorneoActivo() {
@@ -4538,3 +4574,4 @@
         }
     </script>
 </body>
+</html>
