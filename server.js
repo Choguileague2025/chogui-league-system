@@ -228,6 +228,30 @@ async function inicializarBaseDeDatos() {
                 END $$;
             `);
             console.log('✅ Migración de partidos completada');
+
+        // Asegurar que carreras_local y carreras_visitante permitan NULL (para partidos 'programado')
+        try {
+            await pool.query(`
+                DO $$ 
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='partidos' AND column_name='carreras_local' AND is_nullable='NO'
+                    ) THEN
+                        ALTER TABLE partidos ALTER COLUMN carreras_local DROP NOT NULL;
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='partidos' AND column_name='carreras_visitante' AND is_nullable='NO'
+                    ) THEN
+                        ALTER TABLE partidos ALTER COLUMN carreras_visitante DROP NOT NULL;
+                    END IF;
+                END $$;
+            `);
+            console.log('✅ Columnas de carreras permiten NULL (ok para partidos programados)');
+        } catch (e) {
+            console.warn('⚠️ No se pudo ajustar NOT NULL de carreras_*:', e.message);
+        }
         } catch (error) {
             console.error('⚠️ Error en migración de partidos:', error.message);
         }
@@ -1852,4 +1876,3 @@ process.on('SIGTERM', () => {
 });
 
 startServer();
-
