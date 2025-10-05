@@ -1067,9 +1067,22 @@ app.post('/api/partidos', async (req, res) => {
                 error: 'La fecha del partido debe estar entre 2020 y 2 años en el futuro' 
             });
         }
-        // Validar estado
-        const estadosValidos = ['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'];
-        const estadoFinal = estado && estadosValidos.includes(estado) ? estado : 'programado';
+        
+        // CORRECCIÓN: Lógica de estado automática
+        let estadoFinal;
+                
+        if (estado && ['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'].includes(estado)) {
+            // Si se envía un estado válido explícitamente, usarlo
+            estadoFinal = estado;
+        } else {
+            // Detectar automáticamente según si tiene resultados
+            if (carrerasLocalFinal !== null && carrerasVisitanteFinal !== null) {
+                estadoFinal = 'finalizado'; // Tiene resultados = partido jugado
+            } else {
+                estadoFinal = 'programado'; // Sin resultados = partido futuro
+            }
+        }
+        
         // INSERT con nuevos campos
         const result = await pool.query(
             `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local,                                    carreras_visitante, innings_jugados, fecha_partido, hora, estado)              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
