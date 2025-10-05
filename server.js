@@ -249,6 +249,31 @@ async function inicializarBaseDeDatos() {
                 END $$;
             `);
             console.log('✅ Columnas de carreras permiten NULL (ok para partidos programados)');
+
+        // Asegurar que jugadores.posicion y jugadores.numero permitan NULL
+        try {
+            await pool.query(`
+                DO $$ 
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='jugadores' AND column_name='posicion' AND is_nullable='NO'
+                    ) THEN
+                        ALTER TABLE jugadores ALTER COLUMN posicion DROP NOT NULL;
+                    END IF;
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='jugadores' AND column_name='numero' AND is_nullable='NO'
+                    ) THEN
+                        ALTER TABLE jugadores ALTER COLUMN numero DROP NOT NULL;
+                    END IF;
+                END $$;
+            `);
+            console.log('✅ Columnas jugadores.posicion/numero permiten NULL');
+        } catch (e) {
+            console.warn('⚠️ No se pudo ajustar NOT NULL de jugadores.posicion/numero:', e.message);
+        }
+
         } catch (e) {
             console.warn('⚠️ No se pudo ajustar NOT NULL de carreras_*:', e.message);
         }
@@ -800,7 +825,7 @@ app.post('/api/jugadores', async (req, res) => {
         }
 
         // Validar posición solo si viene con valor
-        const posicionesValidas = ['C','1B','2B','3B','SS','LF','CF','RF','P'];
+        const posicionesValidas = ['C','1B','2B','3B','SS','LF','CF','RF','P','UTIL','DH'];
         let posicionFinal = null;
         if (posicion !== undefined && posicion !== null && `${posicion}`.trim() !== '') {
             if (!posicionesValidas.includes(posicion)) {
@@ -1760,8 +1785,10 @@ async function upsertEstadisticasOfensivas(req, res) {
 }
 
 app.put('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
+app.post('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
 // Alias para compatibilidad con versión anterior (guión bajo)
 app.put('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
+app.post('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
 
 // ===============================================================
 // =================== RUTAS DE ARCHIVOS HTML =================
