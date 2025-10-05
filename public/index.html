@@ -2308,7 +2308,7 @@
         
         async function cargarProximosPartidos() {
           try {
-            const response = await fetch(getApiUrl('/api/partidos/proximos'));
+            const response = await fetch(getApiUrl('/api/proximos-partidos'));
             if (!response.ok) throw new Error('Error cargando próximos partidos');
             
             const proximosPartidos = await response.json();
