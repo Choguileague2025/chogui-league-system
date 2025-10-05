@@ -1265,6 +1265,14 @@ app.get('/api/proximos-partidos', async (req, res) => {
         `;
         
         const result = await pool.query(query);
+
+// === Alias de proximos partidos (compatibilidad con front antiguo) ===
+app.get('/api/partidos/proximos', (req, res) => {
+    req.url = '/api/proximos-partidos';
+    // Reusar handler original
+    return app._router.handle(req, res, () => {});
+});
+
         
         // Calcular records de equipos para cada partido
         const partidosConRecords = await Promise.all(result.rows.map(async (partido) => {
@@ -1655,7 +1663,53 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
 });
 
 // ====================== LÍDERES DEFENSIVOS =========================
-app.get('/api/lideres-defensivos', async (req, res) => {
+app.get(
+
+// === Tabla de posiciones (sencilla) ===
+app.get('/api/posiciones', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            WITH finalizados AS (
+                SELECT 
+                    id, equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante
+                FROM partidos
+                WHERE estado = 'finalizado'
+            ),
+            juegos AS (
+                SELECT equipo_local_id AS equipo_id, 
+                       (carreras_local) AS cf, (carreras_visitante) AS ce,
+                       CASE WHEN carreras_local > carreras_visitante THEN 1 ELSE 0 END AS gan,
+                       CASE WHEN carreras_local < carreras_visitante THEN 1 ELSE 0 END AS per
+                FROM finalizados
+                UNION ALL
+                SELECT equipo_visitante_id AS equipo_id, 
+                       (carreras_visitante) AS cf, (carreras_local) AS ce,
+                       CASE WHEN carreras_visitante > carreras_local THEN 1 ELSE 0 END AS gan,
+                       CASE WHEN carreras_visitante < carreras_local THEN 1 ELSE 0 END AS per
+                FROM finalizados
+            )
+            SELECT e.id, e.nombre,
+                   COUNT(j.equipo_id) AS pj,
+                   COALESCE(SUM(j.gan),0) AS pg,
+                   COALESCE(SUM(j.per),0) AS pp,
+                   COALESCE(SUM(j.cf),0) AS cf,
+                   COALESCE(SUM(j.ce),0) AS ce,
+                   COALESCE(SUM(j.cf),0) - COALESCE(SUM(j.ce),0) AS dif,
+                   CASE WHEN COUNT(j.equipo_id) = 0 THEN 0 
+                        ELSE ROUND(COALESCE(SUM(j.gan),0)::numeric / COUNT(j.equipo_id) * 100, 2) END AS porcentaje
+            FROM equipos e
+            LEFT JOIN juegos j ON j.equipo_id = e.id
+            GROUP BY e.id, e.nombre
+            ORDER BY porcentaje DESC, dif DESC, e.nombre ASC;
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error calculando posiciones:', err);
+        res.status(500).json({ error: 'Error al calcular posiciones' });
+    }
+});
+
+'/api/lideres-defensivos', async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
@@ -1789,6 +1843,25 @@ app.post('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
 // Alias para compatibilidad con versión anterior (guión bajo)
 app.put('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
 app.post('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
+
+// === Compat: rutas con ID en path para guardar estadísticas ofensivas ===
+app.put('/api/estadisticas-ofensivas/:jugadorId', (req, res) => {
+    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
+    return upsertEstadisticasOfensivas(req, res);
+});
+app.post('/api/estadisticas-ofensivas/:jugadorId', (req, res) => {
+    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
+    return upsertEstadisticasOfensivas(req, res);
+});
+app.put('/api/estadisticas_ofensivas/:jugadorId', (req, res) => {
+    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
+    return upsertEstadisticasOfensivas(req, res);
+});
+app.post('/api/estadisticas_ofensivas/:jugadorId', (req, res) => {
+    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
+    return upsertEstadisticasOfensivas(req, res);
+});
+
 
 // ===============================================================
 // =================== RUTAS DE ARCHIVOS HTML =================
