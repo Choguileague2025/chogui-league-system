@@ -1030,10 +1030,13 @@ app.get('/api/partidos', async (req, res) => {
     }
 });
 
-app.get('/api/partidos/:id(\\d+)', async (req, res) => {
+
+app.get('/api/partidos/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        
+        // Si no es numérico, dejamos que otras rutas coincidan (por ejemplo /api/partidos/proximos)
+        if (!/^\d+$/.test(id)) return next();
+        const partidoId = parseInt(id, 10);
         const result = await pool.query(`
             SELECT p.*, 
                    el.nombre as equipo_local_nombre,
@@ -1042,10 +1045,17 @@ app.get('/api/partidos/:id(\\d+)', async (req, res) => {
             LEFT JOIN equipos el ON p.equipo_local_id = el.id
             LEFT JOIN equipos ev ON p.equipo_visitante_id = ev.id
             WHERE p.id = $1
-        `, [id]);
-        
+        `, [partidoId]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error obteniendo partido:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
         }
         
         res.json(result.rows[0]);
