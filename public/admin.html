@@ -2914,7 +2914,31 @@
                     </div>
                 `).join('');
             }
-        }
+        
+            // Conectar acciones de las alertas (delegación de eventos)
+            if (!alertasContainer._alertHandlersBound) {
+                alertasContainer.addEventListener('click', (ev) => {
+                    const btn = ev.target.closest('button');
+                    if (!btn) return;
+                    const label = (btn.textContent || '').trim();
+
+                    // Navegación según la acción
+                    if (label.includes('Ver Partidos')) {
+                        // pestaña Partidos
+                        if (typeof mostrarPestana === 'function') mostrarPestana('partidos');
+                        document.getElementById('seccion-partidos')?.scrollIntoView({behavior:'smooth'});
+                    } else if (label.includes('Registrar Estadísticas')) {
+                        // pestaña Líderes / Estadísticas
+                        if (typeof mostrarPestana === 'function') mostrarPestana('lideres');
+                        document.getElementById('editar-estadisticas')?.scrollIntoView({behavior:'smooth'});
+                    } else if (label.includes('Activar Torneo')) {
+                        if (typeof mostrarPestana === 'function') mostrarPestana('dashboard');
+                        document.getElementById('torneosTable')?.scrollIntoView({behavior:'smooth'});
+                    }
+                });
+                alertasContainer._alertHandlersBound = true;
+            }
+}
         
         async function cargarTorneoActivo() {
             try {
