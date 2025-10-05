@@ -1030,7 +1030,7 @@ app.get('/api/partidos', async (req, res) => {
     }
 });
 
-app.get('/api/partidos/:id', async (req, res) => {
+app.get('/api/partidos/:id(\\d+)', async (req, res) => {
     try {
         const { id } = req.params;
         
@@ -1765,7 +1765,7 @@ async function upsertEstadisticasOfensivas(req, res) {
 
         const result = await pool.query(`
             INSERT INTO estadisticas_ofensivas (jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8, $9)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
             ON CONFLICT (jugador_id, temporada) DO UPDATE SET
                 at_bats = EXCLUDED.at_bats,
                 hits = EXCLUDED.hits,
