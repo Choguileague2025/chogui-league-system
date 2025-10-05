@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Chogui League - Sistema de GestiÃģn Profesional</title>
+    <title>Admin - Chogui League - Sistema de Gestión Profesional</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
             position: relative;
         }
 
-        /* Efectos de fuego/energÃ­a similares al logo */
+        /* Efectos de fuego/energía similares al logo */
         body::before {
             content: '';
             position: fixed;
@@ -399,7 +399,7 @@
             font-style: italic;
         }
 
-        /* Estilos especÃ­ficos para la pestaÃąa de LÃ­deres */
+        /* Estilos específicos para la pestaña de Líderes */
         .leaders-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -508,7 +508,7 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
-        /* Nuevos estilos para lÃ­deres por posiciÃģn especÃ­fica */
+        /* Nuevos estilos para líderes por posición específica */
         .position-leaders-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -616,7 +616,7 @@
             font-weight: bold;
         }
         
-        /* AÃADIDO: CSS para Mejoras UX */
+        /* AÑADIDO: CSS para Mejoras UX */
         .form-group { position: relative; }
         .field-error {
             color: #dc143c;
@@ -645,12 +645,12 @@
             opacity: 0.5;
         }
         .sort-indicator.asc::after {
-            content: 'âē';
+            content: '▲';
             color: #1a1a2e;
             opacity: 1;
         }
         .sort-indicator.desc::after {
-            content: 'âž';
+            content: '▼';
             color: #1a1a2e;
             opacity: 1;
         }
@@ -872,7 +872,7 @@
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
         .search-box::after {
-            content: 'ð';
+            content: '🔍';
             position: absolute;
             right: 12px;
             top: 50%;
@@ -954,16 +954,16 @@
         }
 
         @media (max-width: 768px) {
-            /* Filtros en columna Ãšnica */
+            /* Filtros en columna única */
             .filters-grid {
                 grid-template-columns: 1fr;
             }
-            /* PaginaciÃģn responsive */
+            /* Paginación responsive */
             .pagination-controls {
                 flex-direction: column;
                 gap: 15px;
             }
-            /* Formularios en columna Ãšnica */
+            /* Formularios en columna única */
             .form-container {
                 grid-template-columns: 1fr !important;
             }
@@ -983,7 +983,7 @@
                 padding: 15px;
                 padding-top: 70px;
             }
-            /* Botones mÃĄs grandes para touch */
+            /* Botones más grandes para touch */
             .btn-primary, .btn-secondary {
                 min-height: 44px;
                 padding: 12px 20px;
@@ -1037,12 +1037,12 @@
                 padding: 20px;
             }
         }
-        /* Indicador de bÃšsqueda activa */
+        /* Indicador de búsqueda activa */
         .searching {
             position: relative;
         }
         .searching::after {
-            content: 'ð';
+            content: '🔍';
             position: absolute;
             right: 12px;
             top: 50%;
@@ -1100,17 +1100,17 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
         }
-        /* Labels mÃĄs legibles */
+        /* Labels más legibles */
         label {
             cursor: pointer;
             user-select: none;
         }
-        /* Focus en inputs mÃĄs visible */
+        /* Focus en inputs más visible */
         input:focus,select:focus,textarea:focus {
             border-color: #ffd700 !important;
             box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2) !important;
         }
-        /* Skip to content para navegaciÃģn por teclado */
+        /* Skip to content para navegación por teclado */
         .skip-link {
             position: absolute;
             top: -40px;
@@ -1130,29 +1130,29 @@
     <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
     <div id="toast-container" class="toast-container"></div>
     <div class="admin-controls">
-        <a href="index.html" class="admin-btn">ðïļ Vista PÃšblica</a>
-        <button onclick="logout()" class="admin-btn">ðŠ Salir</button>
+        <a href="index.html" class="admin-btn">👁️ Vista Pública</a>
+        <button onclick="logout()" class="admin-btn">🚪 Salir</button>
     </div>
     
     <div id="main-content" class="container">
         <div class="header">
-            <h1>ð CHOGUI LEAGUE - ADMIN</h1>
-            <p>Panel de AdministraciÃģn - Sistema de GestiÃģn Profesional</p>
+            <h1>🏆 CHOGUI LEAGUE - ADMIN</h1>
+            <p>Panel de Administración - Sistema de Gestión Profesional</p>
             </div>
 
         <div class="nav-tabs">
-            <button class="nav-tab active" data-tab="equipos">ð Equipos</button>
-            <button class="nav-tab" data-tab="partidos">ðŊ Partidos</button>
-            <button class="nav-tab" data-tab="jugadores">ðĪ Jugadores</button>
-            <button class="nav-tab" data-tab="lideres">ð LÃ­deres</button>
-            <button class="nav-tab" data-tab="posiciones">ð Posiciones</button>
-            <button class="nav-tab" data-tab="torneos">ðïļ Torneos</button>
-            <button class="nav-tab" data-tab="dashboard">ð Dashboard</button>
+            <button class="nav-tab active" data-tab="equipos">🏅 Equipos</button>
+            <button class="nav-tab" data-tab="partidos">🎯 Partidos</button>
+            <button class="nav-tab" data-tab="jugadores">👤 Jugadores</button>
+            <button class="nav-tab" data-tab="lideres">🏆 Líderes</button>
+            <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
+            <button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
+            <button class="nav-tab" data-tab="dashboard">📈 Dashboard</button>
         </div>
 
         <div id="equipos" class="tab-content active">
             <div class="card">
-                <h3>â Agregar Nuevo Equipo</h3>
+                <h3>➕ Agregar Nuevo Equipo</h3>
                 <div class="form-container">
                     <div>
                         <div class="form-group">
@@ -1170,7 +1170,7 @@
                             <input type="text" id="ciudadEquipo" required>
                         </div>
                         <div class="form-group">
-                            <button id="btn-agregar-equipo" class="btn-primary" onclick="agregarEquipo()">ð Agregar Equipo</button>
+                            <button id="btn-agregar-equipo" class="btn-primary" onclick="agregarEquipo()">🏆 Agregar Equipo</button>
                         </div>
                     </div>
                 </div>
@@ -1182,15 +1182,15 @@
                 <h4 style="color: #ffd700; margin-bottom: 15px;">Filtros de Equipos</h4>
                 <div class="form-container">
                     <div class="form-group">
-                        <label for="buscadorEquipos">ð Buscar Equipo:</label>
+                        <label for="buscadorEquipos">🔍 Buscar Equipo:</label>
                         <input type="text" id="buscadorEquipos" placeholder="Buscar por nombre, manager o ciudad..." style="border-radius: 20px;">
                     </div>
                      <div class="form-group" style="align-self: end;">
-                        <button class="btn-secondary" onclick="limpiarFiltrosEquipos()" style="background: #ff8c00; width: 100%; padding: 12px;">ðïļ Limpiar Filtros</button>
+                        <button class="btn-secondary" onclick="limpiarFiltrosEquipos()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <button class="btn-secondary" onclick="exportarTabla('equipos', 'csv')" style="background: #4CAF50;">ð Exportar a CSV</button>
+                    <button class="btn-secondary" onclick="exportarTabla('equipos', 'csv')" style="background: #4CAF50;">📊 Exportar a CSV</button>
                     <div style="margin-left: auto; color: #ffd700; font-size: 0.9rem; display: flex; align-items: center;">
                         <span id="equipos-count">Total: 0 equipos</span>
                     </div>
@@ -1198,7 +1198,7 @@
             </div>
 
             <div class="card">
-                <h3>ð Equipos Registrados</h3>
+                <h3>🏆 Equipos Registrados</h3>
                 <div class="table-container">
                     <table id="equiposTable">
                         <thead>
@@ -1233,9 +1233,9 @@
 
         <div id="partidos" class="tab-content">
             <div class="card">
-                <h3>ð PROGRAMAR PRÃXIMO PARTIDO</h3>
+                <h3>📅 PROGRAMAR PRÓXIMO PARTIDO</h3>
                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">
-                    Para partidos que aÃšn NO se han jugado. Los resultados se registrarÃĄn despuÃĐs.
+                    Para partidos que aún NO se han jugado. Los resultados se registrarán después.
                 </p>
                 <div class="form-container">
                     <div>
@@ -1252,28 +1252,28 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="fechaPartidoFuturo">ð Fecha del Partido:</label>
+                            <label for="fechaPartidoFuturo">📅 Fecha del Partido:</label>
                             <input type="date" id="fechaPartidoFuturo" required>
                         </div>
                     </div>
                     <div>
                         <div class="form-group">
-                            <label for="horaPartidoFuturo">â° Hora del Partido:</label>
+                            <label for="horaPartidoFuturo">⏰ Hora del Partido:</label>
                             <input type="time" id="horaPartidoFuturo" required>
                         </div>
                         <div class="form-group">
-                            <label for="lugarPartido">ðïļ Lugar/Estadio (Opcional):</label>
+                            <label for="lugarPartido">🏟️ Lugar/Estadio (Opcional):</label>
                             <input type="text" id="lugarPartido" placeholder="Ej: Estadio Municipal">
                         </div>
                         <div class="form-group">
-                            <button class="btn-primary" onclick="programarPartido()">ð Programar Partido</button>
+                            <button class="btn-primary" onclick="programarPartido()">📅 Programar Partido</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="card">
-                <h3>âū REGISTRAR RESULTADO DE PARTIDO</h3>
+                <h3>⚾ REGISTRAR RESULTADO DE PARTIDO</h3>
                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">
                     Para partidos que YA se jugaron. Ingresa las carreras de cada equipo.
                 </p>
@@ -1311,7 +1311,7 @@
                         </div>
                     </div>
                 </div>
-                <button id="btn-registrar-partido" class="btn-primary" onclick="registrarPartido()">ðŊ Registrar Partido</button>
+                <button id="btn-registrar-partido" class="btn-primary" onclick="registrarPartido()">🎯 Registrar Partido</button>
                 <div id="partidoMessage" class="success-message"></div>
                 <div id="partidoError" class="error-message"></div>
             </div>
@@ -1329,9 +1329,9 @@
                         <label for="filtroEstadoPartidos">Estado del Partido:</label>
                         <select id="filtroEstadoPartidos" style="border-radius: 20px;">
                             <option value="">-- Todos --</option>
-                            <option value="programado">ð Programados</option>
-                            <option value="finalizado">â Finalizados</option>
-                            <option value="cancelado">â Cancelados</option>
+                            <option value="programado">📅 Programados</option>
+                            <option value="finalizado">✅ Finalizados</option>
+                            <option value="cancelado">❌ Cancelados</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1339,7 +1339,7 @@
                         <input type="date" id="filtroFechaPartidos" style="border-radius: 20px;">
                     </div>
                     <div class="form-group" style="align-self: end;">
-                        <button class="btn-secondary" onclick="limpiarFiltrosPartidos()" style="background: #ff8c00; width: 100%; padding: 12px;">ðïļ Limpiar Filtros</button>
+                        <button class="btn-secondary" onclick="limpiarFiltrosPartidos()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
                     </div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
@@ -1350,7 +1350,7 @@
             </div>
 
             <div class="card">
-                <h3>ðŊ Partidos Registrados</h3>
+                <h3>🎯 Partidos Registrados</h3>
                 <div class="table-container">
                     <table id="partidosTable">
                         <thead>
@@ -1376,19 +1376,19 @@
 
         <div id="jugadores" class="tab-content">
             <div class="card">
-                <h3>ðĪ Agregar Nuevo Jugador</h3>
+                <h3>👤 Agregar Nuevo Jugador</h3>
                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px; opacity: 0.9;">
-                    ðĄ Solo el nombre es obligatorio. Equipo, posiciÃģn y nÃšmero son opcionales.
+                    💡 Solo el nombre es obligatorio. Equipo, posición y número son opcionales.
                 </p>
                 <form id="jugadorForm">
                     <div class="form-container">
                         <div>
                             <div class="form-group">
-                                <label for="nombreJugador">ðĪ Nombre Completo del Jugador:</label>
-                                <input type="text" id="nombreJugador" required placeholder="Ejemplo: Miguel CalderÃģn">
+                                <label for="nombreJugador">👤 Nombre Completo del Jugador:</label>
+                                <input type="text" id="nombreJugador" required placeholder="Ejemplo: Miguel Calderón">
                             </div>
                             <div class="form-group">
-                                <label for="equipoJugador">ð Equipo (Opcional):</label>
+                                <label for="equipoJugador">🏅 Equipo (Opcional):</label>
                                 <select id="equipoJugador">
                                     <option value="">Sin equipo asignado</option>
                                 </select>
@@ -1396,9 +1396,9 @@
                         </div>
                         <div>
                             <div class="form-group">
-                                <label for="posicionJugador">âū PosiciÃģn (Opcional):</label>
+                                <label for="posicionJugador">⚾ Posición (Opcional):</label>
                                 <select id="posicionJugador">
-                                    <option value="">-- Sin PosiciÃģn --</option>
+                                    <option value="">-- Sin Posición --</option>
                                     <option value="UTIL">UTIL (Utilidad)</option>
                                     <option value="P">P (Pitcher)</option>
                                     <option value="C">C (Catcher)</option>
@@ -1412,35 +1412,35 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="numeroJugador">ðĒ NÃšmero (Opcional):</label>
+                                <label for="numeroJugador">🔢 Número (Opcional):</label>
                                 <input type="number" id="numeroJugador" min="0" max="99" placeholder="Ej: 24">
                             </div>
                         </div>
                     </div>
             
-                    <button type="button" id="btn-agregar-jugador" class="btn-primary" onclick="agregarJugador()">ðĪ Agregar Jugador</button>
+                    <button type="button" id="btn-agregar-jugador" class="btn-primary" onclick="agregarJugador()">👤 Agregar Jugador</button>
                 </form>
                 <div id="jugadorMessage" class="success-message"></div>
                 <div id="jugadorError" class="error-message"></div>
             </div>
 
             <div class="card">
-                <h3>ðĨ Jugadores Registrados</h3>
+                <h3>👥 Jugadores Registrados</h3>
                 <div class="card" style="margin-bottom: 15px; padding: 15px;">
-                    <h4 style="color: #ffd700; margin-bottom: 15px;">ð Filtros y BÃšsqueda Avanzada</h4>
+                    <h4 style="color: #ffd700; margin-bottom: 15px;">🔍 Filtros y Búsqueda Avanzada</h4>
                     <div class="form-container">
                         <div class="form-group">
-                            <label for="buscadorJugadores">ð Buscar por Nombre:</label>
+                            <label for="buscadorJugadores">🔍 Buscar por Nombre:</label>
                             <input type="text" id="buscadorJugadores" placeholder="Buscar jugador..." style="border-radius: 20px;">
                         </div>
                         <div class="form-group">
-                            <label for="filtroRosterEquipo">ð Filtrar por Equipo:</label>
+                            <label for="filtroRosterEquipo">🏅 Filtrar por Equipo:</label>
                             <select id="filtroRosterEquipo" style="border-radius: 20px;">
                                 <option value="">-- Todos los Equipos --</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="filtroPosicion">âū Filtrar por PosiciÃģn:</label>
+                            <label for="filtroPosicion">⚾ Filtrar por Posición:</label>
                             <select id="filtroPosicion" style="border-radius: 20px;">
                                 <option value="">-- Todas las Posiciones --</option>
                                 <option value="C">Catcher (C)</option>
@@ -1455,11 +1455,11 @@
                             </select>
                         </div>
                         <div class="form-group" style="align-self: end;">
-                            <button class="btn-secondary" onclick="limpiarFiltrosJugadores()" style="background: #ff8c00; width: 100%; padding: 12px;">ðïļ Limpiar Filtros</button>
+                            <button class="btn-secondary" onclick="limpiarFiltrosJugadores()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                        <button class="btn-secondary" onclick="exportarTabla('jugadores', 'csv')" style="background: #4CAF50;">ð Exportar CSV</button>
+                        <button class="btn-secondary" onclick="exportarTabla('jugadores', 'csv')" style="background: #4CAF50;">📊 Exportar CSV</button>
                         <div style="margin-left: auto; color: #ffd700; font-size: 0.9rem; display: flex; align-items: center;">
                             <span id="jugadores-count">Total: 0 jugadores</span>
                         </div>
@@ -1479,7 +1479,7 @@
                                     Equipo <span class="sort-indicator"></span>
                                 </th>
                                 <th class="sortable" onclick="ordenarTablaJugadores('posicion')" style="cursor: pointer;">
-                                    PosiciÃģn <span class="sort-indicator"></span>
+                                    Posición <span class="sort-indicator"></span>
                                 </th>
                                 <th>Acciones</th>
                             </tr>
@@ -1497,7 +1497,7 @@
         <div id="lideres" class="tab-content">
             
             <div class="card">
-                <h3>ð Editar EstadÃ­sticas de Bateo</h3>
+                <h3>📝 Editar Estadísticas de Bateo</h3>
                 <div class="table-container">
                     <table id="tablaEditarBateo">
                         <thead>
@@ -1508,7 +1508,7 @@
                                 <th>H</th>
                                 <th>HR</th>
                                 <th>RBI</th>
-                                <th>AcciÃģn</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1519,7 +1519,7 @@
             </div>
             
             <div class="card">
-                <h3>ð Editar EstadÃ­sticas de Pitcheo</h3>
+                <h3>📝 Editar Estadísticas de Pitcheo</h3>
                 <div class="table-container">
                     <table id="tablaEditarPitcheo">
                         <thead>
@@ -1531,7 +1531,7 @@
                                 <th>W</th>
                                 <th>L</th>
                                 <th>SV</th>
-                                <th>AcciÃģn</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1542,7 +1542,7 @@
             </div>
 
             <div class="card">
-                <h3>ð Editar EstadÃ­sticas Defensivas</h3>
+                <h3>📝 Editar Estadísticas Defensivas</h3>
                 <div class="table-container">
                     <table id="tablaEditarDefensa">
                         <thead>
@@ -1553,7 +1553,7 @@
                                 <th>A</th>
                                 <th>E</th>
                                 <th>DP</th>
-                                <th>AcciÃģn</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1563,8 +1563,8 @@
                 </div>
             </div>
             <div class="card">
-                <h3>ð Registrar EstadÃ­sticas Avanzadas (BATEO)</h3>
-                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadÃ­sticas a un jugador (ej. despuÃĐs de un partido).</p>
+                <h3>📊 Registrar Estadísticas Avanzadas (BATEO)</h3>
+                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un jugador (ej. después de un partido).</p>
                 <div class="stats-form-container">
                     <div class="form-group">
                         <label for="jugadorStats">Jugador:</label>
@@ -1606,14 +1606,14 @@
                           <small style="color: #ff8c00; font-size: 0.8rem;">Los errores se registran en el form defensivo.</small>
                     </div>
                 </div>
-                <button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">ð Registrar EstadÃ­sticas (Sumar)</button>
+                <button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
                 <div id="statsMessage" class="success-message"></div>
                 <div id="statsError" class="error-message"></div>
                 </div>
 
             <div class="card">
-                <h3>âū Registrar EstadÃ­sticas de Pitcheo</h3>
-                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadÃ­sticas a un pitcher.</p>
+                <h3>⚾ Registrar Estadísticas de Pitcheo</h3>
+                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un pitcher.</p>
                 <div class="stats-form-container">
                     <div class="form-group">
                         <label for="jugadorPitcheo">Pitcher:</label>
@@ -1659,14 +1659,14 @@
                         <input type="number" id="saves" min="0" value="0">
                     </div>
                 </div>
-                <button class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">âū Registrar EstadÃ­sticas (Sumar)</button>
+                <button class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
                 <div id="pitcheoMessage" class="success-message"></div>
                 <div id="pitcheoError" class="error-message"></div>
                 </div>
 
             <div class="card">
-                <h3>ðĄ Registrar EstadÃ­sticas Defensivas</h3>
-                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadÃ­sticas a un jugador.</p>
+                <h3>🛡 Registrar Estadísticas Defensivas</h3>
+                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un jugador.</p>
                 <div class="stats-form-container">
                     <div class="form-group">
                         <label for="jugadorDefensivo">Jugador:</label>
@@ -1696,27 +1696,27 @@
                         <small style="color: #ffd700; font-size: 0.8rem;">Solo para catchers</small>
                     </div>
                 </div>
-                <button class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">ðĄ Registrar EstadÃ­sticas (Sumar)</button>
+                <button class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
                 <div id="defensivaMessage" class="success-message"></div>
                 <div id="defensivaError" class="error-message"></div>
                 </div>
 
             <div class="card">
-                <h3>ðĨ MEJORES POR POSICIÃN - DEFENSIVA</h3>
+                <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
                 <div class="position-leaders-grid" id="positionLeadersGrid">
-                    <div class="loading">Cargando lÃ­deres defensivos...</div>
+                    <div class="loading">Cargando líderes defensivos...</div>
                 </div>
             </div>
 
             <div class="card">
-                <h3>ð LÃ­deres Generales de la Liga - BATEO</h3>
+                <h3>🏆 Líderes Generales de la Liga - BATEO</h3>
                 <div class="leaders-grid">
                     <div class="leader-card">
-                        <h4>ðĨ MEJOR PROMEDIO (AVG)</h4>
+                        <h4>🥇 MEJOR PROMEDIO (AVG)</h4>
                         <div id="avgLeaders">
                             <div class="leader-item">
                                 <div>
-                                    <div class="leader-name gold-medal">ðĨ Calculando...</div>
+                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
                                     <div class="leader-team">-</div>
                                 </div>
                                 <div class="leader-stat">-.---</div>
@@ -1725,11 +1725,11 @@
                     </div>
 
                     <div class="leader-card">
-                        <h4>âū LÃDERES EN HOME RUNS</h4>
+                        <h4>⚾ LÍDERES EN HOME RUNS</h4>
                         <div id="hrLeaders">
                             <div class="leader-item">
                                 <div>
-                                    <div class="leader-name gold-medal">ðĨ Calculando...</div>
+                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
                                     <div class="leader-team">-</div>
                                 </div>
                                 <div class="leader-stat">0</div>
@@ -1738,11 +1738,11 @@
                     </div>
 
                     <div class="leader-card">
-                        <h4>ðŊ LÃDERES EN RBI</h4>
+                        <h4>🎯 LÍDERES EN RBI</h4>
                         <div id="rbiLeaders">
                             <div class="leader-item">
                                 <div>
-                                    <div class="leader-name gold-medal">ðĨ Calculando...</div>
+                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
                                     <div class="leader-team">-</div>
                                 </div>
                                 <div class="leader-stat">0</div>
@@ -1751,11 +1751,11 @@
                     </div>
 
                     <div class="leader-card">
-                        <h4>ð LÃDERES EN OPS</h4>
+                        <h4>📈 LÍDERES EN OPS</h4>
                         <div id="opsLeaders">
                             <div class="leader-item">
                                 <div>
-                                    <div class="leader-name gold-medal">ðĨ Calculando...</div>
+                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
                                     <div class="leader-team">-</div>
                                 </div>
                                 <div class="leader-stat">-.---</div>
@@ -1764,11 +1764,11 @@
                     </div>
 
                     <div class="leader-card">
-                        <h4>â­ MEJOR WAR TOTAL</h4>
+                        <h4>⭐ MEJOR WAR TOTAL</h4>
                         <div id="warLeaders">
                             <div class="leader-item">
                                 <div>
-                                    <div class="leader-name gold-medal">ðĨ Calculando...</div>
+                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
                                     <div class="leader-team">-</div>
                                 </div>
                                 <div class="leader-stat">-.--</div>
@@ -1777,11 +1777,11 @@
                     </div>
 
                     <div class="leader-card">
-                        <h4>ð BASES ROBADAS</h4>
+                        <h4>🏃 BASES ROBADAS</h4>
                         <div id="sbLeaders">
                             <div class="leader-item">
                                 <div>
-                                    <div class="leader-name gold-medal">ðĨ Calculando...</div>
+                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
                                     <div class="leader-team">-</div>
                                 </div>
                                 <div class="leader-stat">0</div>
@@ -1792,7 +1792,7 @@
             </div>
 
             <div class="card">
-                <h3>ð EstadÃ­sticas Completas de Bateo</h3>
+                <h3>📈 Estadísticas Completas de Bateo</h3>
                 <div class="table-container">
                     <table id="statsTable">
                         <thead>
@@ -1812,7 +1812,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="11" class="loading">Cargando estadÃ­sticas...</td>
+                                <td colspan="11" class="loading">Cargando estadísticas...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1825,7 +1825,7 @@
 
         <div id="posiciones" class="tab-content">
             <div class="card">
-                <h3>ð Tabla de Posiciones en Tiempo Real</h3>
+                <h3>🏆 Tabla de Posiciones en Tiempo Real</h3>
                 <div class="table-container">
                     <table id="posicionesTable">
                         <thead>
@@ -1857,7 +1857,7 @@
         
         <div id="torneos" class="tab-content">
             <div class="card">
-                <h3>â Crear Nuevo Torneo</h3>
+                <h3>➕ Crear Nuevo Torneo</h3>
                 <div class="form-container">
                     <div>
                         <div class="form-group">
@@ -1865,7 +1865,7 @@
                             <input type="text" id="nombreTorneo" required placeholder="Ej: Torneo Verano 2026">
                         </div>
                         <div class="form-group">
-                            <button class="btn-primary" onclick="crearTorneo()">ðïļ Crear Torneo</button>
+                            <button class="btn-primary" onclick="crearTorneo()">🗓️ Crear Torneo</button>
                         </div>
                     </div>
                 </div>
@@ -1874,18 +1874,18 @@
             </div>
 
             <div class="card">
-                <h3>ðïļ Torneos Existentes</h3>
-                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Selecciona el torneo que estarÃĄ **activo**. Todas las nuevas estadÃ­sticas se guardarÃĄn en este torneo.</p>
-                <button class="btn-secondary" onclick="desactivarTodosLosTorneos()" style="background: #ff8c00; margin-bottom: 15px; font-weight: bold;">âŠ Desactivar Todos</button>
+                <h3>🗓️ Torneos Existentes</h3>
+                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Selecciona el torneo que estará **activo**. Todas las nuevas estadísticas se guardarán en este torneo.</p>
+                <button class="btn-secondary" onclick="desactivarTodosLosTorneos()" style="background: #ff8c00; margin-bottom: 15px; font-weight: bold;">⚪ Desactivar Todos</button>
                 <div class="table-container">
                     <table id="torneosTable">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Nombre del Torneo</th>
-                                <th>Fecha de CreaciÃģn</th>
+                                <th>Fecha de Creación</th>
                                 <th>Estado</th>
-                                <th>AcciÃģn</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1900,10 +1900,10 @@
         
         <div id="dashboard" class="tab-content">
             <div class="card">
-                <h3>ð Resumen Ejecutivo de la Liga</h3>
+                <h3>📊 Resumen Ejecutivo de la Liga</h3>
                 <div class="leaders-grid">
                     <div class="leader-card">
-                        <h4>ð EQUIPOS TOTALES</h4>
+                        <h4>🏆 EQUIPOS TOTALES</h4>
                         <div class="leader-item">
                             <div class="leader-name">Equipos Registrados</div>
                             <div class="leader-stat" id="total-equipos">0</div>
@@ -1915,19 +1915,19 @@
                     </div>
         
                     <div class="leader-card">
-                        <h4>ðĨ JUGADORES TOTALES</h4>
+                        <h4>👥 JUGADORES TOTALES</h4>
                         <div class="leader-item">
                             <div class="leader-name">Jugadores Registrados</div>
                             <div class="leader-stat" id="total-jugadores">0</div>
                         </div>
                         <div class="leader-item">
-                            <div class="leader-name">Con EstadÃ­sticas</div>
+                            <div class="leader-name">Con Estadísticas</div>
                             <div class="leader-stat" id="jugadores-stats">0</div>
                         </div>
                     </div>
         
                     <div class="leader-card">
-                        <h4>ðŊ PARTIDOS TOTALES</h4>
+                        <h4>🎯 PARTIDOS TOTALES</h4>
                         <div class="leader-item">
                             <div class="leader-name">Partidos Registrados</div>
                             <div class="leader-stat" id="total-partidos">0</div>
@@ -1939,13 +1939,13 @@
                     </div>
         
                     <div class="leader-card">
-                        <h4>ðïļ TORNEO ACTUAL</h4>
+                        <h4>🗓️ TORNEO ACTUAL</h4>
                         <div class="leader-item">
                             <div class="leader-name" id="torneo-nombre">Sin Torneo Activo</div>
-                            <div class="leader-stat" id="torneo-status">â</div>
+                            <div class="leader-stat" id="torneo-status">❌</div>
                         </div>
                         <div class="leader-item">
-                            <div class="leader-name">Ãltima ActualizaciÃģn</div>
+                            <div class="leader-name">Última Actualización</div>
                             <div class="leader-stat" id="ultima-actualizacion">--</div>
                         </div>
                     </div>
@@ -1953,10 +1953,10 @@
             </div>
         
             <div class="card">
-                <h3>ð EstadÃ­sticas de Rendimiento</h3>
+                <h3>📈 Estadísticas de Rendimiento</h3>
                 <div class="position-leaders-grid">
                     <div class="position-card">
-                        <div class="position-title">âū PROMEDIO GENERAL DE BATEO</div>
+                        <div class="position-title">⚾ PROMEDIO GENERAL DE BATEO</div>
                         <div class="position-leader">
                             <div class="leader-stat" style="font-size: 2rem; color: #ffd700;" id="avg-general">.000</div>
                             <div class="leader-team">Liga completa</div>
@@ -1964,7 +1964,7 @@
                     </div>
         
                     <div class="position-card">
-                        <div class="position-title">ð CARRERAS POR PARTIDO</div>
+                        <div class="position-title">🏃 CARRERAS POR PARTIDO</div>
                         <div class="position-leader">
                             <div class="leader-stat" style="font-size: 2rem; color: #ff8c00;" id="carreras-promedio">0.0</div>
                             <div class="leader-team">Promedio por equipo</div>
@@ -1972,7 +1972,7 @@
                     </div>
         
                     <div class="position-card">
-                        <div class="position-title">ðŊ PORCENTAJE DE FINALIZACIÃN</div>
+                        <div class="position-title">🎯 PORCENTAJE DE FINALIZACIÓN</div>
                         <div class="position-leader">
                             <div class="leader-stat" style="font-size: 2rem; color: #4CAF50;" id="porcentaje-finalizacion">0%</div>
                             <div class="leader-team">Partidos completados</div>
@@ -1980,7 +1980,7 @@
                     </div>
         
                     <div class="position-card">
-                        <div class="position-title">ð EQUIPO LÃDER</div>
+                        <div class="position-title">🏆 EQUIPO LÍDER</div>
                         <div class="position-leader">
                             <div class="leader-stat" style="font-size: 1.5rem; color: #ffd700;" id="equipo-lider">Sin datos</div>
                             <div class="leader-team" id="record-lider">0-0</div>
@@ -1990,32 +1990,32 @@
             </div>
         
             <div class="card">
-                <h3>â ïļ Alertas y Estado del Sistema</h3>
+                <h3>⚠️ Alertas y Estado del Sistema</h3>
                 <div id="alertas-container">
                     <div class="leader-item">
                         <div class="leader-name">Estado de la Base de Datos</div>
-                        <div class="leader-stat" style="color: #4CAF50;">â Operativa</div>
+                        <div class="leader-stat" style="color: #4CAF50;">✅ Operativa</div>
                     </div>
                 </div>
             </div>
         
             <div class="card">
-                <h3>ð Comparativas Temporales</h3>
+                <h3>📊 Comparativas Temporales</h3>
                 <div class="stats-form-container">
                     <div class="form-group">
-                        <label>ð Ãltimo Partido Registrado:</label>
+                        <label>📅 Último Partido Registrado:</label>
                         <div id="ultimo-partido" style="color: #ffd700; font-weight: bold;">Sin partidos</div>
                     </div>
                     <div class="form-group">
-                        <label>ðĪ Ãltimo Jugador Agregado:</label>
+                        <label>👤 Último Jugador Agregado:</label>
                         <div id="ultimo-jugador" style="color: #ffd700; font-weight: bold;">Sin jugadores</div>
                     </div>
                     <div class="form-group">
-                        <label>ð Ãltimo Equipo Creado:</label>
+                        <label>🏆 Último Equipo Creado:</label>
                         <div id="ultimo-equipo" style="color: #ffd700; font-weight: bold;">Sin equipos</div>
                     </div>
                     <div class="form-group">
-                        <label>ð Actividad Reciente:</label>
+                        <label>📈 Actividad Reciente:</label>
                         <div id="actividad-reciente" style="color: #ff8c00; font-weight: bold;">Sistema iniciado</div>
                     </div>
                 </div>
@@ -2032,7 +2032,7 @@
         let estadisticas = [];
         let torneoActivo = { id: null, nombre: 'NINGUNO' };
         
-        // Sistema de debounce para optimizar bÃšsquedas
+        // Sistema de debounce para optimizar búsquedas
         let debounceTimers = {};
         function debounce(func, delay, key) {
             return function(...args) {
@@ -2046,7 +2046,7 @@
             };
         }
         
-        // Versiones con debounce de las funciones de actualizaciÃģn
+        // Versiones con debounce de las funciones de actualización
         const actualizarTablaJugadoresDebounced = debounce(actualizarTablaJugadores, 300, 'jugadores');
         const actualizarTablaEquiposDebounced = debounce(actualizarTablaEquipos, 300, 'equipos');
         const actualizarTablaPartidosDebounced = debounce(actualizarTablaPartidos, 300, 'partidos');
@@ -2066,16 +2066,16 @@
                 const toast = document.createElement('div');
                 toast.className = `toast toast-${type}`;
                         const icons = {
-                    success: 'â',
-                    error: 'â',
-                    warning: 'â ',
-                    info: 'âđ'
+                    success: '✓',
+                    error: '✗',
+                    warning: '⚠',
+                    info: 'ℹ'
                 };
                         const titles = {
-                    success: 'Ãxito',
+                    success: 'Éxito',
                     error: 'Error',
                     warning: 'Advertencia',
-                    info: 'InformaciÃģn'
+                    info: 'Información'
                 };
                         toast.innerHTML = `
                     <div class="toast-icon">${icons[type]}</div>
@@ -2083,7 +2083,7 @@
                         <div class="toast-title">${titles[type]}</div>
                         <div class="toast-message">${message}</div>
                     </div>
-                    <button class="toast-close" onclick="this.parentElement.remove()">Ã</button>
+                    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
                 `;
                         this.container.appendChild(toast);
                         // Auto-remove
@@ -2109,7 +2109,7 @@
         // Instancia global
         const toast = new ToastManager();
 
-        // ===== SISTEMA DE PAGINACIÃN PARA TABLAS DE ESTADÃSTICAS =====
+        // ===== SISTEMA DE PAGINACIÓN PARA TABLAS DE ESTADÍSTICAS =====
         class TablePagination {
             constructor(tableId, itemsPerPage = 20) {
                 this.tableId = tableId;
@@ -2164,7 +2164,7 @@
                 this.goToPage(this.currentPage - 1);
             }
                 render() {
-                // Implementado especÃ­ficamente para cada tabla
+                // Implementado específicamente para cada tabla
             }
         }
         // Instancias globales
@@ -2197,7 +2197,7 @@
 
         function logout() {
             localStorage.clear();
-            toast.success('SesiÃģn cerrada correctamente');
+            toast.success('Sesión cerrada correctamente');
             window.location.href = 'login.html';
         }
 
@@ -2247,20 +2247,20 @@
         async function cargarTodosLosDatos() {
             try {
                 // Mostrar indicador de carga global
-                console.log('ð Iniciando carga de datos del sistema...');
+                console.log('🚀 Iniciando carga de datos del sistema...');
                 const startTime = performance.now();
         
-                // Cargar torneo activo primero (crÃ­tico)
+                // Cargar torneo activo primero (crítico)
                 await cargarTorneoActivo();
         
-                // Cargar datos principales en paralelo (optimizaciÃģn)
+                // Cargar datos principales en paralelo (optimización)
                 await Promise.all([
                     cargarEquipos(),
                     cargarJugadores(),
                     cargarPartidos()
                 ]);
         
-                // Cargar estadÃ­sticas despuÃĐs (no bloqueante)
+                // Cargar estadísticas después (no bloqueante)
                 await cargarEstadisticas();
         
                 // Actualizar UI
@@ -2277,17 +2277,17 @@
                     if (typeof configurarValidacionJugador === 'function') {
                         configurarValidacionJugador();
                     }
-                    console.log('â Validaciones en tiempo real activadas');
+                    console.log('✅ Validaciones en tiempo real activadas');
                 }, 500);
         
                 // Log de performance
                 const endTime = performance.now();
                 const loadTime = ((endTime - startTime) / 1000).toFixed(2);
-                console.log(`â Sistema cargado en ${loadTime} segundos`);
+                console.log(`✅ Sistema cargado en ${loadTime} segundos`);
         
             } catch (error) {
                 console.error('Error cargando datos:', error);
-                toast.error('Error de conexiÃģn con el servidor');
+                toast.error('Error de conexión con el servidor');
             }
         }
 
@@ -2315,7 +2315,7 @@
                 numero: numero
             };
         
-            console.log('ðĪ Enviando jugador:', jugadorData);
+            console.log('📤 Enviando jugador:', jugadorData);
         
             try {
                 const response = await fetch('/api/jugadores', {
@@ -2330,12 +2330,12 @@
                 }
         
                 const resultado = await response.json();
-                console.log('â Jugador creado:', resultado);
+                console.log('✅ Jugador creado:', resultado);
         
                 toast.success('Jugador agregado exitosamente');
                 document.getElementById('jugadorForm').reset();
         
-                // Limpiar validaciÃģn visual
+                // Limpiar validación visual
                 const nombreInput = document.getElementById('nombreJugador');
                 const errorDiv = document.getElementById('nombreJugador-error');
                 if (nombreInput) nombreInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
@@ -2344,12 +2344,12 @@
                 await cargarJugadores();
         
             } catch (error) {
-                console.error('â Error agregando jugador:', error);
+                console.error('❌ Error agregando jugador:', error);
                 toast.error(`Error: ${error.message}`);
             }
         }
         
-        // ValidaciÃģn en tiempo real para el formulario de jugadores
+        // Validación en tiempo real para el formulario de jugadores
         function configurarValidacionJugador() {
             const nombreInput = document.getElementById('nombreJugador');
             if (!nombreInput) return;
@@ -2374,19 +2374,19 @@
                     nombreInput.style.borderColor = 'rgba(255, 215, 0, 0.3)';
                     btnAgregar.disabled = false;
                 } else if (valor.length < 3) {
-                    errorDiv.textContent = 'â ïļ El nombre debe tener al menos 3 caracteres';
+                    errorDiv.textContent = '⚠️ El nombre debe tener al menos 3 caracteres';
                     errorDiv.style.display = 'block';
                     errorDiv.style.color = '#ffa500';
                     nombreInput.style.borderColor = '#ffa500';
                     btnAgregar.disabled = true;
-                } else if (!/^[a-zA-ZÃĄÃĐÃ­ÃģÃšÃÃÃÃÃÃąÃ\s]+$/.test(valor)) {
-                    errorDiv.textContent = 'â ïļ Solo se permiten letras y espacios';
+                } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(valor)) {
+                    errorDiv.textContent = '⚠️ Solo se permiten letras y espacios';
                     errorDiv.style.display = 'block';
                     errorDiv.style.color = '#ffa500';
                     nombreInput.style.borderColor = '#ffa500';
                     btnAgregar.disabled = true;
                 } else {
-                    errorDiv.textContent = 'â Nombre vÃĄlido';
+                    errorDiv.textContent = '✓ Nombre válido';
                     errorDiv.style.display = 'block';
                     errorDiv.style.color = '#4CAF50';
                     nombreInput.style.borderColor = '#4CAF50';
@@ -2407,7 +2407,7 @@
 
         async function cargarEquipos() {
             try {
-                console.log('ð Cargando equipos...');
+                console.log('🔄 Cargando equipos...');
                 const response = await fetch('/api/equipos');
                 
                 if (!response.ok) {
@@ -2415,24 +2415,24 @@
                 }
                 
                 const data = await response.json();
-                console.log('ðĶ Datos recibidos de /api/equipos:', data);
+                console.log('📦 Datos recibidos de /api/equipos:', data);
                 
                 // Asegurar que sea un array
                 equipos = Array.isArray(data) ? data : [];
                 
-                console.log(`â Equipos cargados correctamente: ${equipos.length} registros`);
+                console.log(`✅ Equipos cargados correctamente: ${equipos.length} registros`);
                 equiposFiltrados = [...equipos];
                 actualizarTablaEquipos();
                 actualizarSelectores();
                 
             } catch (error) {
-                console.error('â Error cargando equipos:', error);
+                console.error('❌ Error cargando equipos:', error);
                 equipos = [];
                 equiposFiltrados = [];
                 
                 const errorContainer = document.getElementById('equipoError');
                 if (errorContainer) {
-                    errorContainer.textContent = 'Error al cargar equipos. Intenta recargar la pÃĄgina.';
+                    errorContainer.textContent = 'Error al cargar equipos. Intenta recargar la página.';
                     errorContainer.style.display = 'block';
                 }
             }
@@ -2440,7 +2440,7 @@
 
         async function cargarPartidos() {
             try {
-                console.log('ð Cargando partidos...');
+                console.log('🔄 Cargando partidos...');
                 const response = await fetch('/api/partidos?limit=1000');
                         
                 if (!response.ok) {
@@ -2448,9 +2448,9 @@
                 }
                         
                 const data = await response.json();
-                console.log('ðĶ Datos recibidos de /api/partidos:', data);
+                console.log('📦 Datos recibidos de /api/partidos:', data);
                         
-                // CORRECCIÃN: Manejo robusto de diferentes formatos de respuesta
+                // CORRECCIÓN: Manejo robusto de diferentes formatos de respuesta
                 if (!data) {
                     partidos = [];
                 } else if (Array.isArray(data)) {
@@ -2460,20 +2460,20 @@
                 } else if (data.data && Array.isArray(data.data)) {
                     partidos = data.data;
                 } else {
-                    console.warn('â ïļ Formato inesperado de partidos:', data);
+                    console.warn('⚠️ Formato inesperado de partidos:', data);
                     partidos = [];
                 }
                 
-                console.log(`â Partidos cargados correctamente: ${partidos.length} registros`);
+                console.log(`✅ Partidos cargados correctamente: ${partidos.length} registros`);
                 actualizarTablaPartidos();
                 
             } catch (error) {
-                console.error('â Error cargando partidos:', error);
+                console.error('❌ Error cargando partidos:', error);
                 partidos = [];
                 
                 const errorContainer = document.getElementById('partidoError');
                 if (errorContainer) {
-                    errorContainer.textContent = 'Error al cargar partidos. Intenta recargar la pÃĄgina.';
+                    errorContainer.textContent = 'Error al cargar partidos. Intenta recargar la página.';
                     errorContainer.style.display = 'block';
                 }
             }
@@ -2481,7 +2481,7 @@
 
         async function cargarJugadores() {
             try {
-                console.log('ð Cargando jugadores...');
+                console.log('🔄 Cargando jugadores...');
                 const response = await fetch('/api/jugadores?limit=1000');
                         
                 if (!response.ok) {
@@ -2489,9 +2489,9 @@
                 }
                         
                 const data = await response.json();
-                console.log('ðĶ Datos recibidos de /api/jugadores:', data);
+                console.log('📦 Datos recibidos de /api/jugadores:', data);
                         
-                // CORRECCIÃN: Manejo robusto de diferentes formatos de respuesta
+                // CORRECCIÓN: Manejo robusto de diferentes formatos de respuesta
                 if (!data) {
                     jugadores = [];
                 } else if (Array.isArray(data)) {
@@ -2501,11 +2501,11 @@
                 } else if (data.data && Array.isArray(data.data)) {
                     jugadores = data.data;
                 } else {
-                    console.warn('â ïļ Formato inesperado de jugadores:', data);
+                    console.warn('⚠️ Formato inesperado de jugadores:', data);
                     jugadores = [];
                 }
                 
-                console.log(`â Jugadores cargados correctamente: ${jugadores.length} registros`);
+                console.log(`✅ Jugadores cargados correctamente: ${jugadores.length} registros`);
                 jugadoresFiltrados = [...jugadores];
                 
                 setTimeout(() => {
@@ -2516,13 +2516,13 @@
                 actualizarSelectores();
                 
             } catch (error) {
-                console.error('â Error cargando jugadores:', error);
+                console.error('❌ Error cargando jugadores:', error);
                 jugadores = [];
                 jugadoresFiltrados = [];
                 
                 const errorContainer = document.getElementById('jugadorError');
                 if (errorContainer) {
-                    errorContainer.textContent = 'Error al cargar jugadores. Intenta recargar la pÃĄgina.';
+                    errorContainer.textContent = 'Error al cargar jugadores. Intenta recargar la página.';
                     errorContainer.style.display = 'block';
                 }
             }
@@ -2575,7 +2575,7 @@
         function ordenarTablaJugadores(campo) {
             console.log('Ordenando por campo:', campo);
 
-            // Cambiar direcciÃģn si es el mismo campo
+            // Cambiar dirección si es el mismo campo
             if (ordenJugadores.campo === campo) {
                 ordenJugadores.direccion = ordenJugadores.direccion === 'asc' ? 'desc' : 'asc';
             } else {
@@ -2666,7 +2666,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="7" class="empty-state" style="padding: 40px 20px;">
-                            <div style="font-size: 3rem; margin-bottom: 15px;">ðŊ</div>
+                            <div style="font-size: 3rem; margin-bottom: 15px;">🎯</div>
                             <h3 style="color: #ffd700; margin-bottom: 10px;">No se encontraron partidos</h3>
                             <p style="color: #fff; opacity: 0.7; font-size: 0.9rem;">
                                 Intenta ajustar los filtros o programa un nuevo partido usando los formularios de arriba
@@ -2689,10 +2689,10 @@
                 const hora = partido.hora || '---';
 
                 const estadoBadge = 
-                    partido.estado === 'programado' ? '<span style="color: #ffd700;">ð Programado</span>' :
-                    partido.estado === 'finalizado' ? '<span style="color: #4CAF50;">â Finalizado</span>' :
-                    partido.estado === 'cancelado' ? '<span style="color: #dc143c;">â Cancelado</span>' :
-                    (partido.carreras_local !== null ? '<span style="color: #4CAF50;">â Finalizado</span>' : '---');
+                    partido.estado === 'programado' ? '<span style="color: #ffd700;">📅 Programado</span>' :
+                    partido.estado === 'finalizado' ? '<span style="color: #4CAF50;">✅ Finalizado</span>' :
+                    partido.estado === 'cancelado' ? '<span style="color: #dc143c;">❌ Cancelado</span>' :
+                    (partido.carreras_local !== null ? '<span style="color: #4CAF50;">✅ Finalizado</span>' : '---');
 
 
                 return `
@@ -2704,8 +2704,8 @@
                         <td>${hora}</td>
                         <td>${estadoBadge}</td>
                         <td>
-                            <button class="btn-secondary btn-edit" onclick="editarPartido(${partido.id})">âïļ</button>
-                            <button class="btn-secondary" onclick="eliminarPartido(${partido.id})" style="background: #dc143c;">ðïļ</button>
+                            <button class="btn-secondary btn-edit" onclick="editarPartido(${partido.id})">✏️</button>
+                            <button class="btn-secondary" onclick="eliminarPartido(${partido.id})" style="background: #dc143c;">🗑️</button>
                         </td>
                     </tr>
                 `;
@@ -2720,21 +2720,21 @@
             if (buscadorJugadores) {
                 buscadorJugadores.removeEventListener('input', actualizarTablaJugadoresDebounced);
                 buscadorJugadores.addEventListener('input', actualizarTablaJugadoresDebounced);
-                console.log('â Buscador de jugadores configurado con debounce (300ms)');
+                console.log('✅ Buscador de jugadores configurado con debounce (300ms)');
             }
 
             const filtroEquipo = document.getElementById('filtroRosterEquipo');
             if (filtroEquipo) {
                 filtroEquipo.removeEventListener('change', actualizarTablaJugadores);
                 filtroEquipo.addEventListener('change', actualizarTablaJugadores);
-                console.log('â Filtro de equipo configurado');
+                console.log('✅ Filtro de equipo configurado');
             }
 
             const filtroPosicion = document.getElementById('filtroPosicion');
             if (filtroPosicion) {
                 filtroPosicion.removeEventListener('change', actualizarTablaJugadores);
                 filtroPosicion.addEventListener('change', actualizarTablaJugadores);
-                console.log('â Filtro de posiciÃģn configurado');
+                console.log('✅ Filtro de posición configurado');
             }
 
             // Equipos
@@ -2742,7 +2742,7 @@
             if (buscadorEquipos) {
                 buscadorEquipos.removeEventListener('input', actualizarTablaEquiposDebounced);
                 buscadorEquipos.addEventListener('input', actualizarTablaEquiposDebounced);
-                console.log('â Buscador de equipos configurado con debounce (300ms)');
+                console.log('✅ Buscador de equipos configurado con debounce (300ms)');
             }
 
             // Partidos
@@ -2789,20 +2789,20 @@
                 const partidosFinalizados = partidos.filter(p => p.carreras_local !== null).length;
                 document.getElementById('partidos-finalizados').textContent = partidosFinalizados;
 
-                // Porcentaje de finalizaciÃģn
+                // Porcentaje de finalización
                 const porcentaje = partidos.length > 0 
                     ? Math.round((partidosFinalizados / partidos.length) * 100)
                     : 0;
                 document.getElementById('porcentaje-finalizacion').textContent = `${porcentaje}%`;
 
-                // Jugadores con estadÃ­sticas
+                // Jugadores con estadísticas
                 document.getElementById('jugadores-stats').textContent = estadisticas.length;
 
                 // Torneo activo
                 document.getElementById('torneo-nombre').textContent = torneoActivo.nombre || 'NINGUNO';
-                document.getElementById('torneo-status').textContent = torneoActivo.id ? 'â Activo' : 'â ïļ Inactivo';
+                document.getElementById('torneo-status').textContent = torneoActivo.id ? '✅ Activo' : '⚠️ Inactivo';
 
-                // Ãltima actualizaciÃģn
+                // Última actualización
                 const ahora = new Date();
                 document.getElementById('ultima-actualizacion').textContent = 
                     ahora.toLocaleTimeString('es-AR');
@@ -2824,7 +2824,7 @@
                     : 0;
                 document.getElementById('carreras-promedio').textContent = carrerasPromedio;
 
-                // Equipo lÃ­der
+                // Equipo líder
                 if (equipos.length > 0) {
                     const posiciones = calcularPosiciones();
                     if (posiciones && posiciones.length > 0) {
@@ -2838,7 +2838,7 @@
                     }
                 }
 
-                // Ãltimos registros
+                // Últimos registros
                 if (partidos.length > 0) {
                     const ultimoPartido = partidos[partidos.length - 1];
                     document.getElementById('ultimo-partido').textContent = 
@@ -2873,7 +2873,7 @@
             if (!torneoActivo.id) {
                 alertas.push({
                     tipo: 'warning',
-                    mensaje: 'â ïļ No hay torneo activo. Activa un torneo para comenzar a registrar partidos.',
+                    mensaje: '⚠️ No hay torneo activo. Activa un torneo para comenzar a registrar partidos.',
                     accion: 'Activar Torneo'
                 });
             }
@@ -2883,18 +2883,18 @@
             if (partidosPendientes > 0) {
                 alertas.push({
                     tipo: 'info',
-                    mensaje: `ð Hay ${partidosPendientes} partido(s) pendiente(s) de completar.`,
+                    mensaje: `📅 Hay ${partidosPendientes} partido(s) pendiente(s) de completar.`,
                     accion: 'Ver Partidos'
                 });
             }
 
-            // Jugadores sin estadÃ­sticas
+            // Jugadores sin estadísticas
             const jugadoresSinStats = jugadores.length - estadisticas.length;
             if (jugadoresSinStats > 0) {
                 alertas.push({
                     tipo: 'info',
-                    mensaje: `ð ${jugadoresSinStats} jugador(es) sin estadÃ­sticas registradas.`,
-                    accion: 'Registrar EstadÃ­sticas'
+                    mensaje: `📊 ${jugadoresSinStats} jugador(es) sin estadísticas registradas.`,
+                    accion: 'Registrar Estadísticas'
                 });
             }
 
@@ -2902,7 +2902,7 @@
             if (alertas.length === 0) {
                 alertasContainer.innerHTML = `
                     <div class="alerta alerta-success">
-                        <strong>â Sistema funcionando correctamente</strong>
+                        <strong>✅ Sistema funcionando correctamente</strong>
                         <p>No hay alertas pendientes</p>
                     </div>
                 `;
@@ -2914,7 +2914,31 @@
                     </div>
                 `).join('');
             }
-        }
+        
+            // Conectar acciones de las alertas (delegación de eventos)
+            if (!alertasContainer._alertHandlersBound) {
+                alertasContainer.addEventListener('click', (ev) => {
+                    const btn = ev.target.closest('button');
+                    if (!btn) return;
+                    const label = (btn.textContent || '').trim();
+
+                    // Navegación según la acción
+                    if (label.includes('Ver Partidos')) {
+                        // pestaña Partidos
+                        if (typeof mostrarPestana === 'function') mostrarPestana('partidos');
+                        document.getElementById('seccion-partidos')?.scrollIntoView({behavior:'smooth'});
+                    } else if (label.includes('Registrar Estadísticas')) {
+                        // pestaña Líderes / Estadísticas
+                        if (typeof mostrarPestana === 'function') mostrarPestana('lideres');
+                        document.getElementById('editar-estadisticas')?.scrollIntoView({behavior:'smooth'});
+                    } else if (label.includes('Activar Torneo')) {
+                        if (typeof mostrarPestana === 'function') mostrarPestana('dashboard');
+                        document.getElementById('torneosTable')?.scrollIntoView({behavior:'smooth'});
+                    }
+                });
+                alertasContainer._alertHandlersBound = true;
+            }
+}
         
         async function cargarTorneoActivo() {
             try {
@@ -2950,15 +2974,15 @@
                         <td>${new Date(torneo.fecha_creacion).toLocaleDateString('es-AR')}</td>
                         <td>
                             <span style="color: ${torneo.activo ? '#4CAF50' : '#ff8c00'}; font-weight: bold;">
-                                ${torneo.activo ? 'â ACTIVO' : 'âŠ Inactivo'}
+                                ${torneo.activo ? '✅ ACTIVO' : '⚪ Inactivo'}
                             </span>
                         </td>
                         <td>
                             <button class="btn-activar" onclick="activarTorneo(${torneo.id})" ${torneo.activo ? 'disabled' : ''}>
                                 Activar
                             </button>
-                            <button class="btn-edit" onclick="editarTorneo(${torneo.id}, '${torneo.nombre.replace(/'/g, "\\'")}')">âïļ</button>
-                            <button class="btn-secondary" onclick="eliminarTorneo(${torneo.id})">ðïļ</button>
+                            <button class="btn-edit" onclick="editarTorneo(${torneo.id}, '${torneo.nombre.replace(/'/g, "\\'")}')">✏️</button>
+                            <button class="btn-secondary" onclick="eliminarTorneo(${torneo.id})">🗑️</button>
                         </td>
                     </tr>
                 `).join('');
@@ -2991,7 +3015,7 @@
                     toast.error(error.message || 'No se pudo crear el torneo.');
                 }
             } catch (error) {
-                toast.error('Error de conexiÃģn al crear torneo.');
+                toast.error('Error de conexión al crear torneo.');
             }
         }
 
@@ -3014,7 +3038,7 @@
                         toast.error('No se pudo actualizar el torneo.');
                     }
                 } catch (e) {
-                    toast.error('Error de conexiÃģn.');
+                    toast.error('Error de conexión.');
                 }
             }
         }
@@ -3030,12 +3054,12 @@
                     toast.error('Error al activar el torneo.');
                 }
             } catch(e) {
-                toast.error('Error de conexiÃģn.');
+                toast.error('Error de conexión.');
             }
         }
 
         async function desactivarTodosLosTorneos() {
-            if (!confirm('ÂŋDesactivar todos los torneos? Ninguno quedarÃĄ como activo.')) return;
+            if (!confirm('¿Desactivar todos los torneos? Ninguno quedará como activo.')) return;
             try {
                 const response = await fetch(`/api/torneos/desactivar-todos`, { method: 'PUT' });
                 if (response.ok) {
@@ -3046,12 +3070,12 @@
                     toast.error('Error al desactivar torneos.');
                 }
             } catch(e) {
-                toast.error('Error de conexiÃģn.');
+                toast.error('Error de conexión.');
             }
         }
 
         async function eliminarTorneo(id) {
-            if (!confirm('ÂŋSeguro que quieres eliminar este torneo? Se borrarÃĄn todas sus estadÃ­sticas asociadas.')) return;
+            if (!confirm('¿Seguro que quieres eliminar este torneo? Se borrarán todas sus estadísticas asociadas.')) return;
             try {
                 const response = await fetch(`/api/torneos/${id}`, { method: 'DELETE' });
                 if (response.ok) {
@@ -3064,7 +3088,7 @@
                     toast.error('Error al eliminar el torneo.');
                 }
             } catch(e) {
-                toast.error('Error de conexiÃģn.');
+                toast.error('Error de conexión.');
             }
         }
 
@@ -3096,7 +3120,7 @@
                 estadisticas = Array.from(statsMap.values());
                 actualizarTablaEstadisticas();
             } catch (error) {
-                console.error("Error cargando todas las estadÃ­sticas:", error);
+                console.error("Error cargando todas las estadísticas:", error);
                 estadisticas = [];
             }
         }
@@ -3129,7 +3153,7 @@
             }).filter(Boolean);
 
             if (statsConJugador.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No hay estadÃ­sticas para mostrar.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" class="empty-state">No hay estadísticas para mostrar.</td></tr>';
                 return;
             }
             
@@ -3206,7 +3230,7 @@
                     
                     grid.innerHTML += `
                         <div class="position-card">
-                            <div class="position-title">ðĄïļ MEJORES ${pos} (FLD%)</div>
+                            <div class="position-title">🛡️ MEJORES ${pos} (FLD%)</div>
                             <div class="position-leader">${leaderHtml}</div>
                         </div>`;
                 });
@@ -3218,7 +3242,7 @@
 
         function calcularPosiciones() {
             const tbody = document.querySelector('#posicionesTable tbody');
-            if (!tbody) return []; // Retornar array vacÃ­o para el dashboard
+            if (!tbody) return []; // Retornar array vacío para el dashboard
             if (equipos.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No hay equipos registrados.</td></tr>`;
                 return [];
@@ -3336,7 +3360,7 @@
                 mostrarLideresVacios(containerId);
                 return;
             }
-            const medals = ['ðĨ', 'ðĨ', 'ðĨ'];
+            const medals = ['🥇', '🥈', '🥉'];
             const medalClasses = ['gold-medal', 'silver-medal', 'bronze-medal'];
 
             container.innerHTML = lideres.map((l, index) => {
@@ -3427,7 +3451,7 @@
                 return;
             }
             if (equipo_local_id === equipo_visitante_id) {
-                toast.warning('Un equipo no puede jugar contra sÃ­ mismo');
+                toast.warning('Un equipo no puede jugar contra sí mismo');
                 return;
             }
             if (!fecha_partido) {
@@ -3449,7 +3473,7 @@
                 carreras_visitante: null,
                 innings: null
             };
-            console.log('ðĪ Programando partido:', body);
+            console.log('📤 Programando partido:', body);
             try {
                 const res = await fetch('/api/partidos', {
                     method: 'POST',
@@ -3473,7 +3497,7 @@
                 }
             } catch (e) {
                 console.error('Error:', e);
-                toast.error('Error de conexiÃģn con el servidor');
+                toast.error('Error de conexión con el servidor');
             }
         }
 
@@ -3489,7 +3513,7 @@
                 return;
             }
             if (equipo_local_id === equipo_visitante_id) {
-                toast.warning('Un equipo no puede jugar contra sÃ­ mismo.');
+                toast.warning('Un equipo no puede jugar contra sí mismo.');
                 return;
             }
 
@@ -3549,11 +3573,11 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    toast.success('EstadÃ­sticas registradas exitosamente.');
+                    toast.success('Estadísticas registradas exitosamente.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases').forEach(el => el.value = 0);
                 } else {
-                    toast.error('Error al registrar estadÃ­sticas.');
+                    toast.error('Error al registrar estadísticas.');
                 }
             } catch(e) {
                 toast.error('Error de red.');
@@ -3564,19 +3588,19 @@
             const equipo = equipos.find(e => e.id === id);
             const nombreEquipo = equipo ? equipo.nombre : 'este equipo';
         
-            // ConfirmaciÃģn mejorada
+            // Confirmación mejorada
             const confirmacion = confirm(
-                `â ïļ ELIMINAR EQUIPO\n\n` +
-                `ÂŋEstÃĄs seguro de eliminar al equipo "${nombreEquipo}"?\n\n` +
-                `Esta acciÃģn NO se puede deshacer y se eliminarÃĄn:\n` +
-                `âĒ Todos los jugadores asociados\n` +
-                `âĒ Historial de partidos\n` +
-                `âĒ EstadÃ­sticas del equipo\n\n` +
+                `⚠️ ELIMINAR EQUIPO\n\n` +
+                `¿Estás seguro de eliminar al equipo "${nombreEquipo}"?\n\n` +
+                `Esta acción NO se puede deshacer y se eliminarán:\n` +
+                `• Todos los jugadores asociados\n` +
+                `• Historial de partidos\n` +
+                `• Estadísticas del equipo\n\n` +
                 `Presiona OK para confirmar o Cancelar para abortar.`
             );
         
             if (!confirmacion) {
-                toast.info('EliminaciÃģn cancelada');
+                toast.info('Eliminación cancelada');
                 return;
             }
         
@@ -3589,7 +3613,7 @@
                     toast.error('Error al eliminar el equipo.');
                 }
             } catch(e) {
-                toast.error('Error de conexiÃģn con el servidor.');
+                toast.error('Error de conexión con el servidor.');
             }
         }
 
@@ -3599,7 +3623,7 @@
             document.getElementById('nombreEquipo').value = equipo.nombre;
             document.getElementById('managerEquipo').value = equipo.manager;
             document.getElementById('ciudadEquipo').value = equipo.ciudad;
-            document.getElementById('btn-agregar-equipo').textContent = 'â Actualizar';
+            document.getElementById('btn-agregar-equipo').textContent = '✅ Actualizar';
             document.getElementById('btn-agregar-equipo').onclick = () => actualizarEquipo(id);
         }
 
@@ -3623,7 +3647,7 @@
                     document.getElementById('nombreEquipo').value = '';
                     document.getElementById('managerEquipo').value = '';
                     document.getElementById('ciudadEquipo').value = '';
-                    document.getElementById('btn-agregar-equipo').textContent = 'ð Agregar Equipo';
+                    document.getElementById('btn-agregar-equipo').textContent = '🏆 Agregar Equipo';
                     document.getElementById('btn-agregar-equipo').onclick = agregarEquipo;
                     await cargarEquipos();
                 } else {
@@ -3641,7 +3665,7 @@
             document.getElementById('equipoJugador').value = jugador.equipo_id || '';
             document.getElementById('posicionJugador').value = jugador.posicion || '';
             document.getElementById('numeroJugador').value = jugador.numero || '';
-            document.getElementById('btn-agregar-jugador').textContent = 'â Actualizar';
+            document.getElementById('btn-agregar-jugador').textContent = '✅ Actualizar';
             document.getElementById('btn-agregar-jugador').onclick = () => actualizarJugador(id);
         }
 
@@ -3666,14 +3690,14 @@
                 if (response.ok) {
                     toast.success('Jugador actualizado correctamente.');
                     document.getElementById('jugadorForm').reset();
-                    document.getElementById('btn-agregar-jugador').textContent = 'ðĪ Agregar Jugador';
+                    document.getElementById('btn-agregar-jugador').textContent = '👤 Agregar Jugador';
                     document.getElementById('btn-agregar-jugador').onclick = agregarJugador;
                     await cargarJugadores();
                 } else {
                     toast.error('Error al actualizar jugador.');
                 }
             } catch (error) {
-                toast.error('Error de conexiÃģn.');
+                toast.error('Error de conexión.');
                 }
         }
 
@@ -3681,19 +3705,19 @@
             const jugador = jugadores.find(j => j.id === id);
             const nombreJugador = jugador ? jugador.nombre : 'este jugador';
         
-            // ConfirmaciÃģn mejorada
+            // Confirmación mejorada
             const confirmacion = confirm(
-                `â ïļ ELIMINAR JUGADOR\n\n` +
-                `ÂŋEstÃĄs seguro de eliminar a "${nombreJugador}"?\n\n` +
-                `Esta acciÃģn NO se puede deshacer y se eliminarÃĄn:\n` +
-                `âĒ Todas sus estadÃ­sticas\n` +
-                `âĒ Su historial de partidos\n` +
-                `âĒ Datos asociados\n\n` +
+                `⚠️ ELIMINAR JUGADOR\n\n` +
+                `¿Estás seguro de eliminar a "${nombreJugador}"?\n\n` +
+                `Esta acción NO se puede deshacer y se eliminarán:\n` +
+                `• Todas sus estadísticas\n` +
+                `• Su historial de partidos\n` +
+                `• Datos asociados\n\n` +
                 `Presiona OK para confirmar o Cancelar para abortar.`
             );
         
             if (!confirmacion) {
-                toast.info('EliminaciÃģn cancelada');
+                toast.info('Eliminación cancelada');
                 return;
             }
         
@@ -3706,7 +3730,7 @@
                     toast.error('Error al eliminar el jugador.');
                 }
             } catch(e) {
-                toast.error('Error de conexiÃģn con el servidor.');
+                toast.error('Error de conexión con el servidor.');
             }
         }
 
@@ -3714,7 +3738,7 @@
             const partido = partidos.find(p => p.id === id);
             if (!partido) return;
 
-            // Decide quÃĐ formulario usar
+            // Decide qué formulario usar
             if (partido.estado === 'programado' || (partido.carreras_local === null && partido.estado !== 'finalizado')) {
                 // Rellena el formulario de programar
                 document.getElementById('equipoLocalFuturo').value = partido.equipo_local_id;
@@ -3723,12 +3747,12 @@
                 document.getElementById('horaPartidoFuturo').value = partido.hora || '';
                 document.getElementById('lugarPartido').value = partido.lugar || '';
                 
-                // Cambia el botÃģn para actualizar
+                // Cambia el botón para actualizar
                 const btn = document.querySelector('#partidos .card:first-child .btn-primary');
-                btn.textContent = 'â Actualizar Partido Programado';
+                btn.textContent = '✅ Actualizar Partido Programado';
                 btn.onclick = () => actualizarPartido(id);
 
-                toast.info('Editando partido programado. Puede aÃąadir los resultados en el formulario de abajo.');
+                toast.info('Editando partido programado. Puede añadir los resultados en el formulario de abajo.');
 
             } else {
                  // Rellena el formulario de resultados
@@ -3737,13 +3761,13 @@
                 document.getElementById('carrerasLocal').value = partido.carreras_local || '';
                 document.getElementById('carrerasVisitante').value = partido.carreras_visitante || '';
                 document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
-                document.getElementById('btn-registrar-partido').textContent = 'â Actualizar Resultado';
+                document.getElementById('btn-registrar-partido').textContent = '✅ Actualizar Resultado';
                 document.getElementById('btn-registrar-partido').onclick = () => actualizarPartido(id);
             }
         }
 
         async function actualizarPartido(id) {
-            // Unificar lÃģgica de actualizaciÃģn
+            // Unificar lógica de actualización
             const equipo_local_id = document.getElementById('equipoLocal').value || document.getElementById('equipoLocalFuturo').value;
             const equipo_visitante_id = document.getElementById('equipoVisitante').value || document.getElementById('equipoVisitanteFuturo').value;
             const carreras_local = document.getElementById('carrerasLocal').value;
@@ -3781,7 +3805,7 @@
                     document.getElementById('equipoVisitante').value = '';
                     document.getElementById('carrerasLocal').value = '';
                     document.getElementById('carrerasVisitante').value = '';
-                    document.getElementById('btn-registrar-partido').textContent = 'ðŊ Registrar Partido';
+                    document.getElementById('btn-registrar-partido').textContent = '🎯 Registrar Partido';
                     document.getElementById('btn-registrar-partido').onclick = registrarPartido;
                     
                     document.getElementById('equipoLocalFuturo').value = '';
@@ -3790,7 +3814,7 @@
                     document.getElementById('horaPartidoFuturo').value = '';
                     document.getElementById('lugarPartido').value = '';
                     const btnProg = document.querySelector('#partidos .card:first-child .btn-primary');
-                    btnProg.textContent = 'ð Programar Partido';
+                    btnProg.textContent = '📅 Programar Partido';
                     btnProg.onclick = programarPartido;
 
                     await cargarPartidos();
@@ -3804,7 +3828,7 @@
         }
 
         async function eliminarPartido(id) {
-            if (!confirm('ÂŋEliminar este partido?')) return;
+            if (!confirm('¿Eliminar este partido?')) return;
             try {
                 const res = await fetch(`/api/partidos/${id}`, { method: 'DELETE' });
                 if (res.ok) {
@@ -3846,11 +3870,11 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    toast.success('EstadÃ­sticas de pitcheo registradas.');
+                    toast.success('Estadísticas de pitcheo registradas.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#inningsPitched, #hitsAllowed, #earnedRuns, #strikeouts, #walksAllowed, #homeRunsAllowed, #wins, #losses, #saves').forEach(el => el.value = 0);
                 } else {
-                    toast.error('Error al registrar estadÃ­sticas.');
+                    toast.error('Error al registrar estadísticas.');
                 }
             } catch(e) {
                 toast.error('Error de red.');
@@ -3880,11 +3904,11 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    toast.success('EstadÃ­sticas defensivas registradas.');
+                    toast.success('Estadísticas defensivas registradas.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#putouts, #assists, #defensiveErrors, #doublePlays, #passedBalls').forEach(el => el.value = 0);
                 } else {
-                    toast.error('Error al registrar estadÃ­sticas.');
+                    toast.error('Error al registrar estadísticas.');
                 }
             } catch(e) {
                 toast.error('Error de red.');
@@ -3901,7 +3925,7 @@
                 controls.id = 'controls-bateo';
                 controls.className = 'table-controls';
                 controls.innerHTML = `
-                    <h4>ð Filtros de BÃšsqueda</h4>
+                    <h4>🔍 Filtros de Búsqueda</h4>
                     <div class="filters-grid">
                         <div class="search-box">
                             <input type="text" id="search-bateo" placeholder="Buscar jugador por nombre...">
@@ -3912,7 +3936,7 @@
                     </div>
                     <div class="results-info">
                         <span id="count-bateo">Total: 0 jugadores</span>
-                        <button class="btn-secondary" onclick="limpiarFiltrosBateo()" style="background: #ff8c00; padding: 8px 16px;">ðïļ Limpiar</button>
+                        <button class="btn-secondary" onclick="limpiarFiltrosBateo()" style="background: #ff8c00; padding: 8px 16px;">🗑️ Limpiar</button>
                     </div>
                 `;
                 table.parentElement.insertBefore(controls, table);
@@ -3933,7 +3957,7 @@
                 });
             }
             try {
-                tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando estadÃ­sticas...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando estadísticas...</td></tr>';
                 const response = await fetch('/api/estadisticas-ofensivas');
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
@@ -3942,9 +3966,9 @@
                 const enrichedStats = stats.map(s => {
                     const jugador = jugadores.find(j => j.id === s.jugador_id);
                     return jugador ? { ...s, nombre: jugador.nombre, equipo_nombre: jugador.equipo_nombre, equipo_id: jugador.equipo_id } : null;
-                }).filter(Boolean); // Filtrar nulos si un jugador no se encontrÃģ
+                }).filter(Boolean); // Filtrar nulos si un jugador no se encontró
                 
-                // Inicializar paginaciÃģn
+                // Inicializar paginación
                 paginationBateo = new TablePagination('tablaEditarBateo', 20);
                 paginationBateo.render = function() {
                     const data = this.getCurrentPageData();
@@ -3959,13 +3983,13 @@
                                 <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:60px;"></td>
-                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">ðū</button></td>
+                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">💾</button></td>
                             </tr>
                         `).join('');
                     }
                     // Actualizar contador
                     document.getElementById('count-bateo').textContent = `Mostrando ${data.length} de ${this.filteredData.length} jugadores`;
-                    // Renderizar paginaciÃģn
+                    // Renderizar paginación
                     renderPagination('bateo', this);
                 };
                 paginationBateo.setData(enrichedStats);
@@ -3994,11 +4018,11 @@
             }
             let html = `
                 <button class="pagination-btn" onclick="pagination${typeCapitalized}.prevPage()" ${currentPage === 1 ? 'disabled' : ''}>
-                    â Anterior
+                    ← Anterior
                 </button>
                 <div class="page-numbers">
             `;
-            // Mostrar pÃĄginas (mÃĄximo 5 botones)
+            // Mostrar páginas (máximo 5 botones)
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, currentPage + 2);
 
@@ -4021,7 +4045,7 @@
             html += `
                 </div>
                 <button class="pagination-btn" onclick="pagination${typeCapitalized}.nextPage()" ${currentPage === totalPages ? 'disabled' : ''}>
-                    Siguiente â
+                    Siguiente →
                 </button>
             `;
             container.innerHTML = html;
@@ -4045,7 +4069,7 @@
                 controls.id = 'controls-pitcheo';
                 controls.className = 'table-controls';
                 controls.innerHTML = `
-                    <h4>ð Filtros de BÃšsqueda</h4>
+                    <h4>🔍 Filtros de Búsqueda</h4>
                     <div class="filters-grid">
                         <div class="search-box">
                             <input type="text" id="search-pitcheo" placeholder="Buscar pitcher por nombre...">
@@ -4056,7 +4080,7 @@
                     </div>
                     <div class="results-info">
                         <span id="count-pitcheo">Total: 0 jugadores</span>
-                        <button class="btn-secondary" onclick="limpiarFiltrosPitcheo()" style="background: #ff8c00; padding: 8px 16px;">ðïļ Limpiar</button>
+                        <button class="btn-secondary" onclick="limpiarFiltrosPitcheo()" style="background: #ff8c00; padding: 8px 16px;">🗑️ Limpiar</button>
                     </div>
                 `;
                 table.parentElement.insertBefore(controls, table);
@@ -4075,7 +4099,7 @@
                 });
             }
             try {
-                tbody.innerHTML = '<tr><td colspan="8" class="loading">Cargando estadÃ­sticas...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">Cargando estadísticas...</td></tr>';
                 const response = await fetch('/api/estadisticas-pitcheo');
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
@@ -4100,7 +4124,7 @@
                                 <td><input type="number" id="w-${s.jugador_id}" value="${s.wins || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="l-${s.jugador_id}" value="${s.losses || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="sv-${s.jugador_id}" value="${s.saves || 0}" style="width:60px;"></td>
-                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('pitcheo', ${s.jugador_id})">ðū</button></td>
+                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('pitcheo', ${s.jugador_id})">💾</button></td>
                             </tr>
                         `).join('');
                     }
@@ -4132,7 +4156,7 @@
                 controls.id = 'controls-defensa';
                 controls.className = 'table-controls';
                 controls.innerHTML = `
-                    <h4>ð Filtros de BÃšsqueda</h4>
+                    <h4>🔍 Filtros de Búsqueda</h4>
                     <div class="filters-grid">
                         <div class="search-box">
                             <input type="text" id="search-defensa" placeholder="Buscar jugador por nombre...">
@@ -4143,7 +4167,7 @@
                     </div>
                     <div class="results-info">
                         <span id="count-defensa">Total: 0 jugadores</span>
-                        <button class="btn-secondary" onclick="limpiarFiltrosDefensa()" style="background: #ff8c00; padding: 8px 16px;">ðïļ Limpiar</button>
+                        <button class="btn-secondary" onclick="limpiarFiltrosDefensa()" style="background: #ff8c00; padding: 8px 16px;">🗑️ Limpiar</button>
                     </div>
                 `;
                 table.parentElement.insertBefore(controls, table);
@@ -4162,7 +4186,7 @@
                 });
             }
             try {
-                tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando estadÃ­sticas...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando estadísticas...</td></tr>';
                 const response = await fetch('/api/estadisticas-defensivas');
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
@@ -4186,7 +4210,7 @@
                                 <td><input type="number" id="a-${s.jugador_id}" value="${s.assists || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="e-${s.jugador_id}" value="${s.errors || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="dp-${s.jugador_id}" value="${s.double_plays || 0}" style="width:60px;"></td>
-                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('defensiva', ${s.jugador_id})">ðū</button></td>
+                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('defensiva', ${s.jugador_id})">💾</button></td>
                             </tr>
                         `).join('');
                     }
@@ -4226,19 +4250,19 @@
 
         function resetearBoton(tipo) {
             if (tipo === 'equipo') {
-                document.getElementById('btn-agregar-equipo').textContent = 'ð Agregar Equipo';
+                document.getElementById('btn-agregar-equipo').textContent = '🏆 Agregar Equipo';
                 document.getElementById('btn-agregar-equipo').onclick = agregarEquipo;
             } else if (tipo === 'jugador') {
-                document.getElementById('btn-agregar-jugador').textContent = 'ðĪ Agregar Jugador';
+                document.getElementById('btn-agregar-jugador').textContent = '👤 Agregar Jugador';
                 document.getElementById('btn-agregar-jugador').onclick = agregarJugador;
             } else if (tipo === 'partido') {
-                document.getElementById('btn-registrar-partido').textContent = 'ðŊ Registrar Partido';
+                document.getElementById('btn-registrar-partido').textContent = '🎯 Registrar Partido';
                 document.getElementById('btn-registrar-partido').onclick = registrarPartido;
             }
         }
 
         async function cargarParaEditar(tipo, jugadorId) {
-            // Esta funciÃģn no se usa actualmente
+            // Esta función no se usa actualmente
             console.log('cargarParaEditar', tipo, jugadorId);
         }
 
@@ -4282,7 +4306,7 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    toast.success('EstadÃ­stica actualizada.');
+                    toast.success('Estadística actualizada.');
                     await cargarEstadisticas();
                 } else {
                     toast.error('Error al actualizar.');
@@ -4300,7 +4324,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="6" class="empty-state" style="padding: 40px 20px;">
-                            <div style="font-size: 3rem; margin-bottom: 15px;">ð</div>
+                            <div style="font-size: 3rem; margin-bottom: 15px;">🏆</div>
                             <h3 style="color: #ffd700; margin-bottom: 10px;">No se encontraron equipos</h3>
                             <p style="color: #fff; opacity: 0.7; font-size: 0.9rem;">
                                 Intenta ajustar los filtros o agrega un nuevo equipo usando el formulario de arriba
@@ -4318,8 +4342,8 @@
                     <td>${equipo.ciudad}</td>
                     <td>${new Date(equipo.fecha_creacion).toLocaleDateString('es-AR')}</td>
                     <td>
-                        <button class="btn-secondary btn-edit" onclick="editarEquipo(${equipo.id})">âïļ</button>
-                        <button class="btn-secondary" onclick="eliminarEquipo(${equipo.id})" style="background: #dc143c;">ðïļ</button>
+                        <button class="btn-secondary btn-edit" onclick="editarEquipo(${equipo.id})">✏️</button>
+                        <button class="btn-secondary" onclick="eliminarEquipo(${equipo.id})" style="background: #dc143c;">🗑️</button>
                     </td>
                 </tr>
             `).join('');
@@ -4363,7 +4387,7 @@
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="5" class="empty-state" style="padding: 40px 20px;">
-                            <div style="font-size: 3rem; margin-bottom: 15px;">ðĪ</div>
+                            <div style="font-size: 3rem; margin-bottom: 15px;">👤</div>
                             <h3 style="color: #ffd700; margin-bottom: 10px;">No se encontraron jugadores</h3>
                             <p style="color: #fff; opacity: 0.7; font-size: 0.9rem;">
                                 Intenta ajustar los filtros o agrega un nuevo jugador usando el formulario de arriba
@@ -4381,8 +4405,8 @@
                     <td>${jugador.equipo_nombre || 'Sin equipo'}</td>
                     <td>${jugador.posicion || '-'}</td>
                     <td>
-                        <button class="btn-secondary btn-edit" onclick="editarJugador(${jugador.id})">âïļ</button>
-                        <button class="btn-secondary" onclick="eliminarJugador(${jugador.id})" style="background: #dc143c;">ðïļ</button>
+                        <button class="btn-secondary btn-edit" onclick="editarJugador(${jugador.id})">✏️</button>
+                        <button class="btn-secondary" onclick="eliminarJugador(${jugador.id})" style="background: #dc143c;">🗑️</button>
                     </td>
                 </tr>
             `).join('');
@@ -4492,7 +4516,7 @@
             let datos, headers, filename;
             if (tabla === 'jugadores') {
                 datos = jugadoresFiltrados;
-                headers = ['NÃšmero', 'Nombre', 'Equipo', 'PosiciÃģn'];
+                headers = ['Número', 'Nombre', 'Equipo', 'Posición'];
                 filename = 'jugadores';
             } else if (tabla === 'equipos') {
                 datos = equiposFiltrados;
