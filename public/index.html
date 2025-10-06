@@ -1773,29 +1773,29 @@
                 </div>
                 
                 <div class="leaders-filters">
-                    <button class="leader-filter active" data-category="bateo">⚾ Bateo</button>
-                    <button class="leader-filter" data-category="pitcheo">🥎 Pitcheo</button>
-                    <button class="leader-filter" data-category="defensiva">🛡️ Defensiva</button>
-                    <button class="leader-filter" data-category="todos">📊 Todos</button>
+                    <button class="leader-filter" id="tabBateo" data-category="bateo">⚾ Bateo</button>
+                    <button class="leader-filter" id="tabPitcheo" data-category="pitcheo">🥎 Pitcheo</button>
+                    <button class="leader-filter" id="tabDefensiva" data-category="defensiva">🛡️ Defensiva</button>
+                    <button class="leader-filter" id="tabTodos" data-category="todos">📊 Todos</button>
                 </div>
                 
-                <div id="lideresBateo" class="leaders-panel">
-                    <div data-loader style="display: flex;">Cargando...</div>
+                <div id="lideresBateo" class="leaders-panel" style="display: block;">
+                    <div data-loader style="display: none;">Cargando líderes...</div>
                     <div data-empty style="display: none;"></div>
                     <div class="leaders-grid-enhanced" data-list></div>
                 </div>
                 <div id="lideresPitcheo" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: flex;">Cargando...</div>
+                    <div data-loader style="display: none;">Cargando líderes...</div>
                     <div data-empty style="display: none;"></div>
                     <div class="leaders-grid-enhanced" data-list></div>
                 </div>
                 <div id="lideresDefensiva" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: flex;">Cargando...</div>
+                    <div data-loader style="display: none;">Cargando líderes...</div>
                     <div data-empty style="display: none;"></div>
                     <div class="leaders-grid-enhanced" data-list></div>
                 </div>
                 <div id="lideresTodos" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: flex;">Cargando...</div>
+                    <div data-loader style="display: none;">Cargando líderes...</div>
                     <div data-empty style="display: none;"></div>
                     <div class="leaders-grid-enhanced" data-list></div>
                 </div>
@@ -1856,6 +1856,7 @@
     <script>
         // Configuración de API - URL de Railway
         const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
+        let estadisticas = []; // Variable global para estadísticas de bateo
         
         function getApiUrl(endpoint) {
             if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
@@ -1871,17 +1872,9 @@
                 setLoading('tablaPosiciones', true);
                 const standings = await fetchJSON('/api/standings');
                 renderTablaPosiciones(standings || [], tbodyEl);
-                if (!standings || standings.length === 0) {
-                    setLoading('tablaPosiciones', false, 'Sin datos de posiciones.');
-                } else {
-                    setLoading('tablaPosiciones', false);
-                }
+                setLoading('tablaPosiciones', false, (standings && standings.length) ? null : 'Sin datos de posiciones.');
             } catch (e) {
                 setLoading('tablaPosiciones', false, 'No se pudo cargar la tabla.');
-            } finally {
-                // Asegurar que el loader se oculte si todo falla
-                const loader = document.querySelector('#tablaPosiciones [data-loader]');
-                if(loader && loader.style.display !== 'none') setLoading('tablaPosiciones', false, 'Error de carga.');
             }
         }
 
@@ -1955,10 +1948,10 @@
         }
         
         // ===============================================================
-        // INICIO DE LA CORRECCIÓN: SECCIÓN DE LÍDERES
+        // INICIO DE LA CORRECCIÓN TOTAL
         // ===============================================================
 
-        // 1. UTILIDADES GLOBALES (Revisadas y mejoradas)
+        // ============= UTILIDADES GLOBALES =============
         async function fetchJSON(url, options = {}) {
             try {
                 const fullUrl = getApiUrl(url);
@@ -1968,11 +1961,11 @@
                 });
                 if (!res.ok) {
                     const text = await res.text().catch(() => '');
-                    throw new Error(`HTTP ${res.status} ${res.statusText} :: ${text}`);
+                    throw new Error(`HTTP ${res.status} ${res.statusText}${text ? ` :: ${text}` : ''}`);
                 }
                 return await res.json();
             } catch (err) {
-                console.error('fetchJSON error:', url, err);
+                console.error(`❌ fetchJSON error [${getApiUrl(url)}]:`, err.message);
                 throw err;
             }
         }
@@ -1980,15 +1973,15 @@
         function setLoading(containerId, isLoading, emptyMessage = null) {
             const root = document.getElementById(containerId);
             if (!root) {
-                console.warn(`Contenedor no encontrado: ${containerId}`);
+                console.warn(`⚠️ Contenedor no encontrado: ${containerId}`);
                 return;
             }
             const loader = root.querySelector('[data-loader]');
             const empty = root.querySelector('[data-empty]');
             const content = root.querySelector('[data-list]');
-            
+
             if (loader) loader.style.display = isLoading ? 'flex' : 'none';
-            if (content) content.style.display = isLoading ? 'none' : 'block';
+            if (content) content.style.display = isLoading ? 'none' : 'flex';
             
             if (empty) {
                 empty.textContent = emptyMessage || '';
@@ -1997,20 +1990,189 @@
             }
         }
 
-        // 2. SISTEMA DE CACHÉ Y CARGA DE LÍDERES (Código antiguo será reemplazado)
-        // ... El código nuevo irá aquí ...
+        // ============= SISTEMA DE LÍDERES =============
+        const cacheLideres = new Map();
 
-        // 3. RENDERIZADO DE TARJETAS DE LÍDERES (Código antiguo será reemplazado)
-        // ... El código nuevo irá aquí ...
+        async function apiLideres(tipo, limit = 10) {
+            const url = `/api/leaders?tipo=${encodeURIComponent(tipo)}&limit=${limit}`;
+            console.log(`📡 Consultando API: ${url}`);
+            return fetchJSON(url);
+        }
 
-        // 4. CONEXIÓN DE BOTONES Y GESTIÓN VISUAL (Código antiguo será reemplazado)
-        // ... El código nuevo irá aquí ...
+        async function fallbackLideresBateo(limit = 10) {
+            console.log('🔄 Usando fallback para bateo desde /api/estadisticas-ofensivas');
+            try {
+                const data = await fetchJSON('/api/estadisticas-ofensivas');
+                const normalized = (data || []).map(r => {
+                    const ab = Number(r.at_bats ?? r.ab ?? 0);
+                    const h = Number(r.hits ?? r.h ?? 0);
+                    const bb = Number(r.walks ?? 0);
+                    const avg = (r.avg != null) ? Number(r.avg) : (ab > 0 ? h / ab : 0);
+                    const obp = (r.obp != null) ? Number(r.obp) : (ab + bb > 0 ? (h + bb) / (ab + bb) : 0);
+                    const slg = (r.slg != null) ? Number(r.slg) : null;
+                    const ops = (r.ops != null) ? Number(r.ops) : ((obp || 0) + (slg || 0));
+                    return {
+                        nombre: r.jugador_nombre ?? r.nombre ?? 'Jugador',
+                        equipo_nombre: r.equipo_nombre ?? r.equipo ?? 'Sin equipo',
+                        avg, obp, ops,
+                        hr: Number(r.home_runs ?? r.hr ?? 0),
+                        rbi: Number(r.rbi ?? 0)
+                    };
+                });
+                return normalized.sort((a, b) => {
+                    if (b.avg !== a.avg) return b.avg - a.avg;
+                    if (b.ops !== a.ops) return b.ops - a.ops;
+                    if (b.hr !== a.hr) return b.hr - a.hr;
+                    return b.rbi - a.rbi;
+                }).slice(0, limit);
+            } catch (err) {
+                console.error('❌ Error en fallback de bateo:', err);
+                return [];
+            }
+        }
 
+        async function cargarLideresPorTipo(tipo, contenedorId) {
+            console.log(`🔄 Cargando líderes de: ${tipo}`);
+            setLoading(contenedorId, true);
+            try {
+                if (cacheLideres.has(tipo)) {
+                    const cached = cacheLideres.get(tipo);
+                    if (Array.isArray(cached) && cached.length > 0) {
+                        console.log(`✅ Usando caché para ${tipo} (${cached.length} items)`);
+                        renderLideres(cached, contenedorId);
+                        setLoading(contenedorId, false);
+                        return;
+                    }
+                }
+                let items = [];
+                let usedFallback = false;
+                try {
+                    items = await apiLideres(tipo, 10);
+                    console.log(`📊 API respondió para ${tipo}: ${items?.length || 0} items`);
+                } catch (apiError) {
+                    console.warn(`⚠️ API falló para ${tipo}:`, apiError.message);
+                    if (tipo === 'bateo' || tipo === 'todos') {
+                        items = await fallbackLideresBateo(10);
+                        usedFallback = true;
+                    } else {
+                        throw apiError;
+                    }
+                }
+                if ((!items || items.length === 0) && (tipo === 'bateo' || tipo === 'todos')) {
+                    console.log(`📊 API vacía para ${tipo}, aplicando fallback...`);
+                    items = await fallbackLideresBateo(10);
+                    usedFallback = true;
+                }
+                cacheLideres.set(tipo, items || []);
+                renderLideres(items || [], contenedorId);
+                const mensaje = (items && items.length) ? null : `Sin datos de ${tipo}${usedFallback ? ' (intentó fallback)' : ''}`;
+                setLoading(contenedorId, false, mensaje);
+                console.log(`✅ Líderes de ${tipo} listos: ${items?.length || 0} items${usedFallback ? ' (fallback)' : ''}`);
+            } catch (err) {
+                console.error(`❌ Error final cargando líderes de ${tipo}:`, err);
+                setLoading(contenedorId, false, `No se pudieron cargar líderes de ${tipo}`);
+            }
+        }
+
+        // ============= RENDERIZADO DE LÍDERES =============
+        function renderLideres(items, contenedorId) {
+            const root = document.getElementById(contenedorId);
+            if (!root) return console.error(`❌ Contenedor no encontrado: ${contenedorId}`);
+            const list = root.querySelector('[data-list]');
+            if (!list) return console.error(`❌ Elemento [data-list] no encontrado en ${contenedorId}`);
+            const fmt3 = v => Number.isFinite(Number(v)) ? Number(v).toFixed(3) : '-';
+            const fmt2 = v => Number.isFinite(Number(v)) ? Number(v).toFixed(2) : '-';
+            list.innerHTML = (items || []).map((j, idx) => `
+                <div class="leader-card" data-rank="${idx + 1}">
+                    <div class="leader-rank">#${idx + 1}</div>
+                    <div class="leader-name">
+                        <strong>${j.nombre ?? 'Jugador'}</strong>
+                        <span class="leader-team">${j.equipo ?? j.equipo_nombre ?? 'Sin equipo'}</span>
+                    </div>
+                    <div class="leader-metrics">
+                        ${j.avg != null ? `<span>AVG: ${fmt3(j.avg)}</span>` : ''}
+                        ${j.obp != null ? `<span>OBP: ${fmt3(j.obp)}</span>` : ''}
+                        ${j.ops != null ? `<span>OPS: ${fmt3(j.ops)}</span>` : ''}
+                        ${j.hr != null ? `<span>HR: ${j.hr}</span>` : ''}
+                        ${j.rbi != null ? `<span>RBI: ${j.rbi}</span>` : ''}
+                        ${j.era != null ? `<span>ERA: ${fmt2(j.era)}</span>` : ''}
+                        ${j.whip != null ? `<span>WHIP: ${fmt2(j.whip)}</span>` : ''}
+                        ${j.fpct != null ? `<span>FPCT: ${fmt3(j.fpct)}</span>` : ''}
+                    </div>
+                </div>`).join('');
+            console.log(`🎨 Renderizados ${items?.length || 0} líderes en ${contenedorId}`);
+        }
         
+        // ============= GESTIÓN DE PESTAÑAS =============
+        function configurarTabs() {
+            const tabs = [
+                { btnId: 'tabBateo', panelId: 'lideresBateo', tipo: 'bateo' },
+                { btnId: 'tabPitcheo', panelId: 'lideresPitcheo', tipo: 'pitcheo' },
+                { btnId: 'tabDefensiva', panelId: 'lideresDefensiva', tipo: 'defensiva' },
+                { btnId: 'tabTodos', panelId: 'lideresTodos', tipo: 'todos' }
+            ];
+            const todosLosBotones = tabs.map(t => document.getElementById(t.btnId)).filter(Boolean);
+            const todosPaneles = tabs.map(t => document.getElementById(t.panelId)).filter(Boolean);
+
+            tabs.forEach(({ btnId, panelId, tipo }) => {
+                const btn = document.getElementById(btnId);
+                const panel = document.getElementById(panelId);
+                if (!btn || !panel) return console.warn(`⚠️ Botón o panel no encontrado para ${tipo}`);
+                
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    todosLosBotones.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    todosPaneles.forEach(p => p.style.display = 'none');
+                    panel.style.display = 'block';
+                    cargarLideresPorTipo(tipo, panelId);
+                });
+                console.log(`✅ Tab configurado: ${tipo} (${btnId} → ${panelId})`);
+            });
+
+            if (todosLosBotones.length > 0) {
+                todosLosBotones[0].classList.add('active');
+            }
+        }
+        
+        // ============= FILTRO DE TEMPORADA =============
+        async function cargarEstadisticasCompletas() {
+             try {
+                const data = await fetchJSON('/api/estadisticas-ofensivas');
+                let estadisticasFiltradas;
+
+                const tiene2025 = (data || []).some(r => (r.temporada ?? '').toString().trim() === '2025');
+
+                if (tiene2025) {
+                    estadisticasFiltradas = data.filter(r => (r.temporada ?? '').toString().trim() === '2025');
+                    console.log(`📅 Filtrado por temporada 2025: ${estadisticasFiltradas.length} registros`);
+                } else {
+                    estadisticasFiltradas = data || [];
+                    console.log(`📅 No hay datos de 2025, mostrando todas las temporadas: ${estadisticasFiltradas.length} registros`);
+                }
+                estadisticas = estadisticasFiltradas; // Actualiza la variable global
+                
+                // Renderizar tabla de estadísticas completas
+                const tbody = document.getElementById('statsTable').querySelector('tbody');
+                if(tbody) {
+                     tbody.innerHTML = estadisticasFiltradas.slice(0, 10).map(s => `<tr><td>${s.jugador_nombre}</td><td>${s.equipo_nombre}</td><td>${s.posicion || '-'}</td><td>${s.at_bats}</td><td>${s.hits}</td><td>${s.avg}</td><td>${s.obp}</td><td>${s.ops}</td><td>${s.home_runs}</td><td>${s.rbi}</td><td>-</td></tr>`).join('');
+                }
+             } catch(e) { console.error('❌ Error cargando estadísticas completas:', e); }
+
+             // Cargar líderes defensivos (se mantiene como estaba)
+             try {
+                const defRes = await fetch(getApiUrl('/api/lideres-defensivos'));
+                if(defRes.ok) {
+                    const lideres = await defRes.json();
+                    const grid = document.getElementById('positionLeadersGrid');
+                    if(grid) grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion || 'DEF'}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.jugador_nombre}</span><span class="position-rating">${l.fielding_percentage}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
+                }
+             } catch(e) { console.error('Error cargando líderes defensivos', e); }
+        }
+
         // =================================================================================
         // LÓGICA EXISTENTE QUE SE CONSERVA (Búsqueda, Menú Móvil, etc.)
         // =================================================================================
-
         let equipos = [];
         let jugadores = [];
         let selectedPlayersForComparison = [];
@@ -2020,9 +2182,12 @@
             cargarUltimosPartidos();
             cargarPlayoffs();
             
-            // La inicialización de líderes se manejará con la nueva función
-            // inicializarLideres(); // Se añadirá más adelante
-
+            // INICIALIZACIÓN DE NUEVOS SISTEMAS
+            configurarTabs();
+            cargarLideresPorTipo('bateo', 'lideresBateo');
+            console.log('✅ Sistema de líderes inicializado');
+            
+            // Lógica existente
             configurarEventListeners();
             cargarProximosPartidos();
             cargarDatosParaBusqueda();
@@ -2032,14 +2197,11 @@
         async function cargarDatosParaBusqueda() {
              try {
                 const [equiposRes, jugadoresRes] = await Promise.all([
-                    fetch(getApiUrl('/api/equipos')),
-                    fetch(getApiUrl('/api/jugadores'))
+                    fetchJSON('/api/equipos'),
+                    fetchJSON('/api/jugadores')
                 ]);
-                if (equiposRes.ok) equipos = await equiposRes.json();
-                if (jugadoresRes.ok) {
-                    const data = await jugadoresRes.json();
-                    jugadores = data.jugadores;
-                }
+                equipos = equiposRes;
+                jugadores = jugadoresRes.jugadores;
              } catch(e) { console.error("Error cargando datos para búsqueda:", e); }
         }
         
@@ -2062,18 +2224,17 @@
 
         async function cargarProximosPartidos() {
           try {
-            const response = await fetch(getApiUrl('/api/proximos-partidos'));
-            if (!response.ok) throw new Error('Error');
-            const proximosPartidos = await response.json();
-            if (proximosPartidos.length === 0) {
-              document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state"><h3>📅 Sin partidos programados</h3></div>`;
+            const proximosPartidos = await fetchJSON('/api/proximos-partidos');
+            if (!proximosPartidos || proximosPartidos.length === 0) {
+              document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state" style="display:block;"><h3>📅 Sin partidos programados</h3></div>`;
               return;
             }
             renderizarProximosPartidos(proximosPartidos);
           } catch (error) {
-            document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state"><h3>⚠️ Error de conexión</h3></div>`;
+            document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state" style="display:block;"><h3>⚠️ Error de conexión</h3></div>`;
           }
         }
+
         function renderizarProximosPartidos(partidos) {
             const cont = document.getElementById('proximosPartidosContainer');
             if (!cont) return;
@@ -2084,25 +2245,6 @@
                         <div class="partido-fecha">${new Date(p.fecha_partido).toLocaleDateString('es-ES', { timeZone: 'UTC' })} ${p.hora ? `· ${p.hora.substring(0, 5)}` : ''}</div>
                     </div>
                 </div>`).join('');
-        }
-
-        async function cargarEstadisticasCompletas() {
-             try {
-                const statsRes = await fetch(getApiUrl('/api/estadisticas-ofensivas'));
-                if (statsRes.ok) {
-                    const estadisticas = await statsRes.json();
-                    const tbody = document.getElementById('statsTable').querySelector('tbody');
-                    tbody.innerHTML = estadisticas.slice(0, 10).map(s => `<tr><td>${s.jugador_nombre}</td><td>${s.equipo_nombre}</td><td>${s.posicion || '-'}</td><td>${s.at_bats}</td><td>${s.hits}</td><td>${s.avg}</td><td>${s.obp}</td><td>${s.ops}</td><td>${s.home_runs}</td><td>${s.rbi}</td><td>-</td></tr>`).join('');
-                }
-             } catch(e) { console.error('Error cargando stats completas', e); }
-             try {
-                const defRes = await fetch(getApiUrl('/api/lideres-defensivos'));
-                if(defRes.ok) {
-                    const lideres = await defRes.json();
-                    const grid = document.getElementById('positionLeadersGrid');
-                    grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion || 'DEF'}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.jugador_nombre}</span><span class="position-rating">${l.fielding_percentage}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
-                }
-             } catch(e) { console.error('Error cargando líderes defensivos', e); }
         }
 
         let searchTimeout;
@@ -2117,13 +2259,15 @@
                 searchInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') { realizarBusquedaGlobal(); } });
             }
         });
+
         function buscarEnTiempoReal(query) {
             const resultados = [];
             const queryLower = query.toLowerCase();
-            if(equipos.length) equipos.forEach(equipo => { if (equipo.nombre.toLowerCase().includes(queryLower)) { resultados.push({ tipo: 'equipo', nombre: equipo.nombre, id: equipo.id, extra: equipo.ciudad || '' }); } });
-            if(jugadores.length) jugadores.forEach(jugador => { if (jugador.nombre.toLowerCase().includes(queryLower)) { const equipo = equipos.find(e => e.id === jugador.equipo_id); resultados.push({ tipo: 'jugador', nombre: jugador.nombre, id: jugador.id, extra: equipo ? equipo.nombre : 'Sin equipo', equipoId: jugador.equipo_id }); } });
+            if(equipos && equipos.length) equipos.forEach(equipo => { if (equipo.nombre.toLowerCase().includes(queryLower)) { resultados.push({ tipo: 'equipo', nombre: equipo.nombre, id: equipo.id, extra: equipo.ciudad || '' }); } });
+            if(jugadores && jugadores.length) jugadores.forEach(jugador => { if (jugador.nombre.toLowerCase().includes(queryLower)) { const equipo = equipos.find(e => e.id === jugador.equipo_id); resultados.push({ tipo: 'jugador', nombre: jugador.nombre, id: jugador.id, extra: equipo ? equipo.nombre : 'Sin equipo', equipoId: jugador.equipo_id }); } });
             mostrarResultados(resultados.slice(0, 8));
         }
+
         function mostrarResultados(resultados) {
             const container = document.getElementById('searchResults');
             if (!container) return;
@@ -2134,18 +2278,24 @@
             }
             container.style.display = 'block';
         }
+
         function ocultarResultados() { const c = document.getElementById('searchResults'); if(c) c.style.display = 'none'; }
+        
         function navegarAResultado(tipo, id, equipoId) {
             if (tipo === 'equipo') window.location.href = `equipo.html?id=${id}`;
             else if (tipo === 'jugador') window.location.href = `jugador.html?id=${id}&equipo=${equipoId || ''}`;
             ocultarResultados();
             document.getElementById('globalSearch').value = '';
         }
+        
         function realizarBusquedaGlobal() { const q = document.getElementById('globalSearch').value.trim(); if (q.length >= 2) { buscarEnTiempoReal(q); } }
+        
         document.addEventListener('click', function(e) { const sc = document.querySelector('.search-container'); if (sc && !sc.contains(e.target)) ocultarResultados(); });
 
         function toggleMobileMenu() { document.querySelector('.mobile-menu').classList.toggle('active'); document.querySelector('.mobile-menu-overlay').classList.toggle('active'); }
+        
         function closeMobileMenu() { document.querySelector('.mobile-menu').classList.remove('active'); document.querySelector('.mobile-menu-overlay').classList.remove('active'); }
+        
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
         
     </script>
