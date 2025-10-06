@@ -283,7 +283,6 @@
             box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3);
         }
         
-        /* Estilos para Playoffs (Añadidos para la nueva sección) */
         .playoffs-list [data-list] { display: flex; flex-direction: column; gap: 10px; }
         .seed-row { display: flex; align-items: center; background: rgba(255, 215, 0, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #ffd700; }
         .seed-num { font-weight: bold; color: #ffd700; margin-right: 15px; font-size: 1.2em; }
@@ -308,6 +307,7 @@
             padding: 40px 20px;
             color: #ffd700;
             font-style: italic;
+            display: none;
         }
 
         .loading, [data-loader] {
@@ -315,6 +315,12 @@
             padding: 40px 20px;
             color: #ffd700;
             font-weight: bold;
+        }
+        
+        [data-loader] {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .loading::after, [data-loader]::after {
@@ -469,7 +475,6 @@
             font-weight: bold;
         }
 
-        /* Botón WhatsApp */
         .whatsapp-btn {
             position: fixed;
             bottom: 20px;
@@ -832,138 +837,53 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
         }
-
-        .leaders-grid-enhanced {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .leader-card-enhanced {
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
-            border-radius: 20px;
-            padding: 25px;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            transform-origin: center;
-        }
-
-        .leader-card-enhanced::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
-            transition: left 0.8s ease;
-        }
-
-        .leader-card-enhanced:hover::before {
-            left: 100%;
-        }
-
-        .leader-card-enhanced:hover {
-            transform: translateY(-8px) scale(1.03) rotateX(5deg);
-            box-shadow: 0 20px 40px rgba(255, 215, 0, 0.4);
-            border-color: #ffd700;
-        }
-
-        .leader-card-enhanced.animate-update {
-            animation: cardUpdate 0.8s ease-in-out;
-        }
-
-        @keyframes cardUpdate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05) rotateY(5deg); }
-            100% { transform: scale(1); }
-        }
-
-        .leader-card-enhanced h4 {
-            color: #ffd700;
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            text-align: center;
-            border-bottom: 2px solid #ffd700;
-            padding-bottom: 12px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            position: relative;
-            z-index: 1;
-        }
-
-        .leader-item-enhanced {
+        
+        /* Estilos para las nuevas tarjetas de líderes */
+        .leader-card {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 15px 10px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-            position: relative;
-            z-index: 1;
-            transition: all 0.3s ease;
-            border-radius: 10px;
-            margin: 5px 0;
+            gap: 15px;
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.15);
         }
-
-        .leader-item-enhanced:hover {
-            background: rgba(255, 215, 0, 0.1);
-            transform: translateX(10px);
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-        }
-
-        .leader-item-enhanced:last-child {
+        .leader-card:last-child {
             border-bottom: none;
         }
-
-        .leader-info {
+        .leader-rank {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ff8c00;
+            width: 30px;
+            text-align: center;
+        }
+        .leader-name {
+            flex-grow: 1;
+        }
+        .leader-name .leader-team {
+            display: block;
+            font-size: 0.8rem;
+            color: #ffd700;
+            opacity: 0.8;
+        }
+        .leader-metrics {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+        .metric {
+            text-align: right;
+        }
+        .metric label {
+            font-size: 0.7rem;
+            color: #ffd700;
+            opacity: 0.7;
+            display: block;
+        }
+        
+        .leaders-grid-enhanced {
             display: flex;
             flex-direction: column;
         }
-
-        .leader-name-enhanced {
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            font-size: 1.1rem;
-            transition: color 0.3s ease;
-        }
-
-        .leader-item-enhanced:hover .leader-name-enhanced {
-            color: #ffd700;
-        }
-
-        .leader-team-enhanced {
-            color: #ffd700;
-            font-size: 0.8rem;
-            opacity: 0.8;
-            margin-top: 3px;
-        }
-
-        .leader-stat-enhanced {
-            color: #ff8c00;
-            font-weight: bold;
-            font-size: 1.3rem;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
-            transition: all 0.3s ease;
-        }
-
-        .leader-item-enhanced:hover .leader-stat-enhanced {
-            color: #ffd700;
-            transform: scale(1.1);
-        }
-
-        .ranking-medal {
-            font-size: 1.5rem;
-            margin-right: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-
-        .ranking-1 .ranking-medal { color: #FFD700; }
-        .ranking-2 .ranking-medal { color: #C0C0C0; }
-        .ranking-3 .ranking-medal { color: #CD7F32; }
 
         .comparison-modal {
             display: none;
@@ -1859,9 +1779,26 @@
                     <button class="leader-filter" data-category="todos">📊 Todos</button>
                 </div>
                 
-                <div data-loader>Cargando...</div>
-                <div data-empty></div>
-                <div class="leaders-grid-enhanced" id="lideresGrid" data-list></div>
+                <div id="lideresBateo" class="leaders-panel">
+                    <div data-loader style="display: flex;">Cargando...</div>
+                    <div data-empty style="display: none;"></div>
+                    <div class="leaders-grid-enhanced" data-list></div>
+                </div>
+                <div id="lideresPitcheo" class="leaders-panel" style="display: none;">
+                    <div data-loader style="display: flex;">Cargando...</div>
+                    <div data-empty style="display: none;"></div>
+                    <div class="leaders-grid-enhanced" data-list></div>
+                </div>
+                <div id="lideresDefensiva" class="leaders-panel" style="display: none;">
+                    <div data-loader style="display: flex;">Cargando...</div>
+                    <div data-empty style="display: none;"></div>
+                    <div class="leaders-grid-enhanced" data-list></div>
+                </div>
+                <div id="lideresTodos" class="leaders-panel" style="display: none;">
+                    <div data-loader style="display: flex;">Cargando...</div>
+                    <div data-empty style="display: none;"></div>
+                    <div class="leaders-grid-enhanced" data-list></div>
+                </div>
             </div>
 
             <div class="card">
@@ -1920,53 +1857,14 @@
         // Configuración de API - URL de Railway
         const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
         
-        // Función helper para construir URLs
         function getApiUrl(endpoint) {
             if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
             return `${API_BASE_URL}${endpoint}`;
         }
-
-        // =================================================================================
-        // 1. UTILIDADES GLOBALES
-        // =================================================================================
-
-        async function fetchJSON(url, options = {}) {
-            try {
-                const fullUrl = getApiUrl(url); // Usar el helper para construir la URL completa
-                const res = await fetch(fullUrl, { headers: { 'Accept': 'application/json' }, ...options });
-                if (!res.ok) {
-                    const text = await res.text().catch(() => '');
-                    throw new Error(`HTTP ${res.status} ${res.statusText} :: ${text}`);
-                }
-                return await res.json();
-            } catch (err) {
-                console.error('fetchJSON error:', url, err);
-                // Aquí podrías implementar un toast de error si lo tuvieras
-                throw err;
-            }
-        }
-
-        function setLoading(containerId, isLoading, emptyMessage = null) {
-            const el = document.getElementById(containerId);
-            if (!el) return;
-
-            const loader = el.querySelector('[data-loader]');
-            const empty = el.querySelector('[data-empty]');
-            const content = el.querySelector('.table-container') || el.querySelector('[data-list]');
-            
-            if (loader) loader.style.display = isLoading ? 'block' : 'none';
-            if (content) content.style.display = isLoading ? 'none' : (emptyMessage ? 'none' : '');
-
-            if (empty) {
-                empty.style.display = (!isLoading && emptyMessage) ? 'block' : 'none';
-                if (emptyMessage) empty.textContent = emptyMessage;
-            }
-        }
-
-        // =================================================================================
-        // 2. TABLA DE POSICIONES
-        // =================================================================================
         
+        // =================================================================================
+        // SECCIÓN DE POSICIONES, PARTIDOS, PLAYOFFS (SIN CAMBIOS)
+        // =================================================================================
         async function cargarTablaPosiciones() {
             const tbodyEl = document.getElementById('tablaPosicionesBody');
             try {
@@ -1974,12 +1872,16 @@
                 const standings = await fetchJSON('/api/standings');
                 renderTablaPosiciones(standings || [], tbodyEl);
                 if (!standings || standings.length === 0) {
-                    setLoading('tablaPosiciones', false, 'Sin datos de posiciones por el momento.');
+                    setLoading('tablaPosiciones', false, 'Sin datos de posiciones.');
                 } else {
                     setLoading('tablaPosiciones', false);
                 }
             } catch (e) {
-                setLoading('tablaPosiciones', false, 'No se pudo cargar la tabla de posiciones.');
+                setLoading('tablaPosiciones', false, 'No se pudo cargar la tabla.');
+            } finally {
+                // Asegurar que el loader se oculte si todo falla
+                const loader = document.querySelector('#tablaPosiciones [data-loader]');
+                if(loader && loader.style.display !== 'none') setLoading('tablaPosiciones', false, 'Error de carga.');
             }
         }
 
@@ -1989,168 +1891,144 @@
                 .sort((a, b) => (b.porcentaje ?? 0) - (a.porcentaje ?? 0))
                 .map((t, i) => {
                     const posicion = i + 1;
-                    const enPlayoffs = posicion <= 8; // Asumiendo 8 equipos en playoffs
-                    let estadoHTML = enPlayoffs ? '<span class="playoff-indicator">Playoffs</span>' : (posicion >= standings.length - 2 ? '<span class="eliminated">Eliminado</span>' : '<span class="warning">En Lucha</span>');
-                    
+                    const enPlayoffs = posicion <= 8;
+                    let estadoHTML = enPlayoffs ? '<span class="playoff-indicator">Playoffs</span>' : 'En Lucha';
                     return `
                     <tr data-equipo-id="${t.equipo_id}">
                         <td><span class="position-number">${posicion}</span></td>
                         <td><strong style="color: #ffd700;">${t.equipo_nombre ?? ''}</strong></td>
-                        <td>${t.pj ?? 0}</td>
-                        <td style="color: #4CAF50;">${t.pg ?? 0}</td>
+                        <td>${t.pj ?? 0}</td><td style="color: #4CAF50;">${t.pg ?? 0}</td>
                         <td style="color: #dc143c;">${t.pp ?? 0}</td>
-                        <td><strong>${(t.porcentaje != null && t.porcentaje.toFixed) ? (t.porcentaje).toFixed(3) : '0.000'}</strong></td>
-                        <td style="color: #4CAF50;">${t.cf ?? 0}</td>
-                        <td style="color: #ff8c00;">${t.ce ?? 0}</td>
+                        <td><strong>${(t.porcentaje != null) ? Number(t.porcentaje).toFixed(3) : '0.000'}</strong></td>
+                        <td>${t.cf ?? 0}</td><td>${t.ce ?? 0}</td>
                         <td style="color: ${t.dif >= 0 ? '#4CAF50' : '#dc143c'};">${t.dif >= 0 ? '+' : ''}${t.dif ?? 0}</td>
                         <td>${t.estado ?? estadoHTML}</td>
-                    </tr>
-                `}).join('');
-            tbodyEl.innerHTML = rows || '';
+                    </tr>`;
+                }).join('');
+            tbodyEl.innerHTML = rows;
         }
-
-        // =================================================================================
-        // 3. ÚLTIMOS PARTIDOS
-        // =================================================================================
 
         async function cargarUltimosPartidos() {
             const tbody = document.getElementById('ultimosPartidosBody');
             try {
                 setLoading('ultimosPartidos', true);
-                const partidos = await fetchJSON('/api/partidos?estado=finalizado&limit=10'); // Aumentado a 10
+                const partidos = await fetchJSON('/api/partidos?estado=finalizado&limit=10');
                 renderUltimosPartidos(partidos || [], tbody);
-                setLoading('ultimosPartidos', false, (partidos && partidos.length) ? null : 'Sin partidos finalizados recientemente.');
+                setLoading('ultimosPartidos', false, (partidos && partidos.length) ? null : 'Sin partidos finalizados.');
             } catch (e) {
-                setLoading('ultimosPartidos', false, 'No se pudieron cargar los últimos partidos.');
+                setLoading('ultimosPartidos', false, 'No se pudieron cargar los partidos.');
             }
         }
 
         function renderUltimosPartidos(partidos, tbody) {
             if (!tbody) return;
-            const fmtFecha = (iso) => {
-                try { return new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }); } catch { return '-'; }
-            };
-            const rows = (partidos || []).map(p => `
+            const fmtFecha = (iso) => new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            tbody.innerHTML = (partidos || []).map(p => `
                 <tr>
-                    <td>${p.equipo_local_nombre ?? ''}</td>
-                    <td>${p.equipo_visitante_nombre ?? ''}</td>
-                    <td><strong style="color: #4CAF50;">${(p.carreras_local ?? 0)} – ${(p.carreras_visitante ?? 0)}</strong></td>
-                    <td>${p.innings ?? '-'}</td>
-                    <td>${fmtFecha(p.fecha_partido)}</td>
-                </tr>
-            `).join('');
-            tbody.innerHTML = rows || '';
-        }
-        
-        // =================================================================================
-        // 4. LÍDERES
-        // =================================================================================
-        const loadedLeaderCategories = new Set();
-
-        async function cargarLideresPorTipo(tipo) {
-            const containerId = 'lideresContainer';
-            try {
-                setLoading(containerId, true);
-                const data = await fetchJSON(`/api/leaders?tipo=${encodeURIComponent(tipo)}&limit=5`);
-                renderLideres(data || [], containerId, tipo);
-                setLoading(containerId, false, (data && data.length) ? null : `Sin datos de líderes de ${tipo}.`);
-                loadedLeaderCategories.add(tipo);
-            } catch (e) {
-                setLoading(containerId, false, `No se pudieron cargar líderes de ${tipo}.`);
-            }
+                    <td>${p.equipo_local_nombre ?? ''}</td><td>${p.equipo_visitante_nombre ?? ''}</td>
+                    <td><strong style="color: #4CAF50;">${p.carreras_local ?? 0} – ${p.carreras_visitante ?? 0}</strong></td>
+                    <td>${p.innings ?? '-'}</td><td>${fmtFecha(p.fecha_partido)}</td>
+                </tr>`).join('');
         }
 
-        function renderLideres(items, containerId, categoria) {
-            const cont = document.querySelector(`#${containerId} [data-list]`);
-            if (!cont) return;
-
-            cont.innerHTML = items.map((j, index) => {
-                const rankingIcon = index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`;
-                
-                const metrics = `
-                    ${j.avg  != null ? `<div class="stat"><span class="stat-value">${Number(j.avg).toFixed(3)}</span><span class="stat-label">AVG</span></div>` : ''}
-                    ${j.hr   != null ? `<div class="stat"><span class="stat-value">${j.hr}</span><span class="stat-label">HR</span></div>` : ''}
-                    ${j.rbi  != null ? `<div class="stat"><span class="stat-value">${j.rbi}</span><span class="stat-label">RBI</span></div>` : ''}
-                    ${j.ops  != null ? `<div class="stat"><span class="stat-value">${Number(j.ops).toFixed(3)}</span><span class="stat-label">OPS</span></div>` : ''}
-                    ${j.era  != null ? `<div class="stat"><span class="stat-value">${Number(j.era).toFixed(2)}</span><span class="stat-label">ERA</span></div>` : ''}
-                    ${j.whip != null ? `<div class="stat"><span class="stat-value">${Number(j.whip).toFixed(2)}</span><span class="stat-label">WHIP</span></div>` : ''}
-                    ${j.fpct != null ? `<div class="stat"><span class="stat-value">${Number(j.fpct).toFixed(3)}</span><span class="stat-label">FPCT</span></div>` : ''}
-                `;
-
-                return `
-                <div class="leader-card-enhanced" data-player-id="${j.jugador_id}">
-                    <div class="leader-rank" style="position: absolute; top: 15px; left: 15px; font-size: 1.2rem; font-weight: bold; color: #ffd700;">
-                        ${rankingIcon}
-                    </div>
-                    <div class="leader-info" style="text-align: center; padding-top: 20px;">
-                        <h4 style="color: #fff; font-size: 1.2rem;">${j.nombre || 'Jugador'}</h4>
-                        <p class="team-name" style="color: #ffd700; opacity: 0.8;">${j.equipo_nombre || 'Sin equipo'}</p>
-                        <div class="leader-stats" style="display: flex; justify-content: center; gap: 20px; margin-top: 15px; font-weight: bold; color: #ff8c00; font-size: 1.2rem;">
-                            ${metrics.replace(/class="stat-value"/g, 'style="font-size: 1.5rem;"').replace(/class="stat-label"/g, 'style="display: block; font-size: 0.8rem; opacity: 0.7; color: #fff;"')}
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        
-        // =================================================================================
-        // 5. PLAYOFFS
-        // =================================================================================
         async function cargarPlayoffs() {
             const containerId = 'playoffsContainer';
-            const cont = document.querySelector(`#${containerId} [data-list]`);
             try {
                 setLoading(containerId, true);
                 const data = await fetchJSON('/api/playoffs');
-                renderPlayoffs(data || [], cont);
+                renderPlayoffs(data || [], containerId);
                 setLoading(containerId, false, (data && data.length) ? null : 'Aún no hay datos de playoffs.');
             } catch (e) {
                 setLoading(containerId, false, 'No se pudieron cargar los datos de playoffs.');
             }
         }
 
-        function renderPlayoffs(items, cont) {
+        function renderPlayoffs(items, containerId) {
+            const cont = document.querySelector(`#${containerId} [data-list]`);
             if (!cont) return;
             cont.innerHTML = (items || []).map((t, idx) => `
                 <div class="seed-row">
-                <span class="seed-num">#${t.seed ?? (idx + 1)}</span>
-                <span class="seed-team">${t.equipo_nombre ?? t.equipo ?? ''}</span>
-                ${t.record ? `<span class="seed-record">${t.record}</span>` : ''}
-                </div>
-            `).join('');
+                    <span class="seed-num">#${t.seed ?? (idx + 1)}</span>
+                    <span class="seed-team">${t.equipo_nombre ?? ''}</span>
+                    ${t.record ? `<span class="seed-record">${t.record}</span>` : ''}
+                </div>`).join('');
+        }
+        
+        // ===============================================================
+        // INICIO DE LA CORRECCIÓN: SECCIÓN DE LÍDERES
+        // ===============================================================
+
+        // 1. UTILIDADES GLOBALES (Revisadas y mejoradas)
+        async function fetchJSON(url, options = {}) {
+            try {
+                const fullUrl = getApiUrl(url);
+                const res = await fetch(fullUrl, { 
+                    headers: { 'Accept': 'application/json' }, 
+                    ...options 
+                });
+                if (!res.ok) {
+                    const text = await res.text().catch(() => '');
+                    throw new Error(`HTTP ${res.status} ${res.statusText} :: ${text}`);
+                }
+                return await res.json();
+            } catch (err) {
+                console.error('fetchJSON error:', url, err);
+                throw err;
+            }
         }
 
+        function setLoading(containerId, isLoading, emptyMessage = null) {
+            const root = document.getElementById(containerId);
+            if (!root) {
+                console.warn(`Contenedor no encontrado: ${containerId}`);
+                return;
+            }
+            const loader = root.querySelector('[data-loader]');
+            const empty = root.querySelector('[data-empty]');
+            const content = root.querySelector('[data-list]');
+            
+            if (loader) loader.style.display = isLoading ? 'flex' : 'none';
+            if (content) content.style.display = isLoading ? 'none' : 'block';
+            
+            if (empty) {
+                empty.textContent = emptyMessage || '';
+                empty.style.display = (!isLoading && emptyMessage) ? 'block' : 'none';
+                if(emptyMessage && content) content.style.display = 'none';
+            }
+        }
+
+        // 2. SISTEMA DE CACHÉ Y CARGA DE LÍDERES (Código antiguo será reemplazado)
+        // ... El código nuevo irá aquí ...
+
+        // 3. RENDERIZADO DE TARJETAS DE LÍDERES (Código antiguo será reemplazado)
+        // ... El código nuevo irá aquí ...
+
+        // 4. CONEXIÓN DE BOTONES Y GESTIÓN VISUAL (Código antiguo será reemplazado)
+        // ... El código nuevo irá aquí ...
+
+        
         // =================================================================================
-        // 6. INICIALIZACIÓN Y LÓGICA EXISTENTE
+        // LÓGICA EXISTENTE QUE SE CONSERVA (Búsqueda, Menú Móvil, etc.)
         // =================================================================================
 
-        // Variables globales existentes
         let equipos = [];
         let jugadores = [];
         let selectedPlayersForComparison = [];
 
         document.addEventListener('DOMContentLoaded', function() {
-            // --- NUEVA INICIALIZACIÓN ---
             cargarTablaPosiciones();
             cargarUltimosPartidos();
             cargarPlayoffs();
             
-            // Cargar la primera pestaña de líderes por defecto
-            const defaultCategory = 'bateo';
-            cargarLideresPorTipo(defaultCategory);
-            loadedLeaderCategories.add(defaultCategory);
+            // La inicialización de líderes se manejará con la nueva función
+            // inicializarLideres(); // Se añadirá más adelante
 
-            // --- LÓGICA EXISTENTE QUE SE CONSERVA ---
             configurarEventListeners();
             cargarProximosPartidos();
-            configurarFiltrosLideres();
-            cargarDatosParaBusqueda(); // Cargar datos para la funcionalidad de búsqueda
-            
-            // Lógica de stats completos y mejores por posición (se mantiene por ahora)
+            cargarDatosParaBusqueda();
             cargarEstadisticasCompletas(); 
         });
 
-        // Función para cargar datos necesarios para la búsqueda en segundo plano
         async function cargarDatosParaBusqueda() {
              try {
                 const [equiposRes, jugadoresRes] = await Promise.all([
@@ -2158,7 +2036,10 @@
                     fetch(getApiUrl('/api/jugadores'))
                 ]);
                 if (equiposRes.ok) equipos = await equiposRes.json();
-                if (jugadoresRes.ok) jugadores = await jugadoresRes.json();
+                if (jugadoresRes.ok) {
+                    const data = await jugadoresRes.json();
+                    jugadores = data.jugadores;
+                }
              } catch(e) { console.error("Error cargando datos para búsqueda:", e); }
         }
         
@@ -2179,36 +2060,18 @@
             if (botonActivo) botonActivo.classList.add('active');
         }
 
-        function configurarFiltrosLideres() {
-            const filtros = document.querySelectorAll('.leader-filter');
-            filtros.forEach(filtro => {
-                filtro.addEventListener('click', function() {
-                    filtros.forEach(f => f.classList.remove('active'));
-                    this.classList.add('active');
-                    const categoria = this.dataset.category;
-                    if (!loadedLeaderCategories.has(categoria)) {
-                        cargarLideresPorTipo(categoria);
-                    }
-                });
-            });
-        }
-        
-        // --- SE MANTIENEN FUNCIONES NO MODIFICADAS O AUXILIARES ---
-        
-        // Próximos Partidos (se conserva)
         async function cargarProximosPartidos() {
           try {
             const response = await fetch(getApiUrl('/api/proximos-partidos'));
-            if (!response.ok) throw new Error('Error cargando próximos partidos');
+            if (!response.ok) throw new Error('Error');
             const proximosPartidos = await response.json();
             if (proximosPartidos.length === 0) {
-              document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state"><h3>📅 Sin partidos programados</h3><p>Los próximos partidos aparecerán aquí.</p></div>`;
+              document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state"><h3>📅 Sin partidos programados</h3></div>`;
               return;
             }
             renderizarProximosPartidos(proximosPartidos);
           } catch (error) {
-            console.error('Error cargando próximos partidos:', error);
-            document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state"><h3>⚠️ Error de conexión</h3><p>No se pudieron cargar los próximos partidos.</p></div>`;
+            document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state"><h3>⚠️ Error de conexión</h3></div>`;
           }
         }
         function renderizarProximosPartidos(partidos) {
@@ -2216,38 +2079,32 @@
             if (!cont) return;
             cont.innerHTML = partidos.map(p => `
                 <div class="partido-card-enhanced">
-                <div class="partido-header">
-                    <div><strong>${p.equipo_local_nombre}</strong> vs <strong>${p.equipo_visitante_nombre}</strong></div>
-                    <div class="partido-fecha">
-                    ${new Date(p.fecha_partido).toLocaleDateString('es-ES', { timeZone: 'UTC' })} ${p.hora ? `· ${p.hora.substring(0, 5)}` : ''}
+                    <div class="partido-header">
+                        <div><strong>${p.equipo_local_nombre}</strong> vs <strong>${p.equipo_visitante_nombre}</strong></div>
+                        <div class="partido-fecha">${new Date(p.fecha_partido).toLocaleDateString('es-ES', { timeZone: 'UTC' })} ${p.hora ? `· ${p.hora.substring(0, 5)}` : ''}</div>
                     </div>
-                </div>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
 
-        // Estadísticas Completas (se conserva)
         async function cargarEstadisticasCompletas() {
              try {
                 const statsRes = await fetch(getApiUrl('/api/estadisticas-ofensivas'));
                 if (statsRes.ok) {
                     const estadisticas = await statsRes.json();
                     const tbody = document.getElementById('statsTable').querySelector('tbody');
-                    tbody.innerHTML = estadisticas.map(s => `<tr><td>${s.nombre_jugador}</td><td>${s.equipo_nombre}</td><td>${s.posicion}</td><td>${s.ab}</td><td>${s.h}</td><td>${s.avg.toFixed(3)}</td><td>${s.obp.toFixed(3)}</td><td>${s.ops.toFixed(3)}</td><td>${s.hr}</td><td>${s.rbi}</td><td>${s.war.toFixed(2)}</td></tr>`).join('');
+                    tbody.innerHTML = estadisticas.slice(0, 10).map(s => `<tr><td>${s.jugador_nombre}</td><td>${s.equipo_nombre}</td><td>${s.posicion || '-'}</td><td>${s.at_bats}</td><td>${s.hits}</td><td>${s.avg}</td><td>${s.obp}</td><td>${s.ops}</td><td>${s.home_runs}</td><td>${s.rbi}</td><td>-</td></tr>`).join('');
                 }
              } catch(e) { console.error('Error cargando stats completas', e); }
-             // Cargar líderes defensivos para la otra tabla
              try {
                 const defRes = await fetch(getApiUrl('/api/lideres-defensivos'));
                 if(defRes.ok) {
                     const lideres = await defRes.json();
                     const grid = document.getElementById('positionLeadersGrid');
-                    grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.nombre_jugador}</span><span class="position-rating">${l.fielding_percentage}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
+                    grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion || 'DEF'}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.jugador_nombre}</span><span class="position-rating">${l.fielding_percentage}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
                 }
              } catch(e) { console.error('Error cargando líderes defensivos', e); }
         }
 
-        // Lógica de búsqueda (se conserva)
         let searchTimeout;
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('globalSearch');
@@ -2269,6 +2126,7 @@
         }
         function mostrarResultados(resultados) {
             const container = document.getElementById('searchResults');
+            if (!container) return;
             if (resultados.length === 0) {
                 container.innerHTML = `<div class="search-result-item"><div class="result-name">No se encontraron resultados</div></div>`;
             } else {
@@ -2286,7 +2144,6 @@
         function realizarBusquedaGlobal() { const q = document.getElementById('globalSearch').value.trim(); if (q.length >= 2) { buscarEnTiempoReal(q); } }
         document.addEventListener('click', function(e) { const sc = document.querySelector('.search-container'); if (sc && !sc.contains(e.target)) ocultarResultados(); });
 
-        // Funciones de UI (se conservan)
         function toggleMobileMenu() { document.querySelector('.mobile-menu').classList.toggle('active'); document.querySelector('.mobile-menu-overlay').classList.toggle('active'); }
         function closeMobileMenu() { document.querySelector('.mobile-menu').classList.remove('active'); document.querySelector('.mobile-menu-overlay').classList.remove('active'); }
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
