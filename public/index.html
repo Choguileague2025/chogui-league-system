@@ -1536,6 +1536,174 @@
             justify-content: center;
           }
         }
+        
+        /* ============= PLAYOFFS ============= */
+        .playoffs-container {
+          background: linear-gradient(145deg, rgba(26, 26, 46, 0.9), rgba(15, 15, 30, 0.95));
+          border-radius: 15px;
+          padding: 1.5rem;
+          border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        .playoffs-config {
+          display: flex;
+          justify-content: space-around;
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          background: rgba(255, 215, 0, 0.1);
+          border-radius: 10px;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+        .playoffs-config span {
+          font-size: 0.95rem;
+          color: #fff;
+        }
+        .playoffs-config strong {
+          color: #ffd700;
+          font-size: 1.1rem;
+        }
+        .table-container {
+          overflow-x: auto;
+          margin-bottom: 1.5rem;
+        }
+        .tabla-playoffs {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 0.9rem;
+        }
+        .tabla-playoffs th {
+          background: linear-gradient(145deg, #ffd700, #ff8c00);
+          color: #1a1a2e;
+          padding: 0.75rem 0.5rem;
+          text-align: center;
+          font-weight: bold;
+          font-size: 0.85rem;
+          white-space: nowrap;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+        .tabla-playoffs td {
+          padding: 0.75rem 0.5rem;
+          text-align: center;
+          border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+          white-space: nowrap;
+        }
+        .tabla-playoffs tbody tr {
+          transition: background 0.3s ease;
+        }
+        .tabla-playoffs tbody tr:hover {
+          background: rgba(255, 215, 0, 0.1);
+        }
+        /* Estados de clasificación */
+        .tabla-playoffs .estado-clasificado {
+          background: rgba(30, 127, 57, 0.15);
+        }
+        .tabla-playoffs .estado-eliminado {
+          background: rgba(139, 29, 29, 0.15);
+          opacity: 0.7;
+        }
+        /* Columnas especiales */
+        .pos-col {
+          font-weight: bold;
+          color: #ffd700;
+        }
+        .equipo-col {
+          text-align: left !important;
+          min-width: 150px;
+        }
+        .positivo {
+          color: #4ade80;
+          font-weight: bold;
+        }
+        .negativo {
+          color: #ef4444;
+          font-weight: bold;
+        }
+        /* Badges de estado */
+        .badge {
+          display: inline-block;
+          padding: 0.25rem 0.75rem;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .badge.clasificado {
+          background: linear-gradient(145deg, #1e7f39, #16a34a);
+          color: #fff;
+          box-shadow: 0 2px 4px rgba(30, 127, 57, 0.3);
+        }
+        .badge.contención {
+          background: linear-gradient(145deg, #c68a00, #eab308);
+          color: #1a1a2e;
+          box-shadow: 0 2px 4px rgba(198, 138, 0, 0.3);
+        }
+        .badge.eliminado {
+          background: linear-gradient(145deg, #8b1d1d, #dc2626);
+          color: #fff;
+          box-shadow: 0 2px 4px rgba(139, 29, 29, 0.3);
+        }
+        /* Leyenda */
+        .playoffs-leyenda {
+          padding: 1rem;
+          background: rgba(26, 26, 46, 0.5);
+          border-radius: 10px;
+          border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+        .playoffs-leyenda h4 {
+          color: #ffd700;
+          font-size: 0.95rem;
+          margin-bottom: 0.75rem;
+        }
+        .playoffs-leyenda ul {
+          list-style: none;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .playoffs-leyenda li {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          font-size: 0.85rem;
+          color: rgba(255, 255, 255, 0.8);
+        }
+        .playoffs-leyenda .badge {
+          min-width: 20px;
+          height: 20px;
+          padding: 0;
+        }
+        /* Responsive */
+        @media (max-width: 768px) {
+          .tabla-playoffs {
+            font-size: 0.75rem;
+          }
+          .tabla-playoffs th,
+          .tabla-playoffs td {
+            padding: 0.5rem 0.25rem;
+          }
+          .equipo-col {
+            min-width: 100px;
+          }
+          .playoffs-config {
+            flex-direction: column;
+            text-align: center;
+          }
+          .playoffs-leyenda ul {
+            font-size: 0.75rem;
+          }
+        }
+        /* Scroll horizontal en móvil */
+        @media (max-width: 640px) {
+          .table-container {
+            margin: 0 -1rem;
+            padding: 0 1rem;
+          }
+        }
+
     </style>
 </head>
 <body>
@@ -1844,12 +2012,53 @@
         </div>
         
         <div id="playoffs" class="tab-content">
-            <div class="card" id="playoffsContainer">
-                <h3>🔥 Clasificación a Playoffs</h3>
-                <div data-loader>Cargando...</div>
-                <div data-empty></div>
-                <div class="playoffs-list" data-list></div>
-            </div>
+            <section id="playoffs-section" class="section">
+              <div class="section-header">
+                <h2>🏆 Clasificación Playoffs</h2>
+              </div>
+                <div data-loader style="display: none;">
+                Cargando clasificación...
+              </div>
+                <div data-empty style="display: none;"></div>
+                <div class="playoffs-container">
+                <div class="playoffs-config">
+                  <span id="playoffs-cupos"></span>
+                  <span id="playoffs-juegos"></span>
+                </div>
+            
+                <div class="table-container">
+                  <table class="tabla-playoffs" id="playoffsTable">
+                    <thead>
+                      <tr>
+                        <th>Pos</th>
+                        <th>Equipo</th>
+                        <th>PJ</th>
+                        <th>PG</th>
+                        <th>PP</th>
+                        <th>%</th>
+                        <th>CF</th>
+                        <th>CE</th>
+                        <th>DIF</th>
+                        <th>Rest</th>
+                        <th>Máx</th>
+                        <th>Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody id="playoffsBody">
+                      </tbody>
+                  </table>
+                </div>
+            
+                <div class="playoffs-leyenda">
+                  <h4>📋 Criterios de clasificación:</h4>
+                  <ul>
+                    <li><span class="badge clasificado"></span> <strong>Clasificado:</strong> Ha asegurado un cupo matemáticamente</li>
+                    <li><span class="badge contención"></span> <strong>En contención:</strong> Todavía tiene posibilidades de clasificar</li>
+                    <li><span class="badge eliminado"></span> <strong>Eliminado:</strong> No puede alcanzar los playoffs matemáticamente</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
         </div>
     </div>
 
@@ -1864,7 +2073,7 @@
         }
         
         // =================================================================================
-        // SECCIÓN DE POSICIONES, PARTIDOS, PLAYOFFS (SIN CAMBIOS)
+        // SECCIÓN DE POSICIONES, PARTIDOS (SIN CAMBIOS)
         // =================================================================================
         async function cargarTablaPosiciones() {
             const tbodyEl = document.getElementById('tablaPosicionesBody');
@@ -1923,30 +2132,72 @@
                     <td>${p.innings ?? '-'}</td><td>${fmtFecha(p.fecha_partido)}</td>
                 </tr>`).join('');
         }
-
-        async function cargarPlayoffs() {
-            const containerId = 'playoffsContainer';
+        
+        // ============= SISTEMA DE PLAYOFFS (NUEVO) =============
+        async function cargarPlayoffsClasificacion() {
+          console.log('🏆 Cargando clasificación de playoffs...');
+          // Usamos el ID de la sección como referencia para setLoading
+          setLoading('playoffs-section', true);
             try {
-                setLoading(containerId, true);
-                const data = await fetchJSON('/api/playoffs');
-                renderPlayoffs(data || [], containerId);
-                setLoading(containerId, false, (data && data.length) ? null : 'Aún no hay datos de playoffs.');
-            } catch (e) {
-                setLoading(containerId, false, 'No se pudieron cargar los datos de playoffs.');
+            const data = await fetchJSON('/api/playoffs-clasificacion');
+                if (!data || !data.equipos || data.equipos.length === 0) {
+              setLoading('playoffs-section', false, 'No hay datos de clasificación disponibles');
+              return;
             }
-        }
-
-        function renderPlayoffs(items, containerId) {
-            const cont = document.querySelector(`#${containerId} [data-list]`);
-            if (!cont) return;
-            cont.innerHTML = (items || []).map((t, idx) => `
-                <div class="seed-row">
-                    <span class="seed-num">#${t.seed ?? (idx + 1)}</span>
-                    <span class="seed-team">${t.equipo_nombre ?? ''}</span>
-                    ${t.record ? `<span class="seed-record">${t.record}</span>` : ''}
-                </div>`).join('');
+                console.log(`📊 Clasificación cargada: ${data.equipos.length} equipos`);
+            renderPlayoffsClasificacion(data);
+            setLoading('playoffs-section', false);
+              } catch (err) {
+            console.error('❌ Error cargando playoffs:', err);
+            setLoading('playoffs-section', false, 'No se pudo cargar la clasificación de playoffs');
+          }
         }
         
+        function renderPlayoffsClasificacion(data) {
+          const { configuracion, equipos } = data;
+            // Actualizar configuración visible
+          const cuposEl = document.getElementById('playoffs-cupos');
+          const juegosEl = document.getElementById('playoffs-juegos');
+            if (cuposEl) {
+            cuposEl.innerHTML = `<strong>${configuracion.cupos_playoffs}</strong> equipos clasifican`;
+          }
+            if (juegosEl) {
+            juegosEl.innerHTML = `Temporada regular: <strong>${configuracion.total_juegos}</strong> juegos`;
+          }
+            // Renderizar tabla
+          const tbody = document.getElementById('playoffsBody');
+          if (!tbody) {
+            console.error('❌ Elemento playoffsBody no encontrado');
+            return;
+          }
+            tbody.innerHTML = equipos.map(team => {
+            const estadoClass = team.estado;
+            const estadoTexto = {
+              'clasificado': 'Clasificado',
+              'contención': 'En contención',
+              'eliminado': 'Eliminado'
+            }[team.estado] || team.estado;
+                const porcentajeFormato = (team.porcentaje * 100).toFixed(1) + '%';
+                return `
+              <tr class="estado-${estadoClass}">
+                <td class="pos-col">${team.posicion}</td>
+                <td class="equipo-col"><strong>${team.equipo_nombre}</strong></td>
+                <td>${team.pj}</td>
+                <td>${team.pg}</td>
+                <td>${team.pp}</td>
+                <td>${porcentajeFormato}</td>
+                <td>${team.cf}</td>
+                <td>${team.ce}</td>
+                <td class="${team.dif >= 0 ? 'positivo' : 'negativo'}">${team.dif >= 0 ? '+' : ''}${team.dif}</td>
+                <td>${team.restantes}</td>
+                <td>${team.max_victorias}</td>
+                <td><span class="badge ${estadoClass}">${estadoTexto}</span></td>
+              </tr>
+            `;
+          }).join('');
+            console.log('✅ Tabla de playoffs renderizada');
+        }
+
         // ===============================================================
         // INICIO DE LA CORRECCIÓN TOTAL
         // ===============================================================
@@ -1978,10 +2229,11 @@
             }
             const loader = root.querySelector('[data-loader]');
             const empty = root.querySelector('[data-empty]');
-            const content = root.querySelector('[data-list]');
+            // El contenido puede ser una lista o el contenedor principal si no hay data-list
+            const content = root.querySelector('[data-list]') || root.querySelector('.playoffs-container') || root.querySelector('.table-container');
 
             if (loader) loader.style.display = isLoading ? 'flex' : 'none';
-            if (content) content.style.display = isLoading ? 'none' : 'flex';
+            if (content) content.style.display = isLoading ? 'none' : 'block'; // O 'flex' si es necesario
             
             if (empty) {
                 empty.innerHTML = emptyMessage || ''; // Usar innerHTML para permitir enlaces
@@ -2187,7 +2439,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             cargarTablaPosiciones();
             cargarUltimosPartidos();
-            cargarPlayoffs();
+            cargarPlayoffsClasificacion(); // <- LLAMADA A LA NUEVA FUNCIÓN
             
             // INICIALIZACIÓN DE NUEVOS SISTEMAS
             configurarTabs();
