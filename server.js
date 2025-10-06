@@ -223,6 +223,7 @@ async function inicializarBaseDeDatos() {
             console.warn("⚠️ No se pudo agregar columnas de playoffs a torneos:", e.message);
         }
 
+        // Migración de partidos (hora y estado)
         try {
             await pool.query(`
                 DO $$ 
@@ -232,8 +233,7 @@ async function inicializarBaseDeDatos() {
                         WHERE table_name='partidos' AND column_name='hora'
                     ) THEN
                         ALTER TABLE partidos ADD COLUMN hora TIME;
-                    END IF;
-                                        
+                    END IF;                                            
                     IF NOT EXISTS (
                         SELECT 1 FROM information_schema.columns 
                         WHERE table_name='partidos' AND column_name='estado'
@@ -243,7 +243,11 @@ async function inicializarBaseDeDatos() {
                 END $$;
             `);
             console.log('✅ Migración de partidos completada');
+        } catch (error) {
+            console.warn('⚠️ Error en migración de partidos:', error.message);
+        }
 
+        // Permitir NULL en carreras para partidos programados
         try {
             await pool.query(`
                 DO $$ 
@@ -263,7 +267,11 @@ async function inicializarBaseDeDatos() {
                 END $$;
             `);
             console.log('✅ Columnas de carreras permiten NULL (ok para partidos programados)');
+        } catch (e) {
+            console.warn('⚠️ No se pudo ajustar NOT NULL de carreras_*:', e.message);
+        }
 
+        // Permitir NULL en posición y número de jugadores
         try {
             await pool.query(`
                 DO $$ 
@@ -285,13 +293,6 @@ async function inicializarBaseDeDatos() {
             console.log('✅ Columnas jugadores.posicion/numero permiten NULL');
         } catch (e) {
             console.warn('⚠️ No se pudo ajustar NOT NULL de jugadores.posicion/numero:', e.message);
-        }
-
-        } catch (e) {
-            console.warn('⚠️ No se pudo ajustar NOT NULL de carreras_*:', e.message);
-        }
-        } catch (error) {
-            console.error('⚠️ Error en migración de partidos:', error.message);
         }
 
         // Crear índices para optimización
@@ -2439,5 +2440,3 @@ app.all(/^\/api\/estadisticas[-_]ofensivas\/(\d+)$/i, (req, res, next) => {
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
 startServer();
-
-}
