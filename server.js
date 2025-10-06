@@ -146,7 +146,9 @@ async function inicializarBaseDeDatos() {
                     id SERIAL PRIMARY KEY, 
                     nombre VARCHAR(100) UNIQUE NOT NULL, 
                     activo BOOLEAN DEFAULT false, 
-                    fecha_inicio TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                    fecha_inicio TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                    total_juegos INTEGER DEFAULT 22,
+                    cupos_playoffs INTEGER DEFAULT 8
                 );`
             },
             {
@@ -212,7 +214,15 @@ async function inicializarBaseDeDatos() {
             await pool.query(`ALTER TABLE equipos ADD COLUMN IF NOT EXISTS estado VARCHAR(20) DEFAULT 'activo';`);
         } catch(e) { console.warn("No se pudo agregar columna estado a equipos"); }
 
-        // FASE 2A: Migración para agregar columnas faltantes a partidos
+        // MIGRACIONES
+        try {
+            await pool.query(`ALTER TABLE torneos ADD COLUMN IF NOT EXISTS total_juegos INTEGER DEFAULT 22;`);
+            await pool.query(`ALTER TABLE torneos ADD COLUMN IF NOT EXISTS cupos_playoffs INTEGER DEFAULT 8;`);
+            console.log('✅ Columnas de playoffs añadidas a la tabla torneos');
+        } catch(e) {
+            console.warn("⚠️ No se pudo agregar columnas de playoffs a torneos:", e.message);
+        }
+
         try {
             await pool.query(`
                 DO $$ 
@@ -234,7 +244,6 @@ async function inicializarBaseDeDatos() {
             `);
             console.log('✅ Migración de partidos completada');
 
-        // Asegurar que carreras_local y carreras_visitante permitan NULL (para partidos 'programado')
         try {
             await pool.query(`
                 DO $$ 
@@ -255,7 +264,6 @@ async function inicializarBaseDeDatos() {
             `);
             console.log('✅ Columnas de carreras permiten NULL (ok para partidos programados)');
 
-        // Asegurar que jugadores.posicion y jugadores.numero permitan NULL
         try {
             await pool.query(`
                 DO $$ 
@@ -517,6 +525,140 @@ app.get('/api/playoffs', async (req, res, next) => {
         console.error('GET /api/playoffs', err);
         res.status(500).json({ error: 'Error obteniendo playoffs' });
     }
+});
+
+// ============= ENDPOINT PLAYOFFS CON CÁLCULOS (NUEVO) =============
+app.get('/api/playoffs-clasificacion', async (req, res) => {
+  try {
+    // 1. Obtener configuración de la temporada activa
+    const configQuery = await pool.query(`
+      SELECT total_juegos, cupos_playoffs
+      FROM torneos
+      WHERE activo = true
+      LIMIT 1
+    `);
+    
+    if (configQuery.rows.length === 0) {
+      return res.status(404).json({
+         error: 'No hay torneo activo configurado'
+       });
+    }
+    
+    const { total_juegos, cupos_playoffs } = configQuery.rows[0];
+
+    // 2. Obtener standings actuales
+    const standingsQuery = await pool.query(`
+      SELECT 
+        e.id as equipo_id,
+        e.nombre as equipo_nombre,
+        COALESCE(COUNT(CASE WHEN p.estado = 'finalizado' THEN 1 END), 0) as pj,
+        COALESCE(COUNT(CASE 
+          WHEN p.estado = 'finalizado' AND (
+            (p.equipo_local_id = e.id AND p.carreras_local > p.carreras_visitante) OR
+            (p.equipo_visitante_id = e.id AND p.carreras_visitante > p.carreras_local)
+          ) THEN 1 END), 0) as pg,
+        COALESCE(COUNT(CASE 
+          WHEN p.estado = 'finalizado' AND (
+            (p.equipo_local_id = e.id AND p.carreras_local < p.carreras_visitante) OR
+            (p.equipo_visitante_id = e.id AND p.carreras_visitante < p.carreras_local)
+          ) THEN 1 END), 0) as pp,
+        COALESCE(SUM(CASE 
+          WHEN p.equipo_local_id = e.id THEN p.carreras_local
+          WHEN p.equipo_visitante_id = e.id THEN p.carreras_visitante
+          ELSE 0 END), 0) as cf,
+        COALESCE(SUM(CASE 
+          WHEN p.equipo_local_id = e.id THEN p.carreras_visitante
+          WHEN p.equipo_visitante_id = e.id THEN p.carreras_local
+          ELSE 0 END), 0) as ce
+      FROM equipos e
+      LEFT JOIN partidos p ON (
+        p.equipo_local_id = e.id OR p.equipo_visitante_id = e.id
+      )
+      WHERE e.estado = 'activo'
+      GROUP BY e.id, e.nombre
+    `);
+
+    // 3. Calcular métricas y ordenar
+    const standings = standingsQuery.rows.map(team => {
+      const pj = Number(team.pj);
+      const pg = Number(team.pg);
+      const pp = Number(team.pp);
+      const cf = Number(team.cf);
+      const ce = Number(team.ce);
+      const dif = cf - ce;
+      const porcentaje = pj > 0 ? pg / pj : 0;
+      const restantes = Math.max(0, total_juegos - pj);
+      const max_victorias = pg + restantes;
+      
+      return {
+        equipo_id: team.equipo_id,
+        equipo_nombre: team.equipo_nombre,
+        pj,
+        pg,
+        pp,
+        porcentaje,
+        cf,
+        ce,
+        dif,
+        restantes,
+        max_victorias
+      };
+    });
+
+    // Ordenar por: PG desc, % desc, DIF desc
+    standings.sort((a, b) => {
+      if (b.pg !== a.pg) return b.pg - a.pg;
+      if (b.porcentaje !== a.porcentaje) return b.porcentaje - a.porcentaje;
+      return b.dif - a.dif;
+    });
+
+    // 4. Calcular estados de clasificación
+    const equipoEnElCorte = standings[cupos_playoffs - 1]; // Último que entra
+    const primerFuera = standings[cupos_playoffs]; // Primero que queda fuera
+
+    const victoriasMinimasParaClasificar = equipoEnElCorte ? equipoEnElCorte.pg : 0;
+    const victoriasMaximasPrimerFuera = primerFuera ? primerFuera.max_victorias : -1; // -1 si no hay equipo fuera
+
+    const resultado = standings.map((team, idx) => {
+      let estado = 'contención';
+      
+      // Clasificado: Mis victorias actuales son mayores o iguales a las victorias máximas que puede alcanzar el primer equipo que queda fuera.
+      if (primerFuera && team.pg >= victoriasMaximasPrimerFuera) {
+        estado = 'clasificado';
+      }
+      // Si no hay "primerFuera" (todos clasifican), todos los que tienen juegos están en contención o clasificados por defecto
+      else if (!primerFuera && team.pj > 0) {
+        estado = 'clasificado';
+      }
+      // Eliminado: Mis victorias máximas posibles son menores que las victorias actuales del último equipo que clasifica.
+      else if (equipoEnElCorte && team.max_victorias < victoriasMinimasParaClasificar) {
+        estado = 'eliminado';
+      }
+      
+      return {
+        posicion: idx + 1,
+        ...team,
+        estado
+      };
+    });
+        
+    // 5. Enviar respuesta con metadata
+    res.json({
+      configuracion: {
+        total_juegos,
+        cupos_playoffs
+      },
+      equipos: resultado
+    });
+    
+    console.log(`✅ Playoffs: ${resultado.length} equipos procesados`);
+
+  } catch (err) {
+    console.error('❌ GET /api/playoffs-clasificacion:', err);
+    res.status(500).json({
+       error: 'Error calculando clasificación de playoffs'
+     });
+  }
 });
 
 
