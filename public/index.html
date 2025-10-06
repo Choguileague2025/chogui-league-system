@@ -1984,7 +1984,7 @@
             if (content) content.style.display = isLoading ? 'none' : 'flex';
             
             if (empty) {
-                empty.textContent = emptyMessage || '';
+                empty.innerHTML = emptyMessage || ''; // Usar innerHTML para permitir enlaces
                 empty.style.display = (!isLoading && emptyMessage) ? 'block' : 'none';
                 if(emptyMessage && content) content.style.display = 'none';
             }
@@ -2125,7 +2125,14 @@
                     btn.classList.add('active');
                     todosPaneles.forEach(p => p.style.display = 'none');
                     panel.style.display = 'block';
-                    cargarLideresPorTipo(tipo, panelId);
+                    // Llamadas específicas para cada tipo
+                    if (tipo === 'defensiva') {
+                        cargarLideresDefensiva();
+                    } else if (tipo === 'todos') {
+                        cargarLideresTodos();
+                    } else {
+                        cargarLideresPorTipo(tipo, panelId);
+                    }
                 });
                 console.log(`✅ Tab configurado: ${tipo} (${btnId} → ${panelId})`);
             });
