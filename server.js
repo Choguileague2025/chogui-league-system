@@ -100,7 +100,8 @@ async function inicializarBaseDeDatos() {
                     nombre VARCHAR(100) UNIQUE NOT NULL, 
                     manager VARCHAR(100) NOT NULL, 
                     ciudad VARCHAR(100) NOT NULL, 
-                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    estado VARCHAR(20) DEFAULT 'activo'
                 );`
             },
             {
@@ -206,6 +207,10 @@ async function inicializarBaseDeDatos() {
             await pool.query(table.query);
             console.log(`✅ Tabla ${table.name} verificada`);
         }
+        
+        try {
+            await pool.query(`ALTER TABLE equipos ADD COLUMN IF NOT EXISTS estado VARCHAR(20) DEFAULT 'activo';`);
+        } catch(e) { console.warn("No se pudo agregar columna estado a equipos"); }
 
         // FASE 2A: Migración para agregar columnas faltantes a partidos
         try {
@@ -318,7 +323,203 @@ async function inicializarBaseDeDatos() {
 // ======================= RUTAS API ============================
 // ===============================================================
 
-// ... (TODAS TUS RUTAS API VAN AQUÍ, SIN CAMBIOS) ...
+// ... (TODAS TUS RUTAS API EXISTENTES, SIN CAMBIOS) ...
+
+// =================================================================================
+// ============== NUEVOS ENDPOINTS PARA EL LANDING PAGE (CORRECCIÓN) ===============
+// =================================================================================
+
+/**
+ * 1. GET /api/standings - Tabla de Posiciones
+ * Devuelve la tabla de posiciones completa, calculada a partir de partidos finalizados.
+ */
+app.get('/api/standings', async (req, res, next) => {
+    try {
+        const query = `
+            WITH games AS (
+                SELECT 
+                    equipo_local_id AS team_id,
+                    carreras_local AS cf,
+                    carreras_visitante AS ce,
+                    CASE WHEN carreras_local > carreras_visitante THEN 1 ELSE 0 END AS win,
+                    CASE WHEN carreras_local < carreras_visitante THEN 1 ELSE 0 END AS loss
+                FROM partidos
+                WHERE estado = 'finalizado'
+                UNION ALL
+                SELECT 
+                    equipo_visitante_id AS team_id,
+                    carreras_visitante AS cf,
+                    carreras_local AS ce,
+                    CASE WHEN carreras_visitante > carreras_local THEN 1 ELSE 0 END AS win,
+                    CASE WHEN carreras_visitante < carreras_local THEN 1 ELSE 0 END AS loss
+                FROM partidos
+                WHERE estado = 'finalizado'
+            )
+            SELECT
+                e.id AS equipo_id,
+                e.nombre AS equipo_nombre,
+                COALESCE(SUM(1), 0) AS pj,
+                COALESCE(SUM(g.win), 0) AS pg,
+                COALESCE(SUM(g.loss), 0) AS pp,
+                COALESCE(SUM(g.cf), 0) AS cf,
+                COALESCE(SUM(g.ce), 0) AS ce,
+                (COALESCE(SUM(g.cf), 0) - COALESCE(SUM(g.ce), 0)) AS dif,
+                CASE 
+                    WHEN COALESCE(SUM(1), 0) > 0 THEN ROUND(COALESCE(SUM(g.win), 0)::DECIMAL / COALESCE(SUM(1), 0), 3)
+                    ELSE 0.000
+                END AS porcentaje,
+                e.estado
+            FROM equipos e
+            LEFT JOIN games g ON e.id = g.team_id
+            GROUP BY e.id, e.nombre, e.estado
+            ORDER BY porcentaje DESC, dif DESC;
+        `;
+        const { rows } = await pool.query(query);
+        res.json(rows);
+    } catch (err) {
+        console.error('GET /api/standings', err);
+        res.status(500).json({ error: 'Error obteniendo standings' });
+    }
+});
+
+/**
+ * 3. GET /api/leaders - Líderes por Categoría
+ * Devuelve los líderes estadísticos según el tipo (bateo, pitcheo, defensiva).
+ */
+app.get('/api/leaders', async (req, res, next) => {
+    try {
+        const { tipo = 'bateo', limit = 10 } = req.query;
+        let sql = '';
+        const params = [Number(limit) || 10];
+
+        const validTypes = ['bateo', 'pitcheo', 'defensiva', 'todos'];
+        if (!validTypes.includes(tipo)) {
+            return res.status(400).json({ error: 'Tipo de líder no válido.' });
+        }
+
+        if (tipo === 'bateo') {
+            sql = `
+                SELECT 
+                    j.nombre, 
+                    e.nombre as equipo_nombre,
+                    CASE WHEN s.at_bats > 0 THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) ELSE 0.000 END as avg,
+                    CASE WHEN s.at_bats + s.walks > 0 THEN ROUND((s.hits + s.walks)::DECIMAL / (s.at_bats + s.walks), 3) ELSE 0.000 END as obp,
+                    CASE WHEN s.at_bats > 0 THEN ROUND(((s.hits) + (s.home_runs * 3))::DECIMAL / s.at_bats, 3) + ROUND((s.hits + s.walks)::DECIMAL / (s.at_bats + s.walks), 3) ELSE 0.000 END as ops,
+                    s.home_runs as hr,
+                    s.rbi
+                FROM estadisticas_ofensivas s
+                JOIN jugadores j ON s.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.at_bats > 10 -- Mínimo para calificar
+                ORDER BY avg DESC NULLS LAST
+                LIMIT $1;
+            `;
+        } else if (tipo === 'pitcheo') {
+            sql = `
+                SELECT 
+                    j.nombre,
+                    e.nombre as equipo_nombre,
+                    CASE WHEN s.innings_pitched > 0 THEN ROUND((s.earned_runs * 9.0) / s.innings_pitched, 2) ELSE 0.00 END as era,
+                    CASE WHEN s.innings_pitched > 0 THEN ROUND((s.hits_allowed + s.walks_allowed) / s.innings_pitched, 2) ELSE 0.00 END as whip
+                FROM estadisticas_pitcheo s
+                JOIN jugadores j ON s.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.innings_pitched > 5 -- Mínimo para calificar
+                ORDER BY era ASC NULLS LAST
+                LIMIT $1;
+            `;
+        } else if (tipo === 'defensiva') {
+            sql = `
+                SELECT 
+                    j.nombre,
+                    e.nombre as equipo_nombre,
+                    CASE WHEN s.chances > 0 THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) ELSE 0.000 END as fpct
+                FROM estadisticas_defensivas s
+                JOIN jugadores j ON s.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.chances > 10 -- Mínimo para calificar
+                ORDER BY fpct DESC NULLS LAST
+                LIMIT $1;
+            `;
+        } else { // 'todos' - Devuelve los mejores bateadores por OPS como default
+            sql = `
+                SELECT 
+                    j.nombre, 
+                    e.nombre as equipo_nombre,
+                    CASE WHEN s.at_bats > 0 THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) ELSE 0.000 END as avg,
+                    CASE WHEN s.at_bats > 0 THEN ROUND(((s.hits) + (s.home_runs * 3))::DECIMAL / s.at_bats, 3) + ROUND((s.hits + s.walks)::DECIMAL / (s.at_bats + s.walks), 3) ELSE 0.000 END as ops,
+                    s.home_runs as hr
+                FROM estadisticas_ofensivas s
+                JOIN jugadores j ON s.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.at_bats > 10
+                ORDER BY ops DESC NULLS LAST
+                LIMIT $1;
+            `;
+        }
+        
+        const { rows } = await pool.query(sql, params);
+        res.json(rows);
+    } catch (err) {
+        console.error(`GET /api/leaders (tipo: ${req.query.tipo})`, err);
+        res.status(500).json({ error: 'Error obteniendo líderes' });
+    }
+});
+
+/**
+ * 4. GET /api/playoffs - Clasificación Playoffs
+ * Devuelve los 8 primeros equipos de la tabla de posiciones.
+ */
+app.get('/api/playoffs', async (req, res, next) => {
+    try {
+        const query = `
+            WITH games AS (
+                SELECT 
+                    equipo_local_id AS team_id,
+                    CASE WHEN carreras_local > carreras_visitante THEN 1 ELSE 0 END AS win,
+                    CASE WHEN carreras_local < carreras_visitante THEN 1 ELSE 0 END AS loss
+                FROM partidos
+                WHERE estado = 'finalizado'
+                UNION ALL
+                SELECT 
+                    equipo_visitante_id AS team_id,
+                    CASE WHEN carreras_visitante > carreras_local THEN 1 ELSE 0 END AS win,
+                    CASE WHEN carreras_visitante < carreras_local THEN 1 ELSE 0 END AS loss
+                FROM partidos
+                WHERE estado = 'finalizado'
+            ),
+            standings AS (
+                SELECT
+                    e.id AS equipo_id,
+                    e.nombre AS equipo_nombre,
+                    COALESCE(SUM(g.win), 0) AS pg,
+                    COALESCE(SUM(g.loss), 0) AS pp,
+                    (COALESCE(SUM(1), 0)) AS pj,
+                    CASE 
+                        WHEN COALESCE(SUM(1), 0) > 0 THEN ROUND(COALESCE(SUM(g.win), 0)::DECIMAL / COALESCE(SUM(1), 0), 3)
+                        ELSE 0.000
+                    END AS porcentaje
+                FROM equipos e
+                LEFT JOIN games g ON e.id = g.team_id
+                GROUP BY e.id, e.nombre
+            )
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY s.porcentaje DESC, (s.pg - s.pp) DESC) as seed,
+                s.equipo_nombre,
+                s.pg || '-' || s.pp as record
+            FROM standings s
+            ORDER BY seed ASC
+            LIMIT 8; -- Límite de 8 equipos para playoffs
+        `;
+        const { rows } = await pool.query(query);
+        res.json(rows);
+    } catch (err) {
+        console.error('GET /api/playoffs', err);
+        res.status(500).json({ error: 'Error obteniendo playoffs' });
+    }
+});
+
+
 // ====================== AUTENTICACIÓN =========================
 app.post('/api/login', async (req, res) => {
     try {
@@ -949,10 +1150,42 @@ app.delete('/api/jugadores/:id', async (req, res) => {
 
 // ====================== PARTIDOS COMPLETADOS =========================
 
+/**
+ * 2. GET /api/partidos - Últimos Partidos y Paginación
+ * CORREGIDO: Ahora maneja dos casos:
+ * 1. Si vienen `estado` y `limit`, sirve la petición del landing page.
+ * 2. Si no, mantiene la lógica de paginación para el panel de admin.
+ */
 app.get('/api/partidos', async (req, res) => {
     try {
-        const { page = 1, limit = 20, equipo_id, fecha_desde, fecha_hasta } = req.query;
-        const offset = (page - 1) * limit;
+        const { estado, limit, page = 1, equipo_id, fecha_desde, fecha_hasta } = req.query;
+
+        // CASO 1: Petición simple del landing page
+        if (estado && limit) {
+            const simpleLimit = Number(limit) || 5;
+            const simpleQuery = `
+                SELECT 
+                    p.id,
+                    el.nombre as equipo_local_nombre,
+                    ev.nombre as equipo_visitante_nombre,
+                    p.carreras_local,
+                    p.carreras_visitante,
+                    p.innings_jugados as innings,
+                    p.fecha_partido
+                FROM partidos p
+                JOIN equipos el ON p.equipo_local_id = el.id
+                JOIN equipos ev ON p.equipo_visitante_id = ev.id
+                WHERE p.estado = $1
+                ORDER BY p.fecha_partido DESC, p.hora DESC
+                LIMIT $2;
+            `;
+            const { rows } = await pool.query(simpleQuery, [estado, simpleLimit]);
+            return res.json(rows);
+        }
+
+        // CASO 2: Lógica de paginación existente para el panel de admin
+        const adminLimit = 20;
+        const offset = (page - 1) * adminLimit;
         
         let query = `
             SELECT p.*, 
@@ -966,19 +1199,16 @@ app.get('/api/partidos', async (req, res) => {
         const params = [];
         let paramIndex = 1;
 
-        // Filtros opcionales
         if (equipo_id) {
             query += ` AND (p.equipo_local_id = $${paramIndex} OR p.equipo_visitante_id = $${paramIndex})`;
             params.push(equipo_id);
             paramIndex++;
         }
-
         if (fecha_desde) {
             query += ` AND p.fecha_partido >= $${paramIndex}`;
             params.push(fecha_desde);
             paramIndex++;
         }
-
         if (fecha_hasta) {
             query += ` AND p.fecha_partido <= $${paramIndex}`;
             params.push(fecha_hasta);
@@ -986,11 +1216,10 @@ app.get('/api/partidos', async (req, res) => {
         }
 
         query += ` ORDER BY p.fecha_partido DESC, p.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-        params.push(limit, offset);
+        params.push(adminLimit, offset);
 
         const result = await pool.query(query, params);
         
-        // Contar total
         let countQuery = 'SELECT COUNT(*) FROM partidos p WHERE 1=1';
         const countParams = [];
         let countParamIndex = 1;
@@ -1000,13 +1229,11 @@ app.get('/api/partidos', async (req, res) => {
             countParams.push(equipo_id);
             countParamIndex++;
         }
-
         if (fecha_desde) {
             countQuery += ` AND p.fecha_partido >= $${countParamIndex}`;
             countParams.push(fecha_desde);
             countParamIndex++;
         }
-
         if (fecha_hasta) {
             countQuery += ` AND p.fecha_partido <= $${countParamIndex}`;
             countParams.push(fecha_hasta);
@@ -1019,9 +1246,9 @@ app.get('/api/partidos', async (req, res) => {
             partidos: result.rows,
             pagination: {
                 page: parseInt(page),
-                limit: parseInt(limit),
+                limit: adminLimit,
                 total,
-                pages: Math.ceil(total / limit)
+                pages: Math.ceil(total / adminLimit)
             }
         });
     } catch (error) {
