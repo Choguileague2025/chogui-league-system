@@ -1991,7 +1991,7 @@
             <a href="#playoffs" class="nav-tab" data-section="playoffs" data-icon="🔥">Playoffs</a>
         </nav>
 
-        <section class="proximos-partidos">
+        <section class="proximos-partidos" id="partidos">
             <div class="section-header">
                 <h2>⚾ Próximos Partidos</h2>
                 <p class="section-subtitle">No te pierdas la acción en el diamante</p>
@@ -2038,7 +2038,7 @@
             </div>
         </div>
 
-        <div id="partidos" class="tab-content">
+        <div class="tab-content">
              <div class="card" id="ultimosPartidos">
                 <h3>🎯 Últimos Partidos</h3>
                 <div data-loader>Cargando...</div>
@@ -2060,75 +2060,77 @@
             </div>
         </div>
 
-        <div id="estadisticas" class="tab-content">
-            <div class="card" id="lideresContainer">
-                <div class="leaders-section-header">
-                    <h3>🏆 Líderes de la Liga</h3>
-                    <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
+        <section id="estadisticas">
+            <div class="tab-content">
+                <div class="card" id="lideresContainer">
+                    <div class="leaders-section-header">
+                        <h3>🏆 Líderes de la Liga</h3>
+                        <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
+                    </div>
+                    
+                    <div class="leaders-filters">
+                        <button class="leader-filter" id="tabBateo" data-category="bateo">⚾ Bateo</button>
+                        <button class="leader-filter" id="tabPitcheo" data-category="pitcheo">🥎 Pitcheo</button>
+                        <button class="leader-filter" id="tabDefensiva" data-category="defensiva">🛡️ Defensiva</button>
+                        <button class="leader-filter" id="tabTodos" data-category="todos">📊 Todos</button>
+                    </div>
+                    
+                    <div id="lideresBateo" class="leaders-panel" style="display: block;">
+                        <div data-loader style="display: none;">Cargando líderes...</div>
+                        <div data-empty style="display: none;"></div>
+                        <div class="leaders-grid-enhanced" data-list></div>
+                    </div>
+                    <div id="lideresPitcheo" class="leaders-panel" style="display: none;">
+                        <div data-loader style="display: none;">Cargando líderes...</div>
+                        <div data-empty style="display: none;"></div>
+                        <div class="leaders-grid-enhanced" data-list></div>
+                    </div>
+                    <div id="lideresDefensiva" class="leaders-panel" style="display: none;">
+                        <div data-loader style="display: none;">Cargando líderes...</div>
+                        <div data-empty style="display: none;"></div>
+                        <div class="leaders-grid-enhanced" data-list></div>
+                    </div>
+                    <div id="lideresTodos" class="leaders-panel" style="display: none;">
+                        <div data-loader style="display: none;">Cargando líderes por posición...</div>
+                        <div data-empty style="display: none;"></div>
+                        <div data-list class="posiciones-grid"></div>
+                    </div>
                 </div>
-                
-                <div class="leaders-filters">
-                    <button class="leader-filter" id="tabBateo" data-category="bateo">⚾ Bateo</button>
-                    <button class="leader-filter" id="tabPitcheo" data-category="pitcheo">🥎 Pitcheo</button>
-                    <button class="leader-filter" id="tabDefensiva" data-category="defensiva">🛡️ Defensiva</button>
-                    <button class="leader-filter" id="tabTodos" data-category="todos">📊 Todos</button>
-                </div>
-                
-                <div id="lideresBateo" class="leaders-panel" style="display: block;">
-                    <div data-loader style="display: none;">Cargando líderes...</div>
-                    <div data-empty style="display: none;"></div>
-                    <div class="leaders-grid-enhanced" data-list></div>
-                </div>
-                <div id="lideresPitcheo" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: none;">Cargando líderes...</div>
-                    <div data-empty style="display: none;"></div>
-                    <div class="leaders-grid-enhanced" data-list></div>
-                </div>
-                <div id="lideresDefensiva" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: none;">Cargando líderes...</div>
-                    <div data-empty style="display: none;"></div>
-                    <div class="leaders-grid-enhanced" data-list></div>
-                </div>
-                <div id="lideresTodos" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: none;">Cargando líderes por posición...</div>
-                    <div data-empty style="display: none;"></div>
-                    <div data-list class="posiciones-grid"></div>
-                </div>
-            </div>
 
-            <div class="card">
-                <h3>📊 Estadísticas Completas de Bateo</h3>
-                <div class="table-container">
-                    <table id="statsTable">
-                        <thead>
-                            <tr>
-                                <th>Jugador</th>
-                                <th>Equipo</th>
-                                <th>Pos</th>
-                                <th>AB</th>
-                                <th>H</th>
-                                <th>AVG</th>
-                                <th>OBP</th>
-                                <th>OPS</th>
-                                <th>HR</th>
-                                <th>RBI</th>
-                                <th>WAR</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="11" class="loading">Cargando...</td></tr>
-                        </tbody>
-                    </table>
+                <div class="card">
+                    <h3>📊 Estadísticas Completas de Bateo</h3>
+                    <div class="table-container">
+                        <table id="statsTable">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th>
+                                    <th>Equipo</th>
+                                    <th>Pos</th>
+                                    <th>AB</th>
+                                    <th>H</th>
+                                    <th>AVG</th>
+                                    <th>OBP</th>
+                                    <th>OPS</th>
+                                    <th>HR</th>
+                                    <th>RBI</th>
+                                    <th>WAR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="11" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
+                    <div class="position-leaders-grid" id="positionLeadersGrid">
+                        <div class="loading">Cargando...</div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="card">
-                <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
-                <div class="position-leaders-grid" id="positionLeadersGrid">
-                    <div class="loading">Cargando...</div>
-                </div>
-            </div>
-        </div>
+        </section>
 
         <div id="comparisonModal" class="comparison-modal">
             <div class="comparison-content">
@@ -2138,8 +2140,8 @@
             </div>
         </div>
         
-        <div id="playoffs" class="tab-content">
-            <section id="playoffs-section" class="section">
+        <div class="tab-content">
+            <section id="playoffs" class="section">
               <div class="section-header">
                 <h2>🏆 Clasificación Playoffs</h2>
               </div>
@@ -2263,19 +2265,19 @@
         // ============= SISTEMA DE PLAYOFFS (NUEVO) =============
         async function cargarPlayoffsClasificacion() {
           console.log('🏆 Cargando clasificación de playoffs...');
-          setLoading('playoffs-section', true);
+          setLoading('playoffs', true); // ✅ MODIFICADO: apunta al nuevo ID de sección
             try {
             const data = await fetchJSON('/api/playoffs-clasificacion');
                 if (!data || !data.equipos || data.equipos.length === 0) {
-              setLoading('playoffs-section', false, 'No hay datos de clasificación disponibles');
+              setLoading('playoffs', false, 'No hay datos de clasificación disponibles');
               return;
             }
                 console.log(`📊 Clasificación cargada: ${data.equipos.length} equipos`);
             renderPlayoffsClasificacion(data);
-            setLoading('playoffs-section', false);
+            setLoading('playoffs', false);
               } catch (err) {
             console.error('❌ Error cargando playoffs:', err);
-            setLoading('playoffs-section', false, 'No se pudo cargar la clasificación de playoffs');
+            setLoading('playoffs', false, 'No se pudo cargar la clasificación de playoffs');
           }
         }
         
@@ -2814,7 +2816,7 @@
         
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
         
-        // ✅ NUEVO - NAVEGACIÓN MÓVIL FUNCIONAL - TAREA 1.3
+        // ✅ MODIFICADO: Lógica de navegación móvil mejorada para activar el contenido antes de hacer scroll
         function initMobileNavigation() {
           console.log('🔧 Inicializando navegación móvil...');
           const isMobile = window.innerWidth <= 768;
@@ -2822,33 +2824,46 @@
             console.log('⏭️ No es móvil, saltando inicialización');
             return;
           }
-          // ✅ MODIFICADO - Selector adaptado a la estructura actual
+
           const navItems = document.querySelectorAll('#mobileNavigation .nav-tab');
           if (navItems.length === 0) {
             console.warn('⚠️ No se encontraron elementos .nav-tab en #mobileNavigation');
             return;
           }
           console.log(`✅ Encontrados ${navItems.length} elementos de navegación`);
+
           navItems.forEach(item => {
             item.addEventListener('click', function(e) {
               e.preventDefault();
               console.log('🎯 Click en navegación:', this.dataset.section);
-              // Remover active de todos
+              
               navItems.forEach(nav => nav.classList.remove('active'));
-              // Agregar active al clickeado
               this.classList.add('active');
-              // Obtener sección target
+              
               const sectionId = this.getAttribute('href').substring(1);
               const targetSection = document.getElementById(sectionId);
+
               if (targetSection) {
+                // ✅ NUEVO: Activa la pestaña de contenido correspondiente para que sea visible
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                
+                // Encuentra el ancestro .tab-content si el ID no está directamente en él
+                let contentTab = targetSection.closest('.tab-content') || targetSection;
+                if(contentTab.classList.contains('tab-content')) {
+                    contentTab.classList.add('active');
+                }
+
                 console.log('✅ Navegando a sección:', sectionId);
-                // Scroll suave
-                targetSection.scrollIntoView({
-                  behavior: 'smooth',
-                  block: 'start'
-                });
-                // Actualizar URL sin recargar
-                history.pushState(null, null, `#${sectionId}`);
+                
+                // Espera un instante para que el CSS 'display: block' se aplique antes de hacer scroll
+                setTimeout(() => {
+                    targetSection.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                    history.pushState(null, null, `#${sectionId}`);
+                }, 50);
+
               } else {
                 console.error('❌ Sección no encontrada:', sectionId);
               }
@@ -2856,6 +2871,7 @@
           });
           console.log('✅ Navegación móvil inicializada correctamente');
         }
+
 
         // ✅ NUEVO - EJECUTAR AL CARGAR PÁGINA
         document.addEventListener('DOMContentLoaded', function() {
