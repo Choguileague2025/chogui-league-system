@@ -839,47 +839,83 @@
             box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
         }
         
-        /* Estilos para las nuevas tarjetas de líderes */
+        /* ✅ INICIO: ESTILOS MODIFICADOS PARA NUEVAS TARJETAS DE LÍDERES */
+        #lideresGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
         .leader-card {
+            background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(15, 15, 30, 0.9));
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .leader-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 215, 0, 0.5);
+            box-shadow: 0 6px 18px rgba(255, 215, 0, 0.25);
+        }
+
+        .leader-rank {
+            min-width: 40px;
+            height: 40px;
+            color: #1a1a2e;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 12px 10px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.15);
-        }
-        .leader-card:last-child {
-            border-bottom: none;
-        }
-        .leader-rank {
-            font-size: 1.1rem;
+            justify-content: center;
             font-weight: bold;
-            color: #ff8c00;
-            width: 30px;
-            text-align: center;
+            font-size: 1rem;
+            flex-shrink: 0;
         }
-        .leader-name {
+
+        .leader-info {
             flex-grow: 1;
         }
-        .leader-name .leader-team {
+
+        .leader-info h3 {
+            font-size: 1.1rem;
+            color: #fff;
+            margin: 0 0 4px 0;
+        }
+
+        .leader-info .team-name {
+            font-size: 0.85rem;
+            color: rgba(255, 215, 0, 0.8);
+            margin: 0;
+        }
+
+        .leader-stats {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            justify-content: space-around;
+        }
+
+        .leader-stats .stat {
+            text-align: center;
+        }
+
+        .stat-value {
             display: block;
-            font-size: 0.8rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ff8c00;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
             color: #ffd700;
             opacity: 0.8;
         }
-        .leader-metrics {
-            display: flex;
-            gap: 15px;
-            font-size: 0.9rem;
-        }
-        .metric {
-            text-align: right;
-        }
-        .metric label {
-            font-size: 0.7rem;
-            color: #ffd700;
-            opacity: 0.7;
-            display: block;
-        }
+        /* ✅ FIN: ESTILOS MODIFICADOS PARA NUEVAS TARJETAS DE LÍDERES */
         
         .leaders-grid-enhanced {
             display: flex;
@@ -2050,32 +2086,15 @@
                 </div>
                 
                 <div class="leaders-filters">
-                    <button class="leader-filter" id="tabBateo" data-category="bateo">⚾ Bateo</button>
-                    <button class="leader-filter" id="tabPitcheo" data-category="pitcheo">🥎 Pitcheo</button>
-                    <button class="leader-filter" id="tabDefensiva" data-category="defensiva">🛡️ Defensiva</button>
-                    <button class="leader-filter" id="tabTodos" data-category="todos">📊 Todos</button>
+                    <button class="leader-filter active" data-category="bateo">⚾ Bateo</button>
+                    <button class="leader-filter" data-category="pitcheo">🎯 Pitcheo</button>
+                    <button class="leader-filter" data-category="defensiva">🛡️ Defensiva</button>
+                    <button class="leader-filter" data-category="todos">📊 Todos</button>
                 </div>
                 
-                <div id="lideresBateo" class="leaders-panel" style="display: block;">
-                    <div data-loader style="display: none;">Cargando líderes...</div>
-                    <div data-empty style="display: none;"></div>
-                    <div class="leaders-grid-enhanced" data-list></div>
-                </div>
-                <div id="lideresPitcheo" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: none;">Cargando líderes...</div>
-                    <div data-empty style="display: none;"></div>
-                    <div class="leaders-grid-enhanced" data-list></div>
-                </div>
-                <div id="lideresDefensiva" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: none;">Cargando líderes...</div>
-                    <div data-empty style="display: none;"></div>
-                    <div class="leaders-grid-enhanced" data-list></div>
-                </div>
-                <div id="lideresTodos" class="leaders-panel" style="display: none;">
-                    <div data-loader style="display: none;">Cargando líderes por posición...</div>
-                    <div data-empty style="display: none;"></div>
-                    <div data-list class="posiciones-grid"></div>
-                </div>
+                <div id="lideresGrid">
+                    </div>
+
             </div>
 
             <div class="card">
@@ -2163,7 +2182,7 @@
                   <ul>
                     <li><span class="badge clasificado"></span> <strong>Clasificado:</strong> Ha asegurado un cupo matemáticamente</li>
                     <li><span class="badge contención"></span> <strong>En contención:</strong> Todavía tiene posibilidades de clasificar</li>
-                    <li><span class="badge eliminado"></span> <strong>Eliminado:</strong> No puede alcanzar los playoffs matemáticamente</li>
+                    <li><span class="badge eliminado"></span> <strong>No puede alcanzar los playoffs matemáticamente</strong></li>
                   </ul>
                 </div>
               </div>
@@ -2242,7 +2261,7 @@
                 </tr>`).join('');
         }
         
-        // ============= SISTEMA DE PLAYOFFS (NUEVO) =============
+        // ============= SISTEMA DE PLAYOFFS (SIN CAMBIOS) =============
         async function cargarPlayoffsClasificacion() {
           console.log('🏆 Cargando clasificación de playoffs...');
           setLoading('playoffs-section', true);
@@ -2305,7 +2324,7 @@
         }
 
         // ===============================================================
-        // INICIO DE LA CORRECCIÓN TOTAL
+        // INICIO DE LA SECCIÓN DE CÓDIGO MODIFICADA PARA LÍDERES
         // ===============================================================
 
         // ============= UTILIDADES GLOBALES =============
@@ -2316,7 +2335,7 @@
                     headers: { 'Accept': 'application/json' }, 
                     ...options 
                 });
-                if (!res.ok) { // ✅ MODIFICADO - Se mantiene la validación de status existente que es robusta
+                if (!res.ok) {
                     const text = await res.text().catch(() => '');
                     throw new Error(`HTTP error! status: ${res.status} ${res.statusText}${text ? ` :: ${text}` : ''}`);
                 }
@@ -2347,235 +2366,246 @@
             }
         }
 
-        // ============= SISTEMA DE LÍDERES (REDISEÑADO) =============
-        const cacheLideres = new Map();
-        
-        const TOP_POR_POSICION = 5;
-        const POSICIONES = [
-          { code: 'C', name: 'Catcher', emoji: '⚾' },
-          { code: '1B', name: 'Primera Base', emoji: '1️⃣' },
-          { code: '2B', name: 'Segunda Base', emoji: '2️⃣' },
-          { code: '3B', name: 'Tercera Base', emoji: '3️⃣' },
-          { code: 'SS', name: 'Shortstop', emoji: '🔷' },
-          { code: 'LF', name: 'Left Field', emoji: '◀️' },
-          { code: 'CF', name: 'Center Field', emoji: '🔼' },
-          { code: 'RF', name: 'Right Field', emoji: '▶️' },
-          { code: 'P', name: 'Pitcher', emoji: '🎾' }
-        ];
+        // ============= ✅ NUEVO: SISTEMA DE LÍDERES CENTRALIZADO =============
+        let leadersData = {
+            bateo: [],
+            pitcheo: [],
+            defensiva: [] // ✅ NUEVO: Incluir defensiva en el objeto de datos
+        };
+        let currentLeaderCategory = 'bateo';
 
-        async function apiLideres(tipo, limit = 10) {
-            const url = `/api/leaders?tipo=${encodeURIComponent(tipo)}&limit=${limit}`;
-            console.log(`📡 Consultando API: ${url}`);
-            return fetchJSON(url);
-        }
+        async function cargarLideres() { // ✅ NUEVO: Función central para cargar todos los líderes
+          try {
+            // Bateo
+            const responseBateo = await fetch(getApiUrl('/api/leaders?tipo=bateo'));
+            const dataBateo = await responseBateo.json();
+            leadersData.bateo = Array.isArray(dataBateo) ? dataBateo : [];
+            console.log('✅ Líderes de bateo cargados:', leadersData.bateo.length);
 
-        async function fallbackLideresBateo(limit = 10) {
-            console.log('🔄 Usando fallback para bateo desde /api/estadisticas-ofensivas');
-            try {
-                const data = await fetchJSON('/api/estadisticas-ofensivas');
-                const normalized = (data || []).map(r => {
-                    const ab = Number(r.at_bats ?? r.ab ?? 0);
-                    const h = Number(r.hits ?? r.h ?? 0);
-                    const bb = Number(r.walks ?? 0);
-                    const avg = (r.avg != null) ? Number(r.avg) : (ab > 0 ? h / ab : 0);
-                    const obp = (r.obp != null) ? Number(r.obp) : (ab + bb > 0 ? (h + bb) / (ab + bb) : 0);
-                    const slg = (r.slg != null) ? Number(r.slg) : null;
-                    const ops = (r.ops != null) ? Number(r.ops) : ((obp || 0) + (slg || 0));
-                    return {
-                        nombre: r.jugador_nombre ?? r.nombre ?? 'Jugador',
-                        equipo_nombre: r.equipo_nombre ?? r.equipo ?? 'Sin equipo',
-                        avg, obp, ops,
-                        hr: Number(r.home_runs ?? r.hr ?? 0),
-                        rbi: Number(r.rbi ?? 0)
-                    };
-                });
-                return normalized.sort((a, b) => {
-                    if (b.avg !== a.avg) return b.avg - a.avg;
-                    if (b.ops !== a.ops) return b.ops - a.ops;
-                    if (b.hr !== a.hr) return b.hr - a.hr;
-                    return b.rbi - a.rbi;
-                }).slice(0, limit);
-            } catch (err) {
-                console.error('❌ Error en fallback de bateo:', err);
-                return [];
-            }
-        }
+            // Pitcheo
+            const responsePitcheo = await fetch(getApiUrl('/api/leaders?tipo=pitcheo'));
+            const dataPitcheo = await responsePitcheo.json();
+            leadersData.pitcheo = Array.isArray(dataPitcheo) ? dataPitcheo : [];
+            console.log('✅ Líderes de pitcheo cargados:', leadersData.pitcheo.length);
 
-        async function cargarLideresPorTipo(tipo, contenedorId) {
-            console.log(`🔄 Cargando líderes de: ${tipo}`);
-            setLoading(contenedorId, true);
-            try {
-                if (cacheLideres.has(tipo)) {
-                    const cached = cacheLideres.get(tipo);
-                    if (Array.isArray(cached) && cached.length > 0) {
-                        console.log(`✅ Usando caché para ${tipo} (${cached.length} items)`);
-                        renderLideres(cached, contenedorId);
-                        setLoading(contenedorId, false);
-                        return;
-                    }
-                }
-                let items = [];
-                let usedFallback = false;
-                try {
-                    items = await apiLideres(tipo, 10);
-                } catch (apiError) {
-                    console.warn(`⚠️ API falló para ${tipo}:`, apiError.message);
-                    if (tipo === 'bateo') {
-                        items = await fallbackLideresBateo(10);
-                        usedFallback = true;
-                    } else { throw apiError; }
-                }
-                if ((!items || items.length === 0) && (tipo === 'bateo')) {
-                    items = await fallbackLideresBateo(10);
-                    usedFallback = true;
-                }
-                cacheLideres.set(tipo, items || []);
-                renderLideres(items || [], contenedorId);
-                const mensaje = (items && items.length) ? null : `Sin datos de ${tipo}${usedFallback ? ' (intentó fallback)' : ''}`;
-                setLoading(contenedorId, false, mensaje);
-            } catch (err) {
-                console.error(`❌ Error final cargando líderes de ${tipo}:`, err);
-                setLoading(contenedorId, false, `No se pudieron cargar líderes de ${tipo}`);
+            // ✅ DEFENSIVA (NUEVO)
+            const responseDefensiva = await fetch(getApiUrl('/api/estadisticas-defensivas'));
+            if (!responseDefensiva.ok) {
+              throw new Error(`HTTP error! status: ${responseDefensiva.status}`);
             }
-        }
-        
-        async function cargarLideresTodos() {
-          const panelId = 'lideresTodos';
-          setLoading(panelId, true);
-            try {
-            const data = await fetchJSON('/api/estadisticas-ofensivas');
-                if (!data || data.length === 0) {
-              setLoading(panelId, false, 'Sin datos disponibles');
-              return;
+            const dataDefensiva = await responseDefensiva.json();
+            
+            // Validar que sea array
+            const defensivaArray = Array.isArray(dataDefensiva) ? dataDefensiva :
+                                   Array.isArray(dataDefensiva.data) ? dataDefensiva.data : [];
+
+            // Filtrar jugadores con datos defensivos válidos y ordenar
+            leadersData.defensiva = defensivaArray
+              .filter(j => j.fielding_percentage !== null && j.fielding_percentage !== undefined)
+              .sort((a, b) => (b.fielding_percentage || 0) - (a.fielding_percentage || 0))
+              .slice(0, 10); // Top 10
+
+            console.log('✅ Líderes defensivos cargados:', leadersData.defensiva.length);
+
+            // Renderizar según pestaña activa por defecto (bateo)
+            renderizarLideresPorCategoria(currentLeaderCategory);
+
+          } catch (error) {
+            console.error('❌ Error cargando líderes:', error);
+            const container = document.getElementById('lideresGrid');
+            if (container) {
+                container.innerHTML = `<div class="empty-state" style="display:block;"><h3>Error al cargar</h3><p>No se pudieron obtener los datos de los líderes.</p></div>`;
             }
-            const jugadores = data.map(r => {
-              const ab = Number(r.at_bats ?? r.ab ?? 0);
-              const h = Number(r.hits ?? r.h ?? 0);
-              return {
-                nombre: r.jugador_nombre ?? r.nombre,
-                equipo: r.equipo_nombre ?? r.equipo,
-                posicion: (r.posicion ?? r.pos ?? 'UT').toUpperCase().trim(),
-                avg: (r.avg != null) ? Number(r.avg) : (ab > 0 ? h / ab : 0),
-                ops: r.ops != null ? Number(r.ops) : ((Number(r.obp)||0) + (Number(r.slg)||0)),
-                hr: Number(r.home_runs ?? r.hr ?? 0),
-                rbi: Number(r.rbi ?? 0)
-              };
-            });
-            renderTarjetasPorPosicion(jugadores, panelId);
-            setLoading(panelId, false);
-              } catch (err) {
-            console.error('Error cargando Todos:', err);
-            setLoading(panelId, false, 'Error cargando datos');
+            // Fallback con datos vacíos
+            leadersData = {
+               bateo: [],
+               pitcheo: [],
+               defensiva: [] // ✅ Incluir defensiva en fallback
+            };
           }
         }
 
-        // ============= RENDERIZADO DE LÍDERES =============
-        function renderLideres(items, contenedorId) {
-            const root = document.getElementById(contenedorId);
-            if (!root) return;
-            const list = root.querySelector('[data-list]');
-            if (!list) return;
-            const fmt3 = v => Number.isFinite(Number(v)) ? Number(v).toFixed(3) : '-';
-            const fmt2 = v => Number.isFinite(Number(v)) ? Number(v).toFixed(2) : '-';
-            list.innerHTML = (items || []).map((j, idx) => `
-                <div class="leader-card" data-rank="${idx + 1}">
-                    <div class="leader-rank">#${idx + 1}</div>
-                    <div class="leader-name">
-                        <strong>${j.nombre ?? 'Jugador'}</strong>
-                        <span class="leader-team">${j.equipo ?? j.equipo_nombre ?? 'Sin equipo'}</span>
-                    </div>
-                    <div class="leader-metrics">
-                        ${j.avg != null ? `<span>AVG: ${fmt3(j.avg)}</span>` : ''}
-                        ${j.obp != null ? `<span>OBP: ${fmt3(j.obp)}</span>` : ''}
-                        ${j.ops != null ? `<span>OPS: ${fmt3(j.ops)}</span>` : ''}
-                        ${j.hr != null ? `<span>HR: ${j.hr}</span>` : ''}
-                        ${j.rbi != null ? `<span>RBI: ${j.rbi}</span>` : ''}
-                        ${j.era != null ? `<span>ERA: ${fmt2(j.era)}</span>` : ''}
-                        ${j.whip != null ? `<span>WHIP: ${fmt2(j.whip)}</span>` : ''}
-                        ${j.fpct != null ? `<span>FPCT: ${fmt3(j.fpct)}</span>` : ''}
-                    </div>
-                </div>`).join('');
-        }
+        function renderizarLideresPorCategoria(categoria) { // ✅ NUEVO: Función para renderizar según la categoría
+          currentLeaderCategory = categoria; // Actualizar estado global
+          const container = document.getElementById('lideresGrid');
 
-        function renderTarjetasPorPosicion(jugadores, panelId) {
-          const container = document.querySelector(`#${panelId} [data-list]`);
-          if (!container) return;
-            const fmt3 = v => Number.isFinite(Number(v)) ? Number(v).toFixed(3) : '-';
-            const porPosicion = {};
-          jugadores.forEach(j => {
-            const pos = j.posicion || 'UT';
-            if (!porPosicion[pos]) porPosicion[pos] = [];
-            porPosicion[pos].push(j);
+          if (!container) {
+            console.error('❌ Contenedor lideresGrid no encontrado');
+            return;
+          }
+          
+          document.querySelectorAll('.leader-filter').forEach(btn => {
+              if (btn.dataset.category === categoria) {
+                  btn.classList.add('active');
+              } else {
+                  btn.classList.remove('active');
+              }
           });
-            const html = POSICIONES.map(({ code, name, emoji }) => {
-            const lista = porPosicion[code] || [];
-            if (lista.length === 0) return '';
-            const top5 = lista
-              .sort((a, b) => (b.avg - a.avg) || (b.ops - a.ops) || (b.hr - a.hr))
-              .slice(0, TOP_POR_POSICION);
-                return `
-              <div class="pos-section">
-                <h3 class="pos-header">${emoji} ${name} (${code})</h3>
-                <div class="pos-cards">
-                  ${top5.map((j, idx) => `
-                    <div class="leader-card-mini">
-                      <div class="rank-badge">#${idx + 1}</div>
-                      <div class="player-info">
-                        <div class="player-name">${j.nombre}</div>
-                        <div class="player-team">${j.equipo}</div>
-                      </div>
-                      <div class="player-stats">
-                        <span class="stat-primary">AVG ${fmt3(j.avg)}</span>
-                        <span class="stat">OPS ${fmt3(j.ops)}</span>
-                        <span class="stat">HR ${j.hr}</span>
-                        <span class="stat">RBI ${j.rbi}</span>
-                      </div>
-                    </div>
-                  `).join('')}
-                </div>
+
+          let datos = [];
+          switch (categoria) {
+            case 'bateo':
+              datos = leadersData.bateo || [];
+              break;
+            case 'pitcheo':
+              datos = leadersData.pitcheo || [];
+              break;
+            case 'defensiva': // ✅ NUEVO CASO
+              datos = leadersData.defensiva || [];
+              break;
+            case 'todos':
+              datos = [
+                ...(leadersData.bateo || []).slice(0, 4),
+                ...(leadersData.pitcheo || []).slice(0, 4),
+                ...(leadersData.defensiva || []).slice(0, 4) // ✅ Incluir defensiva
+              ];
+              break;
+          }
+
+          if (datos.length === 0) {
+            container.innerHTML = `
+              <div class="empty-state" style="display:block;">
+                <h3>📊 Sin datos de ${categoria}</h3>
+                <p>Los líderes aparecerán cuando haya estadísticas disponibles</p>
               </div>
             `;
-          }).filter(Boolean).join('');
-            container.innerHTML = html || '<p class="empty">Sin datos por posición</p>';
-        }
+            return;
+          }
 
-        // ============= GESTIÓN DE PESTAÑAS =============
-        function configurarTabs() {
-            const tabs = [
-                { btnId: 'tabBateo', panelId: 'lideresBateo', tipo: 'bateo' },
-                { btnId: 'tabPitcheo', panelId: 'lideresPitcheo', tipo: 'pitcheo' },
-                { btnId: 'tabDefensiva', panelId: 'lideresDefensiva', tipo: 'defensiva' },
-                { btnId: 'tabTodos', panelId: 'lideresTodos', tipo: 'todos' }
-            ];
-            const todosLosBotones = tabs.map(t => document.getElementById(t.btnId)).filter(Boolean);
-            const todosPaneles = tabs.map(t => document.getElementById(t.panelId)).filter(Boolean);
+          // Renderizar cards
+          const html = datos.map((lider, index) => {
+            return generarCardLider(lider, index, categoria); // ✅ Pasar categoría
+          }).join('');
 
-            tabs.forEach(({ btnId, panelId, tipo }) => {
-                const btn = document.getElementById(btnId);
-                const panel = document.getElementById(panelId);
-                if (!btn || !panel) return;
-                
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    todosLosBotones.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    todosPaneles.forEach(p => p.style.display = 'none');
-                    panel.style.display = 'block';
-
-                    if (tipo === 'todos') {
-                        cargarLideresTodos();
-                    } else {
-                        cargarLideresPorTipo(tipo, panelId);
-                    }
-                });
-            });
-
-            if (todosLosBotones.length > 0) {
-                todosLosBotones[0].classList.add('active');
-            }
+          container.innerHTML = html;
+          console.log(`✅ Renderizados ${datos.length} líderes de ${categoria}`);
         }
         
-        // ============= FILTRO DE TEMPORADA =============
+        function generarCardLider(lider, index, categoria) { // ✅ NUEVO: Función para generar el HTML de cada tarjeta
+          // Determinar qué stats mostrar según categoría
+          let statsHTML = '';
+
+          if (categoria === 'bateo') {
+            statsHTML = `
+              <div class="stat">
+                <span class="stat-value">${(lider.promedio_bateo || 0).toFixed(3)}</span>
+                <span class="stat-label">AVG</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${lider.home_runs || 0}</span>
+                <span class="stat-label">HR</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${lider.rbi || 0}</span>
+                <span class="stat-label">RBI</span>
+              </div>
+            `;
+          } else if (categoria === 'pitcheo') {
+            statsHTML = `
+              <div class="stat">
+                <span class="stat-value">${lider.era || '0.00'}</span>
+                <span class="stat-label">ERA</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${lider.strikeouts || 0}</span>
+                <span class="stat-label">SO</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${lider.whip || '0.00'}</span>
+                <span class="stat-label">WHIP</span>
+              </div>
+            `;
+          } else if (categoria === 'defensiva') { // ✅ NUEVO
+            statsHTML = `
+              <div class="stat">
+                <span class="stat-value">${(lider.fielding_percentage || 0).toFixed(3)}</span>
+                <span class="stat-label">FLDG%</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${lider.putouts || 0}</span>
+                <span class="stat-label">PO</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${lider.assists || 0}</span>
+                <span class="stat-label">A</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${lider.errors || 0}</span>
+                <span class="stat-label">E</span>
+              </div>
+            `;
+          } else if (categoria === 'todos') {
+            // Para "Todos", detectar tipo de jugador por sus stats
+            if (lider.era !== undefined) {
+              // Es pitcher
+              statsHTML = `
+                <div class="stat">
+                  <span class="stat-value">${lider.era || '0.00'}</span>
+                  <span class="stat-label">ERA</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">${lider.strikeouts || 0}</span>
+                  <span class="stat-label">SO</span>
+                </div>
+              `;
+            } else if (lider.fielding_percentage !== undefined) {
+              // Es defensor
+              statsHTML = `
+                <div class="stat">
+                  <span class="stat-value">${(lider.fielding_percentage || 0).toFixed(3)}</span>
+                  <span class="stat-label">FLDG%</span>
+                </div>
+                 <div class="stat">
+                    <span class="stat-value">${lider.putouts || 0}</span>
+                    <span class="stat-label">PO</span>
+                  </div>
+              `;
+            } else {
+              // Es bateador
+              statsHTML = `
+                <div class="stat">
+                  <span class="stat-value">${(lider.promedio_bateo || 0).toFixed(3)}</span>
+                  <span class="stat-label">AVG</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">${lider.home_runs || 0}</span>
+                  <span class="stat-label">HR</span>
+                </div>
+              `;
+            }
+          }
+
+          // Ranking colors
+          const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+          const rankColor = rankColors[index] || '#4A90E2';
+
+          return `
+            <div class="leader-card">
+              <div class="leader-rank" style="background: ${rankColor};">
+                ${index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
+              </div>
+              <div class="leader-info">
+                <h3>${lider.nombre_jugador || lider.nombre || 'Jugador'}</h3>
+                <p class="team-name">${lider.equipo_nombre || 'Sin equipo'}</p>
+                <div class="leader-stats">
+                  ${statsHTML}
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+        // ============= ✅ MODIFICADO: GESTIÓN DE PESTAÑAS =============
+        function configurarTabsLideres() {
+            document.querySelectorAll('.leader-filter').forEach(filter => {
+              filter.addEventListener('click', function() {
+                const categoria = this.dataset.category;
+                renderizarLideresPorCategoria(categoria);
+              });
+            });
+        }
+        
+        // ============= FILTRO DE TEMPORADA Y CARGA DE TABLAS ADICIONALES =============
         async function cargarEstadisticasCompletas() {
              try {
                 const data = await fetchJSON('/api/estadisticas-ofensivas');
@@ -2595,21 +2625,13 @@
                 }
              } catch(e) { console.error('❌ Error cargando estadísticas completas:', e); }
 
-             try { // ✅ MODIFICADO - Bloque try-catch para líderes defensivos con validación completa
-                const defRes = await fetch(getApiUrl('/api/lideres-defensivos'));
-                if (!defRes.ok) { // ✅ NUEVO - Validación de status HTTP
-                  throw new Error(`HTTP error! status: ${defRes.status}`);
-                }
-                
-                const lideresData = await defRes.json();
-                
-                // ✅ NUEVO - Se valida que la respuesta de líderes sea un array
-                const lideres = Array.isArray(lideresData) ? lideresData : [];
-                
+             try {
+                // ✅ MODIFICADO: Usamos los datos ya cargados en leadersData.defensiva
+                const lideres = leadersData.defensiva || [];
                 const grid = document.getElementById('positionLeadersGrid');
                 if(grid) {
                     if (lideres.length > 0) {
-                        grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion || 'DEF'}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.jugador_nombre}</span><span class="position-rating">${l.fielding_percentage}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
+                        grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion || 'DEF'}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.jugador_nombre}</span><span class="position-rating">${(l.fielding_percentage || 0).toFixed(3)}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
                     } else {
                         grid.innerHTML = '<p class="empty-state" style="display:block;">Sin líderes defensivos.</p>';
                     }
@@ -2618,25 +2640,27 @@
         }
 
         // =================================================================================
-        // LÓGICA EXISTENTE QUE SE CONSERVA
+        // LÓGICA DE INICIALIZACIÓN Y EVENT LISTENERS
         // =================================================================================
         let equipos = [];
         let jugadores = [];
         let selectedPlayersForComparison = [];
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Cargas iniciales
             cargarTablaPosiciones();
             cargarUltimosPartidos();
             cargarPlayoffsClasificacion();
             
-            configurarTabs();
-            cargarLideresPorTipo('bateo', 'lideresBateo');
+            // ✅ MODIFICADO: Nueva secuencia de carga para líderes
+            cargarLideres(); 
+            configurarTabsLideres();
             
-            configurarEventListeners();
+            configurarEventListenersGenerales();
             cargarProximosPartidos();
             cargarDatosParaBusqueda(); 
             cargarEstadisticasCompletas(); 
-            // ✅ NUEVO: La inicialización de la navegación móvil se llama aquí
+            initMobileNavigation();
         });
 
         async function cargarDatosParaBusqueda() {
@@ -2659,13 +2683,12 @@
              }
         }
         
-        function configurarEventListeners() {
-            // ✅ MODIFICADO: Solo se ejecuta en Desktop para no interferir con la lógica móvil.
+        function configurarEventListenersGenerales() {
             if (window.innerWidth > 768) {
                 document.querySelectorAll('.nav-tab').forEach(tab => {
                     tab.addEventListener('click', function(e) {
                         e.preventDefault();
-                        const tabName = this.dataset.section || this.dataset.tab; // Compatible con ambos
+                        const tabName = this.dataset.section || this.dataset.tab;
                         mostrarPestana(tabName);
                     });
                 });
@@ -2788,72 +2811,33 @@
         
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
         
-        // ✅ INICIO: CÓDIGO NUEVO PARA NAVEGACIÓN MÓVIL
         function initMobileNavigation() {
-          console.log('🔧 Inicializando navegación móvil...');
           const isMobile = window.innerWidth <= 768;
-          if (!isMobile) {
-            console.log('⏭️ No es móvil, saltando inicialización.');
-            return;
-          }
+          if (!isMobile) return;
           const navItems = document.querySelectorAll('#mobileNavigation .nav-tab');
-          if (navItems.length === 0) {
-            console.warn('⚠️ No se encontraron elementos de navegación móvil.');
-            return;
-          }
-          console.log(`✅ Encontrados ${navItems.length} elementos de navegación.`);
+          if (navItems.length === 0) return;
+          
           navItems.forEach(item => {
             item.addEventListener('click', function(e) {
               e.preventDefault();
-              console.log('🎯 Click en navegación:', this.dataset.section);
-              
-              // 1. Actualiza el estado activo de los botones de navegación
               navItems.forEach(nav => nav.classList.remove('active'));
               this.classList.add('active');
-              
-              const scrollTargetId = this.getAttribute('href').substring(1);
-              const contentTargetId = this.dataset.section; // El ID del .tab-content a mostrar
-              
-              // 2. Muestra la pestaña de contenido correcta (LA CLAVE DE LA SOLUCIÓN)
+              const contentTargetId = this.dataset.section;
               document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
               const contentPane = document.getElementById(contentTargetId);
-              if (contentPane) {
-                contentPane.classList.add('active');
-                console.log(`✅ Mostrando panel de contenido: #${contentTargetId}`);
-              } else {
-                console.warn(`⚠️ Panel de contenido no encontrado: #${contentTargetId}`);
-              }
-              
-              // 3. Haz scroll a la sección de anclaje
-              const scrollTarget = document.getElementById(scrollTargetId);
-              if (scrollTarget) {
-                // Pequeño timeout para asegurar que el DOM se actualice (display: block) antes de hacer scroll
-                setTimeout(() => {
-                  console.log('✅ Haciendo scroll a:', scrollTargetId);
-                  scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  history.pushState(null, null, `#${scrollTargetId}`);
-                }, 50);
-              } else {
-                console.error('❌ Sección de anclaje no encontrada:', scrollTargetId);
-              }
+              if (contentPane) contentPane.classList.add('active');
             });
           });
-          console.log('✅ Navegación móvil inicializada correctamente.');
         }
 
-        // Ejecuta la inicialización cuando el DOM esté listo
         document.addEventListener('DOMContentLoaded', function() {
           initMobileNavigation();
         });
 
-        // Re-evalúa al cambiar el tamaño de la ventana (para cambiar entre desktop/mobile)
         window.addEventListener('resize', function() {
-          const isMobile = window.innerWidth <= 768;
-          document.body.dataset.isMobile = isMobile;
-          configurarEventListeners(); // Re-aplica listeners de desktop si es necesario
-          initMobileNavigation(); // Re-aplica listeners de mobile si es necesario
+          configurarEventListenersGenerales();
+          initMobileNavigation();
         });
-        // ✅ FIN: CÓDIGO NUEVO PARA NAVEGACIÓN MÓVIL
     </script>
     <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%2C%20una%20consulta" class="whatsapp-btn" target="_blank">💬 Consultas</a>
 
