@@ -1890,6 +1890,289 @@
           }
         }
 
+        /* ✅ NUEVO: ESTILOS PESTAÑA "TODOS" - TAREA 2.1 */
+        /* Contenedor principal de posiciones */
+        .positions-container {
+          display: flex;
+          flex-direction: column;
+          gap: 50px;
+          padding: 20px 0;
+        }
+
+        /* Sección de cada posición */
+        .position-section {
+          background: linear-gradient(145deg, #1e1e3f, #1a1a2e);
+          border-radius: 24px;
+          padding: 30px;
+          border: 2px solid rgba(255, 215, 0, 0.2);
+          position: relative;
+          overflow: hidden;
+        }
+
+        /* Efecto de brillo en background */
+        .position-section::before {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: radial-gradient(circle, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+          opacity: 0;
+          transition: opacity 0.4s ease;
+        }
+        .position-section:hover::before {
+          opacity: 1;
+        }
+
+        /* Título de posición */
+        .position-title {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          color: #ffd700;
+          font-size: 1.6rem;
+          font-weight: bold;
+          margin-bottom: 25px;
+          padding-bottom: 15px;
+          border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .position-icon {
+          font-size: 2.2rem;
+          filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+        }
+
+        /* Grid de cards */
+        .position-cards {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 20px;
+        }
+
+        /* ✅ CARD DE JUGADOR PREMIUM */
+        .player-card {
+          position: relative;
+          background: linear-gradient(145deg, #252542, #1a1a2e);
+          border-radius: 18px;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          border: 2px solid rgba(255, 215, 0, 0.2);
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          overflow: hidden;
+          cursor: pointer;
+        }
+
+        /* Efecto de brillo deslizante */
+        .player-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.15), transparent);
+          transition: left 0.6s ease;
+        }
+        .player-card:hover::before {
+          left: 100%;
+        }
+
+        /* Hover effect */
+        .player-card:hover {
+          transform: translateY(-12px) scale(1.02);
+          border-color: #ffd700;
+          box-shadow: 0 12px 40px rgba(255, 215, 0, 0.4);
+        }
+
+        /* Efecto highlight en búsqueda */
+        .player-card.highlight {
+          border-color: #ff8c00;
+          box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
+          animation: pulse-highlight 1.5s infinite;
+        }
+        @keyframes pulse-highlight {
+          0%, 100% { 
+             transform: scale(1); 
+             box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
+          }
+          50% { 
+             transform: scale(1.03); 
+             box-shadow: 0 0 40px rgba(255, 140, 0, 0.8);
+          }
+        }
+
+        /* Ranking badge */
+        .player-rank {
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.5rem;
+          font-weight: bold;
+          color: #fff;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+          z-index: 2;
+          transition: transform 0.3s ease;
+        }
+
+        .player-card:hover .player-rank {
+          transform: scale(1.15) rotate(5deg);
+        }
+
+        /* Avatar del jugador */
+        .player-avatar {
+          width: 90px;
+          height: 90px;
+          border-radius: 50%;
+          overflow: hidden;
+          border: 4px solid #ffd700;
+          margin: 10px auto 0;
+          background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+          transition: all 0.3s ease;
+        }
+        .player-card:hover .player-avatar {
+          transform: scale(1.1);
+          box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        .player-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        /* Información del jugador */
+        .player-card .player-info { /* Especificidad aumentada */
+          text-align: center;
+        }
+        .player-name {
+          font-size: 1.2rem;
+          font-weight: bold;
+          color: #ffd700;
+          margin-bottom: 5px;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .player-team {
+          font-size: 0.9rem;
+          color: rgba(255, 255, 255, 0.7);
+          margin-bottom: 15px;
+        }
+
+        /* Stats del jugador */
+        .player-card .player-stats { /* Especificidad aumentada */
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+          gap: 12px;
+          margin-top: 15px;
+          padding-top: 15px;
+          border-top: 1px solid rgba(255, 215, 0, 0.2);
+          justify-content: center;
+        }
+        .player-card .player-stats .stat { /* Especificidad aumentada */
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+        .player-card .player-stats .stat-value { /* Especificidad aumentada */
+          font-size: 1.4rem;
+          font-weight: bold;
+          color: #ffd700;
+          text-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+        }
+        .player-card .player-stats .stat-label { /* Especificidad aumentada */
+          font-size: 0.7rem;
+          color: rgba(255, 255, 255, 0.6);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        /* Logo del equipo en esquina */
+        .team-logo {
+          position: absolute;
+          bottom: 15px;
+          left: 15px;
+          width: 45px;
+          height: 45px;
+          opacity: 0.25;
+          transition: all 0.3s ease;
+        }
+        .player-card:hover .team-logo {
+          opacity: 0.5;
+          transform: scale(1.1);
+        }
+        .team-logo img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Estado vacío */
+        .empty-position {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 50px 20px;
+          color: rgba(255, 255, 255, 0.5);
+          font-style: italic;
+          background: rgba(255, 215, 0, 0.05);
+          border-radius: 12px;
+          border: 2px dashed rgba(255, 215, 0, 0.2);
+        }
+
+        /* Estilos del buscador */
+        #searchPlayerInput:focus {
+          outline: none;
+          border-color: #ffd700;
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+          background: rgba(26, 26, 46, 0.95);
+        }
+        #searchPlayerInput::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ✅ RESPONSIVE */
+        @media (max-width: 768px) {
+          .positions-container {
+            gap: 30px;
+          }
+            .position-section {
+            padding: 20px;
+          }
+            .position-title {
+            font-size: 1.3rem;
+            flex-wrap: wrap;
+          }
+            .position-cards {
+            grid-template-columns: 1fr;
+          }
+            .player-card {
+            padding: 15px;
+          }
+            .player-rank {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+          }
+            .player-avatar {
+            width: 70px;
+            height: 70px;
+          }
+            .player-name {
+            font-size: 1.1rem;
+          }
+            .player-card .player-stats { /* Especificidad aumentada */
+            gap: 8px;
+          }
+        }
     </style>
 </head>
 <body>
@@ -2133,8 +2416,37 @@
                     <button class="leader-filter" data-category="todos">📊 Todos</button>
                 </div>
                 
+                <div class="search-container" id="searchContainerTodos" style="display: none; margin-bottom: 30px;">
+                  <div style="max-width: 600px; margin: 0 auto;">
+                    <input 
+                      type="text" 
+                      id="searchPlayerInput" 
+                      placeholder="🔍 Buscar jugador por nombre..."
+                      style="
+                        width: 100%;
+                        padding: 15px 24px;
+                        border-radius: 30px;
+                        border: 2px solid rgba(255, 215, 0, 0.3);
+                        background: rgba(26, 26, 46, 0.8);
+                        color: #fff;
+                        font-size: 16px;
+                        transition: all 0.3s ease;
+                      "
+                    />
+                  </div>
+                  <div id="searchResultsCount" style="
+                    text-align: center;
+                    margin-top: 10px;
+                    color: rgba(255, 215, 0, 0.8);
+                    font-size: 0.9rem;
+                  "></div>
+                </div>
+
                 <div id="lideresGrid">
                     </div>
+
+                <div id="positionsContainer" class="positions-container" style="display: none;">
+                  </div>
 
             </div>
 
@@ -2465,23 +2777,47 @@
             };
           }
         }
-
-        function renderizarLideresPorCategoria(categoria) { // ✅ NUEVO: Función para renderizar según la categoría
+        
+        // ✅ MODIFICADO: Incluir renderizado de pestaña "Todos"
+        function renderizarLideresPorCategoria(categoria) {
           currentLeaderCategory = categoria; // Actualizar estado global
+          
           const container = document.getElementById('lideresGrid');
+          const positionsContainer = document.getElementById('positionsContainer');
+          const searchContainer = document.getElementById('searchContainerTodos');
+
+          // Activar el botón de filtro correcto
+          document.querySelectorAll('.leader-filter').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.category === categoria);
+          });
+
+          if (categoria === 'todos') {
+            // Mostrar contenedores de pestaña "Todos" y ocultar el grid general
+            if (container) container.style.display = 'none';
+            if (positionsContainer) positionsContainer.style.display = 'block';
+            if (searchContainer) searchContainer.style.display = 'block';
+                
+            // Renderizar Top 5 por posición
+            renderizarTodosPorPosicion();
+                
+            // Inicializar buscador con un pequeño delay para asegurar que el DOM está listo
+            setTimeout(() => {
+              initBuscadorJugadores();
+            }, 100);
+                
+            return; // Salir de la función para el caso 'todos'
+          }
+
+          // Para otras pestañas (bateo, pitcheo, defensiva)
+          // Ocultar contenedores de "Todos" y mostrar el grid general
+          if (container) container.style.display = 'grid';
+          if (positionsContainer) positionsContainer.style.display = 'none';
+          if (searchContainer) searchContainer.style.display = 'none';
 
           if (!container) {
             console.error('❌ Contenedor lideresGrid no encontrado');
             return;
           }
-          
-          document.querySelectorAll('.leader-filter').forEach(btn => {
-              if (btn.dataset.category === categoria) {
-                  btn.classList.add('active');
-              } else {
-                  btn.classList.remove('active');
-              }
-          });
 
           let datos = [];
           switch (categoria) {
@@ -2491,15 +2827,8 @@
             case 'pitcheo':
               datos = leadersData.pitcheo || [];
               break;
-            case 'defensiva': // ✅ NUEVO CASO
+            case 'defensiva':
               datos = leadersData.defensiva || [];
-              break;
-            case 'todos':
-              datos = [
-                ...(leadersData.bateo || []).slice(0, 4),
-                ...(leadersData.pitcheo || []).slice(0, 4),
-                ...(leadersData.defensiva || []).slice(0, 4) // ✅ Incluir defensiva
-              ];
               break;
           }
 
@@ -2513,17 +2842,12 @@
             return;
           }
 
-          // Renderizar cards
-          const html = datos.map((lider, index) => {
-            return generarCardLider(lider, index, categoria); // ✅ Pasar categoría
-          }).join('');
-
+          const html = datos.map((lider, index) => generarCardLider(lider, index, categoria)).join('');
           container.innerHTML = html;
           console.log(`✅ Renderizados ${datos.length} líderes de ${categoria}`);
         }
         
-        function generarCardLider(lider, index, categoria) { // ✅ NUEVO: Función para generar el HTML de cada tarjeta
-          // Determinar qué stats mostrar según categoría
+        function generarCardLider(lider, index, categoria) { 
           let statsHTML = '';
 
           if (categoria === 'bateo') {
@@ -2556,7 +2880,7 @@
                 <span class="stat-label">WHIP</span>
               </div>
             `;
-          } else if (categoria === 'defensiva') { // ✅ NUEVO
+          } else if (categoria === 'defensiva') {
             statsHTML = `
               <div class="stat">
                 <span class="stat-value">${(lider.fielding_percentage || 0).toFixed(3)}</span>
@@ -2575,48 +2899,8 @@
                 <span class="stat-label">E</span>
               </div>
             `;
-          } else if (categoria === 'todos') {
-            // Para "Todos", detectar tipo de jugador por sus stats
-            if (lider.era !== undefined) {
-              // Es pitcher
-              statsHTML = `
-                <div class="stat">
-                  <span class="stat-value">${lider.era || '0.00'}</span>
-                  <span class="stat-label">ERA</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-value">${lider.strikeouts || 0}</span>
-                  <span class="stat-label">SO</span>
-                </div>
-              `;
-            } else if (lider.fielding_percentage !== undefined) {
-              // Es defensor
-              statsHTML = `
-                <div class="stat">
-                  <span class="stat-value">${(lider.fielding_percentage || 0).toFixed(3)}</span>
-                  <span class="stat-label">FLDG%</span>
-                </div>
-                 <div class="stat">
-                    <span class="stat-value">${lider.putouts || 0}</span>
-                    <span class="stat-label">PO</span>
-                  </div>
-              `;
-            } else {
-              // Es bateador
-              statsHTML = `
-                <div class="stat">
-                  <span class="stat-value">${(lider.promedio_bateo || 0).toFixed(3)}</span>
-                  <span class="stat-label">AVG</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-value">${lider.home_runs || 0}</span>
-                  <span class="stat-label">HR</span>
-                </div>
-              `;
-            }
           }
 
-          // Ranking colors
           const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
           const rankColor = rankColors[index] || '#4A90E2';
 
@@ -2634,6 +2918,272 @@
               </div>
             </div>
           `;
+        }
+
+        // ✅ NUEVO: TAREA 2.1 - PESTAÑA "TODOS" CON TOP 5 POR POSICIÓN
+        // Definición de posiciones
+        const POSICIONES_BEISBOL = [
+          { codigo: 'C', nombre: 'Catcher', icono: '⚾' },
+          { codigo: '1B', nombre: 'Primera Base', icono: '🥇' },
+          { codigo: '2B', nombre: 'Segunda Base', icono: '🥈' },
+          { codigo: '3B', nombre: 'Tercera Base', icono: '🥉' },
+          { codigo: 'SS', nombre: 'Shortstop', icono: '💎' },
+          { codigo: 'LF', nombre: 'Left Field', icono: '🦅' },
+          { codigo: 'CF', nombre: 'Center Field', icono: '🦅' },
+          { codigo: 'RF', nombre: 'Right Field', icono: '🦅' },
+          { codigo: 'P', nombre: 'Pitcher', icono: '🎯' }
+        ];
+
+        /**
+         * ✅ Renderizar pestaña "Todos" con Top 5 por posición
+         */
+        function renderizarTodosPorPosicion() {
+          console.log('🔧 Renderizando pestaña "Todos" por posición...');
+            const container = document.getElementById('positionsContainer');
+            if (!container) {
+            console.error('❌ Contenedor positionsContainer no encontrado');
+            return;
+          }
+            let html = '';
+          let totalJugadores = 0;
+            POSICIONES_BEISBOL.forEach(pos => {
+            // Combinar todos los jugadores disponibles
+            const todosJugadores = [
+              ...(leadersData.bateo || []),
+              ...(leadersData.pitcheo || []),
+              ...(leadersData.defensiva || [])
+            ];
+                
+            // Filtrar por posición y eliminar duplicados
+            const jugadoresUnicos = {};
+            todosJugadores.forEach(j => {
+              const id = j.jugador_id || j.id;
+              if (j.posicion === pos.codigo || j.posicion_principal === pos.codigo) {
+                if (!jugadoresUnicos[id] || (jugadoresUnicos[id] && j.promedio_bateo > (jugadoresUnicos[id].promedio_bateo || 0))) {
+                  jugadoresUnicos[id] = j;
+                }
+              }
+            });
+                
+            // Convertir a array y ordenar
+            let jugadoresPosicion = Object.values(jugadoresUnicos);
+                
+            // Ordenar según tipo
+            if (pos.codigo === 'P') {
+              // Pitchers: ordenar por ERA (menor es mejor)
+              jugadoresPosicion.sort((a, b) => {
+                const eraA = parseFloat(a.era) || 99.99;
+                const eraB = parseFloat(b.era) || 99.99;
+                return eraA - eraB;
+              });
+            } else {
+              // Bateadores: ordenar por AVG (mayor es mejor)
+              jugadoresPosicion.sort((a, b) => {
+                const avgA = parseFloat(a.promedio_bateo) || 0;
+                const avgB = parseFloat(b.promedio_bateo) || 0;
+                return avgB - avgA;
+              });
+            }
+                
+            // Top 5
+            jugadoresPosicion = jugadoresPosicion.slice(0, 5);
+            totalJugadores += jugadoresPosicion.length;
+                
+            // Generar HTML para esta posición
+            html += `
+              <div class="position-section" data-position="${pos.codigo}">
+                <h3 class="position-title">
+                  <span class="position-icon">${pos.icono}</span>
+                  <span>${pos.nombre} (${pos.codigo}) - Top 5</span>
+                </h3>
+                        
+                <div class="position-cards">
+                  ${jugadoresPosicion.length > 0 
+                     ? jugadoresPosicion.map((jugador, index) => generarCardJugador(jugador, index, pos.codigo)).join('')
+                    : '<div class="empty-position">Sin jugadores registrados en esta posición</div>'
+                  }
+                </div>
+              </div>
+            `;
+          });
+            container.innerHTML = html;
+          console.log(`✅ Renderizadas ${POSICIONES_BEISBOL.length} posiciones con ${totalJugadores} jugadores totales`);
+        }
+
+        /**
+         * ✅ Generar card individual de jugador
+         */
+        function generarCardJugador(jugador, index, posicion) {
+          const esPitcher = posicion === 'P';
+            // Stats según tipo de jugador
+          let statsHTML = '';
+            if (esPitcher) {
+            statsHTML = `
+              <div class="stat">
+                <span class="stat-value">${jugador.era || '0.00'}</span>
+                <span class="stat-label">ERA</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${jugador.strikeouts || jugador.so || 0}</span>
+                <span class="stat-label">SO</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${jugador.whip || '0.00'}</span>
+                <span class="stat-label">WHIP</span>
+              </div>
+            `;
+          } else {
+            statsHTML = `
+              <div class="stat">
+                <span class="stat-value">${(jugador.promedio_bateo || 0).toFixed(3)}</span>
+                <span class="stat-label">AVG</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${jugador.home_runs || jugador.hr || 0}</span>
+                <span class="stat-label">HR</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${jugador.rbi || 0}</span>
+                <span class="stat-label">RBI</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">${(jugador.ops || 0).toFixed(3)}</span>
+                <span class="stat-label">OPS</span>
+              </div>
+            `;
+          }
+            // Colores de ranking
+          const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32', '#4A90E2', '#9B59B6'];
+          const rankColor = rankColors[index] || '#6C757D';
+            // Medallas para top 3
+          const rankDisplay = index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`;
+            // ID del jugador
+          const jugadorId = jugador.jugador_id || jugador.id;
+            // Logo del equipo
+          const logoEquipo = getTeamLogo(jugador.equipo_nombre);
+            return `
+            <div class="player-card"
+                  data-player-id="${jugadorId}" 
+                 data-player-name="${(jugador.nombre_jugador || jugador.nombre || '').toLowerCase()}">
+                    <div class="player-rank" style="background: ${rankColor};">
+                ${rankDisplay}
+              </div>
+                    
+              <div class="player-avatar">
+                <img 
+                   src="/public/images/players/${jugadorId}.jpg" 
+                   alt="${jugador.nombre_jugador || jugador.nombre}"
+                  onerror="this.src='/public/images/default-player.png'"
+                />
+              </div>
+                    
+              <div class="player-info">
+                <h4 class="player-name">${jugador.nombre_jugador || jugador.nombre || 'Jugador'}</h4>
+                <p class="player-team">${jugador.equipo_nombre || 'Sin equipo'}</p>
+                        
+                <div class="player-stats">
+                  ${statsHTML}
+                </div>
+              </div>
+                    
+              <div class="team-logo">
+                <img 
+                   src="${logoEquipo}" 
+                   alt="${jugador.equipo_nombre}"
+                />
+              </div>
+            </div>
+          `;
+        }
+
+        /**
+         * ✅ Obtener logo del equipo
+         */
+        function getTeamLogo(equipoNombre) {
+          if (!equipoNombre) return '/public/images/logos/default-logo.png';
+            const logoMap = {
+            'guerreros del norte': 'guerreros-del-norte.png',
+            'la guaira': 'la-guaira.png',
+            'furia del caribe': 'furia-del-caribe.png',
+            'tigres unidos': 'tigres-unidos.png',
+            'leones dorados': 'leones-dorados.png',
+            'aguilas negras': 'aguilas-negras.png',
+            'venearstone': 'venearstone.png',
+            'desss': 'desss.png',
+            'caribes rd': 'caribes-rd.png'
+          };
+            const nombreNormalizado = equipoNombre.toLowerCase().trim();
+          const logoFile = logoMap[nombreNormalizado];
+            return logoFile 
+             ? `/public/images/logos/${logoFile}` 
+             : '/public/images/logos/default-logo.png';
+        }
+
+        /**
+         * ✅ Buscador en tiempo real
+         */
+        function initBuscadorJugadores() {
+          const searchInput = document.getElementById('searchPlayerInput');
+            if (!searchInput) {
+            console.warn('⚠️ Buscador no encontrado');
+            return;
+          }
+            searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const resultsCount = document.getElementById('searchResultsCount');
+                
+            if (searchTerm.length < 2) {
+              // Mostrar todos
+              document.querySelectorAll('.player-card').forEach(card => {
+                card.style.display = 'flex';
+                card.classList.remove('highlight');
+              });
+              if (resultsCount) resultsCount.textContent = '';
+              return;
+            }
+                
+            let encontrados = 0;
+            let primerResultado = null;
+                
+            document.querySelectorAll('.player-card').forEach(card => {
+              const playerName = card.dataset.playerName || '';
+                    
+              if (playerName.includes(searchTerm)) {
+                card.style.display = 'flex';
+                card.classList.add('highlight');
+                encontrados++;
+                        
+                if (!primerResultado) {
+                  primerResultado = card;
+                }
+              } else {
+                card.style.display = 'none';
+                card.classList.remove('highlight');
+              }
+            });
+                
+            // Actualizar contador
+            if (resultsCount) {
+              if (encontrados === 0) {
+                resultsCount.textContent = '❌ No se encontraron jugadores';
+                resultsCount.style.color = '#ff4757';
+              } else {
+                resultsCount.textContent = `✅ ${encontrados} jugador${encontrados !== 1 ? 'es' : ''} encontrado${encontrados !== 1 ? 's' : ''}`;
+                resultsCount.style.color = '#ffd700';
+              }
+            }
+                
+            // Scroll al primer resultado
+            if (primerResultado) {
+              setTimeout(() => {
+                primerResultado.scrollIntoView({ 
+                   behavior: 'smooth', 
+                   block: 'center' 
+                 });
+              }, 100);
+            }
+          });
+            console.log('✅ Buscador de jugadores inicializado');
         }
         
         // ============= ✅ MODIFICADO: GESTIÓN DE PESTAÑAS =============
