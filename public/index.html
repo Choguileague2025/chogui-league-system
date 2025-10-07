@@ -145,6 +145,7 @@
             min-width: 120px;
             text-align: center;
             border: 2px solid rgba(255, 215, 0, 0.2);
+            text-decoration: none; /* ✅ NUEVO: Asegura que <a> no tenga subrayado */
         }
 
         .nav-tab:hover {
@@ -1069,20 +1070,22 @@
             }
         }
 
+        /* ✅ INICIO: ESTILOS PARA NAVEGACIÓN MÓVIL */
         @media (max-width: 768px) {
             .nav-tabs {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: linear-gradient(145deg, #1a1a2e, #16213e);
-                padding: 10px 5px 5px 5px;
-                border-top: 2px solid rgba(255, 215, 0, 0.3);
-                box-shadow: 0 -10px 30px rgba(0,0,0,0.6);
+                background: linear-gradient(180deg, rgba(26, 26, 46, 0.95), rgba(26, 26, 46, 1));
+                padding: 12px 0;
+                border-top: none;
+                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
                 z-index: 1000;
                 gap: 5px;
                 margin-bottom: 0;
                 justify-content: space-around;
+                display: flex;
             }
 
             .nav-tab {
@@ -1094,26 +1097,38 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 2px;
-                border-radius: 10px;
+                gap: 4px;
+                border-radius: 12px;
                 transition: all 0.3s ease;
-            }
-
-            .nav-tab:hover {
-                transform: translateY(-2px);
+                color: rgba(255, 255, 255, 0.6);
+                -webkit-tap-highlight-color: transparent; /* Quita el highlight azul en iOS */
+                background: none;
+                border: none;
             }
 
             .nav-tab::before {
                 content: attr(data-icon);
-                font-size: 1.2rem;
-                margin-bottom: 2px;
+                font-size: 24px; /* Icono más grande */
+                transition: transform 0.3s ease;
+                margin-bottom: 0;
+            }
+            
+            /* ✅ Efecto táctil al tocar */
+            .nav-tab:active {
+              transform: scale(0.95);
+              background: rgba(255, 215, 0, 0.1);
             }
 
-            .nav-tab[data-tab="posiciones"]::before { content: "🏆"; }
-            .nav-tab[data-tab="partidos"]::before { content: "🎯"; }
-            .nav-tab[data-tab="estadisticas"]::before { content: "📊"; }
-            .nav-tab[data-tab="playoffs"]::before { content: "🔥"; }
+            /* ✅ Estado activo */
+            .nav-tab.active {
+              color: #ffd700;
+              background: rgba(255, 215, 0, 0.15);
+            }
 
+            .nav-tab.active::before {
+              transform: scale(1.2);
+            }
+            
             .container {
                 padding-bottom: 120px;
             }
@@ -1199,6 +1214,7 @@
                 transform: translateX(10px);
             }
         }
+        /* ✅ FIN: ESTILOS PARA NAVEGACIÓN MÓVIL */
 
         @media (max-width: 768px) {
             .partidos-enhanced-grid {
@@ -1287,12 +1303,8 @@
             .nav-tab:hover {
                 transform: none;
             }
-
-            .nav-tab:active {
-                transform: scale(0.95);
-                background: linear-gradient(145deg, #ffd700, #ff8c00);
-                color: #1a1a2e;
-            }
+            
+            /* Se delega el :active a los estilos de navegación móvil */
 
             .partido-card-enhanced:hover {
                 transform: none;
@@ -1954,14 +1966,14 @@
         }
         </style>
 
-        <div class="nav-tabs">
-            <button class="nav-tab active" data-tab="posiciones">🏆 Posiciones</button>
-            <button class="nav-tab" data-tab="partidos">🎯 Partidos</button>
-            <button class="nav-tab" data-tab="estadisticas">📊 Líderes</button>
-            <button class="nav-tab" data-tab="playoffs">🔥 Playoffs</button>
-        </div>
+        <nav class="nav-tabs" id="mobileNavigation">
+            <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
+            <a href="#proximos-partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
+            <a href="#estadisticas" class="nav-tab" data-section="estadisticas" data-icon="📊">Líderes</a>
+            <a href="#playoffs" class="nav-tab" data-section="playoffs" data-icon="🔥">Playoffs</a>
+        </nav>
 
-        <section class="proximos-partidos">
+        <section class="proximos-partidos" id="proximos-partidos">
             <div class="section-header">
                 <h2>⚾ Próximos Partidos</h2>
                 <p class="section-subtitle">No te pierdas la acción en el diamante</p>
@@ -2622,11 +2634,11 @@
             
             configurarEventListeners();
             cargarProximosPartidos();
-            cargarDatosParaBusqueda(); // ✅ MODIFICADO - Ahora es más robusta
+            cargarDatosParaBusqueda(); 
             cargarEstadisticasCompletas(); 
+            // ✅ NUEVO: La inicialización de la navegación móvil se llama aquí
         });
 
-        // ✅ MODIFICADO - Función robustecida con validación de array y manejo de errores
         async function cargarDatosParaBusqueda() {
              try {
                 const [equiposRes, jugadoresRes] = await Promise.all([
@@ -2634,20 +2646,13 @@
                     fetchJSON('/api/jugadores')
                 ]);
 
-                // ✅ NUEVO - Validación robusta para asegurar que los datos de la API sean arrays
-                equipos = Array.isArray(equiposRes) ? equiposRes :
-                          Array.isArray(equiposRes.data) ? equiposRes.data :
-                          Array.isArray(equiposRes.equipos) ? equiposRes.equipos : [];
-                
-                jugadores = Array.isArray(jugadoresRes) ? jugadoresRes :
-                            Array.isArray(jugadoresRes.data) ? jugadoresRes.data :
-                            Array.isArray(jugadoresRes.jugadores) ? jugadoresRes.jugadores : [];
+                equipos = Array.isArray(equiposRes) ? equiposRes : [];
+                jugadores = Array.isArray(jugadoresRes) ? jugadoresRes : [];
 
                 console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${jugadores.length} jugadores.`);
 
              } catch(e) {
                  console.error("❌ Error cargando datos para búsqueda:", e);
-                 // ✅ NUEVO - Si la carga falla, se inicializan como arrays vacíos para prevenir errores
                  equipos = [];
                  jugadores = [];
                  mostrarErrorBusqueda('No se pudieron cargar los datos.');
@@ -2655,19 +2660,26 @@
         }
         
         function configurarEventListeners() {
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    mostrarPestana(this.dataset.tab);
+            // ✅ MODIFICADO: Solo se ejecuta en Desktop para no interferir con la lógica móvil.
+            if (window.innerWidth > 768) {
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const tabName = this.dataset.section || this.dataset.tab; // Compatible con ambos
+                        mostrarPestana(tabName);
+                    });
                 });
-            });
+            }
         }
 
         function mostrarPestana(nombrePestana) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+            
             const pestanaActiva = document.getElementById(nombrePestana);
             if (pestanaActiva) pestanaActiva.classList.add('active');
-            const botonActivo = document.querySelector(`[data-tab="${nombrePestana}"]`);
+            
+            const botonActivo = document.querySelector(`[data-section="${nombrePestana}"], [data-tab="${nombrePestana}"]`);
             if (botonActivo) botonActivo.classList.add('active');
         }
 
@@ -2709,7 +2721,6 @@
             }
         });
 
-        // ✅ NUEVO - Función para mostrar errores en la UI de búsqueda
         function mostrarErrorBusqueda(mensaje) {
             const container = document.getElementById('searchResults');
             if (!container) return;
@@ -2717,13 +2728,11 @@
             container.style.display = 'block';
         }
         
-        // ✅ MODIFICADO - Función de búsqueda envuelta en try-catch para seguridad
         function buscarEnTiempoReal(query) {
             try { 
                 const resultados = [];
                 const queryLower = query.toLowerCase();
 
-                // ✅ MODIFICADO - Se asegura que 'equipos' y 'jugadores' son arrays antes de iterar
                 if (Array.isArray(equipos)) {
                     equipos.forEach(equipo => {
                         if (equipo.nombre.toLowerCase().includes(queryLower)) {
@@ -2779,8 +2788,74 @@
         
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
         
+        // ✅ INICIO: CÓDIGO NUEVO PARA NAVEGACIÓN MÓVIL
+        function initMobileNavigation() {
+          console.log('🔧 Inicializando navegación móvil...');
+          const isMobile = window.innerWidth <= 768;
+          if (!isMobile) {
+            console.log('⏭️ No es móvil, saltando inicialización.');
+            return;
+          }
+          const navItems = document.querySelectorAll('#mobileNavigation .nav-tab');
+          if (navItems.length === 0) {
+            console.warn('⚠️ No se encontraron elementos de navegación móvil.');
+            return;
+          }
+          console.log(`✅ Encontrados ${navItems.length} elementos de navegación.`);
+          navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+              e.preventDefault();
+              console.log('🎯 Click en navegación:', this.dataset.section);
+              
+              // 1. Actualiza el estado activo de los botones de navegación
+              navItems.forEach(nav => nav.classList.remove('active'));
+              this.classList.add('active');
+              
+              const scrollTargetId = this.getAttribute('href').substring(1);
+              const contentTargetId = this.dataset.section; // El ID del .tab-content a mostrar
+              
+              // 2. Muestra la pestaña de contenido correcta (LA CLAVE DE LA SOLUCIÓN)
+              document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+              const contentPane = document.getElementById(contentTargetId);
+              if (contentPane) {
+                contentPane.classList.add('active');
+                console.log(`✅ Mostrando panel de contenido: #${contentTargetId}`);
+              } else {
+                console.warn(`⚠️ Panel de contenido no encontrado: #${contentTargetId}`);
+              }
+              
+              // 3. Haz scroll a la sección de anclaje
+              const scrollTarget = document.getElementById(scrollTargetId);
+              if (scrollTarget) {
+                // Pequeño timeout para asegurar que el DOM se actualice (display: block) antes de hacer scroll
+                setTimeout(() => {
+                  console.log('✅ Haciendo scroll a:', scrollTargetId);
+                  scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  history.pushState(null, null, `#${scrollTargetId}`);
+                }, 50);
+              } else {
+                console.error('❌ Sección de anclaje no encontrada:', scrollTargetId);
+              }
+            });
+          });
+          console.log('✅ Navegación móvil inicializada correctamente.');
+        }
+
+        // Ejecuta la inicialización cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+          initMobileNavigation();
+        });
+
+        // Re-evalúa al cambiar el tamaño de la ventana (para cambiar entre desktop/mobile)
+        window.addEventListener('resize', function() {
+          const isMobile = window.innerWidth <= 768;
+          document.body.dataset.isMobile = isMobile;
+          configurarEventListeners(); // Re-aplica listeners de desktop si es necesario
+          initMobileNavigation(); // Re-aplica listeners de mobile si es necesario
+        });
+        // ✅ FIN: CÓDIGO NUEVO PARA NAVEGACIÓN MÓVIL
     </script>
-    <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%20una%20consulta" class="whatsapp-btn" target="_blank">💬 Consultas</a>
+    <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%2C%20una%20consulta" class="whatsapp-btn" target="_blank">💬 Consultas</a>
 
     <footer class="main-footer">
       <div class="footer-content">
