@@ -145,6 +145,8 @@
             min-width: 120px;
             text-align: center;
             border: 2px solid rgba(255, 215, 0, 0.2);
+            /* ✅ NUEVO - Asegura que los <a> se vean como botones */
+            text-decoration: none;
         }
 
         .nav-tab:hover {
@@ -1070,19 +1072,21 @@
         }
 
         @media (max-width: 768px) {
+            /* ✅ MODIFICADO - Se combinan estilos existentes con los nuevos para la barra de navegación */
             .nav-tabs {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: linear-gradient(145deg, #1a1a2e, #16213e);
-                padding: 10px 5px 5px 5px;
-                border-top: 2px solid rgba(255, 215, 0, 0.3);
-                box-shadow: 0 -10px 30px rgba(0,0,0,0.6);
-                z-index: 1000;
+                background: linear-gradient(180deg, rgba(26, 26, 46, 0.95), rgba(26, 26, 46, 1)); /* ✅ NUEVO */
+                padding: 12px 0; /* ✅ MODIFICADO */
+                border-top: none; /* ✅ MODIFICADO */
+                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3); /* ✅ NUEVO */
+                z-index: 999; /* ✅ MODIFICADO */
                 gap: 5px;
                 margin-bottom: 0;
                 justify-content: space-around;
+                display: flex; /* ✅ NUEVO - Asegura que sea flex */
             }
 
             .nav-tab {
@@ -1097,22 +1101,48 @@
                 gap: 2px;
                 border-radius: 10px;
                 transition: all 0.3s ease;
+                /* ✅ NUEVO - Estilos para <a> */
+                text-decoration: none;
+                color: rgba(255, 255, 255, 0.6);
+                -webkit-tap-highlight-color: transparent; /* Quitar highlight azul en iOS */
+                background: none; /* ✅ MODIFICADO - Limpia el background por defecto */
+                border: none; /* ✅ MODIFICADO - Limpia el borde por defecto */
             }
 
-            .nav-tab:hover {
-                transform: translateY(-2px);
+            /* ✅ FEEDBACK TÁCTIL PARA NAVEGACIÓN MÓVIL (Adaptado de .mobile-nav) */
+            /* ✅ Efecto táctil al tocar */
+            .nav-tab:active {
+              transform: scale(0.95);
+              background: rgba(255, 215, 0, 0.1);
+            }
+
+            /* ✅ Estado activo */
+            .nav-tab.active {
+              color: #ffd700;
+              background: rgba(255, 215, 0, 0.15);
+            }
+
+            .nav-tab.active::before {
+              transform: scale(1.2); /* ✅ NUEVO */
             }
 
             .nav-tab::before {
                 content: attr(data-icon);
                 font-size: 1.2rem;
                 margin-bottom: 2px;
+                transition: transform 0.3s ease; /* ✅ NUEVO */
             }
 
-            .nav-tab[data-tab="posiciones"]::before { content: "🏆"; }
-            .nav-tab[data-tab="partidos"]::before { content: "🎯"; }
-            .nav-tab[data-tab="estadisticas"]::before { content: "📊"; }
-            .nav-tab[data-tab="playoffs"]::before { content: "🔥"; }
+            /* Se mantiene la funcionalidad de iconos de la versión original */
+            .nav-tab[data-section="posiciones"]::before { content: "🏆"; }
+            .nav-tab[data-section="partidos"]::before { content: "🎯"; }
+            .nav-tab[data-section="estadisticas"]::before { content: "📊"; }
+            .nav-tab[data-section="playoffs"]::before { content: "🔥"; }
+            
+            .nav-tab .nav-label { /* ✅ NUEVO - Para compatibilidad si se usara el span */
+              font-size: 12px;
+              font-weight: 600;
+            }
 
             .container {
                 padding-bottom: 120px;
@@ -1289,9 +1319,9 @@
             }
 
             .nav-tab:active {
+                /* ✅ MODIFICADO - Efecto :active ahora es manejado por el nuevo CSS */
                 transform: scale(0.95);
-                background: linear-gradient(145deg, #ffd700, #ff8c00);
-                color: #1a1a2e;
+                background: rgba(255, 215, 0, 0.1);
             }
 
             .partido-card-enhanced:hover {
@@ -1954,12 +1984,12 @@
         }
         </style>
 
-        <div class="nav-tabs">
-            <button class="nav-tab active" data-tab="posiciones">🏆 Posiciones</button>
-            <button class="nav-tab" data-tab="partidos">🎯 Partidos</button>
-            <button class="nav-tab" data-tab="estadisticas">📊 Líderes</button>
-            <button class="nav-tab" data-tab="playoffs">🔥 Playoffs</button>
-        </div>
+        <nav class="nav-tabs" id="mobileNavigation">
+            <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
+            <a href="#partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
+            <a href="#estadisticas" class="nav-tab" data-section="estadisticas" data-icon="📊">Líderes</a>
+            <a href="#playoffs" class="nav-tab" data-section="playoffs" data-icon="🔥">Playoffs</a>
+        </nav>
 
         <section class="proximos-partidos">
             <div class="section-header">
@@ -2151,7 +2181,7 @@
                   <ul>
                     <li><span class="badge clasificado"></span> <strong>Clasificado:</strong> Ha asegurado un cupo matemáticamente</li>
                     <li><span class="badge contención"></span> <strong>En contención:</strong> Todavía tiene posibilidades de clasificar</li>
-                    <li><span class="badge eliminado"></span> <strong>Eliminado:</strong> No puede alcanzar los playoffs matemáticamente</li>
+                    <li><span class="badge eliminado"></span> <strong>No puede alcanzar los playoffs matemáticamente</strong></li>
                   </ul>
                 </div>
               </div>
@@ -2655,11 +2685,16 @@
         }
         
         function configurarEventListeners() {
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    mostrarPestana(this.dataset.tab);
+            // ✅ MODIFICADO - Se adapta para que los event listeners de ESCRITORIO no interfieran con el nuevo JS móvil
+            const isDesktop = window.innerWidth > 768;
+            if (isDesktop) {
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.addEventListener('click', function(e) {
+                        e.preventDefault(); // Prevenir el salto de ancla en desktop también
+                        mostrarPestana(this.dataset.section); // Se usa data-section que es el nuevo estándar
+                    });
                 });
-            });
+            }
         }
 
         function mostrarPestana(nombrePestana) {
@@ -2667,7 +2702,7 @@
             document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
             const pestanaActiva = document.getElementById(nombrePestana);
             if (pestanaActiva) pestanaActiva.classList.add('active');
-            const botonActivo = document.querySelector(`[data-tab="${nombrePestana}"]`);
+            const botonActivo = document.querySelector(`[data-section="${nombrePestana}"]`); // ✅ MODIFICADO - Busca por data-section
             if (botonActivo) botonActivo.classList.add('active');
         }
 
@@ -2779,6 +2814,66 @@
         
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
         
+        // ✅ NUEVO - NAVEGACIÓN MÓVIL FUNCIONAL - TAREA 1.3
+        function initMobileNavigation() {
+          console.log('🔧 Inicializando navegación móvil...');
+          const isMobile = window.innerWidth <= 768;
+          if (!isMobile) {
+            console.log('⏭️ No es móvil, saltando inicialización');
+            return;
+          }
+          // ✅ MODIFICADO - Selector adaptado a la estructura actual
+          const navItems = document.querySelectorAll('#mobileNavigation .nav-tab');
+          if (navItems.length === 0) {
+            console.warn('⚠️ No se encontraron elementos .nav-tab en #mobileNavigation');
+            return;
+          }
+          console.log(`✅ Encontrados ${navItems.length} elementos de navegación`);
+          navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+              e.preventDefault();
+              console.log('🎯 Click en navegación:', this.dataset.section);
+              // Remover active de todos
+              navItems.forEach(nav => nav.classList.remove('active'));
+              // Agregar active al clickeado
+              this.classList.add('active');
+              // Obtener sección target
+              const sectionId = this.getAttribute('href').substring(1);
+              const targetSection = document.getElementById(sectionId);
+              if (targetSection) {
+                console.log('✅ Navegando a sección:', sectionId);
+                // Scroll suave
+                targetSection.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+                // Actualizar URL sin recargar
+                history.pushState(null, null, `#${sectionId}`);
+              } else {
+                console.error('❌ Sección no encontrada:', sectionId);
+              }
+            });
+          });
+          console.log('✅ Navegación móvil inicializada correctamente');
+        }
+
+        // ✅ NUEVO - EJECUTAR AL CARGAR PÁGINA
+        document.addEventListener('DOMContentLoaded', function() {
+          initMobileNavigation();
+        });
+
+        // ✅ NUEVO - EJECUTAR AL CAMBIAR TAMAÑO DE VENTANA
+        window.addEventListener('resize', function() {
+          const wasMobile = document.body.dataset.isMobile === 'true';
+          const isMobile = window.innerWidth <= 768;
+          document.body.dataset.isMobile = isMobile;
+
+          if (wasMobile !== isMobile) {
+            console.log('🔄 Cambio de modo detectado, reinicializando navegaciones...');
+            configurarEventListeners(); // Reconfigura listeners de escritorio si es necesario
+            initMobileNavigation();
+          }
+        });
     </script>
     <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%20una%20consulta" class="whatsapp-btn" target="_blank">💬 Consultas</a>
 
