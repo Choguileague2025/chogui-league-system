@@ -145,8 +145,6 @@
             min-width: 120px;
             text-align: center;
             border: 2px solid rgba(255, 215, 0, 0.2);
-            /* ✅ NUEVO - Asegura que los <a> se vean como botones */
-            text-decoration: none;
         }
 
         .nav-tab:hover {
@@ -1072,21 +1070,19 @@
         }
 
         @media (max-width: 768px) {
-            /* ✅ MODIFICADO - Se combinan estilos existentes con los nuevos para la barra de navegación */
             .nav-tabs {
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: linear-gradient(180deg, rgba(26, 26, 46, 0.95), rgba(26, 26, 46, 1)); /* ✅ NUEVO */
-                padding: 12px 0; /* ✅ MODIFICADO */
-                border-top: none; /* ✅ MODIFICADO */
-                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3); /* ✅ NUEVO */
-                z-index: 999; /* ✅ MODIFICADO */
+                background: linear-gradient(145deg, #1a1a2e, #16213e);
+                padding: 10px 5px 5px 5px;
+                border-top: 2px solid rgba(255, 215, 0, 0.3);
+                box-shadow: 0 -10px 30px rgba(0,0,0,0.6);
+                z-index: 1000;
                 gap: 5px;
                 margin-bottom: 0;
                 justify-content: space-around;
-                display: flex; /* ✅ NUEVO - Asegura que sea flex */
             }
 
             .nav-tab {
@@ -1101,48 +1097,22 @@
                 gap: 2px;
                 border-radius: 10px;
                 transition: all 0.3s ease;
-                /* ✅ NUEVO - Estilos para <a> */
-                text-decoration: none;
-                color: rgba(255, 255, 255, 0.6);
-                -webkit-tap-highlight-color: transparent; /* Quitar highlight azul en iOS */
-                background: none; /* ✅ MODIFICADO - Limpia el background por defecto */
-                border: none; /* ✅ MODIFICADO - Limpia el borde por defecto */
             }
 
-            /* ✅ FEEDBACK TÁCTIL PARA NAVEGACIÓN MÓVIL (Adaptado de .mobile-nav) */
-            /* ✅ Efecto táctil al tocar */
-            .nav-tab:active {
-              transform: scale(0.95);
-              background: rgba(255, 215, 0, 0.1);
-            }
-
-            /* ✅ Estado activo */
-            .nav-tab.active {
-              color: #ffd700;
-              background: rgba(255, 215, 0, 0.15);
-            }
-
-            .nav-tab.active::before {
-              transform: scale(1.2); /* ✅ NUEVO */
+            .nav-tab:hover {
+                transform: translateY(-2px);
             }
 
             .nav-tab::before {
                 content: attr(data-icon);
                 font-size: 1.2rem;
                 margin-bottom: 2px;
-                transition: transform 0.3s ease; /* ✅ NUEVO */
             }
 
-            /* Se mantiene la funcionalidad de iconos de la versión original */
-            .nav-tab[data-section="posiciones"]::before { content: "🏆"; }
-            .nav-tab[data-section="partidos"]::before { content: "🎯"; }
-            .nav-tab[data-section="estadisticas"]::before { content: "📊"; }
-            .nav-tab[data-section="playoffs"]::before { content: "🔥"; }
-            
-            .nav-tab .nav-label { /* ✅ NUEVO - Para compatibilidad si se usara el span */
-              font-size: 12px;
-              font-weight: 600;
-            }
+            .nav-tab[data-tab="posiciones"]::before { content: "🏆"; }
+            .nav-tab[data-tab="partidos"]::before { content: "🎯"; }
+            .nav-tab[data-tab="estadisticas"]::before { content: "📊"; }
+            .nav-tab[data-tab="playoffs"]::before { content: "🔥"; }
 
             .container {
                 padding-bottom: 120px;
@@ -1319,9 +1289,9 @@
             }
 
             .nav-tab:active {
-                /* ✅ MODIFICADO - Efecto :active ahora es manejado por el nuevo CSS */
                 transform: scale(0.95);
-                background: rgba(255, 215, 0, 0.1);
+                background: linear-gradient(145deg, #ffd700, #ff8c00);
+                color: #1a1a2e;
             }
 
             .partido-card-enhanced:hover {
@@ -1984,14 +1954,14 @@
         }
         </style>
 
-        <nav class="nav-tabs" id="mobileNavigation">
-            <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
-            <a href="#partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
-            <a href="#estadisticas" class="nav-tab" data-section="estadisticas" data-icon="📊">Líderes</a>
-            <a href="#playoffs" class="nav-tab" data-section="playoffs" data-icon="🔥">Playoffs</a>
-        </nav>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="posiciones">🏆 Posiciones</button>
+            <button class="nav-tab" data-tab="partidos">🎯 Partidos</button>
+            <button class="nav-tab" data-tab="estadisticas">📊 Líderes</button>
+            <button class="nav-tab" data-tab="playoffs">🔥 Playoffs</button>
+        </div>
 
-        <section class="proximos-partidos" id="partidos">
+        <section class="proximos-partidos">
             <div class="section-header">
                 <h2>⚾ Próximos Partidos</h2>
                 <p class="section-subtitle">No te pierdas la acción en el diamante</p>
@@ -2038,7 +2008,7 @@
             </div>
         </div>
 
-        <div class="tab-content">
+        <div id="partidos" class="tab-content">
              <div class="card" id="ultimosPartidos">
                 <h3>🎯 Últimos Partidos</h3>
                 <div data-loader>Cargando...</div>
@@ -2060,77 +2030,75 @@
             </div>
         </div>
 
-        <section id="estadisticas">
-            <div class="tab-content">
-                <div class="card" id="lideresContainer">
-                    <div class="leaders-section-header">
-                        <h3>🏆 Líderes de la Liga</h3>
-                        <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
-                    </div>
-                    
-                    <div class="leaders-filters">
-                        <button class="leader-filter" id="tabBateo" data-category="bateo">⚾ Bateo</button>
-                        <button class="leader-filter" id="tabPitcheo" data-category="pitcheo">🥎 Pitcheo</button>
-                        <button class="leader-filter" id="tabDefensiva" data-category="defensiva">🛡️ Defensiva</button>
-                        <button class="leader-filter" id="tabTodos" data-category="todos">📊 Todos</button>
-                    </div>
-                    
-                    <div id="lideresBateo" class="leaders-panel" style="display: block;">
-                        <div data-loader style="display: none;">Cargando líderes...</div>
-                        <div data-empty style="display: none;"></div>
-                        <div class="leaders-grid-enhanced" data-list></div>
-                    </div>
-                    <div id="lideresPitcheo" class="leaders-panel" style="display: none;">
-                        <div data-loader style="display: none;">Cargando líderes...</div>
-                        <div data-empty style="display: none;"></div>
-                        <div class="leaders-grid-enhanced" data-list></div>
-                    </div>
-                    <div id="lideresDefensiva" class="leaders-panel" style="display: none;">
-                        <div data-loader style="display: none;">Cargando líderes...</div>
-                        <div data-empty style="display: none;"></div>
-                        <div class="leaders-grid-enhanced" data-list></div>
-                    </div>
-                    <div id="lideresTodos" class="leaders-panel" style="display: none;">
-                        <div data-loader style="display: none;">Cargando líderes por posición...</div>
-                        <div data-empty style="display: none;"></div>
-                        <div data-list class="posiciones-grid"></div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>📊 Estadísticas Completas de Bateo</h3>
-                    <div class="table-container">
-                        <table id="statsTable">
-                            <thead>
-                                <tr>
-                                    <th>Jugador</th>
-                                    <th>Equipo</th>
-                                    <th>Pos</th>
-                                    <th>AB</th>
-                                    <th>H</th>
-                                    <th>AVG</th>
-                                    <th>OBP</th>
-                                    <th>OPS</th>
-                                    <th>HR</th>
-                                    <th>RBI</th>
-                                    <th>WAR</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="11" class="loading">Cargando...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+        <div id="estadisticas" class="tab-content">
+            <div class="card" id="lideresContainer">
+                <div class="leaders-section-header">
+                    <h3>🏆 Líderes de la Liga</h3>
+                    <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
                 </div>
                 
-                <div class="card">
-                    <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
-                    <div class="position-leaders-grid" id="positionLeadersGrid">
-                        <div class="loading">Cargando...</div>
-                    </div>
+                <div class="leaders-filters">
+                    <button class="leader-filter" id="tabBateo" data-category="bateo">⚾ Bateo</button>
+                    <button class="leader-filter" id="tabPitcheo" data-category="pitcheo">🥎 Pitcheo</button>
+                    <button class="leader-filter" id="tabDefensiva" data-category="defensiva">🛡️ Defensiva</button>
+                    <button class="leader-filter" id="tabTodos" data-category="todos">📊 Todos</button>
+                </div>
+                
+                <div id="lideresBateo" class="leaders-panel" style="display: block;">
+                    <div data-loader style="display: none;">Cargando líderes...</div>
+                    <div data-empty style="display: none;"></div>
+                    <div class="leaders-grid-enhanced" data-list></div>
+                </div>
+                <div id="lideresPitcheo" class="leaders-panel" style="display: none;">
+                    <div data-loader style="display: none;">Cargando líderes...</div>
+                    <div data-empty style="display: none;"></div>
+                    <div class="leaders-grid-enhanced" data-list></div>
+                </div>
+                <div id="lideresDefensiva" class="leaders-panel" style="display: none;">
+                    <div data-loader style="display: none;">Cargando líderes...</div>
+                    <div data-empty style="display: none;"></div>
+                    <div class="leaders-grid-enhanced" data-list></div>
+                </div>
+                <div id="lideresTodos" class="leaders-panel" style="display: none;">
+                    <div data-loader style="display: none;">Cargando líderes por posición...</div>
+                    <div data-empty style="display: none;"></div>
+                    <div data-list class="posiciones-grid"></div>
                 </div>
             </div>
-        </section>
+
+            <div class="card">
+                <h3>📊 Estadísticas Completas de Bateo</h3>
+                <div class="table-container">
+                    <table id="statsTable">
+                        <thead>
+                            <tr>
+                                <th>Jugador</th>
+                                <th>Equipo</th>
+                                <th>Pos</th>
+                                <th>AB</th>
+                                <th>H</th>
+                                <th>AVG</th>
+                                <th>OBP</th>
+                                <th>OPS</th>
+                                <th>HR</th>
+                                <th>RBI</th>
+                                <th>WAR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="11" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
+                <div class="position-leaders-grid" id="positionLeadersGrid">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </div>
+        </div>
 
         <div id="comparisonModal" class="comparison-modal">
             <div class="comparison-content">
@@ -2140,8 +2108,8 @@
             </div>
         </div>
         
-        <div class="tab-content">
-            <section id="playoffs" class="section">
+        <div id="playoffs" class="tab-content">
+            <section id="playoffs-section" class="section">
               <div class="section-header">
                 <h2>🏆 Clasificación Playoffs</h2>
               </div>
@@ -2183,7 +2151,7 @@
                   <ul>
                     <li><span class="badge clasificado"></span> <strong>Clasificado:</strong> Ha asegurado un cupo matemáticamente</li>
                     <li><span class="badge contención"></span> <strong>En contención:</strong> Todavía tiene posibilidades de clasificar</li>
-                    <li><span class="badge eliminado"></span> <strong>No puede alcanzar los playoffs matemáticamente</strong></li>
+                    <li><span class="badge eliminado"></span> <strong>Eliminado:</strong> No puede alcanzar los playoffs matemáticamente</li>
                   </ul>
                 </div>
               </div>
@@ -2265,19 +2233,19 @@
         // ============= SISTEMA DE PLAYOFFS (NUEVO) =============
         async function cargarPlayoffsClasificacion() {
           console.log('🏆 Cargando clasificación de playoffs...');
-          setLoading('playoffs', true); // ✅ MODIFICADO: apunta al nuevo ID de sección
+          setLoading('playoffs-section', true);
             try {
             const data = await fetchJSON('/api/playoffs-clasificacion');
                 if (!data || !data.equipos || data.equipos.length === 0) {
-              setLoading('playoffs', false, 'No hay datos de clasificación disponibles');
+              setLoading('playoffs-section', false, 'No hay datos de clasificación disponibles');
               return;
             }
                 console.log(`📊 Clasificación cargada: ${data.equipos.length} equipos`);
             renderPlayoffsClasificacion(data);
-            setLoading('playoffs', false);
+            setLoading('playoffs-section', false);
               } catch (err) {
             console.error('❌ Error cargando playoffs:', err);
-            setLoading('playoffs', false, 'No se pudo cargar la clasificación de playoffs');
+            setLoading('playoffs-section', false, 'No se pudo cargar la clasificación de playoffs');
           }
         }
         
@@ -2687,16 +2655,11 @@
         }
         
         function configurarEventListeners() {
-            // ✅ MODIFICADO - Se adapta para que los event listeners de ESCRITORIO no interfieran con el nuevo JS móvil
-            const isDesktop = window.innerWidth > 768;
-            if (isDesktop) {
-                document.querySelectorAll('.nav-tab').forEach(tab => {
-                    tab.addEventListener('click', function(e) {
-                        e.preventDefault(); // Prevenir el salto de ancla en desktop también
-                        mostrarPestana(this.dataset.section); // Se usa data-section que es el nuevo estándar
-                    });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    mostrarPestana(this.dataset.tab);
                 });
-            }
+            });
         }
 
         function mostrarPestana(nombrePestana) {
@@ -2704,7 +2667,7 @@
             document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
             const pestanaActiva = document.getElementById(nombrePestana);
             if (pestanaActiva) pestanaActiva.classList.add('active');
-            const botonActivo = document.querySelector(`[data-section="${nombrePestana}"]`); // ✅ MODIFICADO - Busca por data-section
+            const botonActivo = document.querySelector(`[data-tab="${nombrePestana}"]`);
             if (botonActivo) botonActivo.classList.add('active');
         }
 
@@ -2816,80 +2779,6 @@
         
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
         
-        // ✅ MODIFICADO: Lógica de navegación móvil mejorada para activar el contenido antes de hacer scroll
-        function initMobileNavigation() {
-          console.log('🔧 Inicializando navegación móvil...');
-          const isMobile = window.innerWidth <= 768;
-          if (!isMobile) {
-            console.log('⏭️ No es móvil, saltando inicialización');
-            return;
-          }
-
-          const navItems = document.querySelectorAll('#mobileNavigation .nav-tab');
-          if (navItems.length === 0) {
-            console.warn('⚠️ No se encontraron elementos .nav-tab en #mobileNavigation');
-            return;
-          }
-          console.log(`✅ Encontrados ${navItems.length} elementos de navegación`);
-
-          navItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-              e.preventDefault();
-              console.log('🎯 Click en navegación:', this.dataset.section);
-              
-              navItems.forEach(nav => nav.classList.remove('active'));
-              this.classList.add('active');
-              
-              const sectionId = this.getAttribute('href').substring(1);
-              const targetSection = document.getElementById(sectionId);
-
-              if (targetSection) {
-                // ✅ NUEVO: Activa la pestaña de contenido correspondiente para que sea visible
-                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-                
-                // Encuentra el ancestro .tab-content si el ID no está directamente en él
-                let contentTab = targetSection.closest('.tab-content') || targetSection;
-                if(contentTab.classList.contains('tab-content')) {
-                    contentTab.classList.add('active');
-                }
-
-                console.log('✅ Navegando a sección:', sectionId);
-                
-                // Espera un instante para que el CSS 'display: block' se aplique antes de hacer scroll
-                setTimeout(() => {
-                    targetSection.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'start'
-                    });
-                    history.pushState(null, null, `#${sectionId}`);
-                }, 50);
-
-              } else {
-                console.error('❌ Sección no encontrada:', sectionId);
-              }
-            });
-          });
-          console.log('✅ Navegación móvil inicializada correctamente');
-        }
-
-
-        // ✅ NUEVO - EJECUTAR AL CARGAR PÁGINA
-        document.addEventListener('DOMContentLoaded', function() {
-          initMobileNavigation();
-        });
-
-        // ✅ NUEVO - EJECUTAR AL CAMBIAR TAMAÑO DE VENTANA
-        window.addEventListener('resize', function() {
-          const wasMobile = document.body.dataset.isMobile === 'true';
-          const isMobile = window.innerWidth <= 768;
-          document.body.dataset.isMobile = isMobile;
-
-          if (wasMobile !== isMobile) {
-            console.log('🔄 Cambio de modo detectado, reinicializando navegaciones...');
-            configurarEventListeners(); // Reconfigura listeners de escritorio si es necesario
-            initMobileNavigation();
-          }
-        });
     </script>
     <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%20una%20consulta" class="whatsapp-btn" target="_blank">💬 Consultas</a>
 
