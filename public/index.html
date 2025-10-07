@@ -40,22 +40,55 @@
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
-            padding-top: 80px;
+            /* ✅ MODIFICADO: Padding top ajustado para no depender de header */
+            padding-top: 20px; 
             position: relative;
             z-index: 1;
         }
 
+        /* ✅ MODIFICADO: Header sticky fijo en top */
         .header {
             text-align: center;
             margin-bottom: 40px;
             padding: 30px 20px;
             background: linear-gradient(45deg, #ffd700, #ff8c00, #ff6b35);
             border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
             animation: float 6s ease-in-out infinite;
-            position: relative;
+            position: sticky; /* ✅ NUEVO */
+            top: 0; /* ✅ NUEVO */
+            z-index: 1000; /* ✅ NUEVO: Asegurar que esté sobre otros elementos */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* ✅ NUEVO: Sombra para profundidad */
+            transition: padding 0.3s ease, box-shadow 0.3s ease; /* ✅ NUEVO: Transición suave */
             overflow: hidden;
         }
+
+        /* ✅ NUEVO: Header compacto cuando usuario hace scroll */
+        .header.scrolled {
+            padding: 15px 20px; /* ✅ Más compacto */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5); /* ✅ Sombra más pronunciada */
+            border-radius: 0 0 20px 20px; /* ✅ Ajuste de borde en modo compacto */
+            animation: none; /* ✅ Desactivar animación 'float' al hacer scroll */
+        }
+        
+        /* ✅ NUEVO: Logo más pequeño en estado scrolled */
+        .header.scrolled .logo-chogui {
+            width: 50px; /* ✅ Reducir de tamaño original */
+            height: 50px; /* ✅ Reducir de tamaño original */
+            animation: none; /* ✅ Desactivar animación 'rotate' al hacer scroll */
+        }
+        
+        /* ✅ NUEVO: Título más pequeño en estado scrolled */
+        .header.scrolled h1 {
+            font-size: 1.5rem; /* ✅ Reducir tamaño de fuente */
+            margin: 5px 0 5px;
+        }
+        
+        /* ✅ NUEVO: Subtítulo más pequeño en estado scrolled */
+        .header.scrolled p {
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
 
         .header::before {
             content: '';
@@ -85,6 +118,11 @@
 
         .logo-container {
             margin-bottom: 15px;
+            transition: margin-bottom 0.3s ease; /* ✅ NUEVO: Transición suave */
+        }
+        
+        .header.scrolled .logo-container {
+            margin-bottom: 5px; /* ✅ Menos margen en modo compacto */
         }
 
         .logo-chogui {
@@ -98,6 +136,7 @@
             border-radius: 50%;
             box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
             animation: rotate 20s linear infinite;
+            transition: width 0.3s ease, height 0.3s ease; /* ✅ NUEVO: Transición suave para el tamaño */
         }
 
         @keyframes rotate {
@@ -114,6 +153,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            transition: font-size 0.3s ease, margin 0.3s ease; /* ✅ NUEVO: Transición suave */
         }
 
         .header p {
@@ -121,6 +161,7 @@
             opacity: 0.9;
             color: #1a1a2e;
             font-weight: 600;
+            transition: font-size 0.3s ease, margin 0.3s ease; /* ✅ NUEVO: Transición suave */
         }
 
         .nav-tabs {
@@ -353,7 +394,7 @@
             font-size: 0.9rem;
             box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
             transition: all 0.3s ease;
-            z-index: 1000;
+            z-index: 1001; /* ✅ MODIFICADO: Aumentado para estar sobre el header */
             border: 2px solid rgba(255, 255, 255, 0.2);
             min-width: 80px;
             text-align: center;
@@ -1446,7 +1487,7 @@
 
         @media (max-width: 768px) and (orientation: landscape) {
             .container {
-                padding-top: 60px;
+                padding-top: 20px;
                 padding-bottom: 70px;
             }
 
@@ -2661,7 +2702,37 @@
             cargarDatosParaBusqueda(); 
             cargarEstadisticasCompletas(); 
             initMobileNavigation();
+            
+            initStickyHeader(); // ✅ NUEVO: Ejecutar la nueva función del header
         });
+
+        // ✅ HEADER STICKY COMPACTO - TAREA 1.5
+        function initStickyHeader() {
+          console.log('🔧 Inicializando header sticky...');
+            const header = document.querySelector('.header');
+            if (!header) {
+            console.warn('⚠️ Header no encontrado');
+            return;
+          }
+            let lastScroll = 0;
+            window.addEventListener('scroll', function() {
+            const currentScroll = window.pageYOffset;
+                // Agregar clase 'scrolled' cuando scroll > 100px
+            if (currentScroll > 100) {
+              if (!header.classList.contains('scrolled')) {
+                header.classList.add('scrolled');
+                console.log('✅ Header compacto activado');
+              }
+            } else {
+              if (header.classList.contains('scrolled')) {
+                header.classList.remove('scrolled');
+                console.log('✅ Header normal restaurado');
+              }
+            }
+                lastScroll = currentScroll;
+          });
+            console.log('✅ Header sticky inicializado');
+        }
 
         async function cargarDatosParaBusqueda() {
              try {
