@@ -2304,9 +2304,9 @@
                     headers: { 'Accept': 'application/json' }, 
                     ...options 
                 });
-                if (!res.ok) {
+                if (!res.ok) { // ✅ MODIFICADO - Se mantiene la validación de status existente que es robusta
                     const text = await res.text().catch(() => '');
-                    throw new Error(`HTTP ${res.status} ${res.statusText}${text ? ` :: ${text}` : ''}`);
+                    throw new Error(`HTTP error! status: ${res.status} ${res.statusText}${text ? ` :: ${text}` : ''}`);
                 }
                 return await res.json();
             } catch (err) {
@@ -2583,14 +2583,26 @@
                 }
              } catch(e) { console.error('❌ Error cargando estadísticas completas:', e); }
 
-             try {
+             try { // ✅ MODIFICADO - Bloque try-catch para líderes defensivos con validación completa
                 const defRes = await fetch(getApiUrl('/api/lideres-defensivos'));
-                if(defRes.ok) {
-                    const lideres = await defRes.json();
-                    const grid = document.getElementById('positionLeadersGrid');
-                    if(grid) grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion || 'DEF'}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.jugador_nombre}</span><span class="position-rating">${l.fielding_percentage}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
+                if (!defRes.ok) { // ✅ NUEVO - Validación de status HTTP
+                  throw new Error(`HTTP error! status: ${defRes.status}`);
                 }
-             } catch(e) { console.error('Error cargando líderes defensivos', e); }
+                
+                const lideresData = await defRes.json();
+                
+                // ✅ NUEVO - Se valida que la respuesta de líderes sea un array
+                const lideres = Array.isArray(lideresData) ? lideresData : [];
+                
+                const grid = document.getElementById('positionLeadersGrid');
+                if(grid) {
+                    if (lideres.length > 0) {
+                        grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion || 'DEF'}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.jugador_nombre}</span><span class="position-rating">${l.fielding_percentage}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
+                    } else {
+                        grid.innerHTML = '<p class="empty-state" style="display:block;">Sin líderes defensivos.</p>';
+                    }
+                }
+             } catch(e) { console.error('❌ Error cargando líderes defensivos', e); }
         }
 
         // =================================================================================
@@ -2610,19 +2622,36 @@
             
             configurarEventListeners();
             cargarProximosPartidos();
-            cargarDatosParaBusqueda();
+            cargarDatosParaBusqueda(); // ✅ MODIFICADO - Ahora es más robusta
             cargarEstadisticasCompletas(); 
         });
 
+        // ✅ MODIFICADO - Función robustecida con validación de array y manejo de errores
         async function cargarDatosParaBusqueda() {
              try {
                 const [equiposRes, jugadoresRes] = await Promise.all([
                     fetchJSON('/api/equipos'),
                     fetchJSON('/api/jugadores')
                 ]);
-                equipos = equiposRes;
-                jugadores = jugadoresRes.jugadores;
-             } catch(e) { console.error("Error cargando datos para búsqueda:", e); }
+
+                // ✅ NUEVO - Validación robusta para asegurar que los datos de la API sean arrays
+                equipos = Array.isArray(equiposRes) ? equiposRes :
+                          Array.isArray(equiposRes.data) ? equiposRes.data :
+                          Array.isArray(equiposRes.equipos) ? equiposRes.equipos : [];
+                
+                jugadores = Array.isArray(jugadoresRes) ? jugadoresRes :
+                            Array.isArray(jugadoresRes.data) ? jugadoresRes.data :
+                            Array.isArray(jugadoresRes.jugadores) ? jugadoresRes.jugadores : [];
+
+                console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${jugadores.length} jugadores.`);
+
+             } catch(e) {
+                 console.error("❌ Error cargando datos para búsqueda:", e);
+                 // ✅ NUEVO - Si la carga falla, se inicializan como arrays vacíos para prevenir errores
+                 equipos = [];
+                 jugadores = [];
+                 mostrarErrorBusqueda('No se pudieron cargar los datos.');
+             }
         }
         
         function configurarEventListeners() {
@@ -2680,12 +2709,44 @@
             }
         });
 
+        // ✅ NUEVO - Función para mostrar errores en la UI de búsqueda
+        function mostrarErrorBusqueda(mensaje) {
+            const container = document.getElementById('searchResults');
+            if (!container) return;
+            container.innerHTML = `<div class="search-result-item" style="color: #dc143c; font-weight: bold;">❌ ${mensaje}</div>`;
+            container.style.display = 'block';
+        }
+        
+        // ✅ MODIFICADO - Función de búsqueda envuelta en try-catch para seguridad
         function buscarEnTiempoReal(query) {
-            const resultados = [];
-            const queryLower = query.toLowerCase();
-            if(equipos && equipos.length) equipos.forEach(equipo => { if (equipo.nombre.toLowerCase().includes(queryLower)) { resultados.push({ tipo: 'equipo', nombre: equipo.nombre, id: equipo.id, extra: equipo.ciudad || '' }); } });
-            if(jugadores && jugadores.length) jugadores.forEach(jugador => { if (jugador.nombre.toLowerCase().includes(queryLower)) { const equipo = equipos.find(e => e.id === jugador.equipo_id); resultados.push({ tipo: 'jugador', nombre: jugador.nombre, id: jugador.id, extra: equipo ? equipo.nombre : 'Sin equipo', equipoId: jugador.equipo_id }); } });
-            mostrarResultados(resultados.slice(0, 8));
+            try { 
+                const resultados = [];
+                const queryLower = query.toLowerCase();
+
+                // ✅ MODIFICADO - Se asegura que 'equipos' y 'jugadores' son arrays antes de iterar
+                if (Array.isArray(equipos)) {
+                    equipos.forEach(equipo => {
+                        if (equipo.nombre.toLowerCase().includes(queryLower)) {
+                            resultados.push({ tipo: 'equipo', nombre: equipo.nombre, id: equipo.id, extra: equipo.ciudad || '' });
+                        }
+                    });
+                }
+
+                if (Array.isArray(jugadores)) {
+                    jugadores.forEach(jugador => {
+                        if (jugador.nombre.toLowerCase().includes(queryLower)) {
+                            const equipo = Array.isArray(equipos) ? equipos.find(e => e.id === jugador.equipo_id) : null;
+                            resultados.push({ tipo: 'jugador', nombre: jugador.nombre, id: jugador.id, extra: equipo ? equipo.nombre : 'Sin equipo', equipoId: jugador.equipo_id });
+                        }
+                    });
+                }
+                
+                mostrarResultados(resultados.slice(0, 8));
+
+            } catch (error) {
+                console.error('❌ Error en búsqueda en tiempo real:', error);
+                mostrarErrorBusqueda('No se pudieron cargar los resultados. Intenta de nuevo.');
+            }
         }
 
         function mostrarResultados(resultados) {
