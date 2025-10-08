@@ -2173,7 +2173,229 @@
             gap: 8px;
           }
         }
-    </style>
+        
+        /* ============================================   PASO 2.2: Cards Premium de Próximos Partidos   ============================================ */
+        .proximos-partidos-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .proximo-partido-card {
+            position: relative;
+            background: linear-gradient(145deg, #1a1a2e, #0f1419);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .proximo-partido-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 215, 0, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: shine 3s linear infinite;
+        }
+        @keyframes shine {
+            0% {
+                transform: rotate(45deg) translate(-100%, -100%);
+            }
+            100% {
+                transform: rotate(45deg) translate(100%, 100%);
+            }
+        }
+        .proximo-partido-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
+            border-color: #ffd700;
+        }
+        .partido-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .partido-badge.hoy {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+        .partido-badge.manana {
+            background: linear-gradient(45deg, #ff8c00, #ff6b00);
+            color: white;
+        }
+        .partido-badge.proximo {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #1a1a2e;
+        }
+        .countdown-timer {
+            text-align: center;
+            margin: 20px 0;
+            z-index: 2;
+            position: relative;
+        }
+        .countdown-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        .countdown-time {
+            color: #ffd700;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            letter-spacing: 2px;
+        }
+        .equipos-vs {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+            gap: 20px;
+            z-index: 2;
+            position: relative;
+        }
+        .equipo-info {
+            flex: 1;
+            text-align: center;
+        }
+        .equipo-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.1);
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 2.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        .proximo-partido-card:hover .equipo-logo {
+            transform: scale(1.1) rotate(5deg);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+        .equipo-nombre {
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .equipo-record {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        .vs-divider {
+            font-size: 1.5rem;
+            color: #ffd700;
+            font-weight: bold;
+            padding: 0 10px;
+        }
+        .partido-detalles {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 10px;
+            z-index: 2;
+            position: relative;
+        }
+        .partido-fecha,
+        .partido-hora {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-ver-detalles {
+            display: block;
+            width: 100%;
+            padding: 12px 25px;
+            margin-top: 20px;
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 2;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+        .btn-ver-detalles:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 215, 0, 0.5);
+            background: linear-gradient(45deg, #ffed4e, #ffa500);
+        }
+        .btn-ver-detalles:active {
+            transform: translateY(0);
+        }
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            .proximos-partidos-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+                .proximo-partido-card {
+                padding: 20px;
+            }
+                .equipo-logo {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+                .countdown-time {
+                font-size: 1.5rem;
+            }
+                .equipos-vs {
+                gap: 15px;
+            }
+        }
+        /* Estado vacío para próximos partidos */
+        .proximos-partidos-empty {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 15px;
+            border: 2px dashed rgba(255, 215, 0, 0.3);
+        }
+        .proximos-partidos-empty h3 {
+            color: #ffd700;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        .proximos-partidos-empty p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        </style>
 </head>
 <body>
     <a href="login.html" class="admin-link">🔐 Admin</a>
@@ -2333,23 +2555,11 @@
             <a href="#playoffs" class="nav-tab" data-section="playoffs" data-icon="🔥">Playoffs</a>
         </nav>
 
-        <section class="proximos-partidos" id="proximos-partidos">
-            <div class="section-header">
-                <h2>⚾ Próximos Partidos</h2>
-                <p class="section-subtitle">No te pierdas la acción en el diamante</p>
-            </div>
-            <div class="partidos-enhanced-grid" id="proximosPartidosContainer">
-                <div class="loading-state">
-                    <div class="loading-spinner"></div>
-                    <p>Cargando próximos partidos...</p>
+        <section id="proximos-partidos" class="section">
+            <h2>🎯 Próximos Partidos</h2>
+            <div id="proximosPartidosContainer" class="proximos-partidos-container">
                 </div>
-            </div>
-            <div class="partidos-actions">
-                <a href="#partidos" class="btn-primary" onclick="mostrarPestana('partidos')">📅 Ver Todos los Partidos</a>
-                <a href="login.html" class="btn-secondary">⚙️ Gestionar Partidos</a>
-            </div>
         </section>
-
         <div id="posiciones" class="tab-content active">
              <div class="card" id="tablaPosiciones">
                 <h3>🏆 Tabla de Posiciones</h3>
@@ -3234,27 +3444,30 @@
         // LÓGICA DE INICIALIZACIÓN Y EVENT LISTENERS
         // =================================================================================
         let equipos = [];
+        let partidos = []; // PASO 2.2: Variable global para partidos, usada en calcularRecord
         let jugadores = [];
         let selectedPlayersForComparison = [];
 
-        document.addEventListener('DOMContentLoaded', function() {
+        // PASO 2.2: INICIO - MODIFICACIÓN 3: Verificar llamada en `DOMContentLoaded`
+        document.addEventListener('DOMContentLoaded', async function() {
             // Cargas iniciales
             cargarTablaPosiciones();
             cargarUltimosPartidos();
             cargarPlayoffsClasificacion();
             
             // ✅ MODIFICADO: Nueva secuencia de carga para líderes
-            cargarLideres(); 
+            await cargarLideres(); 
             configurarTabsLideres();
             
             configurarEventListenersGenerales();
-            cargarProximosPartidos();
-            cargarDatosParaBusqueda(); 
-            cargarEstadisticasCompletas(); 
+            await cargarDatosParaBusqueda(); // Cargar equipos y partidos primero
+            await cargarProximosPartidos(); // Cargar próximos partidos después
+            await cargarEstadisticasCompletas(); 
             initMobileNavigation();
             
             initStickyHeader(); // ✅ NUEVO: Ejecutar la nueva función del header
         });
+        // PASO 2.2: FIN - MODIFICACIÓN 3
 
         // ✅ HEADER STICKY COMPACTO - TAREA 1.5
         function initStickyHeader() {
@@ -3286,20 +3499,23 @@
 
         async function cargarDatosParaBusqueda() {
              try {
-                const [equiposRes, jugadoresRes] = await Promise.all([
+                const [equiposRes, jugadoresRes, partidosRes] = await Promise.all([
                     fetchJSON('/api/equipos'),
-                    fetchJSON('/api/jugadores')
+                    fetchJSON('/api/jugadores'),
+                    fetchJSON('/api/partidos') // PASO 2.2: Cargar todos los partidos
                 ]);
 
                 equipos = Array.isArray(equiposRes) ? equiposRes : [];
                 jugadores = Array.isArray(jugadoresRes) ? jugadoresRes : [];
+                partidos = Array.isArray(partidosRes) ? partidosRes : []; // PASO 2.2: Asignar a variable global
 
-                console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${jugadores.length} jugadores.`);
+                console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${jugadores.length} jugadores, ${partidos.length} partidos.`);
 
              } catch(e) {
                  console.error("❌ Error cargando datos para búsqueda:", e);
                  equipos = [];
                  jugadores = [];
+                 partidos = [];
                  mostrarErrorBusqueda('No se pudieron cargar los datos.');
              }
         }
@@ -3327,30 +3543,265 @@
             if (botonActivo) botonActivo.classList.add('active');
         }
 
+        // PASO 2.2: INICIO - MODIFICACIÓN 2: Funciones de Próximos Partidos
+        // ============================================
+        // PASO 2.2: Funciones de Próximos Partidos Premium
+        // ============================================
         async function cargarProximosPartidos() {
-          try {
-            const proximosPartidos = await fetchJSON('/api/proximos-partidos');
-            if (!proximosPartidos || proximosPartidos.length === 0) {
-              document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state" style="display:block;"><h3>📅 Sin partidos programados</h3></div>`;
-              return;
+            try {
+                const response = await fetch('/api/partidos');
+                
+                if (!response.ok) {
+                    throw new Error('Error cargando próximos partidos');
+                }
+                
+                const todosPartidos = await response.json();
+                
+                // Filtrar solo partidos futuros
+                const ahora = new Date();
+                const proximosPartidos = todosPartidos
+                    .filter(partido => {
+                        const fechaPartido = new Date(partido.fecha + 'T' + (partido.hora || '00:00'));
+                        return fechaPartido > ahora;
+                    })
+                    .sort((a, b) => {
+                        const fechaA = new Date(a.fecha + 'T' + (a.hora || '00:00'));
+                        const fechaB = new Date(b.fecha + 'T' + (b.hora || '00:00'));
+                        return fechaA - fechaB;
+                    })
+                    .slice(0, 3); // Solo los próximos 3 partidos
+                
+                renderizarProximosPartidos(proximosPartidos);
+                
+                // Iniciar actualización de countdowns cada segundo
+                if (proximosPartidos.length > 0) {
+                    setInterval(() => {
+                        actualizarCountdowns();
+                    }, 1000);
+                }
+            
+            } catch (error) {
+                console.error('Error cargando próximos partidos:', error);
+                const container = document.getElementById('proximosPartidosContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="proximos-partidos-empty">
+                            <h3>⚠️ Error de conexión</h3>
+                            <p>No se pudieron cargar los próximos partidos</p>
+                            <button class="btn-ver-detalles" onclick="cargarProximosPartidos()">
+                                Reintentar
+                            </button>
+                        </div>
+                    `;
+                }
             }
-            renderizarProximosPartidos(proximosPartidos);
-          } catch (error) {
-            document.getElementById('proximosPartidosContainer').innerHTML = `<div class="empty-state" style="display:block;"><h3>⚠️ Error de conexión</h3></div>`;
-          }
         }
 
         function renderizarProximosPartidos(partidos) {
-            const cont = document.getElementById('proximosPartidosContainer');
-            if (!cont) return;
-            cont.innerHTML = partidos.map(p => `
-                <div class="partido-card-enhanced">
-                    <div class="partido-header">
-                        <div><strong>${p.equipo_local_nombre}</strong> vs <strong>${p.equipo_visitante_nombre}</strong></div>
-                        <div class="partido-fecha">${new Date(p.fecha_partido).toLocaleDateString('es-ES', { timeZone: 'UTC' })} ${p.hora ? `· ${p.hora.substring(0, 5)}` : ''}</div>
+            const container = document.getElementById('proximosPartidosContainer');
+            
+            if (!container) {
+                console.error('Container proximosPartidosContainer no encontrado');
+                return;
+            }
+            
+            if (partidos.length === 0) {
+                container.innerHTML = `
+                    <div class="proximos-partidos-empty">
+                        <h3>📅 Sin partidos programados</h3>
+                        <p>Los próximos partidos aparecerán aquí cuando se programen en el sistema</p>
+                        <a href="admin.html" class="btn-ver-detalles">
+                            📝 Programar Partidos
+                        </a>
                     </div>
-                </div>`).join('');
+                `;
+                return;
+            }
+            
+            container.className = 'proximos-partidos-container';
+            
+            const html = partidos.map((partido, index) => {
+                // Calcular badge de tiempo
+                const fechaPartido = new Date(partido.fecha + 'T' + (partido.hora || '00:00'));
+                const ahora = new Date();
+                const diferenciaDias = Math.floor((fechaPartido - ahora) / (1000 * 60 * 60 * 24));
+                
+                let badgeClass = 'proximo';
+                let badgeText = `EN ${diferenciaDias} DÍAS`;
+                
+                if (diferenciaDias === 0) {
+                    badgeClass = 'hoy';
+                    badgeText = '🔥 HOY';
+                } else if (diferenciaDias === 1) {
+                    badgeClass = 'manana';
+                    badgeText = 'MAÑANA';
+                }
+                
+                // Obtener nombres de equipos
+                const equipoLocal = equipos.find(e => e.id === partido.equipo_local_id);
+                const equipoVisitante = equipos.find(e => e.id === partido.equipo_visitante_id);
+                
+                const nombreLocal = equipoLocal?.nombre || 'Equipo Local';
+                const nombreVisitante = equipoVisitante?.nombre || 'Equipo Visitante';
+                
+                // Calcular records
+                const recordLocal = calcularRecord(partido.equipo_local_id);
+                const recordVisitante = calcularRecord(partido.equipo_visitante_id);
+                
+                // Formatear fecha y hora
+                const fechaFormateada = new Date(partido.fecha).toLocaleDateString('es-AR', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                const horaFormateada = partido.hora || '00:00';
+                
+                return `
+                    <div class="proximo-partido-card" data-partido-id="${partido.id}" data-fecha="${partido.fecha}" data-hora="${horaFormateada}">
+                        <div class="partido-badge ${badgeClass}">${badgeText}</div>
+                        
+                        <div class="countdown-timer">
+                            <div class="countdown-label">Comienza en:</div>
+                            <div class="countdown-time" id="countdown-${partido.id}">
+                                Calculando...
+                            </div>
+                        </div>
+                        
+                        <div class="equipos-vs">
+                            <div class="equipo-info">
+                                <div class="equipo-logo">
+                                    ${getTeamEmoji(nombreLocal)}
+                                </div>
+                                <div class="equipo-nombre">${nombreLocal}</div>
+                                <div class="equipo-record">Record: ${recordLocal}</div>
+                            </div>
+                            
+                            <div class="vs-divider">VS</div>
+                            
+                            <div class="equipo-info">
+                                <div class="equipo-logo">
+                                    ${getTeamEmoji(nombreVisitante)}
+                                </div>
+                                <div class="equipo-nombre">${nombreVisitante}</div>
+                                <div class="equipo-record">Record: ${recordVisitante}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="partido-detalles">
+                            <div class="partido-fecha">
+                                📅 ${fechaFormateada}
+                            </div>
+                            <div class="partido-hora">
+                                🕐 ${horaFormateada}
+                            </div>
+                        </div>
+                        
+                        <button class="btn-ver-detalles" onclick="verDetallePartido(${partido.id})">
+                            Ver Detalles
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+            
+            // Actualizar countdowns inmediatamente
+            actualizarCountdowns();
         }
+
+        function actualizarCountdowns() {
+            const cards = document.querySelectorAll('.proximo-partido-card');
+            
+            cards.forEach(card => {
+                const fecha = card.dataset.fecha;
+                const hora = card.dataset.hora || '00:00';
+                const partidoId = card.dataset.partidoId;
+                
+                const fechaPartido = new Date(fecha + 'T' + hora);
+                const ahora = new Date();
+                const diferencia = fechaPartido - ahora;
+                
+                const countdownElement = document.getElementById(`countdown-${partidoId}`);
+                
+                if (!countdownElement) return;
+                
+                if (diferencia <= 0) {
+                    countdownElement.textContent = '¡EN VIVO!';
+                    countdownElement.style.color = '#4CAF50';
+                    return;
+                }
+                
+                const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+                const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+                const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+                
+                let countdownText = '';
+                
+                if (dias > 0) {
+                    countdownText = `${dias}d ${horas}h ${minutos}m`;
+                } else if (horas > 0) {
+                    countdownText = `${horas}h ${minutos}m ${segundos}s`;
+                } else {
+                    countdownText = `${minutos}m ${segundos}s`;
+                }
+                
+                countdownElement.textContent = countdownText;
+            });
+        }
+
+        function calcularRecord(equipoId) {
+            const partidosEquipo = partidos.filter(p => 
+                (p.equipo_local_id === equipoId || p.equipo_visitante_id === equipoId) &&
+                p.score_local !== null && p.score_visitante !== null
+            );
+            
+            let victorias = 0;
+            let derrotas = 0;
+            
+            partidosEquipo.forEach(partido => {
+                if (partido.equipo_local_id === equipoId) {
+                    if (partido.score_local > partido.score_visitante) {
+                        victorias++;
+                    } else {
+                        derrotas++;
+                    }
+                } else {
+                    if (partido.score_visitante > partido.score_local) {
+                        victorias++;
+                    } else {
+                        derrotas++;
+                    }
+                }
+            });
+            
+            return `${victorias}-${derrotas}`;
+        }
+
+        function getTeamEmoji(teamName) {
+            const emojiMap = {
+                'guerreros del norte': '⚔️',
+                'la guaira': '🦅',
+                'furia del caribe': '🔥',
+                'tigres unidos': '🐯',
+                'leones dorados': '🦁',
+                'aguilas negras': '🦅',
+                'venearstone': '💎',
+                'desss': '⚡',
+                'caribes rd': '🌊'
+            };
+            
+            const key = teamName.toLowerCase();
+            return emojiMap[key] || '⚾';
+        }
+
+        function verDetallePartido(partidoId) {
+            console.log('Ver detalle del partido:', partidoId);
+            alert(`Funcionalidad de detalle del partido ${partidoId} - Por implementar en futuras fases`);
+        }
+        // PASO 2.2: FIN - MODIFICACIÓN 2: Funciones de Próximos Partidos
 
         let searchTimeout;
         document.addEventListener('DOMContentLoaded', function() {
