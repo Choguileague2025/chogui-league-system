@@ -3453,35 +3453,38 @@
         }
 
         // =================================================================================
-        // LÓGICA DE INICIALIZACIÓN Y EVENT LISTENERS
+        // LÓGICA DE INICIALIZACIÓN Y EVENT LISTENERS (SECCIÓN CORREGIDA)
         // =================================================================================
         let equipos = [];
-        let partidos = []; // PASO 2.2: Variable global para partidos, usada en calcularRecord
+        let partidos = []; // Variable global para todos los partidos
         let jugadores = [];
         let selectedPlayersForComparison = [];
 
-        // PASO 2.2: INICIO - MODIFICACIÓN 3: Verificar llamada en `DOMContentLoaded`
+        // ✅ INICIO CORRECCIÓN 3: Orden de carga en DOMContentLoaded
         document.addEventListener('DOMContentLoaded', async function() {
-            // Cargas iniciales
+            // Cargas visuales iniciales que no dependen de datos globales
             cargarTablaPosiciones();
             cargarUltimosPartidos();
             cargarPlayoffsClasificacion();
             
-            // ✅ MODIFICADO: Nueva secuencia de carga para líderes
+            // Carga de líderes (tiene su propia gestión de datos interna)
             await cargarLideres(); 
             configurarTabsLideres();
             
             configurarEventListenersGenerales();
-            await cargarDatosParaBusqueda(); // Cargar equipos y partidos primero
-            await cargarProximosPartidos(); // Cargar próximos partidos después
-            await cargarEstadisticasCompletas(); 
-            initMobileNavigation();
-            
-            initStickyHeader(); // ✅ NUEVO: Ejecutar la nueva función del header
-        });
-        // PASO 2.2: FIN - MODIFICACIÓN 3
 
-        // ✅ HEADER STICKY COMPACTO - TAREA 1.5
+            // ✅ ORDEN CRÍTICO: Cargar todos los datos globales primero
+            await cargarDatosParaBusqueda(); 
+            
+            // ✅ DESPUÉS de cargar los datos, procesar las secciones que dependen de ellos
+            await cargarProximosPartidos(); 
+            await cargarEstadisticasCompletas(); 
+
+            initMobileNavigation();
+            initStickyHeader();
+        });
+        // ✅ FIN CORRECCIÓN 3
+
         function initStickyHeader() {
           console.log('🔧 Inicializando header sticky...');
             const header = document.querySelector('.header');
@@ -3492,7 +3495,6 @@
             let lastScroll = 0;
             window.addEventListener('scroll', function() {
             const currentScroll = window.pageYOffset;
-                // Agregar clase 'scrolled' cuando scroll > 100px
             if (currentScroll > 100) {
               if (!header.classList.contains('scrolled')) {
                 header.classList.add('scrolled');
@@ -3509,17 +3511,18 @@
             console.log('✅ Header sticky inicializado');
         }
 
+        // ✅ INICIO CORRECCIÓN 2: cargarDatosParaBusqueda() verificada
         async function cargarDatosParaBusqueda() {
              try {
                 const [equiposRes, jugadoresRes, partidosRes] = await Promise.all([
                     fetchJSON('/api/equipos'),
                     fetchJSON('/api/jugadores'),
-                    fetchJSON('/api/partidos') // PASO 2.2: Cargar todos los partidos
+                    fetchJSON('/api/partidos') // ✅ CRÍTICO: Debe cargar partidos
                 ]);
 
                 equipos = Array.isArray(equiposRes) ? equiposRes : [];
                 jugadores = Array.isArray(jugadoresRes) ? jugadoresRes : [];
-                partidos = Array.isArray(partidosRes) ? partidosRes : []; // PASO 2.2: Asignar a variable global
+                partidos = Array.isArray(partidosRes) ? partidosRes : []; // ✅ CRÍTICO: Asignar a variable global
 
                 console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${jugadores.length} jugadores, ${partidos.length} partidos.`);
 
@@ -3527,10 +3530,11 @@
                  console.error("❌ Error cargando datos para búsqueda:", e);
                  equipos = [];
                  jugadores = [];
-                 partidos = [];
+                 partidos = []; // Asegurar que partidos sea un array vacío en caso de error
                  mostrarErrorBusqueda('No se pudieron cargar los datos.');
              }
         }
+        // ✅ FIN CORRECCIÓN 2
         
         function configurarEventListenersGenerales() {
             if (window.innerWidth > 768) {
@@ -3555,21 +3559,48 @@
             if (botonActivo) botonActivo.classList.add('active');
         }
 
-        // PASO 2.2: INICIO - MODIFICACIÓN 2: Funciones de Próximos Partidos
-        // ============================================
-        // PASO 2.2: Funciones de Próximos Partidos Premium
-        // ============================================
+        // ✅ INICIO CORRECCIÓN 1: cargarProximosPartidos() corregida y robusta
         async function cargarProximosPartidos() {
+            console.log('🔄 Cargando próximos partidos...');
+            
             try {
-                // COMENTARIO: Se usa el endpoint /api/partidos para obtener todos y luego filtrar en el cliente.
-                const todosPartidos = await fetchJSON('/api/partidos');
-                
-                // Filtrar solo partidos futuros
+                // Verificar que la variable global 'partidos' esté cargada y sea un array
+                if (!Array.isArray(partidos)) {
+                    console.error('❌ Variable global "partidos" no es un array:', typeof partidos, partidos);
+                    throw new Error('Datos de partidos no disponibles. Asegúrate de que los datos se cargaron correctamente.');
+                }
+                console.log('📊 Total de partidos disponibles globalmente:', partidos.length);
+
+                // Filtrar solo partidos futuros desde la variable global
                 const ahora = new Date();
-                const proximosPartidos = todosPartidos
+                const proximosPartidos = partidos
                     .filter(partido => {
-                        const fechaPartido = new Date(partido.fecha_partido + 'T' + (partido.hora_partido || '00:00'));
-                        return fechaPartido > ahora;
+                        // Validar que el partido tenga una fecha válida para procesar
+                        if (!partido.fecha_partido) {
+                            console.warn('⚠️ Partido sin fecha encontrado y omitido:', partido);
+                            return false;
+                        }
+
+                        try {
+                            // La fecha viene como 'fecha_partido' y 'hora_partido' según el código existente
+                            const fechaPartido = new Date(partido.fecha_partido + 'T' + (partido.hora_partido || '00:00'));
+                            const esFuturo = fechaPartido > ahora;
+
+                            if (esFuturo) {
+                                console.log('✅ Partido futuro encontrado:', {
+                                    id: partido.partido_id,
+                                    fecha: partido.fecha_partido,
+                                    hora: partido.hora_partido,
+                                    local: partido.equipo_local_nombre || 'Equipo Local',
+                                    visitante: partido.equipo_visitante_nombre || 'Equipo Visitante'
+                                });
+                            }
+
+                            return esFuturo;
+                        } catch (err) {
+                            console.error('❌ Error procesando la fecha del partido:', partido, err);
+                            return false;
+                        }
                     })
                     .sort((a, b) => {
                         const fechaA = new Date(a.fecha_partido + 'T' + (a.hora_partido || '00:00'));
@@ -3577,30 +3608,41 @@
                         return fechaA - fechaB;
                     })
                     .slice(0, 3); // Solo los próximos 3 partidos
-                
+
+                console.log(`✅ Próximos partidos a mostrar: ${proximosPartidos.length} de ${partidos.length} totales`);
+
                 renderizarProximosPartidos(proximosPartidos);
-                
-                // Iniciar actualización de countdowns cada segundo
+
+                // Iniciar actualización de countdowns cada segundo SOLO si hay partidos
                 if (proximosPartidos.length > 0) {
-                    setInterval(actualizarCountdowns, 1000);
+                    // Limpiar cualquier intervalo anterior para evitar memory leaks
+                    if (window.countdownInterval) {
+                        clearInterval(window.countdownInterval);
+                    }
+
+                    window.countdownInterval = setInterval(() => {
+                        actualizarCountdowns();
+                    }, 1000);
+
+                    console.log('⏱️ Countdown timer iniciado');
                 }
-            
             } catch (error) {
-                console.error('Error cargando próximos partidos:', error);
+                console.error('❌ Error crítico cargando próximos partidos:', error);
                 const container = document.getElementById('proximosPartidosContainer');
                 if (container) {
                     container.innerHTML = `
                         <div class="proximos-partidos-empty">
-                            <h3>⚠️ Error de conexión</h3>
-                            <p>No se pudieron cargar los próximos partidos</p>
+                            <h3>⚠️ Error de Conexión</h3>
+                            <p>${error.message || 'No se pudieron cargar los próximos partidos'}</p>
                             <button class="btn-ver-detalles" onclick="cargarProximosPartidos()">
-                                Reintentar
+                                🔄 Reintentar
                             </button>
                         </div>
                     `;
                 }
             }
         }
+        // ✅ FIN CORRECCIÓN 1
 
         function renderizarProximosPartidos(partidos) {
             const container = document.getElementById('proximosPartidosContainer');
@@ -3623,11 +3665,9 @@
                 return;
             }
             
-            // COMENTARIO: Se cambia la clase del contenedor para que coincida con los estilos de la TAREA 2.2
             container.className = 'proximos-partidos-container';
             
             const html = partidos.map((partido, index) => {
-                // Calcular badge de tiempo
                 const fechaPartido = new Date(partido.fecha_partido + 'T' + (partido.hora_partido || '00:00'));
                 const ahora = new Date();
                 const diferenciaMs = fechaPartido - ahora;
@@ -3645,15 +3685,12 @@
                     badgeText = 'MAÑANA';
                 }
                 
-                // Obtener nombres de equipos
                 const nombreLocal = partido.equipo_local_nombre || 'Equipo Local';
                 const nombreVisitante = partido.equipo_visitante_nombre || 'Equipo Visitante';
                 
-                // Calcular records
                 const recordLocal = calcularRecord(partido.equipo_local_id);
                 const recordVisitante = calcularRecord(partido.equipo_visitante_id);
                 
-                // Formatear fecha y hora
                 const fechaFormateada = new Date(partido.fecha_partido).toLocaleDateString('es-AR', {
                     weekday: 'long',
                     year: 'numeric',
@@ -3712,8 +3749,6 @@
             }).join('');
             
             container.innerHTML = html;
-            
-            // Actualizar countdowns inmediatamente
             actualizarCountdowns();
         }
 
@@ -3807,8 +3842,8 @@
             console.log('Ver detalle del partido:', partidoId);
             alert(`Funcionalidad de detalle del partido ${partidoId} - Por implementar en futuras fases`);
         }
-        // PASO 2.2: FIN - MODIFICACIÓN 2: Funciones de Próximos Partidos
-
+        
+        // --- Resto de funciones auxiliares y de UI sin cambios ---
         let searchTimeout;
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('globalSearch');
@@ -3907,10 +3942,6 @@
             });
           });
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-          initMobileNavigation();
-        });
 
         window.addEventListener('resize', function() {
           configurarEventListenersGenerales();
