@@ -2557,22 +2557,6 @@
 
         <section id="proximos-partidos" class="section">
             <h2>🎯 Próximos Partidos</h2>
-            <div style="text-align: right; margin-bottom: 15px;">
-                <button onclick="diagnosticarConexion()" style="
-                    background: linear-gradient(45deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
-                    border: 1px solid rgba(76, 175, 80, 0.5);
-                    color: #4CAF50;
-                    padding: 8px 20px;
-                    border-radius: 20px;
-                    cursor: pointer;
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                    transition: all 0.3s ease;
-                " onmouseover="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.3), rgba(76, 175, 80, 0.2))'"
-                    onmouseout="this.style.background='linear-gradient(45deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1))'">
-                    🔍 Diagnosticar Conexión Railway
-                </button>
-            </div>
             <div id="proximosPartidosContainer" class="proximos-partidos-container">
                 </div>
         </section>
@@ -2770,41 +2754,26 @@
     </div>
 
     <script>
-        // ============================================
-        // DEBUGGING Y DIAGNÓSTICO - RAILWAY
-        // ============================================
-        console.log('🌐 Entorno: Railway (Producción)');
-        console.log('🔗 URL actual:', window.location.href);
-        console.log('🏠 Hostname:', window.location.hostname);
-        console.log('📍 Base URL:', window.location.origin);
-        // Función helper para logs consistentes
-        function logApi(endpoint, action, data) {
-            const timestamp = new Date().toLocaleTimeString();
-            console.log(`[${timestamp}] 📡 API ${action}: ${endpoint}`, data || '');
+        // Configuración de API - URL de Railway
+        const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
+        let estadisticas = []; // Variable global para estadísticas de bateo
+        
+        function getApiUrl(endpoint) {
+            if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
+            return `${API_BASE_URL}${endpoint}`;
         }
-
-        // let estadisticas = [];
         
         // =================================================================================
         // SECCIÓN DE POSICIONES, PARTIDOS (SIN CAMBIOS)
         // =================================================================================
         async function cargarTablaPosiciones() {
             const tbodyEl = document.getElementById('tablaPosicionesBody');
-            const endpoint = '/api/standings';
             try {
                 setLoading('tablaPosiciones', true);
-                
-                logApi(endpoint, 'INICIANDO');
-                const response = await fetch(endpoint);
-                logApi(endpoint, 'RESPUESTA', { status: response.status, ok: response.ok });
-                if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
-                const standings = await response.json();
-                logApi(endpoint, 'DATOS', `${standings.length} registros`);
-
+                const standings = await fetchJSON('/api/standings');
                 renderTablaPosiciones(standings || [], tbodyEl);
                 setLoading('tablaPosiciones', false, (standings && standings.length) ? null : 'Sin datos de posiciones.');
             } catch (e) {
-                console.error(`❌ Error en cargarTablaPosiciones:`, e);
                 setLoading('tablaPosiciones', false, 'No se pudo cargar la tabla.');
             }
         }
@@ -2834,21 +2803,12 @@
 
         async function cargarUltimosPartidos() {
             const tbody = document.getElementById('ultimosPartidosBody');
-            const endpoint = '/api/partidos?estado=finalizado&limit=10';
             try {
                 setLoading('ultimosPartidos', true);
-                
-                logApi(endpoint, 'INICIANDO');
-                const response = await fetch(endpoint);
-                logApi(endpoint, 'RESPUESTA', { status: response.status, ok: response.ok });
-                if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
-                const partidos = await response.json();
-                logApi(endpoint, 'DATOS', `${partidos.length} partidos`);
-
+                const partidos = await fetchJSON('/api/partidos?estado=finalizado&limit=10');
                 renderUltimosPartidos(partidos || [], tbody);
                 setLoading('ultimosPartidos', false, (partidos && partidos.length) ? null : 'Sin partidos finalizados.');
             } catch (e) {
-                console.error(`❌ Error en cargarUltimosPartidos:`, e);
                 setLoading('ultimosPartidos', false, 'No se pudieron cargar los partidos.');
             }
         }
@@ -2866,20 +2826,15 @@
         
         // ============= SISTEMA DE PLAYOFFS (SIN CAMBIOS) =============
         async function cargarPlayoffsClasificacion() {
-          const endpoint = '/api/playoffs-clasificacion';
-          logApi(endpoint, 'INICIANDO');
+          console.log('🏆 Cargando clasificación de playoffs...');
           setLoading('playoffs-section', true);
             try {
-            const response = await fetch(endpoint);
-            logApi(endpoint, 'RESPUESTA', { status: response.status, ok: response.ok });
-            if (!response.ok) throw new Error(`Error HTTP ${response.status}`);
-            const data = await response.json();
-
-            if (!data || !data.equipos || data.equipos.length === 0) {
+            const data = await fetchJSON('/api/playoffs-clasificacion');
+                if (!data || !data.equipos || data.equipos.length === 0) {
               setLoading('playoffs-section', false, 'No hay datos de clasificación disponibles');
               return;
             }
-            logApi(endpoint, 'DATOS', `${data.equipos.length} equipos`);
+                console.log(`📊 Clasificación cargada: ${data.equipos.length} equipos`);
             renderPlayoffsClasificacion(data);
             setLoading('playoffs-section', false);
               } catch (err) {
@@ -2938,7 +2893,8 @@
         // ============= UTILIDADES GLOBALES =============
         async function fetchJSON(url, options = {}) {
             try {
-                // const res = await fetch(url, { 
+                const fullUrl = getApiUrl(url);
+                const res = await fetch(fullUrl, { 
                     headers: { 'Accept': 'application/json' }, 
                     ...options 
                 });
@@ -2948,7 +2904,7 @@
                 }
                 return await res.json();
             } catch (err) {
-                console.error(`❌ fetchJSON error [${url}]:`, err.message);
+                console.error(`❌ fetchJSON error [${getApiUrl(url)}]:`, err.message);
                 throw err;
             }
         }
@@ -2984,41 +2940,37 @@
         async function cargarLideres() { // ✅ NUEVO: Función central para cargar todos los líderes
           try {
             // Bateo
-            const endpointBateo = '/api/leaders?tipo=bateo';
-            logApi(endpointBateo, 'INICIANDO');
-            const responseBateo = await fetch(endpointBateo);
-            logApi(endpointBateo, 'RESPUESTA', { status: responseBateo.status, ok: responseBateo.ok });
-            if (!responseBateo.ok) throw new Error(`Error en bateo: ${responseBateo.status}`);
+            const responseBateo = await fetch(getApiUrl('/api/leaders?tipo=bateo'));
             const dataBateo = await responseBateo.json();
             leadersData.bateo = Array.isArray(dataBateo) ? dataBateo : [];
-            logApi(endpointBateo, 'DATOS', `${leadersData.bateo.length} líderes`);
+            console.log('✅ Líderes de bateo cargados:', leadersData.bateo.length);
 
             // Pitcheo
-            const endpointPitcheo = '/api/leaders?tipo=pitcheo';
-            logApi(endpointPitcheo, 'INICIANDO');
-            const responsePitcheo = await fetch(endpointPitcheo);
-            logApi(endpointPitcheo, 'RESPUESTA', { status: responsePitcheo.status, ok: responsePitcheo.ok });
-            if (!responsePitcheo.ok) throw new Error(`Error en pitcheo: ${responsePitcheo.status}`);
+            const responsePitcheo = await fetch(getApiUrl('/api/leaders?tipo=pitcheo'));
             const dataPitcheo = await responsePitcheo.json();
             leadersData.pitcheo = Array.isArray(dataPitcheo) ? dataPitcheo : [];
-            logApi(endpointPitcheo, 'DATOS', `${leadersData.pitcheo.length} líderes`);
+            console.log('✅ Líderes de pitcheo cargados:', leadersData.pitcheo.length);
 
-            // Defensiva
-            const endpointDefensiva = '/api/estadisticas-defensivas';
-            logApi(endpointDefensiva, 'INICIANDO');
-            const responseDefensiva = await fetch(endpointDefensiva);
-            logApi(endpointDefensiva, 'RESPUESTA', { status: responseDefensiva.status, ok: responseDefensiva.ok });
-            if (!responseDefensiva.ok) throw new Error(`Error en defensiva: ${responseDefensiva.status}`);
+            // ✅ DEFENSIVA (NUEVO)
+            const responseDefensiva = await fetch(getApiUrl('/api/estadisticas-defensivas'));
+            if (!responseDefensiva.ok) {
+              throw new Error(`HTTP error! status: ${responseDefensiva.status}`);
+            }
             const dataDefensiva = await responseDefensiva.json();
             
+            // Validar que sea array
             const defensivaArray = Array.isArray(dataDefensiva) ? dataDefensiva :
                                    Array.isArray(dataDefensiva.data) ? dataDefensiva.data : [];
+
+            // Filtrar jugadores con datos defensivos válidos y ordenar
             leadersData.defensiva = defensivaArray
               .filter(j => j.fielding_percentage !== null && j.fielding_percentage !== undefined)
               .sort((a, b) => (b.fielding_percentage || 0) - (a.fielding_percentage || 0))
-              .slice(0, 10);
-            logApi(endpointDefensiva, 'DATOS', `${leadersData.defensiva.length} líderes`);
+              .slice(0, 10); // Top 10
 
+            console.log('✅ Líderes defensivos cargados:', leadersData.defensiva.length);
+
+            // Renderizar según pestaña activa por defecto (bateo)
             renderizarLideresPorCategoria(currentLeaderCategory);
 
           } catch (error) {
@@ -3027,7 +2979,12 @@
             if (container) {
                 container.innerHTML = `<div class="empty-state" style="display:block;"><h3>Error al cargar</h3><p>No se pudieron obtener los datos de los líderes.</p></div>`;
             }
-            leadersData = { bateo: [], pitcheo: [], defensiva: [] };
+            // Fallback con datos vacíos
+            leadersData = {
+               bateo: [],
+               pitcheo: [],
+               defensiva: [] // ✅ Incluir defensiva en fallback
+            };
           }
         }
         
@@ -3174,6 +3131,7 @@
         }
 
         // ✅ NUEVO: TAREA 2.1 - PESTAÑA "TODOS" CON TOP 5 POR POSICIÓN
+        // Definición de posiciones
         const POSICIONES_BEISBOL = [
           { codigo: 'C', nombre: 'Catcher', icono: '⚾' },
           { codigo: '1B', nombre: 'Primera Base', icono: '🥇' },
@@ -3186,6 +3144,9 @@
           { codigo: 'P', nombre: 'Pitcher', icono: '🎯' }
         ];
 
+        /**
+         * ✅ Renderizar pestaña "Todos" con Top 5 por posición
+         */
         function renderizarTodosPorPosicion() {
           console.log('🔧 Renderizando pestaña "Todos" por posición...');
             const container = document.getElementById('positionsContainer');
@@ -3196,11 +3157,14 @@
             let html = '';
           let totalJugadores = 0;
             POSICIONES_BEISBOL.forEach(pos => {
+            // Combinar todos los jugadores disponibles
             const todosJugadores = [
               ...(leadersData.bateo || []),
               ...(leadersData.pitcheo || []),
               ...(leadersData.defensiva || [])
             ];
+                
+            // Filtrar por posición y eliminar duplicados
             const jugadoresUnicos = {};
             todosJugadores.forEach(j => {
               const id = j.jugador_id || j.id;
@@ -3210,28 +3174,39 @@
                 }
               }
             });
+                
+            // Convertir a array y ordenar
             let jugadoresPosicion = Object.values(jugadoresUnicos);
+                
+            // Ordenar según tipo
             if (pos.codigo === 'P') {
+              // Pitchers: ordenar por ERA (menor es mejor)
               jugadoresPosicion.sort((a, b) => {
                 const eraA = parseFloat(a.era) || 99.99;
                 const eraB = parseFloat(b.era) || 99.99;
                 return eraA - eraB;
               });
             } else {
+              // Bateadores: ordenar por AVG (mayor es mejor)
               jugadoresPosicion.sort((a, b) => {
                 const avgA = parseFloat(a.promedio_bateo) || 0;
                 const avgB = parseFloat(b.promedio_bateo) || 0;
                 return avgB - avgA;
               });
             }
+                
+            // Top 5
             jugadoresPosicion = jugadoresPosicion.slice(0, 5);
             totalJugadores += jugadoresPosicion.length;
+                
+            // Generar HTML para esta posición
             html += `
               <div class="position-section" data-position="${pos.codigo}">
                 <h3 class="position-title">
                   <span class="position-icon">${pos.icono}</span>
                   <span>${pos.nombre} (${pos.codigo}) - Top 5</span>
                 </h3>
+                        
                 <div class="position-cards">
                   ${jugadoresPosicion.length > 0 
                      ? jugadoresPosicion.map((jugador, index) => generarCardJugador(jugador, index, pos.codigo)).join('')
@@ -3245,8 +3220,12 @@
           console.log(`✅ Renderizadas ${POSICIONES_BEISBOL.length} posiciones con ${totalJugadores} jugadores totales`);
         }
 
+        /**
+         * ✅ Generar card individual de jugador
+         */
         function generarCardJugador(jugador, index, posicion) {
           const esPitcher = posicion === 'P';
+            // Stats según tipo de jugador
           let statsHTML = '';
             if (esPitcher) {
             statsHTML = `
@@ -3283,10 +3262,14 @@
               </div>
             `;
           }
+            // Colores de ranking
           const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32', '#4A90E2', '#9B59B6'];
           const rankColor = rankColors[index] || '#6C757D';
+            // Medallas para top 3
           const rankDisplay = index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`;
+            // ID del jugador
           const jugadorId = jugador.jugador_id || jugador.id;
+            // Logo del equipo
           const logoEquipo = getTeamLogo(jugador.equipo_nombre);
             return `
             <div class="player-card"
@@ -3295,6 +3278,7 @@
                     <div class="player-rank" style="background: ${rankColor};">
                 ${rankDisplay}
               </div>
+                    
               <div class="player-avatar">
                 <img 
                    src="/public/images/players/${jugadorId}.jpg" 
@@ -3302,13 +3286,16 @@
                   onerror="this.src='/public/images/default-player.png'"
                 />
               </div>
+                    
               <div class="player-info">
                 <h4 class="player-name">${jugador.nombre_jugador || jugador.nombre || 'Jugador'}</h4>
                 <p class="player-team">${jugador.equipo_nombre || 'Sin equipo'}</p>
+                        
                 <div class="player-stats">
                   ${statsHTML}
                 </div>
               </div>
+                    
               <div class="team-logo">
                 <img 
                    src="${logoEquipo}" 
@@ -3319,6 +3306,9 @@
           `;
         }
 
+        /**
+         * ✅ Obtener logo del equipo
+         */
         function getTeamLogo(equipoNombre) {
           if (!equipoNombre) return '/public/images/logos/default-logo.png';
             const logoMap = {
@@ -3339,6 +3329,9 @@
              : '/public/images/logos/default-logo.png';
         }
 
+        /**
+         * ✅ Buscador en tiempo real
+         */
         function initBuscadorJugadores() {
           const searchInput = document.getElementById('searchPlayerInput');
             if (!searchInput) {
@@ -3348,7 +3341,9 @@
             searchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase().trim();
             const resultsCount = document.getElementById('searchResultsCount');
+                
             if (searchTerm.length < 2) {
+              // Mostrar todos
               document.querySelectorAll('.player-card').forEach(card => {
                 card.style.display = 'flex';
                 card.classList.remove('highlight');
@@ -3356,14 +3351,18 @@
               if (resultsCount) resultsCount.textContent = '';
               return;
             }
+                
             let encontrados = 0;
             let primerResultado = null;
+                
             document.querySelectorAll('.player-card').forEach(card => {
               const playerName = card.dataset.playerName || '';
+                    
               if (playerName.includes(searchTerm)) {
                 card.style.display = 'flex';
                 card.classList.add('highlight');
                 encontrados++;
+                        
                 if (!primerResultado) {
                   primerResultado = card;
                 }
@@ -3372,6 +3371,8 @@
                 card.classList.remove('highlight');
               }
             });
+                
+            // Actualizar contador
             if (resultsCount) {
               if (encontrados === 0) {
                 resultsCount.textContent = '❌ No se encontraron jugadores';
@@ -3381,6 +3382,8 @@
                 resultsCount.style.color = '#ffd700';
               }
             }
+                
+            // Scroll al primer resultado
             if (primerResultado) {
               setTimeout(() => {
                 primerResultado.scrollIntoView({ 
@@ -3393,6 +3396,7 @@
             console.log('✅ Buscador de jugadores inicializado');
         }
         
+        // ============= ✅ MODIFICADO: GESTIÓN DE PESTAÑAS =============
         function configurarTabsLideres() {
             document.querySelectorAll('.leader-filter').forEach(filter => {
               filter.addEventListener('click', function() {
@@ -3402,15 +3406,10 @@
             });
         }
         
+        // ============= FILTRO DE TEMPORADA Y CARGA DE TABLAS ADICIONALES =============
         async function cargarEstadisticasCompletas() {
              try {
-                const endpoint = '/api/estadisticas-ofensivas';
-                logApi(endpoint, 'INICIANDO');
-                const response = await fetch(endpoint);
-                logApi(endpoint, 'RESPUESTA', { status: response.status, ok: response.ok });
-                if(!response.ok) throw new Error(`Error HTTP ${response.status}`);
-                const data = await response.json();
-                
+                const data = await fetchJSON('/api/estadisticas-ofensivas');
                 let estadisticasFiltradas;
                 const tiene2025 = (data || []).some(r => (r.temporada ?? '').toString().trim() === '2025');
 
@@ -3420,7 +3419,6 @@
                     estadisticasFiltradas = data || [];
                 }
                 estadisticas = estadisticasFiltradas;
-                logApi(endpoint, 'DATOS', `${estadisticas.length} registros ofensivos`);
                 
                 const tbody = document.getElementById('statsTable').querySelector('tbody');
                 if(tbody) {
@@ -3429,6 +3427,7 @@
              } catch(e) { console.error('❌ Error cargando estadísticas completas:', e); }
 
              try {
+                // ✅ MODIFICADO: Usamos los datos ya cargados en leadersData.defensiva
                 const lideres = leadersData.defensiva || [];
                 const grid = document.getElementById('positionLeadersGrid');
                 if(grid) {
@@ -3445,27 +3444,32 @@
         // LÓGICA DE INICIALIZACIÓN Y EVENT LISTENERS
         // =================================================================================
         let equipos = [];
-        let partidos = [];
+        let partidos = []; // PASO 2.2: Variable global para partidos, usada en calcularRecord
         let jugadores = [];
         let selectedPlayersForComparison = [];
 
+        // PASO 2.2: INICIO - MODIFICACIÓN 3: Verificar llamada en `DOMContentLoaded`
         document.addEventListener('DOMContentLoaded', async function() {
+            // Cargas iniciales
             cargarTablaPosiciones();
             cargarUltimosPartidos();
             cargarPlayoffsClasificacion();
             
+            // ✅ MODIFICADO: Nueva secuencia de carga para líderes
             await cargarLideres(); 
             configurarTabsLideres();
             
             configurarEventListenersGenerales();
-            await cargarDatosParaBusqueda();
-            await cargarProximosPartidos();
+            await cargarDatosParaBusqueda(); // Cargar equipos y partidos primero
+            await cargarProximosPartidos(); // Cargar próximos partidos después
             await cargarEstadisticasCompletas(); 
             initMobileNavigation();
             
-            initStickyHeader();
+            initStickyHeader(); // ✅ NUEVO: Ejecutar la nueva función del header
         });
+        // PASO 2.2: FIN - MODIFICACIÓN 3
 
+        // ✅ HEADER STICKY COMPACTO - TAREA 1.5
         function initStickyHeader() {
           console.log('🔧 Inicializando header sticky...');
             const header = document.querySelector('.header');
@@ -3476,13 +3480,16 @@
             let lastScroll = 0;
             window.addEventListener('scroll', function() {
             const currentScroll = window.pageYOffset;
+                // Agregar clase 'scrolled' cuando scroll > 100px
             if (currentScroll > 100) {
               if (!header.classList.contains('scrolled')) {
                 header.classList.add('scrolled');
+                console.log('✅ Header compacto activado');
               }
             } else {
               if (header.classList.contains('scrolled')) {
                 header.classList.remove('scrolled');
+                console.log('✅ Header normal restaurado');
               }
             }
                 lastScroll = currentScroll;
@@ -3490,41 +3497,26 @@
             console.log('✅ Header sticky inicializado');
         }
 
-        // async function cargarDatosParaBusqueda() {
+        async function cargarDatosParaBusqueda() {
              try {
-                // Cargar Equipos
-                const epEquipos = '/api/equipos';
-                logApi(epEquipos, 'INICIANDO');
-                const equiposRes = await fetch(epEquipos);
-                logApi(epEquipos, 'RESPUESTA', { status: equiposRes.status, ok: equiposRes.ok });
-                if (!equiposRes.ok) throw new Error(`Error cargando equipos: ${equiposRes.status}`);
-                equipos = await equiposRes.json();
-                logApi(epEquipos, 'DATOS', `${equipos.length} equipos cargados`);
+                const [equiposRes, jugadoresRes, partidosRes] = await Promise.all([
+                    fetchJSON('/api/equipos'),
+                    fetchJSON('/api/jugadores'),
+                    fetchJSON('/api/partidos') // PASO 2.2: Cargar todos los partidos
+                ]);
 
-                // Cargar Jugadores
-                const epJugadores = '/api/jugadores';
-                logApi(epJugadores, 'INICIANDO');
-                const jugadoresRes = await fetch(epJugadores);
-                logApi(epJugadores, 'RESPUESTA', { status: jugadoresRes.status, ok: jugadoresRes.ok });
-                if (!jugadoresRes.ok) throw new Error(`Error cargando jugadores: ${jugadoresRes.status}`);
-                jugadores = await jugadoresRes.json();
-                logApi(epJugadores, 'DATOS', `${jugadores.length} jugadores cargados`);
+                equipos = Array.isArray(equiposRes) ? equiposRes : [];
+                jugadores = Array.isArray(jugadoresRes) ? jugadoresRes : [];
+                partidos = Array.isArray(partidosRes) ? partidosRes : []; // PASO 2.2: Asignar a variable global
 
-                // Cargar Partidos
-                const epPartidos = '/api/partidos';
-                logApi(epPartidos, 'INICIANDO');
-                const partidosRes = await fetch(epPartidos);
-                logApi(epPartidos, 'RESPUESTA', { status: partidosRes.status, ok: partidosRes.ok });
-                if (!partidosRes.ok) throw new Error(`Error cargando partidos: ${partidosRes.status}`);
-                partidos = await partidosRes.json();
-                logApi(epPartidos, 'DATOS', `${partidos.length} partidos cargados`);
+                console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${jugadores.length} jugadores, ${partidos.length} partidos.`);
 
              } catch(e) {
-                 console.error("❌ Error completo en cargarDatosParaBusqueda:", e);
+                 console.error("❌ Error cargando datos para búsqueda:", e);
                  equipos = [];
                  jugadores = [];
                  partidos = [];
-                 mostrarErrorBusqueda('No se pudieron cargar los datos de búsqueda.');
+                 mostrarErrorBusqueda('No se pudieron cargar los datos.');
              }
         }
         
@@ -3551,29 +3543,19 @@
             if (botonActivo) botonActivo.classList.add('active');
         }
 
-        // async function cargarProximosPartidos() {
+        // PASO 2.2: INICIO - MODIFICACIÓN 2: Funciones de Próximos Partidos
+        // ============================================
+        // PASO 2.2: Funciones de Próximos Partidos Premium
+        // ============================================
+        async function cargarProximosPartidos() {
             try {
-                logApi('/api/partidos', 'INICIANDO', null);
-                
                 const response = await fetch('/api/partidos');
                 
-                logApi('/api/partidos', 'RESPUESTA', {
-                    status: response.status,
-                    statusText: response.statusText,
-                    ok: response.ok
-                });
-                
                 if (!response.ok) {
-                    throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error('Error cargando próximos partidos');
                 }
                 
                 const todosPartidos = await response.json();
-                logApi('/api/partidos', 'DATOS RECIBIDOS', `${todosPartidos.length} partidos totales`);
-                
-                // Validar que sea un array
-                if (!Array.isArray(todosPartidos)) {
-                    throw new Error('La respuesta no es un array válido');
-                }
                 
                 // Filtrar solo partidos futuros
                 const ahora = new Date();
@@ -3587,9 +3569,7 @@
                         const fechaB = new Date(b.fecha + 'T' + (b.hora || '00:00'));
                         return fechaA - fechaB;
                     })
-                    .slice(0, 3);
-                
-                console.log(`✅ ${proximosPartidos.length} próximos partidos filtrados`);
+                    .slice(0, 3); // Solo los próximos 3 partidos
                 
                 renderizarProximosPartidos(proximosPartidos);
                 
@@ -3601,36 +3581,16 @@
                 }
             
             } catch (error) {
-                console.error('❌ ERROR COMPLETO:', {
-                    mensaje: error.message,
-                    stack: error.stack,
-                    tipo: error.name
-                });
-                
+                console.error('Error cargando próximos partidos:', error);
                 const container = document.getElementById('proximosPartidosContainer');
                 if (container) {
                     container.innerHTML = `
                         <div class="proximos-partidos-empty">
                             <h3>⚠️ Error de conexión</h3>
-                            <p>No se pudieron cargar los próximos partidos desde Railway</p>
-                            <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 10px;">
-                                <strong>Error:</strong> ${error.message}
-                            </p>
+                            <p>No se pudieron cargar los próximos partidos</p>
                             <button class="btn-ver-detalles" onclick="cargarProximosPartidos()">
-                                🔄 Reintentar
+                                Reintentar
                             </button>
-                            <button class="btn-ver-detalles" onclick="diagnosticarConexion()" style="background: rgba(76, 175, 80, 0.2); margin-top: 10px;">
-                                🔍 Diagnosticar Conexión
-                            </button>
-                            <div style="margin-top: 15px; font-size: 0.8rem; color: rgba(255,255,255,0.5); text-align: left; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px;">
-                                <strong>Checklist Railway:</strong><br>
-                                ✓ ¿Servicio de Railway activo?<br>
-                                ✓ ¿Base de datos PostgreSQL conectada?<br>
-                                ✓ ¿Variables de entorno configuradas?<br>
-                                ✓ ¿Endpoint /api/partidos funcionando?<br>
-                                <br>
-                                <small>Abre la consola (F12) para ver logs detallados</small>
-                            </div>
                         </div>
                     `;
                 }
@@ -3639,10 +3599,12 @@
 
         function renderizarProximosPartidos(partidos) {
             const container = document.getElementById('proximosPartidosContainer');
+            
             if (!container) {
                 console.error('Container proximosPartidosContainer no encontrado');
                 return;
             }
+            
             if (partidos.length === 0) {
                 container.innerHTML = `
                     <div class="proximos-partidos-empty">
@@ -3655,13 +3617,18 @@
                 `;
                 return;
             }
+            
             container.className = 'proximos-partidos-container';
+            
             const html = partidos.map((partido, index) => {
+                // Calcular badge de tiempo
                 const fechaPartido = new Date(partido.fecha + 'T' + (partido.hora || '00:00'));
                 const ahora = new Date();
                 const diferenciaDias = Math.floor((fechaPartido - ahora) / (1000 * 60 * 60 * 24));
+                
                 let badgeClass = 'proximo';
                 let badgeText = `EN ${diferenciaDias} DÍAS`;
+                
                 if (diferenciaDias === 0) {
                     badgeClass = 'hoy';
                     badgeText = '🔥 HOY';
@@ -3669,72 +3636,110 @@
                     badgeClass = 'manana';
                     badgeText = 'MAÑANA';
                 }
+                
+                // Obtener nombres de equipos
                 const equipoLocal = equipos.find(e => e.id === partido.equipo_local_id);
                 const equipoVisitante = equipos.find(e => e.id === partido.equipo_visitante_id);
+                
                 const nombreLocal = equipoLocal?.nombre || 'Equipo Local';
                 const nombreVisitante = equipoVisitante?.nombre || 'Equipo Visitante';
+                
+                // Calcular records
                 const recordLocal = calcularRecord(partido.equipo_local_id);
                 const recordVisitante = calcularRecord(partido.equipo_visitante_id);
+                
+                // Formatear fecha y hora
                 const fechaFormateada = new Date(partido.fecha).toLocaleDateString('es-AR', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
                 });
+                
                 const horaFormateada = partido.hora || '00:00';
+                
                 return `
                     <div class="proximo-partido-card" data-partido-id="${partido.id}" data-fecha="${partido.fecha}" data-hora="${horaFormateada}">
                         <div class="partido-badge ${badgeClass}">${badgeText}</div>
+                        
                         <div class="countdown-timer">
                             <div class="countdown-label">Comienza en:</div>
-                            <div class="countdown-time" id="countdown-${partido.id}">Calculando...</div>
+                            <div class="countdown-time" id="countdown-${partido.id}">
+                                Calculando...
+                            </div>
                         </div>
+                        
                         <div class="equipos-vs">
                             <div class="equipo-info">
-                                <div class="equipo-logo">${getTeamEmoji(nombreLocal)}</div>
+                                <div class="equipo-logo">
+                                    ${getTeamEmoji(nombreLocal)}
+                                </div>
                                 <div class="equipo-nombre">${nombreLocal}</div>
                                 <div class="equipo-record">Record: ${recordLocal}</div>
                             </div>
+                            
                             <div class="vs-divider">VS</div>
+                            
                             <div class="equipo-info">
-                                <div class="equipo-logo">${getTeamEmoji(nombreVisitante)}</div>
+                                <div class="equipo-logo">
+                                    ${getTeamEmoji(nombreVisitante)}
+                                </div>
                                 <div class="equipo-nombre">${nombreVisitante}</div>
                                 <div class="equipo-record">Record: ${recordVisitante}</div>
                             </div>
                         </div>
+                        
                         <div class="partido-detalles">
-                            <div class="partido-fecha">📅 ${fechaFormateada}</div>
-                            <div class="partido-hora">🕐 ${horaFormateada}</div>
+                            <div class="partido-fecha">
+                                📅 ${fechaFormateada}
+                            </div>
+                            <div class="partido-hora">
+                                🕐 ${horaFormateada}
+                            </div>
                         </div>
-                        <button class="btn-ver-detalles" onclick="verDetallePartido(${partido.id})">Ver Detalles</button>
+                        
+                        <button class="btn-ver-detalles" onclick="verDetallePartido(${partido.id})">
+                            Ver Detalles
+                        </button>
                     </div>
                 `;
             }).join('');
+            
             container.innerHTML = html;
+            
+            // Actualizar countdowns inmediatamente
             actualizarCountdowns();
         }
 
         function actualizarCountdowns() {
             const cards = document.querySelectorAll('.proximo-partido-card');
+            
             cards.forEach(card => {
                 const fecha = card.dataset.fecha;
                 const hora = card.dataset.hora || '00:00';
                 const partidoId = card.dataset.partidoId;
+                
                 const fechaPartido = new Date(fecha + 'T' + hora);
                 const ahora = new Date();
                 const diferencia = fechaPartido - ahora;
+                
                 const countdownElement = document.getElementById(`countdown-${partidoId}`);
+                
                 if (!countdownElement) return;
+                
                 if (diferencia <= 0) {
                     countdownElement.textContent = '¡EN VIVO!';
                     countdownElement.style.color = '#4CAF50';
                     return;
                 }
+                
                 const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
                 const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
                 const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+                
                 let countdownText = '';
+                
                 if (dias > 0) {
                     countdownText = `${dias}d ${horas}h ${minutos}m`;
                 } else if (horas > 0) {
@@ -3742,6 +3747,7 @@
                 } else {
                     countdownText = `${minutos}m ${segundos}s`;
                 }
+                
                 countdownElement.textContent = countdownText;
             });
         }
@@ -3751,8 +3757,10 @@
                 (p.equipo_local_id === equipoId || p.equipo_visitante_id === equipoId) &&
                 p.score_local !== null && p.score_visitante !== null
             );
+            
             let victorias = 0;
             let derrotas = 0;
+            
             partidosEquipo.forEach(partido => {
                 if (partido.equipo_local_id === equipoId) {
                     if (partido.score_local > partido.score_visitante) {
@@ -3768,6 +3776,7 @@
                     }
                 }
             });
+            
             return `${victorias}-${derrotas}`;
         }
 
@@ -3783,6 +3792,7 @@
                 'desss': '⚡',
                 'caribes rd': '🌊'
             };
+            
             const key = teamName.toLowerCase();
             return emojiMap[key] || '⚾';
         }
@@ -3791,67 +3801,7 @@
             console.log('Ver detalle del partido:', partidoId);
             alert(`Funcionalidad de detalle del partido ${partidoId} - Por implementar en futuras fases`);
         }
-
-        // async function diagnosticarConexion() {
-            console.clear();
-            console.log('%c🔍 ===== DIAGNÓSTICO DE CONEXIÓN RAILWAY =====', 'color: #ffd700; font-size: 16px; font-weight: bold');
-            console.log('');
-            
-            // Info del entorno
-            console.log('%c📍 INFORMACIÓN DEL ENTORNO:', 'color: #4CAF50; font-weight: bold');
-            console.log('   URL actual:', window.location.href);
-            console.log('   Hostname:', window.location.hostname);
-            console.log('   Protocolo:', window.location.protocol);
-            console.log('   Puerto:', window.location.port || 'default');
-            console.log('');
-            
-            // Probar endpoints
-            console.log('%c📡 PROBANDO ENDPOINTS DE API:', 'color: #4CAF50; font-weight: bold');
-            
-            const endpoints = [
-                { path: '/api/equipos', nombre: 'Equipos' },
-                { path: '/api/partidos', nombre: 'Partidos' },
-                { path: '/api/jugadores', nombre: 'Jugadores' }
-            ];
-            
-            for (const endpoint of endpoints) {
-                try {
-                    console.log(`\n🔄 Probando: ${endpoint.nombre} (${endpoint.path})`);
-                    
-                    const startTime = performance.now();
-                    const response = await fetch(endpoint.path);
-                    const endTime = performance.now();
-                    const duration = (endTime - startTime).toFixed(2);
-                    
-                    console.log(`   ⏱️  Tiempo de respuesta: ${duration}ms`);
-                    console.log(`   📊 Status: ${response.status} ${response.statusText}`);
-                    console.log(`   ✓  Headers:`, {
-                        contentType: response.headers.get('content-type'),
-                        contentLength: response.headers.get('content-length')
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log(`   ✅ Datos recibidos: ${Array.isArray(data) ? data.length : 'N/A'} registros`);
-                        if (Array.isArray(data) && data.length > 0) {
-                            console.log(`   📋 Muestra del primer registro:`, data[0]);
-                        }
-                    } else {
-                        console.log(`   ❌ Error HTTP: ${response.status}`);
-                        const errorText = await response.text();
-                        console.log(`   📄 Respuesta:`, errorText);
-                    }
-                } catch (error) {
-                    console.log(`   ❌ Error de red: ${error.message}`);
-                    console.log(`   📄 Detalles:`, error);
-                }
-            }
-            
-            console.log('');
-            console.log('%c🔍 ===== FIN DEL DIAGNÓSTICO =====', 'color: #ffd700; font-size: 16px; font-weight: bold');
-            
-            alert('✅ Diagnóstico completado.\n\nRevisa la consola del navegador (F12) para ver los resultados detallados.');
-        }
+        // PASO 2.2: FIN - MODIFICACIÓN 2: Funciones de Próximos Partidos
 
         let searchTimeout;
         document.addEventListener('DOMContentLoaded', function() {
