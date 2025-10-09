@@ -2555,11 +2555,23 @@
             <a href="#playoffs" class="nav-tab" data-section="playoffs" data-icon="🔥">Playoffs</a>
         </nav>
 
-        <section id="proximos-partidos" class="section">
-            <h2>🎯 Próximos Partidos</h2>
-            <div id="proximosPartidosContainer" class="proximos-partidos-container">
+        <section class="proximos-partidos" id="proximos-partidos">
+            <div class="section-header">
+                <h2>⚾ Próximos Partidos</h2>
+                <p class="section-subtitle">No te pierdas la acción en el diamante</p>
+            </div>
+            <div class="partidos-enhanced-grid" id="proximosPartidosContainer">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando próximos partidos...</p>
                 </div>
+            </div>
+            <div class="partidos-actions">
+                <a href="#partidos" class="btn-primary" onclick="mostrarPestana('partidos')">📅 Ver Todos los Partidos</a>
+                <a href="login.html" class="btn-secondary">⚙️ Gestionar Partidos</a>
+            </div>
         </section>
+
         <div id="posiciones" class="tab-content active">
              <div class="card" id="tablaPosiciones">
                 <h3>🏆 Tabla de Posiciones</h3>
@@ -3549,24 +3561,19 @@
         // ============================================
         async function cargarProximosPartidos() {
             try {
-                const response = await fetch('/api/partidos');
-                
-                if (!response.ok) {
-                    throw new Error('Error cargando próximos partidos');
-                }
-                
-                const todosPartidos = await response.json();
+                // COMENTARIO: Se usa el endpoint /api/partidos para obtener todos y luego filtrar en el cliente.
+                const todosPartidos = await fetchJSON('/api/partidos');
                 
                 // Filtrar solo partidos futuros
                 const ahora = new Date();
                 const proximosPartidos = todosPartidos
                     .filter(partido => {
-                        const fechaPartido = new Date(partido.fecha + 'T' + (partido.hora || '00:00'));
+                        const fechaPartido = new Date(partido.fecha_partido + 'T' + (partido.hora_partido || '00:00'));
                         return fechaPartido > ahora;
                     })
                     .sort((a, b) => {
-                        const fechaA = new Date(a.fecha + 'T' + (a.hora || '00:00'));
-                        const fechaB = new Date(b.fecha + 'T' + (b.hora || '00:00'));
+                        const fechaA = new Date(a.fecha_partido + 'T' + (a.hora_partido || '00:00'));
+                        const fechaB = new Date(b.fecha_partido + 'T' + (b.hora_partido || '00:00'));
                         return fechaA - fechaB;
                     })
                     .slice(0, 3); // Solo los próximos 3 partidos
@@ -3575,9 +3582,7 @@
                 
                 // Iniciar actualización de countdowns cada segundo
                 if (proximosPartidos.length > 0) {
-                    setInterval(() => {
-                        actualizarCountdowns();
-                    }, 1000);
+                    setInterval(actualizarCountdowns, 1000);
                 }
             
             } catch (error) {
@@ -3618,18 +3623,21 @@
                 return;
             }
             
+            // COMENTARIO: Se cambia la clase del contenedor para que coincida con los estilos de la TAREA 2.2
             container.className = 'proximos-partidos-container';
             
             const html = partidos.map((partido, index) => {
                 // Calcular badge de tiempo
-                const fechaPartido = new Date(partido.fecha + 'T' + (partido.hora || '00:00'));
+                const fechaPartido = new Date(partido.fecha_partido + 'T' + (partido.hora_partido || '00:00'));
                 const ahora = new Date();
-                const diferenciaDias = Math.floor((fechaPartido - ahora) / (1000 * 60 * 60 * 24));
-                
+                const diferenciaMs = fechaPartido - ahora;
+                const diferenciaDias = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
+                const esHoy = ahora.toDateString() === fechaPartido.toDateString();
+
                 let badgeClass = 'proximo';
                 let badgeText = `EN ${diferenciaDias} DÍAS`;
                 
-                if (diferenciaDias === 0) {
+                if (esHoy) {
                     badgeClass = 'hoy';
                     badgeText = '🔥 HOY';
                 } else if (diferenciaDias === 1) {
@@ -3638,33 +3646,31 @@
                 }
                 
                 // Obtener nombres de equipos
-                const equipoLocal = equipos.find(e => e.id === partido.equipo_local_id);
-                const equipoVisitante = equipos.find(e => e.id === partido.equipo_visitante_id);
-                
-                const nombreLocal = equipoLocal?.nombre || 'Equipo Local';
-                const nombreVisitante = equipoVisitante?.nombre || 'Equipo Visitante';
+                const nombreLocal = partido.equipo_local_nombre || 'Equipo Local';
+                const nombreVisitante = partido.equipo_visitante_nombre || 'Equipo Visitante';
                 
                 // Calcular records
                 const recordLocal = calcularRecord(partido.equipo_local_id);
                 const recordVisitante = calcularRecord(partido.equipo_visitante_id);
                 
                 // Formatear fecha y hora
-                const fechaFormateada = new Date(partido.fecha).toLocaleDateString('es-AR', {
+                const fechaFormateada = new Date(partido.fecha_partido).toLocaleDateString('es-AR', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
-                    day: 'numeric'
+                    day: 'numeric',
+                    timeZone: 'UTC'
                 });
                 
-                const horaFormateada = partido.hora || '00:00';
+                const horaFormateada = partido.hora_partido ? partido.hora_partido.substring(0, 5) : 'A definir';
                 
                 return `
-                    <div class="proximo-partido-card" data-partido-id="${partido.id}" data-fecha="${partido.fecha}" data-hora="${horaFormateada}">
+                    <div class="proximo-partido-card" data-partido-id="${partido.partido_id}" data-fecha="${partido.fecha_partido}" data-hora="${partido.hora_partido || '00:00:00'}">
                         <div class="partido-badge ${badgeClass}">${badgeText}</div>
                         
                         <div class="countdown-timer">
                             <div class="countdown-label">Comienza en:</div>
-                            <div class="countdown-time" id="countdown-${partido.id}">
+                            <div class="countdown-time" id="countdown-${partido.partido_id}">
                                 Calculando...
                             </div>
                         </div>
@@ -3694,11 +3700,11 @@
                                 📅 ${fechaFormateada}
                             </div>
                             <div class="partido-hora">
-                                🕐 ${horaFormateada}
+                                🕐 ${horaFormateada} hs
                             </div>
                         </div>
                         
-                        <button class="btn-ver-detalles" onclick="verDetallePartido(${partido.id})">
+                        <button class="btn-ver-detalles" onclick="verDetallePartido(${partido.partido_id})">
                             Ver Detalles
                         </button>
                     </div>
@@ -3716,7 +3722,7 @@
             
             cards.forEach(card => {
                 const fecha = card.dataset.fecha;
-                const hora = card.dataset.hora || '00:00';
+                const hora = card.dataset.hora || '00:00:00';
                 const partidoId = card.dataset.partidoId;
                 
                 const fechaPartido = new Date(fecha + 'T' + hora);
@@ -3755,7 +3761,7 @@
         function calcularRecord(equipoId) {
             const partidosEquipo = partidos.filter(p => 
                 (p.equipo_local_id === equipoId || p.equipo_visitante_id === equipoId) &&
-                p.score_local !== null && p.score_visitante !== null
+                p.carreras_local !== null && p.carreras_visitante !== null
             );
             
             let victorias = 0;
@@ -3763,21 +3769,21 @@
             
             partidosEquipo.forEach(partido => {
                 if (partido.equipo_local_id === equipoId) {
-                    if (partido.score_local > partido.score_visitante) {
+                    if (partido.carreras_local > partido.carreras_visitante) {
                         victorias++;
-                    } else {
+                    } else if (partido.carreras_local < partido.carreras_visitante) {
                         derrotas++;
                     }
-                } else {
-                    if (partido.score_visitante > partido.score_local) {
+                } else { // equipo visitante
+                    if (partido.carreras_visitante > partido.carreras_local) {
                         victorias++;
-                    } else {
+                    } else if (partido.carreras_visitante < partido.carreras_local) {
                         derrotas++;
                     }
                 }
             });
             
-            return `${victorias}-${derrotas}`;
+            return `${victorias}V - ${derrotas}D`;
         }
 
         function getTeamEmoji(teamName) {
