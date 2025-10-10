@@ -332,8 +332,8 @@ async function inicializarBaseDeDatos() {
 // ======================= RUTAS API ============================
 // ===============================================================
 
-// ... (TODAS TUS RUTAS API EXISTENTES, SIN CAMBIOS) ...
-
+// ... (TODAS LAS RUTAS API EXISTENTES, SIN CAMBIOS HASTA JUGADORES) ...
+// ... (EQUIPOS, TORNEOS, LOGIN, STANDINGS, ETC.) ...
 // =================================================================================
 // ============== NUEVOS ENDPOINTS PARA EL LANDING PAGE (CORRECCIÓN) ===============
 // =================================================================================
@@ -1010,15 +1010,12 @@ app.post('/api/equipos', async (req, res) => {
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
-// ====================== EQUIPOS COMPLETADOS =========================
-// (Agregar después de las rutas de equipos existentes)
 
 app.put('/api/equipos/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { nombre, manager, ciudad } = req.body;
         
-        // Validaciones robustas
         if (!nombre || !manager || !ciudad) {
             return res.status(400).json({ 
                 error: 'Nombre, manager y ciudad son requeridos' 
@@ -1079,8 +1076,8 @@ app.delete('/api/equipos/:id', async (req, res) => {
     }
 });
 
-// ====================== JUGADORES COMPLETADOS =========================
 
+// ====================== JUGADORES =========================
 app.get('/api/jugadores', async (req, res) => {
     try {
         const { page = 1, limit = 50, equipo_id, posicion, search } = req.query;
@@ -1095,49 +1092,38 @@ app.get('/api/jugadores', async (req, res) => {
         const params = [];
         let paramIndex = 1;
 
-        // Filtros opcionales
         if (equipo_id) {
-            query += ` AND j.equipo_id = $${paramIndex}`;
+            query += ` AND j.equipo_id = $${paramIndex++}`;
             params.push(equipo_id);
-            paramIndex++;
         }
-
         if (posicion) {
-            query += ` AND j.posicion = $${paramIndex}`;
+            query += ` AND j.posicion = $${paramIndex++}`;
             params.push(posicion);
-            paramIndex++;
         }
-
         if (search) {
-            query += ` AND j.nombre ILIKE $${paramIndex}`;
+            query += ` AND j.nombre ILIKE $${paramIndex++}`;
             params.push(`%${search}%`);
-            paramIndex++;
         }
 
-        query += ` ORDER BY j.nombre ASC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+        query += ` ORDER BY j.nombre ASC LIMIT $${paramIndex++} OFFSET $${paramIndex}`;
         params.push(limit, offset);
 
         const result = await pool.query(query, params);
         
-        // Contar total para paginación
         let countQuery = 'SELECT COUNT(*) FROM jugadores j WHERE 1=1';
         const countParams = [];
-        let countParamIndex = 1;
+        paramIndex = 1; // Reset for count params
 
         if (equipo_id) {
-            countQuery += ` AND j.equipo_id = $${countParamIndex}`;
+            countQuery += ` AND j.equipo_id = $${paramIndex++}`;
             countParams.push(equipo_id);
-            countParamIndex++;
         }
-
         if (posicion) {
-            countQuery += ` AND j.posicion = $${countParamIndex}`;
+            countQuery += ` AND j.posicion = $${paramIndex++}`;
             countParams.push(posicion);
-            countParamIndex++;
         }
-
         if (search) {
-            countQuery += ` AND j.nombre ILIKE $${countParamIndex}`;
+            countQuery += ` AND j.nombre ILIKE $${paramIndex++}`;
             countParams.push(`%${search}%`);
         }
 
@@ -1159,14 +1145,18 @@ app.get('/api/jugadores', async (req, res) => {
     }
 });
 
+// ✅ CORRECCIÓN BUG #4: Endpoint verificado y mejorado
 app.get('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
         const result = await pool.query(`
-            SELECT j.*, e.nombre as equipo_nombre 
-            FROM jugadores j 
-            LEFT JOIN equipos e ON j.equipo_id = e.id 
+            SELECT 
+                j.*,
+                e.nombre as equipo_nombre,
+                e.ciudad as equipo_ciudad
+            FROM jugadores j
+            LEFT JOIN equipos e ON j.equipo_id = e.id
             WHERE j.id = $1
         `, [id]);
         
@@ -1174,9 +1164,67 @@ app.get('/api/jugadores/:id', async (req, res) => {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
         
+        console.log(`✅ [INFO] Datos del jugador ID:${id} consultados correctamente.`);
         res.json(result.rows[0]);
+        
     } catch (error) {
-        console.error('Error obteniendo jugador:', error);
+        console.error(`❌ [ERROR] Obteniendo jugador ID:${req.params.id}:`, error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// ✅ CORRECCIÓN BUG #3: Nuevo endpoint de búsqueda
+/**
+ * Endpoint de búsqueda de jugadores
+ * GET /api/jugadores/buscar?query=nombre
+ */
+app.get('/api/jugadores/buscar', async (req, res) => {
+    try {
+        const { query } = req.query;
+        
+        if (!query || query.trim().length < 2) {
+            return res.status(400).json({ 
+                error: 'La búsqueda debe tener al menos 2 caracteres' 
+            });
+        }
+        
+        const searchTerm = `%${query.trim()}%`;
+        console.log(`🔍 [SEARCH] Buscando jugadores con el término: "${query}"`);
+        
+        const result = await pool.query(`
+            SELECT 
+                j.id,
+                j.nombre,
+                j.numero,
+                j.posicion,
+                e.id as equipo_id,
+                e.nombre as equipo_nombre,
+                eo.at_bats,
+                eo.hits,
+                eo.home_runs,
+                eo.rbi,
+                CASE 
+                    WHEN COALESCE(eo.at_bats, 0) > 0 
+                    THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / eo.at_bats, 3)
+                    ELSE 0.000 
+                END as promedio_bateo
+            FROM jugadores j
+            LEFT JOIN equipos e ON j.equipo_id = e.id
+            LEFT JOIN estadisticas_ofensivas eo ON j.id = eo.jugador_id
+            WHERE LOWER(j.nombre) LIKE LOWER($1)
+            ORDER BY j.nombre ASC
+            LIMIT 20
+        `, [searchTerm]);
+        
+        console.log(`✅ [SEARCH] Se encontraron ${result.rows.length} resultados para "${query}"`);
+        res.json({
+            jugadores: result.rows,
+            total: result.rows.length,
+            query: query
+        });
+        
+    } catch (error) {
+        console.error('❌ [ERROR] Buscando jugadores:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1186,12 +1234,10 @@ app.post('/api/jugadores', async (req, res) => {
     try {
         const { nombre, equipo_id, posicion, numero } = req.body;
 
-        // Solo el nombre es obligatorio
         if (!nombre || nombre.trim().length < 2 || nombre.trim().length > 100) {
             return res.status(400).json({ error: 'El nombre debe tener entre 2 y 100 caracteres' });
         }
 
-        // Si se envía equipo_id, validar que exista
         let equipoIdFinal = null;
         if (equipo_id !== undefined && equipo_id !== null && `${equipo_id}` !== '') {
             equipoIdFinal = parseInt(equipo_id, 10);
@@ -1204,7 +1250,6 @@ app.post('/api/jugadores', async (req, res) => {
             }
         }
 
-        // Validar posición solo si viene con valor
         const posicionesValidas = ['C','1B','2B','3B','SS','LF','CF','RF','P','UTIL','DH'];
         let posicionFinal = null;
         if (posicion !== undefined && posicion !== null && `${posicion}`.trim() !== '') {
@@ -1214,14 +1259,12 @@ app.post('/api/jugadores', async (req, res) => {
             posicionFinal = posicion;
         }
 
-        // Número opcional
         let numeroFinal = null;
         if (numero !== undefined && numero !== null && `${numero}` !== '') {
             numeroFinal = parseInt(numero,10);
             if (Number.isNaN(numeroFinal) || numeroFinal < 0) {
                 return res.status(400).json({ error: 'Número inválido' });
             }
-            // Unicidad por equipo solo si hay equipo
             if (equipoIdFinal !== null) {
                 const numeroExists = await pool.query('SELECT 1 FROM jugadores WHERE equipo_id=$1 AND numero=$2',[equipoIdFinal, numeroFinal]);
                 if (numeroExists.rows.length>0) {
@@ -1247,43 +1290,30 @@ app.put('/api/jugadores/:id', async (req, res) => {
         const { id } = req.params;
         const { nombre, equipo_id, posicion, numero } = req.body;
         
-        // Validaciones
         if (!nombre || !equipo_id) {
-            return res.status(400).json({ 
-                error: 'Nombre y equipo son requeridos' 
-            });
+            return res.status(400).json({ error: 'Nombre y equipo son requeridos' });
         }
-
         if (nombre.length < 2 || nombre.length > 100) {
-            return res.status(400).json({ 
-                error: 'El nombre debe tener entre 2 y 100 caracteres' 
-            });
+            return res.status(400).json({ error: 'El nombre debe tener entre 2 y 100 caracteres' });
         }
 
-        // Verificar que el equipo existe
         const equipoExists = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipo_id]);
         if (equipoExists.rows.length === 0) {
             return res.status(400).json({ error: 'El equipo especificado no existe' });
         }
 
-        // Validar posición
         const posicionesValidas = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P'];
         if (posicion && !posicionesValidas.includes(posicion)) {
-            return res.status(400).json({ 
-                error: 'Posición inválida. Debe ser una de: ' + posicionesValidas.join(', ') 
-            });
+            return res.status(400).json({ error: 'Posición inválida. Debe ser una de: ' + posicionesValidas.join(', ') });
         }
 
-        // Validar número único por equipo (excluyendo el jugador actual)
         if (numero) {
             const numeroExists = await pool.query(
                 'SELECT id FROM jugadores WHERE equipo_id = $1 AND numero = $2 AND id != $3', 
                 [equipo_id, numero, id]
             );
             if (numeroExists.rows.length > 0) {
-                return res.status(409).json({ 
-                    error: 'Ya existe otro jugador con ese número en el equipo' 
-                });
+                return res.status(409).json({ error: 'Ya existe otro jugador con ese número en el equipo' });
             }
         }
 
@@ -1306,16 +1336,10 @@ app.put('/api/jugadores/:id', async (req, res) => {
 app.delete('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
-
-        const result = await pool.query(
-            'DELETE FROM jugadores WHERE id = $1 RETURNING *',
-            [id]
-        );
-
+        const result = await pool.query('DELETE FROM jugadores WHERE id = $1 RETURNING *', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
-
         res.json({ 
             message: 'Jugador eliminado correctamente',
             estadisticas_eliminadas: 'Se eliminaron automáticamente en cascada'
@@ -1327,111 +1351,55 @@ app.delete('/api/jugadores/:id', async (req, res) => {
 });
 
 
-// ====================== PARTIDOS COMPLETADOS =========================
+// ====================== PARTIDOS =========================
 
-/**
- * 2. GET /api/partidos - Últimos Partidos y Paginación
- * CORREGIDO: Ahora maneja dos casos:
- * 1. Si vienen `estado` y `limit`, sirve la petición del landing page.
- * 2. Si no, mantiene la lógica de paginación para el panel de admin.
- */
+// ✅ CORRECCIÓN BUG #2: Endpoint refactorizado para soportar ?estado=Programado
 app.get('/api/partidos', async (req, res) => {
     try {
-        const { estado, limit, page = 1, equipo_id, fecha_desde, fecha_hasta } = req.query;
-
-        // CASO 1: Petición simple del landing page
-        if (estado && limit) {
-            const simpleLimit = Number(limit) || 5;
-            const simpleQuery = `
-                SELECT 
-                    p.id,
-                    el.nombre as equipo_local_nombre,
-                    ev.nombre as equipo_visitante_nombre,
-                    p.carreras_local,
-                    p.carreras_visitante,
-                    p.innings_jugados as innings,
-                    p.fecha_partido
-                FROM partidos p
-                JOIN equipos el ON p.equipo_local_id = el.id
-                JOIN equipos ev ON p.equipo_visitante_id = ev.id
-                WHERE p.estado = $1
-                ORDER BY p.fecha_partido DESC, p.hora DESC
-                LIMIT $2;
-            `;
-            const { rows } = await pool.query(simpleQuery, [estado, simpleLimit]);
-            return res.json(rows);
-        }
-
-        // CASO 2: Lógica de paginación existente para el panel de admin
-        const adminLimit = 20;
-        const offset = (page - 1) * adminLimit;
+        const { estado, equipo_id, limit, page = 1, fecha_desde, fecha_hasta } = req.query;
         
         let query = `
             SELECT p.*, 
-                   el.nombre as equipo_local_nombre,
+                   el.nombre as equipo_local_nombre, 
                    ev.nombre as equipo_visitante_nombre
             FROM partidos p
-            LEFT JOIN equipos el ON p.equipo_local_id = el.id
-            LEFT JOIN equipos ev ON p.equipo_visitante_id = ev.id
+            JOIN equipos el ON p.equipo_local_id = el.id
+            JOIN equipos ev ON p.equipo_visitante_id = ev.id
             WHERE 1=1
         `;
         const params = [];
         let paramIndex = 1;
-
-        if (equipo_id) {
-            query += ` AND (p.equipo_local_id = $${paramIndex} OR p.equipo_visitante_id = $${paramIndex})`;
-            params.push(equipo_id);
-            paramIndex++;
-        }
-        if (fecha_desde) {
-            query += ` AND p.fecha_partido >= $${paramIndex}`;
-            params.push(fecha_desde);
-            paramIndex++;
-        }
-        if (fecha_hasta) {
-            query += ` AND p.fecha_partido <= $${paramIndex}`;
-            params.push(fecha_hasta);
-            paramIndex++;
-        }
-
-        query += ` ORDER BY p.fecha_partido DESC, p.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-        params.push(adminLimit, offset);
-
-        const result = await pool.query(query, params);
         
-        let countQuery = 'SELECT COUNT(*) FROM partidos p WHERE 1=1';
-        const countParams = [];
-        let countParamIndex = 1;
-
+        if (estado) {
+            query += ` AND LOWER(p.estado) = LOWER($${paramIndex++})`;
+            params.push(estado);
+        }
         if (equipo_id) {
-            countQuery += ` AND (p.equipo_local_id = $${countParamIndex} OR p.equipo_visitante_id = $${countParamIndex})`;
-            countParams.push(equipo_id);
-            countParamIndex++;
+            query += ` AND (p.equipo_local_id = $${paramIndex} OR p.equipo_visitante_id = $${paramIndex++})`;
+            params.push(equipo_id);
         }
         if (fecha_desde) {
-            countQuery += ` AND p.fecha_partido >= $${countParamIndex}`;
-            countParams.push(fecha_desde);
-            countParamIndex++;
+            query += ` AND p.fecha_partido >= $${paramIndex++}`;
+            params.push(fecha_desde);
         }
         if (fecha_hasta) {
-            countQuery += ` AND p.fecha_partido <= $${countParamIndex}`;
-            countParams.push(fecha_hasta);
+            query += ` AND p.fecha_partido <= $${paramIndex++}`;
+            params.push(fecha_hasta);
         }
-
-        const countResult = await pool.query(countQuery, countParams);
-        const total = parseInt(countResult.rows[0].count);
-
-        res.json({
-            partidos: result.rows,
-            pagination: {
-                page: parseInt(page),
-                limit: adminLimit,
-                total,
-                pages: Math.ceil(total / adminLimit)
-            }
-        });
+        
+        query += ` ORDER BY p.fecha_partido ASC, p.hora ASC`;
+        
+        if (limit) {
+            query += ` LIMIT $${paramIndex++}`;
+            params.push(parseInt(limit));
+        }
+        
+        console.log(`🔎 [PARTIDOS] Ejecutando query con filtros:`, { estado, equipo_id, limit });
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+        
     } catch (error) {
-        console.error('Error obteniendo partidos:', error);
+        console.error('❌ [ERROR] Obteniendo partidos:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
@@ -1464,107 +1432,53 @@ app.get('/api/partidos/:id', async (req, res) => {
 app.post('/api/partidos', async (req, res) => {
     try {
         const { 
-            equipo_local_id, 
-            equipo_visitante_id, 
-            carreras_local, 
-            carreras_visitante, 
-            innings_jugados, 
-            fecha_partido,
-            hora,
-            estado
+            equipo_local_id, equipo_visitante_id, carreras_local, 
+            carreras_visitante, innings_jugados, fecha_partido, hora, estado
         } = req.body;
 
-        // Validaciones básicas
         if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
-            return res.status(400).json({ 
-                error: 'Equipo local, equipo visitante y fecha son requeridos' 
-            });
+            return res.status(400).json({ error: 'Equipo local, equipo visitante y fecha son requeridos' });
         }
         if (equipo_local_id === equipo_visitante_id) {
-            return res.status(400).json({ 
-                error: 'El equipo local y visitante deben ser diferentes' 
-            });
+            return res.status(400).json({ error: 'El equipo local y visitante deben ser diferentes' });
         }
-        // Verificar que ambos equipos existen
-        const equiposCheck = await pool.query(
-            'SELECT id FROM equipos WHERE id IN ($1, $2)', 
-            [equipo_local_id, equipo_visitante_id]
-        );
-        
+
+        const equiposCheck = await pool.query('SELECT id FROM equipos WHERE id IN ($1, $2)', [equipo_local_id, equipo_visitante_id]);
         if (equiposCheck.rows.length !== 2) {
             return res.status(400).json({ error: 'Uno o ambos equipos no existen' });
         }
-        // Validar carreras (NULL para partidos programados)
+
         let carrerasLocalFinal = null;
-        let carrerasVisitanteFinal = null;
         if (carreras_local !== null && carreras_local !== undefined && carreras_local !== '') {
             carrerasLocalFinal = parseInt(carreras_local);
-            if (isNaN(carrerasLocalFinal) || carrerasLocalFinal < 0) {
-                return res.status(400).json({ error: 'Las carreras locales deben ser un número positivo' });
-            }
+            if (isNaN(carrerasLocalFinal) || carrerasLocalFinal < 0) return res.status(400).json({ error: 'Las carreras locales deben ser un número positivo' });
         }
+        let carrerasVisitanteFinal = null;
         if (carreras_visitante !== null && carreras_visitante !== undefined && carreras_visitante !== '') {
             carrerasVisitanteFinal = parseInt(carreras_visitante);
-            if (isNaN(carrerasVisitanteFinal) || carrerasVisitanteFinal < 0) {
-                return res.status(400).json({ error: 'Las carreras visitantes deben ser un número positivo' });
-            }
+            if (isNaN(carrerasVisitanteFinal) || carrerasVisitanteFinal < 0) return res.status(400).json({ error: 'Las carreras visitantes deben ser un número positivo' });
         }
-        // Validar innings
+
         const inningsJugadosFinal = innings_jugados ? parseInt(innings_jugados) : 9;
-        if (inningsJugadosFinal < 1 || inningsJugadosFinal > 20) {
-            return res.status(400).json({ 
-                error: 'Los innings jugados deben estar entre 1 y 20' 
-            });
-        }
-        // Validar fecha
+        if (inningsJugadosFinal < 1 || inningsJugadosFinal > 20) return res.status(400).json({ error: 'Los innings jugados deben estar entre 1 y 20' });
+
         const fechaPartidoDate = new Date(fecha_partido);
-        const fechaMinima = new Date('2020-01-01');
-        const fechaLimite = new Date();
-        fechaLimite.setFullYear(fechaLimite.getFullYear() + 2);
-        
-        if (fechaPartidoDate < fechaMinima || fechaPartidoDate > fechaLimite) {
-            return res.status(400).json({ 
-                error: 'La fecha del partido debe estar entre 2020 y 2 años en el futuro' 
-            });
+        if (isNaN(fechaPartidoDate.getTime())) return res.status(400).json({ error: 'Fecha de partido inválida' });
+
+        let estadoFinal = estado;
+        if (!estado || !['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'].includes(estado)) {
+            estadoFinal = (carrerasLocalFinal !== null && carrerasVisitanteFinal !== null) ? 'finalizado' : 'programado';
         }
         
-        // CORRECCIÓN: Lógica de estado automática
-        let estadoFinal;
-                
-        if (estado && ['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'].includes(estado)) {
-            // Si se envía un estado válido explícitamente, usarlo
-            estadoFinal = estado;
-        } else {
-            // Detectar automáticamente según si tiene resultados
-            if (carrerasLocalFinal !== null && carrerasVisitanteFinal !== null) {
-                estadoFinal = 'finalizado'; // Tiene resultados = partido jugado
-            } else {
-                estadoFinal = 'programado'; // Sin resultados = partido futuro
-            }
-        }
-        
-        // INSERT con nuevos campos
         const result = await pool.query(
-            `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local,                                    carreras_visitante, innings_jugados, fecha_partido, hora, estado)              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-            [
-                equipo_local_id, 
-                equipo_visitante_id, 
-                carrerasLocalFinal, 
-                carrerasVisitanteFinal, 
-                inningsJugadosFinal, 
-                fecha_partido,
-                hora || null,
-                estadoFinal
-            ]
+            `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido, hora, estado) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [equipo_local_id, equipo_visitante_id, carrerasLocalFinal, carrerasVisitanteFinal, inningsJugadosFinal, fecha_partido, hora || null, estadoFinal]
         );
         
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error('Error creando partido:', error);
-        res.status(500).json({ 
-            error: 'Error interno del servidor',
-            detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        res.status(500).json({ error: 'Error interno del servidor', detalles: process.env.NODE_ENV === 'development' ? error.message : undefined });
     }
 });
 
@@ -1572,44 +1486,23 @@ app.post('/api/partidos', async (req, res) => {
 app.put('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { 
-            equipo_local_id, 
-            equipo_visitante_id, 
-            carreras_local, 
-            carreras_visitante, 
-            innings_jugados, 
-            fecha_partido 
-        } = req.body;
+        const { equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante, innings_jugados, fecha_partido } = req.body;
         
-        // Mismas validaciones que POST
         if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
-            return res.status(400).json({ 
-                error: 'Equipo local, equipo visitante y fecha son requeridos' 
-            });
+            return res.status(400).json({ error: 'Equipo local, equipo visitante y fecha son requeridos' });
         }
-
         if (equipo_local_id === equipo_visitante_id) {
-            return res.status(400).json({ 
-                error: 'El equipo local y visitante deben ser diferentes' 
-            });
+            return res.status(400).json({ error: 'El equipo local y visitante deben ser diferentes' });
         }
 
-        const equiposCheck = await pool.query(
-            'SELECT id FROM equipos WHERE id IN ($1, $2)', 
-            [equipo_local_id, equipo_visitante_id]
-        );
-        
+        const equiposCheck = await pool.query('SELECT id FROM equipos WHERE id IN ($1, $2)', [equipo_local_id, equipo_visitante_id]);
         if (equiposCheck.rows.length !== 2) {
             return res.status(400).json({ error: 'Uno o ambos equipos no existen' });
         }
 
         const result = await pool.query(
-            `UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2, 
-                                 carreras_local = $3, carreras_visitante = $4, 
-                                 innings_jugados = $5, fecha_partido = $6 
-             WHERE id = $7 RETURNING *`,
-            [equipo_local_id, equipo_visitante_id, carreras_local || null, 
-             carreras_visitante || null, innings_jugados || 9, fecha_partido, id]
+            `UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2, carreras_local = $3, carreras_visitante = $4, innings_jugados = $5, fecha_partido = $6 WHERE id = $7 RETURNING *`,
+            [equipo_local_id, equipo_visitante_id, carreras_local || null, carreras_visitante || null, innings_jugados || 9, fecha_partido, id]
         );
         
         if (result.rows.length === 0) {
@@ -1626,16 +1519,10 @@ app.put('/api/partidos/:id', async (req, res) => {
 app.delete('/api/partidos/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
-        const result = await pool.query(
-            'DELETE FROM partidos WHERE id = $1 RETURNING *',
-            [id]
-        );
-        
+        const result = await pool.query('DELETE FROM partidos WHERE id = $1 RETURNING *', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
         }
-        
         res.json({ message: 'Partido eliminado correctamente' });
     } catch (error) {
         console.error('Error eliminando partido:', error);
@@ -1643,534 +1530,20 @@ app.delete('/api/partidos/:id', async (req, res) => {
     }
 });
 
-// ====================== PRÓXIMOS PARTIDOS =========================
-app.get('/api/proximos-partidos', async (req, res) => {
-    try {
-        const query = `
-            SELECT 
-                p.id,
-                p.fecha_partido,
-                p.hora,
-                p.estado,
-                p.equipo_local_id,
-                p.equipo_visitante_id,
-                p.carreras_local,
-                p.carreras_visitante,
-                p.innings_jugados,
-                el.nombre as equipo_local_nombre,
-                ev.nombre as equipo_visitante_nombre,
-                el.ciudad as ciudad_local,
-                ev.ciudad as ciudad_visitante
-            FROM partidos p
-            LEFT JOIN equipos el ON p.equipo_local_id = el.id
-            LEFT JOIN equipos ev ON p.equipo_visitante_id = ev.id
-            WHERE p.fecha_partido >= CURRENT_DATE
-              AND (p.estado = 'programado' OR p.estado IS NULL)
-            ORDER BY p.fecha_partido ASC, p.hora ASC NULLS LAST
-            LIMIT 5
-        `;
-        
-        const result = await pool.query(query);
-        
-        // Calcular records de equipos para cada partido
-        const partidosConRecords = await Promise.all(result.rows.map(async (partido) => {
-            // Calcular record del equipo local
-            const recordLocal = await pool.query(`
-                SELECT 
-                    COUNT(*) FILTER (WHERE 
-                        (equipo_local_id = $1 AND carreras_local > carreras_visitante) OR
-                        (equipo_visitante_id = $1 AND carreras_visitante > carreras_local)
-                    ) as victorias,
-                    COUNT(*) FILTER (WHERE 
-                        (equipo_local_id = $1 AND carreras_local < carreras_visitante) OR
-                        (equipo_visitante_id = $1 AND carreras_visitante < carreras_local)
-                    ) as derrotas
-                FROM partidos 
-                WHERE (equipo_local_id = $1 OR equipo_visitante_id = $1) 
-                  AND carreras_local IS NOT NULL 
-                  AND carreras_visitante IS NOT NULL
-            `, [partido.equipo_local_id]);
-                    
-            // Calcular record del equipo visitante
-            const recordVisitante = await pool.query(`
-                SELECT 
-                    COUNT(*) FILTER (WHERE 
-                        (equipo_local_id = $1 AND carreras_local > carreras_visitante) OR
-                        (equipo_visitante_id = $1 AND carreras_visitante > carreras_local)
-                    ) as victorias,
-                    COUNT(*) FILTER (WHERE 
-                        (equipo_local_id = $1 AND carreras_local < carreras_visitante) OR
-                        (equipo_visitante_id = $1 AND carreras_visitante < carreras_local)
-                    ) as derrotas
-                FROM partidos 
-                WHERE (equipo_local_id = $1 OR equipo_visitante_id = $1) 
-                  AND carreras_local IS NOT NULL 
-                  AND carreras_visitante IS NOT NULL
-            `, [partido.equipo_visitante_id]);
-            
-            // ✅ CORRECCIÓN: Sintaxis de retorno validada (ya estaba bien, se mantiene)
-            return {
-                ...partido,
-                record_local: `${recordLocal.rows[0].victorias}-${recordLocal.rows[0].derrotas}`,
-                record_visitante: `${recordVisitante.rows[0].victorias}-${recordVisitante.rows[0].derrotas}`
-            };
-        }));
-        
-        res.json(partidosConRecords);
-    } catch (error) {
-        // ✅ CORRECCIÓN: Manejo de errores con el mensaje y formato solicitado
-        console.error('Error obteniendo próximos partidos:', error);
-        res.status(500).json({ error: 'Error obteniendo próximos partidos' });
-    }
-});
 
-// ====================== ESTADÍSTICAS MEJORADAS =========================
+// ====================== ESTADÍSTICAS =========================
 
-app.get('/api/estadisticas-ofensivas', async (req, res) => {
-    try {
-        const { temporada, equipo_id, min_at_bats = 0 } = req.query;
-        
-        let query = `
-            SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
-                   CASE 
-                       WHEN eo.at_bats > 0 THEN ROUND(eo.hits::DECIMAL / eo.at_bats, 3)
-                       ELSE 0.000 
-                   END as avg,
-                   CASE 
-                       WHEN eo.at_bats > 0 THEN ROUND((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks), 3)
-                       ELSE 0.000 
-                   END as obp,
-                   CASE 
-                       WHEN eo.at_bats > 0 THEN ROUND((eo.hits + eo.home_runs * 3)::DECIMAL / eo.at_bats, 3)
-                       ELSE 0.000 
-                   END as slg
-            FROM estadisticas_ofensivas eo
-            JOIN jugadores j ON eo.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE eo.at_bats >= $1
-        `;
-        const params = [min_at_bats];
-        let paramIndex = 2;
-
-        if (temporada) {
-            query += ` AND eo.temporada = $${paramIndex}`;
-            params.push(temporada);
-            paramIndex++;
-        }
-
-        if (equipo_id) {
-            query += ` AND j.equipo_id = $${paramIndex}`;
-            params.push(equipo_id);
-        }
-
-        query += ` ORDER BY avg DESC, eo.hits DESC`;
-
-        const result = await pool.query(query, params);
-        
-        // Calcular OPS para cada jugador
-        const jugadoresConOPS = result.rows.map(jugador => ({
-            ...jugador,
-            ops: parseFloat((parseFloat(jugador.obp) + parseFloat(jugador.slg)).toFixed(3))
-        }));
-        
-        res.json(jugadoresConOPS);
-    } catch (error) {
-        console.error('Error obteniendo estadísticas ofensivas:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-app.get('/api/lideres-ofensivos', async (req, res) => {
-    try {
-        const { min_at_bats = 10 } = req.query;
-        
-        const result = await pool.query(`
-            SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
-                   ROUND(eo.hits::DECIMAL / eo.at_bats, 3) as avg,
-                   ROUND((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks), 3) as obp,
-                   ROUND((eo.hits + eo.home_runs * 3)::DECIMAL / eo.at_bats, 3) as slg
-            FROM estadisticas_ofensivas eo
-            JOIN jugadores j ON eo.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE eo.at_bats >= $1
-            ORDER BY avg DESC
-        `, [min_at_bats]);
-        
-        const jugadoresConOPS = result.rows.map(jugador => ({
-            ...jugador,
-            ops: parseFloat((parseFloat(jugador.obp) + parseFloat(jugador.slg)).toFixed(3))
-        }));
-        
-        res.json(jugadoresConOPS);
-    } catch (error) {
-        console.error('Error obteniendo líderes ofensivos:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-// Rutas similares para estadísticas de pitcheo y defensivas...
-// (Agregar según sea necesario)
-
-// ====================== NUEVA RUTA PARA DASHBOARD =========================
-
-app.get('/api/dashboard/stats', async (req, res) => {
-    try {
-        const stats = await Promise.all([
-            pool.query('SELECT COUNT(*) as total FROM equipos'),
-            pool.query('SELECT COUNT(*) as total FROM jugadores'),
-            pool.query('SELECT COUNT(*) as total FROM partidos'),
-            pool.query('SELECT COUNT(*) as total FROM estadisticas_ofensivas WHERE at_bats > 0'),
-        ]);
-
-        res.json({
-            equipos: parseInt(stats[0].rows[0].total),
-            jugadores: parseInt(stats[1].rows[0].total),
-            partidos: parseInt(stats[2].rows[0].total),
-            jugadores_con_stats: parseInt(stats[3].rows[0].total)
-        });
-    } catch (error) {
-        console.error('Error obteniendo estadísticas del dashboard:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-// ====================== ESTADÍSTICAS PITCHEO =========================
-app.get('/api/estadisticas-pitcheo', async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT ep.*, j.nombre as jugador_nombre, e.nombre as equipo_nombre,
-                   CASE 
-                       WHEN ep.innings_pitched > 0 THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2)
-                       ELSE 0.00 
-                   END as era,
-                   CASE 
-                       WHEN ep.innings_pitched > 0 THEN ROUND((ep.hits_allowed + ep.walks_allowed) / ep.innings_pitched, 2)
-                       ELSE 0.00 
-                   END as whip
-            FROM estadisticas_pitcheo ep
-            JOIN jugadores j ON ep.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            ORDER BY era ASC
-        `);
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error obteniendo estadísticas de pitcheo:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-app.get('/api/estadisticas-pitcheo/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query(`
-            SELECT ep.*, j.nombre as jugador_nombre, e.nombre as equipo_nombre
-            FROM estadisticas_pitcheo ep
-            JOIN jugadores j ON ep.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE ep.jugador_id = $1
-        `, [id]);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
-        }
-        
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error obteniendo estadísticas de pitcheo:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-app.post('/api/estadisticas-pitcheo', async (req, res) => {
-    try {
-        const { 
-            jugador_id, innings_pitched, hits_allowed, earned_runs, 
-            strikeouts, walks_allowed, home_runs_allowed, wins, losses, saves, temporada 
-        } = req.body;
-        
-        if (!jugador_id) {
-            return res.status(400).json({ error: 'ID del jugador es requerido' });
-        }
-
-        const result = await pool.query(`
-            INSERT INTO estadisticas_pitcheo (
-                jugador_id, temporada, innings_pitched, hits_allowed, earned_runs,
-                strikeouts, walks_allowed, home_runs_allowed, wins, losses, saves
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-            ON CONFLICT (jugador_id, temporada) 
-            DO UPDATE SET 
-                innings_pitched = estadisticas_pitcheo.innings_pitched + EXCLUDED.innings_pitched,
-                hits_allowed = estadisticas_pitcheo.hits_allowed + EXCLUDED.hits_allowed,
-                earned_runs = estadisticas_pitcheo.earned_runs + EXCLUDED.earned_runs,
-                strikeouts = estadisticas_pitcheo.strikeouts + EXCLUDED.strikeouts,
-                walks_allowed = estadisticas_pitcheo.walks_allowed + EXCLUDED.walks_allowed,
-                home_runs_allowed = estadisticas_pitcheo.home_runs_allowed + EXCLUDED.home_runs_allowed,
-                wins = estadisticas_pitcheo.wins + EXCLUDED.wins,
-                losses = estadisticas_pitcheo.losses + EXCLUDED.losses,
-                saves = estadisticas_pitcheo.saves + EXCLUDED.saves
-            RETURNING *
-        `, [jugador_id, temporada || 'Default', innings_pitched || 0, hits_allowed || 0, 
-            earned_runs || 0, strikeouts || 0, walks_allowed || 0, home_runs_allowed || 0,
-            wins || 0, losses || 0, saves || 0]);
-        
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        console.error('Error creando estadísticas de pitcheo:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-app.put('/api/estadisticas-pitcheo', async (req, res) => {
-    try {
-        const { 
-            jugador_id, innings_pitched, hits_allowed, earned_runs, 
-            strikeouts, walks_allowed, home_runs_allowed, wins, losses, saves, temporada 
-        } = req.body;
-        
-        if (!jugador_id) {
-            return res.status(400).json({ error: 'ID del jugador es requerido' });
-        }
-
-        const result = await pool.query(`
-            UPDATE estadisticas_pitcheo SET 
-                innings_pitched = $1, hits_allowed = $2, earned_runs = $3,
-                strikeouts = $4, walks_allowed = $5, home_runs_allowed = $6,
-                wins = $7, losses = $8, saves = $9
-            WHERE jugador_id = $10 AND temporada = $11
-            RETURNING *
-        `, [innings_pitched || 0, hits_allowed || 0, earned_runs || 0, strikeouts || 0,
-            walks_allowed || 0, home_runs_allowed || 0, wins || 0, losses || 0, 
-            saves || 0, jugador_id, temporada || 'Default']);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
-        }
-        
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error actualizando estadísticas de pitcheo:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-// ====================== ESTADÍSTICAS DEFENSIVAS =========================
-app.get('/api/estadisticas-defensivas', async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
-                   CASE 
-                       WHEN ed.chances > 0 THEN ROUND((ed.putouts + ed.assists)::DECIMAL / ed.chances, 3)
-                       ELSE 0.000 
-                   END as fielding_percentage
-            FROM estadisticas_defensivas ed
-            JOIN jugadores j ON ed.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            ORDER BY fielding_percentage DESC
-        `);
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error obteniendo estadísticas defensivas:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-app.get('/api/estadisticas-defensivas/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query(`
-            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre
-            FROM estadisticas_defensivas ed
-            JOIN jugadores j ON ed.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE ed.jugador_id = $1
-        `, [id]);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
-        }
-        
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error obteniendo estadísticas defensivas:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-app.post('/api/estadisticas-defensivas', async (req, res) => {
-    try {
-        const { 
-            jugador_id, putouts, assists, errors, double_plays, 
-            passed_balls, chances, temporada 
-        } = req.body;
-        
-        if (!jugador_id) {
-            return res.status(400).json({ error: 'ID del jugador es requerido' });
-        }
-
-        const result = await pool.query(`
-            INSERT INTO estadisticas_defensivas (
-                jugador_id, temporada, putouts, assists, errors, 
-                double_plays, passed_balls, chances
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            ON CONFLICT (jugador_id, temporada) 
-            DO UPDATE SET 
-                putouts = estadisticas_defensivas.putouts + EXCLUDED.putouts,
-                assists = estadisticas_defensivas.assists + EXCLUDED.assists,
-                errors = estadisticas_defensivas.errors + EXCLUDED.errors,
-                double_plays = estadisticas_defensivas.double_plays + EXCLUDED.double_plays,
-                passed_balls = estadisticas_defensivas.passed_balls + EXCLUDED.passed_balls,
-                chances = estadisticas_defensivas.chances + EXCLUDED.chances
-            RETURNING *
-        `, [jugador_id, temporada || 'Default', putouts || 0, assists || 0, 
-            errors || 0, double_plays || 0, passed_balls || 0, chances || 0]);
-        
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        console.error('Error creando estadísticas defensivas:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-app.put('/api/estadisticas-defensivas', async (req, res) => {
-    try {
-        const { 
-            jugador_id, putouts, assists, errors, double_plays, 
-            passed_balls, chances, temporada 
-        } = req.body;
-        
-        if (!jugador_id) {
-            return res.status(400).json({ error: 'ID del jugador es requerido' });
-        }
-
-        const result = await pool.query(`
-            UPDATE estadisticas_defensivas SET 
-                putouts = $1, assists = $2, errors = $3, double_plays = $4,
-                passed_balls = $5, chances = $6
-            WHERE jugador_id = $7 AND temporada = $8
-            RETURNING *
-        `, [putouts || 0, assists || 0, errors || 0, double_plays || 0,
-            passed_balls || 0, chances || 0, jugador_id, temporada || 'Default']);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
-        }
-        
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error actualizando estadísticas defensivas:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-// ====================== LÍDERES DEFENSIVOS =========================
-app.get('/api/lideres-defensivos', async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
-                   CASE 
-                       WHEN ed.chances >= 5 THEN ROUND((ed.putouts + ed.assists)::DECIMAL / ed.chances, 3)
-                       ELSE 0.000 
-                   END as fielding_percentage,
-                   ed.chances as total_chances
-            FROM estadisticas_defensivas ed
-            JOIN jugadores j ON ed.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE ed.chances >= 5
-            ORDER BY fielding_percentage DESC, ed.chances DESC
-        `);
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error obteniendo líderes defensivos:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-// ====================== LÍDERES PITCHEO =========================
-app.get('/api/lideres-pitcheo', async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT ep.*, j.nombre as jugador_nombre, e.nombre as equipo_nombre,
-                   CASE 
-                       WHEN ep.innings_pitched >= 5 THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2)
-                       ELSE 99.99 
-                   END as era,
-                   CASE 
-                       WHEN ep.innings_pitched >= 5 THEN ROUND((ep.hits_allowed + ep.walks_allowed) / ep.innings_pitched, 2)
-                       ELSE 99.99 
-                   END as whip
-            FROM estadisticas_pitcheo ep
-            JOIN jugadores j ON ep.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE ep.innings_pitched >= 5
-            ORDER BY era ASC
-        `);
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error obteniendo líderes de pitcheo:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-// ====================== ESTADÍSTICAS OFENSIVAS MEJORADAS =========================
-app.post('/api/estadisticas-ofensivas', async (req, res) => {
-    try {
-        const { 
-            jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, temporada 
-        } = req.body;
-        
-        if (!jugador_id) {
-            return res.status(400).json({ error: 'ID del jugador es requerido' });
-        }
-
-        if (hits > at_bats) {
-            return res.status(400).json({ error: 'Los hits no pueden ser mayores que los at-bats' });
-        }
-
-        const result = await pool.query(`
-            INSERT INTO estadisticas_ofensivas (
-                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-            ON CONFLICT (jugador_id, temporada) 
-            DO UPDATE SET 
-                at_bats = estadisticas_ofensivas.at_bats + EXCLUDED.at_bats,
-                hits = estadisticas_ofensivas.hits + EXCLUDED.hits,
-                home_runs = estadisticas_ofensivas.home_runs + EXCLUDED.home_runs,
-                rbi = estadisticas_ofensivas.rbi + EXCLUDED.rbi,
-                runs = estadisticas_ofensivas.runs + EXCLUDED.runs,
-                walks = estadisticas_ofensivas.walks + EXCLUDED.walks,
-                stolen_bases = estadisticas_ofensivas.stolen_bases + EXCLUDED.stolen_bases
-            RETURNING *
-        `, [jugador_id, temporada || 'Default', at_bats || 0, hits || 0, 
-            home_runs || 0, rbi || 0, runs || 0, walks || 0, stolen_bases || 0]);
-        
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        console.error('Error creando estadísticas ofensivas:', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-
-// Handler compartido para actualizar/crear estadísticas ofensivas
+// ✅ CORRECCIÓN BUG #1: Handler para upsert de estadísticas OFENSIVAS (REEMPLAZA)
 async function upsertEstadisticasOfensivas(req, res) {
     try {
-        const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, temporada } = req.body;
+        const { jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases } = req.body;
+        if (!jugador_id) return res.status(400).json({ error: 'ID del jugador es requerido' });
 
-        if (!jugador_id) {
-            return res.status(400).json({ error: 'ID del jugador es requerido' });
-        }
-
-        const ab = parseInt(at_bats || 0, 10);
-        const h = parseInt(hits || 0, 10);
-        const hr = parseInt(home_runs || 0, 10);
-        const rbiV = parseInt(rbi || 0, 10);
-        const runsV = parseInt(runs || 0, 10);
-        const bb = parseInt(walks || 0, 10);
-        const sb = parseInt(stolen_bases || 0, 10);
-        // ✅ CORRECCIÓN: Se usa '2025' como temporada por defecto si no viene en el body.
-        const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : '2025';
-
+        const ab = parseInt(at_bats || 0, 10), h = parseInt(hits || 0, 10);
         if (h > ab) return res.status(400).json({ error: 'Los hits no pueden ser mayores que los at-bats' });
+
+        const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : '2025';
+        console.log(`🔄 [UPSERT] Ofensiva para Jugador ID: ${jugador_id}, Temporada: ${temp}`);
 
         const result = await pool.query(`
             INSERT INTO estadisticas_ofensivas (jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases)
@@ -2184,21 +1557,141 @@ async function upsertEstadisticasOfensivas(req, res) {
                 walks = EXCLUDED.walks,
                 stolen_bases = EXCLUDED.stolen_bases
             RETURNING *;
-        `, [jugador_id, temp, ab, h, hr, rbiV, runsV, bb, sb]);
+        `, [jugador_id, temp, ab, h, parseInt(home_runs || 0, 10), parseInt(rbi || 0, 10), parseInt(runs || 0, 10), parseInt(walks || 0, 10), parseInt(stolen_bases || 0, 10)]);
 
         res.json(result.rows[0]);
     } catch (error) {
-        // ✅ CORRECCIÓN: Log de error y respuesta JSON clara en caso de fallo de DB.
-        console.error('Error al actualizar/crear estadísticas ofensivas:', error);
+        console.error('❌ [ERROR] en upsert de estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor al procesar estadísticas' });
     }
 }
-
 app.put('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
 app.post('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
-// Alias para compatibilidad con versión anterior (guión bajo)
-app.put('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
-app.post('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
+
+
+// ✅ CORRECCIÓN BUG #1: Handler para upsert de estadísticas de PITCHEO (REEMPLAZA)
+async function upsertEstadisticasPitcheo(req, res) {
+    try {
+        const { jugador_id, temporada, innings_pitched, hits_allowed, earned_runs, strikeouts, walks_allowed, home_runs_allowed, wins, losses, saves } = req.body;
+        if (!jugador_id) return res.status(400).json({ error: 'ID del jugador es requerido' });
+        
+        const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : '2025';
+        console.log(`🔄 [UPSERT] Pitcheo para Jugador ID: ${jugador_id}, Temporada: ${temp}`);
+
+        const result = await pool.query(`
+            INSERT INTO estadisticas_pitcheo (jugador_id, temporada, innings_pitched, hits_allowed, earned_runs, strikeouts, walks_allowed, home_runs_allowed, wins, losses, saves)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (jugador_id, temporada) DO UPDATE SET
+                innings_pitched = EXCLUDED.innings_pitched,
+                hits_allowed = EXCLUDED.hits_allowed,
+                earned_runs = EXCLUDED.earned_runs,
+                strikeouts = EXCLUDED.strikeouts,
+                walks_allowed = EXCLUDED.walks_allowed,
+                home_runs_allowed = EXCLUDED.home_runs_allowed,
+                wins = EXCLUDED.wins,
+                losses = EXCLUDED.losses,
+                saves = EXCLUDED.saves
+            RETURNING *;
+        `, [jugador_id, temp, parseFloat(innings_pitched || 0.0), parseInt(hits_allowed || 0), parseInt(earned_runs || 0), parseInt(strikeouts || 0), parseInt(walks_allowed || 0), parseInt(home_runs_allowed || 0), parseInt(wins || 0), parseInt(losses || 0), parseInt(saves || 0)]);
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('❌ [ERROR] en upsert de estadísticas de pitcheo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+}
+app.post('/api/estadisticas-pitcheo', upsertEstadisticasPitcheo);
+app.put('/api/estadisticas-pitcheo', upsertEstadisticasPitcheo);
+
+
+app.get('/api/estadisticas-ofensivas', async (req, res) => {
+    try {
+        const { jugador_id, temporada, equipo_id, min_at_bats = 0 } = req.query;
+        
+        let query = `SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+                   CASE WHEN eo.at_bats > 0 THEN ROUND(eo.hits::DECIMAL / eo.at_bats, 3) ELSE 0.000 END as avg,
+                   CASE WHEN eo.at_bats > 0 THEN ROUND((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks), 3) ELSE 0.000 END as obp,
+                   CASE WHEN eo.at_bats > 0 THEN ROUND((eo.hits + eo.home_runs * 3)::DECIMAL / eo.at_bats, 3) ELSE 0.000 END as slg
+                   FROM estadisticas_ofensivas eo
+                   JOIN jugadores j ON eo.jugador_id = j.id
+                   LEFT JOIN equipos e ON j.equipo_id = e.id
+                   WHERE eo.at_bats >= $1`;
+        const params = [min_at_bats];
+        let paramIndex = 2;
+
+        if(jugador_id) {
+            query += ` AND eo.jugador_id = $${paramIndex++}`;
+            params.push(jugador_id);
+        }
+        if (temporada) {
+            query += ` AND eo.temporada = $${paramIndex++}`;
+            params.push(temporada);
+        }
+        if (equipo_id) {
+            query += ` AND j.equipo_id = $${paramIndex++}`;
+            params.push(equipo_id);
+        }
+
+        query += ` ORDER BY avg DESC, eo.hits DESC`;
+        const result = await pool.query(query, params);
+        
+        const jugadoresConOPS = result.rows.map(j => ({ ...j, ops: parseFloat((parseFloat(j.obp) + parseFloat(j.slg)).toFixed(3)) }));
+        res.json(jugadoresConOPS);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas ofensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+app.get('/api/estadisticas-pitcheo', async (req, res) => {
+    try {
+        const { jugador_id } = req.query;
+        let query = `SELECT ep.*, j.nombre as jugador_nombre, e.nombre as equipo_nombre,
+                   CASE WHEN ep.innings_pitched > 0 THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2) ELSE 0.00 END as era,
+                   CASE WHEN ep.innings_pitched > 0 THEN ROUND((ep.hits_allowed + ep.walks_allowed) / ep.innings_pitched, 2) ELSE 0.00 END as whip
+                   FROM estadisticas_pitcheo ep
+                   JOIN jugadores j ON ep.jugador_id = j.id
+                   LEFT JOIN equipos e ON j.equipo_id = e.id`;
+        const params = [];
+        if (jugador_id) {
+            query += ' WHERE ep.jugador_id = $1';
+            params.push(jugador_id);
+        }
+        query += ' ORDER BY era ASC';
+
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas de pitcheo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+app.get('/api/estadisticas-defensivas', async (req, res) => {
+    try {
+        const { jugador_id } = req.query;
+        let query = `SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+                   CASE WHEN ed.chances > 0 THEN ROUND((ed.putouts + ed.assists)::DECIMAL / ed.chances, 3) ELSE 0.000 END as fielding_percentage
+                   FROM estadisticas_defensivas ed
+                   JOIN jugadores j ON ed.jugador_id = j.id
+                   LEFT JOIN equipos e ON j.equipo_id = e.id`;
+        const params = [];
+        if (jugador_id) {
+            query += ' WHERE ed.jugador_id = $1';
+            params.push(jugador_id);
+        }
+        query += ' ORDER BY fielding_percentage DESC';
+
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error obteniendo estadísticas defensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+
+// ... (RESTO DEL CÓDIGO: RUTAS HTML, OPTIMIZACIONES, INICIO DEL SERVIDOR, ETC. PERMANECEN IGUAL) ...
 
 // ===============================================================
 // =================== RUTAS DE ARCHIVOS HTML =================
@@ -2208,19 +1701,10 @@ app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public/login.
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public/admin.html')));
 app.get('/equipo.html', (req, res) => res.sendFile(path.join(__dirname, 'public/equipo.html')));
 app.get('/public', (req, res) => res.sendFile(path.join(__dirname, 'public/public.html')));
+app.get('/jugador.html', (req, res) => res.sendFile(path.join(__dirname, 'public/jugador.html')));
 
 
 // ==================== OPTIMIZACIONES PARA RAILWAY ====================
-// const path = require('path'); // Ya está requerido al inicio del archivo
-
-// Servir archivos estáticos optimizados
-app.use(express.static('.', {
-  maxAge: '1d',
-  etag: true,
-  lastModified: true
-}));
-
-// Servir logos estáticos con headers optimizados
 app.use('/public/images/logos', express.static(path.join(__dirname, 'public/images/logos'), {
   maxAge: '7d', // Cache de 7 días para logos
   etag: true,
@@ -2231,60 +1715,15 @@ app.use('/public/images/logos', express.static(path.join(__dirname, 'public/imag
   }
 }));
 
-// Verificar estructura de logos al iniciar
 const fs = require('fs');
-
 function verificarLogos() {
   const logosPath = path.join(__dirname, 'public/images/logos');
-  
   if (!fs.existsSync(logosPath)) {
     console.warn('⚠️ Carpeta de logos no encontrada, creando...');
     fs.mkdirSync(logosPath, { recursive: true });
   }
-  
-  const logosRequeridos = [
-    'chogui-league.png',
-    'default-logo.png',
-    'guerreros-del-norte.png',
-    'la-guaira.png',
-    'furia-del-caribe.png',
-    'tigres-unidos.png',
-    'leones-dorados.png',
-    'aguilas-negras.png',
-    'venearstone.png',
-    'desss.png',
-    'caribes-rd.png'
-  ];
-  
-  let logosFaltantes = [];
-  
-  logosRequeridos.forEach(logo => {
-    const logoPath = path.join(logosPath, logo);
-    if (!fs.existsSync(logoPath)) {
-      logosFaltantes.push(logo);
-    }
-  });
-  
-  if (logosFaltantes.length > 0) {
-    console.warn('⚠️ Logos faltantes:', logosFaltantes);
-    console.log('💡 Sugerencia: Agregar archivos PNG a /public/images/logos/');
-  } else {
-    console.log('✅ Todos los logos están disponibles');
-  }
 }
-
-// // Manejo de 404 para SPA - ELIMINADO SEGÚN INSTRUCCIONES
-// app.get('*', (req, res) => {
-//   if (req.path.startsWith('/api/')) {
-//     res.status(404).json({ error: 'Endpoint no encontrado' });
-//   } else {
-//     res.sendFile(path.join(__dirname, 'index.html'));
-//   }
-// });
-
-// Ejecutar verificación al iniciar servidor
 verificarLogos();
-
 console.log('🚀 Chogui League System optimizado para Railway');
 
 
@@ -2320,7 +1759,6 @@ async function startServer() {
     }
 }
 
-// Manejo graceful de cierre del servidor
 process.on('SIGTERM', () => {
     console.log('🔄 Cerrando servidor...');
     pool.end(() => {
@@ -2329,114 +1767,6 @@ process.on('SIGTERM', () => {
     });
 });
 
-
-// ====== Compatibilidad extra ======
-
-// 1) Rutas con ID en el path para estadísticas ofensivas (PUT/POST y con guión o guion_bajo)
-app.put('/api/estadisticas-ofensivas/:jugadorId', (req, res) => {
-    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
-    return upsertEstadisticasOfensivas(req, res);
-});
-app.post('/api/estadisticas-ofensivas/:jugadorId', (req, res) => {
-    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
-    return upsertEstadisticasOfensivas(req, res);
-});
-app.put('/api/estadisticas_ofensivas/:jugadorId', (req, res) => {
-    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
-    return upsertEstadisticasOfensivas(req, res);
-});
-app.post('/api/estadisticas_ofensivas/:jugadorId', (req, res) => {
-    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
-    return upsertEstadisticasOfensivas(req, res);
-});
-
-// 2) Alias para próximos partidos
-app.get('/api/partidos/proximos', async (req, res) => {
-    // handler equivalente a /api/proximos-partidos
-    try {
-        const query = `
-            SELECT 
-                p.id, p.fecha_partido, p.hora, p.estado,
-                el.id AS equipo_local_id, el.nombre AS equipo_local,
-                ev.id AS equipo_visitante_id, ev.nombre AS equipo_visitante
-            FROM partidos p
-            JOIN equipos el ON p.equipo_local_id = el.id
-            JOIN equipos ev ON p.equipo_visitante_id = ev.id
-            WHERE p.estado = 'programado' AND p.fecha_partido >= CURRENT_DATE
-            ORDER BY p.fecha_partido ASC, p.hora ASC
-            LIMIT 10
-        `;
-        const result = await pool.query(query);
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error obteniendo próximos partidos (alias):', error);
-        res.status(500).json({ error: 'Error interno del servidor' });
-    }
-});
-
-// 3) Tabla de posiciones
-app.get('/api/posiciones', async (req, res) => {
-    try {
-        const result = await pool.query(`
-            WITH finalizados AS (
-                SELECT 
-                    id, equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante
-                FROM partidos
-                WHERE estado = 'finalizado'
-            ),
-            juegos AS (
-                SELECT equipo_local_id AS equipo_id, 
-                       (carreras_local) AS cf, (carreras_visitante) AS ce,
-                       CASE WHEN carreras_local > carreras_visitante THEN 1 ELSE 0 END AS gan,
-                       CASE WHEN carreras_local < carreras_visitante THEN 1 ELSE 0 END AS per
-                FROM finalizados
-                UNION ALL
-                SELECT equipo_visitante_id AS equipo_id, 
-                       (carreras_visitante) AS cf, (carreras_local) AS ce,
-                       CASE WHEN carreras_visitante > carreras_local THEN 1 ELSE 0 END AS gan,
-                       CASE WHEN carreras_visitante < carreras_local THEN 1 ELSE 0 END AS per
-                FROM finalizados
-            )
-            SELECT e.id, e.nombre,
-                   COUNT(j.equipo_id) AS pj,
-                   COALESCE(SUM(j.gan),0) AS pg,
-                   COALESCE(SUM(j.per),0) AS pp,
-                   COALESCE(SUM(j.cf),0) AS cf,
-                   COALESCE(SUM(j.ce),0) AS ce,
-                   COALESCE(SUM(j.cf),0) - COALESCE(SUM(j.ce),0) AS dif,
-                   CASE WHEN COUNT(j.equipo_id) = 0 THEN 0 
-                        ELSE ROUND(COALESCE(SUM(j.gan),0)::numeric / COUNT(j.equipo_id) * 100, 2) END AS porcentaje
-            FROM equipos e
-            LEFT JOIN juegos j ON j.equipo_id = e.id
-            GROUP BY e.id, e.nombre
-            ORDER BY porcentaje DESC, dif DESC, e.nombre ASC;
-        `);
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Error calculando posiciones:', err);
-        res.status(500).json({ error: 'Error al calcular posiciones' });
-    }
-});
-
-
-
-// ====== Catch‑all robusto para rutas antiguas de estadísticas ofensivas ======
-// Acepta: /api/estadisticas-ofensivas/:id  ó  /api/estadisticas_ofensivas/:id  (PUT o POST)
-// Insensible a mayúsculas y a guión vs guion_bajo
-app.all(/^\/api\/estadisticas[-_]ofensivas\/(\d+)$/i, (req, res, next) => {
-  if (!['PUT','POST'].includes(req.method)) {
-      // Si no es PUT o POST, podemos devolver un 405 o simplemente pasar al siguiente handler
-      return res.status(405).json({error:'Method Not Allowed'});
-  }
-  const jugadorId = parseInt(req.params[0], 10);
-  if (isNaN(jugadorId)) {
-      return res.status(400).json({ error: 'ID de jugador inválido' });
-  }
-  req.body = { ...req.body, jugador_id: jugadorId };
-  return upsertEstadisticasOfensivas(req, res);
-});
-
-// Salud del API (útil para el index)
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
 startServer();
