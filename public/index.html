@@ -3466,15 +3466,133 @@
              try {
                 const lideres = leadersData.defensiva || [];
                 const grid = document.getElementById('positionLeadersGrid');
-                if(grid) {
+                if (grid) {
                     if (lideres.length > 0) {
-                        grid.innerHTML = lideres.slice(0, 4).map(l => `<div class="position-card"><div class="position-title">${l.posicion || 'DEF'}</div><div class="position-leader-item"><div class="position-player-container"><span class="position-player">${l.jugador_nombre}</span><span class="position-rating">${(l.fielding_percentage || 0).toFixed(3)}</span></div><span class="position-team">${l.equipo_nombre}</span></div></div>`).join('');
+                        // Agrupar por posición y tomar el mejor de cada una
+                        const mejoresPorPosicion = {};
+                        lideres.forEach(l => {
+                            const pos = l.posicion || 'UTIL';
+                            const fldPct = parseFloat(l.fielding_percentage) || 0;
+                            if (!mejoresPorPosicion[pos] || fldPct > parseFloat(mejoresPorPosicion[pos].fielding_percentage || 0)) {
+                                mejoresPorPosicion[pos] = l;
+                            }
+                        });
+                        // Renderizar top 4 posiciones
+                        const posicionesOrdenadas = Object.values(mejoresPorPosicion)
+                            .sort((a, b) => {
+                                const fldA = parseFloat(a.fielding_percentage) || 0;
+                                const fldB = parseFloat(b.fielding_percentage) || 0;
+                                return fldB - fldA;
+                            })
+                            .slice(0, 4);
+                        grid.innerHTML = posicionesOrdenadas.map(l => {
+                            const fldPct = parseFloat(l.fielding_percentage) || 0;
+                            const po = parseInt(l.putouts) || 0;
+                            const a = parseInt(l.assists) || 0;
+                            const e = parseInt(l.errors) || 0;
+                            return `
+                                <div class="position-card" style="
+                                    background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
+                                    border-radius: 16px;
+                                    padding: 20px;
+                                    border: 2px solid rgba(255, 215, 0, 0.2);
+                                ">
+                                    <div class="position-title" style="
+                                        color: #ffd700;
+                                        font-size: 1.2rem;
+                                        font-weight: bold;
+                                        margin-bottom: 15px;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                    ">
+                                        🛡️ ${l.posicion || 'UTIL'}
+                                    </div>
+                                    <div class="position-leader-item">
+                                        <div class="position-player-container" style="
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 8px;
+                                        ">
+                                            <span class="position-player" style="
+                                                color: #fff;
+                                                font-weight: bold;
+                                                font-size: 1.1rem;
+                                            ">${l.nombre_jugador || l.jugador_nombre || 'Desconocido'}</span>
+                                                                            
+                                            <span class="position-team" style="
+                                                color: rgba(255, 215, 0, 0.7);
+                                                font-size: 0.9rem;
+                                            ">${l.equipo_nombre || 'Sin equipo'}</span>
+                                                                            
+                                            <div style="
+                                                display: flex;
+                                                gap: 12px;
+                                                margin-top: 10px;
+                                                flex-wrap: wrap;
+                                            ">
+                                                <div style="
+                                                    background: rgba(255, 215, 0, 0.15);
+                                                    padding: 6px 12px;
+                                                    border-radius: 8px;
+                                                ">
+                                                    <div style="color: #ffd700; font-size: 0.7rem;">FLD%</div>
+                                                    <div style="color: #fff; font-weight: bold; font-size: 1.1rem;">${fldPct.toFixed(3)}</div>
+                                                </div>
+                                                <div style="
+                                                    background: rgba(255, 255, 255, 0.05);
+                                                    padding: 6px 12px;
+                                                    border-radius: 8px;
+                                                ">
+                                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">PO</div>
+                                                    <div style="color: #fff; font-weight: bold;">${po}</div>
+                                                </div>
+                                                <div style="
+                                                    background: rgba(255, 255, 255, 0.05);
+                                                    padding: 6px 12px;
+                                                    border-radius: 8px;
+                                                ">
+                                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">A</div>
+                                                    <div style="color: #fff; font-weight: bold;">${a}</div>
+                                                </div>
+                                                <div style="
+                                                    background: rgba(255, 140, 0, 0.15);
+                                                    padding: 6px 12px;
+                                                    border-radius: 8px;
+                                                ">
+                                                    <div style="color: #ff8c00; font-size: 0.7rem;">E</div>
+                                                    <div style="color: #ff8c00; font-weight: bold;">${e}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
                     } else {
-                        grid.innerHTML = '<p class="empty-state" style="display:block;">Sin líderes defensivos.</p>';
+                        grid.innerHTML = `
+                            <div class="empty-state" style="
+                                padding: 40px;
+                                text-align: center;
+                                background: rgba(255, 215, 0, 0.05);
+                                border-radius: 16px;
+                                border: 2px dashed rgba(255, 215, 0, 0.3);
+                            ">
+                                <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
+                                <h3 style="color: #ffd700; margin-bottom: 10px;">Sin datos defensivos</h3>
+                                <p style="color: rgba(255,255,255,0.6);">Los líderes aparecerán cuando haya estadísticas disponibles</p>
+                            </div>
+                        `;
                     }
                 }
-             } catch(e) { console.error('❌ Error cargando líderes defensivos', e); }
-        }
+            } catch(e) { 
+                 console.error('❌ Error renderizando líderes defensivos:', e);
+                 const grid = document.getElementById('positionLeadersGrid');
+                if (grid) {
+                    grid.innerHTML = '<div class="empty-state" style="color: #ff6b6b;">Error al cargar datos defensivos</div>';
+                }
+            }
+            }
 
         // =================================================================================
         // LÓGICA DE INICIALIZACIÓN Y EVENT LISTENERS
