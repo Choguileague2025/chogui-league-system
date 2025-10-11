@@ -504,7 +504,7 @@ app.get('/api/leaders', async (req, res, next) => {
             `;
         } 
         // ============================================================
-        // 🛠️ QUERY 3: LÍDERES DEFENSIVOS (ACTUALIZADO)
+        // 🛠️ INICIO DE LA CORRECCIÓN APLICADA
         // ============================================================
         else if (tipo === 'defensiva') {
             sql = `
@@ -536,7 +536,12 @@ app.get('/api/leaders', async (req, res, next) => {
                         WHEN s.chances > 0 
                         THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
                         ELSE 0.000 
-                    END as fld_pct
+                    END as fld_pct,
+                    CASE 
+                        WHEN s.chances > 0 
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
+                        ELSE 0.000 
+                    END as fpct
                 FROM estadisticas_defensivas s
                 JOIN jugadores j ON s.jugador_id = j.id
                 LEFT JOIN equipos e ON j.equipo_id = e.id
@@ -544,7 +549,10 @@ app.get('/api/leaders', async (req, res, next) => {
                 ORDER BY fielding_percentage DESC NULLS LAST
                 LIMIT $1;
             `;
-        } 
+        }
+        // ============================================================
+        // 🛠️ FIN DE LA CORRECCIÓN APLICADA
+        // ============================================================ 
         // ============================================================
         // ✅ QUERY 4: TODOS (DEFAULT A BATEO POR OPS)
         // ============================================================
