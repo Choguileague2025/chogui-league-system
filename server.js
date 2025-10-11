@@ -392,88 +392,238 @@ app.get('/api/standings', async (req, res, next) => {
 });
 
 /**
- * 3. GET /api/leaders - Líderes por Categoría
- * Devuelve los líderes estadísticos según el tipo (bateo, pitcheo, defensiva).
+ * ✅ ENDPOINT CORREGIDO: /api/leaders
+ * Devuelve líderes con TODAS las propiedades que el frontend necesita
  */
 app.get('/api/leaders', async (req, res, next) => {
     try {
         const { tipo = 'bateo', limit = 10 } = req.query;
         let sql = '';
         const params = [Number(limit) || 10];
-
         const validTypes = ['bateo', 'pitcheo', 'defensiva', 'todos'];
         if (!validTypes.includes(tipo)) {
-            return res.status(400).json({ error: 'Tipo de líder no válido.' });
+            return res.status(400).json({ 
+                error: 'Tipo de líder no válido. Use: bateo, pitcheo, defensiva, o todos'
+            });
         }
-
+        console.log(`📊 Obteniendo líderes de tipo: ${tipo}, limit: ${params[0]}`);
+        // ============================================================
+        // ✅ QUERY 1: LÍDERES DE BATEO
+        // ============================================================
         if (tipo === 'bateo') {
             sql = `
                 SELECT 
-                    j.nombre, 
+                    j.id as jugador_id,
+                    j.nombre as nombre_jugador,
+                    j.nombre,
+                    j.posicion,
+                    j.posicion as posicion_principal,
+                    j.numero,
+                    e.id as equipo_id,
                     e.nombre as equipo_nombre,
-                    CASE WHEN s.at_bats > 0 THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) ELSE 0.000 END as avg,
-                    CASE WHEN s.at_bats + s.walks > 0 THEN ROUND((s.hits + s.walks)::DECIMAL / (s.at_bats + s.walks), 3) ELSE 0.000 END as obp,
-                    CASE WHEN s.at_bats > 0 THEN ROUND(((s.hits) + (s.home_runs * 3))::DECIMAL / s.at_bats, 3) + ROUND((s.hits + s.walks)::DECIMAL / (s.at_bats + s.walks), 3) ELSE 0.000 END as ops,
+                    s.at_bats,
+                    s.hits,
                     s.home_runs as hr,
-                    s.rbi
+                    s.home_runs,
+                    s.rbi,
+                    s.runs,
+                    s.walks,
+                    s.stolen_bases,
+                    CASE 
+                        WHEN s.at_bats > 0 
+                        THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
+                        ELSE 0.000 
+                    END as promedio_bateo,
+                    CASE 
+                        WHEN s.at_bats > 0 
+                        THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
+                        ELSE 0.000 
+                    END as avg,
+                    CASE 
+                        WHEN (s.at_bats + s.walks) > 0 
+                        THEN ROUND((s.hits + s.walks)::DECIMAL / (s.at_bats + s.walks), 3) 
+                        ELSE 0.000 
+                    END as obp,
+                    CASE 
+                        WHEN s.at_bats > 0 
+                        THEN ROUND(
+                            (s.hits + (s.home_runs * 3))::DECIMAL / s.at_bats + 
+                            (s.hits + s.walks)::DECIMAL / NULLIF(s.at_bats + s.walks, 0),
+                        3) 
+                        ELSE 0.000 
+                    END as ops
                 FROM estadisticas_ofensivas s
                 JOIN jugadores j ON s.jugador_id = j.id
-                JOIN equipos e ON j.equipo_id = e.id
-                WHERE s.at_bats > 10 -- Mínimo para calificar
-                ORDER BY avg DESC NULLS LAST
+                LEFT JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.at_bats > 0
+                ORDER BY promedio_bateo DESC NULLS LAST
                 LIMIT $1;
             `;
-        } else if (tipo === 'pitcheo') {
+        } 
+        // ============================================================
+        // ✅ QUERY 2: LÍDERES DE PITCHEO
+        // ============================================================
+        else if (tipo === 'pitcheo') {
             sql = `
                 SELECT 
+                    j.id as jugador_id,
+                    j.nombre as nombre_jugador,
                     j.nombre,
+                    j.posicion,
+                    j.posicion as posicion_principal,
+                    j.numero,
+                    e.id as equipo_id,
                     e.nombre as equipo_nombre,
-                    CASE WHEN s.innings_pitched > 0 THEN ROUND((s.earned_runs * 9.0) / s.innings_pitched, 2) ELSE 0.00 END as era,
-                    CASE WHEN s.innings_pitched > 0 THEN ROUND((s.hits_allowed + s.walks_allowed) / s.innings_pitched, 2) ELSE 0.00 END as whip
+                    s.innings_pitched,
+                    s.hits_allowed,
+                    s.earned_runs,
+                    s.strikeouts,
+                    s.strikeouts as so,
+                    s.walks_allowed,
+                    s.home_runs_allowed,
+                    s.wins,
+                    s.wins as w,
+                    s.losses,
+                    s.saves,
+                    CASE 
+                        WHEN s.innings_pitched > 0 
+                        THEN ROUND((s.earned_runs * 9.0) / s.innings_pitched, 2) 
+                        ELSE 99.99 
+                    END as era,
+                    CASE 
+                        WHEN s.innings_pitched > 0 
+                        THEN ROUND((s.hits_allowed + s.walks_allowed) / s.innings_pitched, 2) 
+                        ELSE 99.99 
+                    END as whip
                 FROM estadisticas_pitcheo s
                 JOIN jugadores j ON s.jugador_id = j.id
-                JOIN equipos e ON j.equipo_id = e.id
-                WHERE s.innings_pitched > 5 -- Mínimo para calificar
+                LEFT JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.innings_pitched > 0
                 ORDER BY era ASC NULLS LAST
                 LIMIT $1;
             `;
-        } else if (tipo === 'defensiva') {
+        } 
+        // ============================================================
+        // ✅ QUERY 3: LÍDERES DEFENSIVOS
+        // ============================================================
+        else if (tipo === 'defensiva') {
             sql = `
                 SELECT 
+                    j.id as jugador_id,
+                    j.nombre as nombre_jugador,
                     j.nombre,
+                    j.posicion,
+                    j.posicion as posicion_principal,
+                    j.posicion as pos,
+                    j.numero,
+                    e.id as equipo_id,
                     e.nombre as equipo_nombre,
-                    CASE WHEN s.chances > 0 THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) ELSE 0.000 END as fpct
+                    s.putouts,
+                    s.putouts as po,
+                    s.assists,
+                    s.assists as a,
+                    s.errors,
+                    s.errors as e,
+                    s.double_plays,
+                    s.passed_balls,
+                    s.chances,
+                    CASE 
+                        WHEN s.chances > 0 
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
+                        ELSE 0.000 
+                    END as fielding_percentage,
+                    CASE 
+                        WHEN s.chances > 0 
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
+                        ELSE 0.000 
+                    END as fld_pct,
+                    CASE 
+                        WHEN s.chances > 0 
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
+                        ELSE 0.000 
+                    END as fpct
                 FROM estadisticas_defensivas s
                 JOIN jugadores j ON s.jugador_id = j.id
-                JOIN equipos e ON j.equipo_id = e.id
-                WHERE s.chances > 10 -- Mínimo para calificar
-                ORDER BY fpct DESC NULLS LAST
+                LEFT JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.chances > 0
+                ORDER BY fielding_percentage DESC NULLS LAST
                 LIMIT $1;
             `;
-        } else { // 'todos' - Devuelve los mejores bateadores por OPS como default
+        } 
+        // ============================================================
+        // ✅ QUERY 4: TODOS (DEFAULT A BATEO POR OPS)
+        // ============================================================
+        else {
             sql = `
                 SELECT 
-                    j.nombre, 
+                    j.id as jugador_id,
+                    j.nombre as nombre_jugador,
+                    j.nombre,
+                    j.posicion,
+                    j.posicion as posicion_principal,
+                    j.numero,
+                    e.id as equipo_id,
                     e.nombre as equipo_nombre,
-                    CASE WHEN s.at_bats > 0 THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) ELSE 0.000 END as avg,
-                    CASE WHEN s.at_bats > 0 THEN ROUND(((s.hits) + (s.home_runs * 3))::DECIMAL / s.at_bats, 3) + ROUND((s.hits + s.walks)::DECIMAL / (s.at_bats + s.walks), 3) ELSE 0.000 END as ops,
-                    s.home_runs as hr
+                    s.home_runs as hr,
+                    s.home_runs,
+                    s.rbi,
+                    s.at_bats,
+                    s.hits,
+                    CASE 
+                        WHEN s.at_bats > 0 
+                        THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
+                        ELSE 0.000 
+                    END as promedio_bateo,
+                    CASE 
+                        WHEN s.at_bats > 0 
+                        THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
+                        ELSE 0.000 
+                    END as avg,
+                    CASE 
+                        WHEN s.at_bats > 0 
+                        THEN ROUND(
+                            (s.hits + (s.home_runs * 3))::DECIMAL / s.at_bats + 
+                            (s.hits + s.walks)::DECIMAL / NULLIF(s.at_bats + s.walks, 0),
+                        3) 
+                        ELSE 0.000 
+                    END as ops
                 FROM estadisticas_ofensivas s
                 JOIN jugadores j ON s.jugador_id = j.id
-                JOIN equipos e ON j.equipo_id = e.id
-                WHERE s.at_bats > 10
+                LEFT JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.at_bats > 0
                 ORDER BY ops DESC NULLS LAST
                 LIMIT $1;
             `;
         }
         
+        // ============================================================
+        // ✅ EJECUTAR QUERY Y DEVOLVER RESULTADOS
+        // ============================================================
         const { rows } = await pool.query(sql, params);
+        
+        console.log(`✅ /api/leaders?tipo=${tipo} devolvió ${rows.length} registros`);
+        
+        // Log del primer registro para verificar estructura
+        if (rows.length > 0) {
+            console.log('📋 Estructura del primer registro:', {
+                jugador_id: rows[0].jugador_id,
+                nombre_jugador: rows[0].nombre_jugador,
+                posicion: rows[0].posicion,
+                equipo_nombre: rows[0].equipo_nombre
+            });
+        }
+        
         res.json(rows);
+            
     } catch (err) {
-        console.error(`GET /api/leaders (tipo: ${req.query.tipo})`, err);
-        res.status(500).json({ error: 'Error obteniendo líderes' });
+        console.error(`❌ ERROR en /api/leaders (tipo: ${req.query.tipo}):`, err);
+        res.status(500).json({ 
+            error: 'Error obteniendo líderes',
+            details: err.message 
+        });
     }
 });
+
 
 /**
  * 4. GET /api/playoffs - Clasificación Playoffs
