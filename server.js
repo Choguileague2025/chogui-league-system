@@ -526,20 +526,20 @@ app.get('/api/leaders', async (req, res, next) => {
                     s.errors as e,
                     s.double_plays,
                     s.passed_balls,
-                    (s.putouts + s.assists + s.errors) as chances,
+                    (s.putouts + s.assists + s.errors)::INTEGER as chances,
                     CASE 
                         WHEN (s.putouts + s.assists + s.errors) > 0 
-                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)::NUMERIC
                         ELSE 0.000 
                     END as fielding_percentage,
                     CASE 
                         WHEN (s.putouts + s.assists + s.errors) > 0 
-                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)::NUMERIC
                         ELSE 0.000 
                     END as fld_pct,
                     CASE 
                         WHEN (s.putouts + s.assists + s.errors) > 0 
-                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)::NUMERIC
                         ELSE 0.000 
                     END as fpct
                 FROM estadisticas_defensivas s
