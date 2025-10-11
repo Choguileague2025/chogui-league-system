@@ -2431,10 +2431,9 @@
 
         <div class="search-container">
             <div class="search-bar">
-                <input type="text" id="globalSearch" placeholder="🔎 Buscar equipos o jugadores..." maxlength="50">
-                <button onclick="realizarBusquedaGlobal()" class="search-btn">Buscar</button>
+                <input type="text" id="searchInput" placeholder="🔎 Buscar jugadores por nombre..." maxlength="50">
             </div>
-            <div id="searchResults" class="search-results"></div>
+            <div id="searchResults" class="search-results"></div> 
         </div>
 
         <style>
@@ -2450,7 +2449,7 @@
             margin: 0 auto;
         }
 
-        #globalSearch {
+        #searchInput { /* ID actualizado */
             flex: 1;
             padding: 15px 20px;
             border: 2px solid rgba(255, 215, 0, 0.3);
@@ -2462,88 +2461,64 @@
             transition: all 0.3s ease;
         }
 
-        #globalSearch:focus {
+        #searchInput:focus { /* ID actualizado */
             border-color: #ffd700;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
 
-        #globalSearch::placeholder {
+        #searchInput::placeholder { /* ID actualizado */
             color: rgba(255, 255, 255, 0.6);
         }
-
-        .search-btn {
-            padding: 15px 25px;
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 100px;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
-        }
-
+        
+        /* Estilos para los resultados de búsqueda de la función corregida */
         .search-results {
             position: absolute;
             top: 100%;
-            left: 0;
-            right: 0;
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 1px solid #ffd700;
             border-radius: 15px;
-            margin-top: 10px;
-            z-index: 1000;
-            display: none;
+            margin-top: 8px;
+            z-index: 1001;
             max-height: 400px;
             overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .search-result-item {
-            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
             border-bottom: 1px solid rgba(255, 215, 0, 0.1);
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background-color 0.2s ease;
         }
-
-        .search-result-item:hover {
-            background: rgba(255, 215, 0, 0.1);
-        }
-
         .search-result-item:last-child {
             border-bottom: none;
         }
-
-        .result-name {
-            color: #ffd700;
-            font-weight: bold;
-            margin-bottom: 5px;
+        .search-result-item:hover {
+            background-color: rgba(255, 215, 0, 0.1);
         }
-
-        .result-type {
-            color: #ff8c00;
-            font-size: 0.8rem;
-            text-transform: uppercase;
+        .player-info strong { color: #ffd700; }
+        .player-info .team-badge { 
+            background: rgba(255, 215, 0, 0.2); 
+            color: #ffd700; 
+            font-size: 0.75rem; 
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
         }
-
-        .result-team {
-            color: #fff;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
+        .player-stats { font-size: 0.85rem; color: #ccc; }
+        .player-stats span { margin-left: 10px; }
+        .no-results, .error-message { padding: 20px; text-align: center; color: #ffd700; }
 
         @media (max-width: 768px) {
             .search-bar {
                 flex-direction: column;
-            }
-            
-            .search-btn {
-                align-self: center;
-                width: 200px;
             }
         }
         </style>
@@ -3460,30 +3435,32 @@
         let jugadores = [];
         let selectedPlayersForComparison = [];
 
-        // ✅ INICIO CORRECCIÓN 3: Orden de carga en DOMContentLoaded
         document.addEventListener('DOMContentLoaded', async function() {
-            // Cargas visuales iniciales que no dependen de datos globales
+            // Cargas iniciales
             cargarTablaPosiciones();
             cargarUltimosPartidos();
             cargarPlayoffsClasificacion();
-            
-            // Carga de líderes (tiene su propia gestión de datos interna)
             await cargarLideres(); 
             configurarTabsLideres();
-            
             configurarEventListenersGenerales();
-
-            // ✅ ORDEN CRÍTICO: Cargar todos los datos globales primero
+            
+            // Carga de datos principales que pueden ser usados por otras funciones
             await cargarDatosParaBusqueda(); 
             
-            // ✅ DESPUÉS de cargar los datos, procesar las secciones que dependen de ellos
+            // Funciones que dependen de la data principal
             await cargarProximosPartidos(); 
             await cargarEstadisticasCompletas(); 
 
+            // Funciones de UI
             initMobileNavigation();
             initStickyHeader();
+
+            // Iniciar el buscador de jugadores
+            const searchInput = document.getElementById('searchInput');
+            if(searchInput) {
+                searchInput.addEventListener('input', buscarJugador);
+            }
         });
-        // ✅ FIN CORRECCIÓN 3
 
         function initStickyHeader() {
           console.log('🔧 Inicializando header sticky...');
@@ -3510,31 +3487,25 @@
           });
             console.log('✅ Header sticky inicializado');
         }
-
-        // ✅ INICIO CORRECCIÓN 2: cargarDatosParaBusqueda() verificada
+        
         async function cargarDatosParaBusqueda() {
              try {
-                const [equiposRes, jugadoresRes, partidosRes] = await Promise.all([
+                const [equiposRes, partidosRes] = await Promise.all([
                     fetchJSON('/api/equipos'),
-                    fetchJSON('/api/jugadores'),
-                    fetchJSON('/api/partidos') // ✅ CRÍTICO: Debe cargar partidos
+                    fetchJSON('/api/partidos')
                 ]);
 
                 equipos = Array.isArray(equiposRes) ? equiposRes : [];
-                jugadores = Array.isArray(jugadoresRes) ? jugadoresRes : [];
-                partidos = Array.isArray(partidosRes) ? partidosRes : []; // ✅ CRÍTICO: Asignar a variable global
+                partidos = Array.isArray(partidosRes) ? partidosRes : [];
 
-                console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${jugadores.length} jugadores, ${partidos.length} partidos.`);
+                console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${partidos.length} partidos.`);
 
              } catch(e) {
                  console.error("❌ Error cargando datos para búsqueda:", e);
                  equipos = [];
-                 jugadores = [];
-                 partidos = []; // Asegurar que partidos sea un array vacío en caso de error
-                 mostrarErrorBusqueda('No se pudieron cargar los datos.');
+                 partidos = [];
              }
         }
-        // ✅ FIN CORRECCIÓN 2
         
         function configurarEventListenersGenerales() {
             if (window.innerWidth > 768) {
@@ -3559,75 +3530,48 @@
             if (botonActivo) botonActivo.classList.add('active');
         }
 
-        // ✅ INICIO CORRECCIÓN 1: cargarProximosPartidos() corregida y robusta
+        // =================================================================================
+        // SECCIÓN CORREGIDA - BUGS #2 Y #3
+        // =================================================================================
+        
+        /**
+         * 🟡 BUG #2 CORREGIDO
+         * Carga los próximos partidos directamente desde el endpoint filtrado.
+         * Es más robusto y no depende de la carga previa de todos los partidos.
+         */
         async function cargarProximosPartidos() {
-            console.log('🔄 Cargando próximos partidos...');
-            
             try {
-                // Verificar que la variable global 'partidos' esté cargada y sea un array
-                if (!Array.isArray(partidos)) {
-                    console.error('❌ Variable global "partidos" no es un array:', typeof partidos, partidos);
-                    throw new Error('Datos de partidos no disponibles. Asegúrate de que los datos se cargaron correctamente.');
+                console.log('📅 Cargando próximos partidos...');
+                
+                const response = await fetch(getApiUrl('/api/partidos?estado=Programado&limit=10'));
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                console.log('📊 Total de partidos disponibles globalmente:', partidos.length);
-
-                // Filtrar solo partidos futuros desde la variable global
-                const ahora = new Date();
-                const proximosPartidos = partidos
-                    .filter(partido => {
-                        // Validar que el partido tenga una fecha válida para procesar
-                        if (!partido.fecha_partido) {
-                            console.warn('⚠️ Partido sin fecha encontrado y omitido:', partido);
-                            return false;
-                        }
-
-                        try {
-                            // La fecha viene como 'fecha_partido' y 'hora_partido' según el código existente
-                            const fechaPartido = new Date(partido.fecha_partido + 'T' + (partido.hora_partido || '00:00'));
-                            const esFuturo = fechaPartido > ahora;
-
-                            if (esFuturo) {
-                                console.log('✅ Partido futuro encontrado:', {
-                                    id: partido.partido_id,
-                                    fecha: partido.fecha_partido,
-                                    hora: partido.hora_partido,
-                                    local: partido.equipo_local_nombre || 'Equipo Local',
-                                    visitante: partido.equipo_visitante_nombre || 'Equipo Visitante'
-                                });
-                            }
-
-                            return esFuturo;
-                        } catch (err) {
-                            console.error('❌ Error procesando la fecha del partido:', partido, err);
-                            return false;
-                        }
-                    })
-                    .sort((a, b) => {
-                        const fechaA = new Date(a.fecha_partido + 'T' + (a.hora_partido || '00:00'));
-                        const fechaB = new Date(b.fecha_partido + 'T' + (b.hora_partido || '00:00'));
-                        return fechaA - fechaB;
-                    })
-                    .slice(0, 3); // Solo los próximos 3 partidos
-
-                console.log(`✅ Próximos partidos a mostrar: ${proximosPartidos.length} de ${partidos.length} totales`);
-
-                renderizarProximosPartidos(proximosPartidos);
-
-                // Iniciar actualización de countdowns cada segundo SOLO si hay partidos
-                if (proximosPartidos.length > 0) {
-                    // Limpiar cualquier intervalo anterior para evitar memory leaks
-                    if (window.countdownInterval) {
-                        clearInterval(window.countdownInterval);
-                    }
-
-                    window.countdownInterval = setInterval(() => {
-                        actualizarCountdowns();
-                    }, 1000);
-
-                    console.log('⏱️ Countdown timer iniciado');
+                
+                const data = await response.json();
+                console.log('📦 Partidos recibidos:', data);
+                
+                let partidosRecibidos = [];
+                if (Array.isArray(data)) {
+                    partidosRecibidos = data;
+                } else if (data.partidos && Array.isArray(data.partidos)) {
+                    partidosRecibidos = data.partidos;
+                } else if (data.data && Array.isArray(data.data)) {
+                    partidosRecibidos = data.data;
                 }
+                
+                partidosRecibidos = partidosRecibidos.filter(p => 
+                    p.estado && p.estado.toLowerCase() === 'programado'
+                );
+                
+                partidosRecibidos.sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido));
+                
+                console.log(`✅ Partidos programados encontrados: ${partidosRecibidos.length}`);
+                renderizarProximosPartidos(partidosRecibidos);
+                
             } catch (error) {
-                console.error('❌ Error crítico cargando próximos partidos:', error);
+                console.error('❌ Error cargando próximos partidos:', error);
                 const container = document.getElementById('proximosPartidosContainer');
                 if (container) {
                     container.innerHTML = `
@@ -3642,155 +3586,116 @@
                 }
             }
         }
-        // ✅ FIN CORRECCIÓN 1
 
-        function renderizarProximosPartidos(partidos) {
-            const container = document.getElementById('proximosPartidosContainer');
+        /**
+         * 🔵 BUG #3 CORREGIDO
+         * Busca jugadores dinámicamente usando el nuevo endpoint /api/jugadores/buscar.
+         */
+        async function buscarJugador() {
+            const searchInput = document.getElementById('searchInput');
+            const resultadosContainer = document.getElementById('searchResults');
+            const query = searchInput.value.trim();
             
+            if (query.length < 2) {
+                resultadosContainer.innerHTML = '';
+                resultadosContainer.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch(getApiUrl(`/api/jugadores/buscar?query=${encodeURIComponent(query)}`));
+                
+                if (!response.ok) {
+                    throw new Error('Error en la búsqueda');
+                }
+                
+                const data = await response.json();
+                
+                if (data.jugadores.length === 0) {
+                    resultadosContainer.innerHTML = `
+                        <div class="no-results">
+                            <p>No se encontraron jugadores con "${query}"</p>
+                        </div>
+                    `;
+                } else {
+                    resultadosContainer.innerHTML = data.jugadores.map(jugador => `
+                        <div class="search-result-item" onclick="verJugador(${jugador.id})">
+                            <div class="player-info">
+                                <strong>${jugador.nombre}</strong>
+                                ${jugador.numero ? `#${jugador.numero}` : ''}
+                                <span class="team-badge">${jugador.equipo_nombre || 'Sin equipo'}</span>
+                            </div>
+                            <div class="player-stats">
+                                <span>AVG: ${jugador.promedio_bateo || '.000'}</span>
+                                <span>HR: ${jugador.home_runs || 0}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                resultadosContainer.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error buscando jugadores:', error);
+                resultadosContainer.innerHTML = `
+                    <div class="error-message">
+                        Error al buscar. Intenta de nuevo.
+                    </div>
+                `;
+                resultadosContainer.style.display = 'block';
+            }
+        }
+
+        /**
+         * Función auxiliar para redirigir a la página de detalle del jugador.
+         */
+        function verJugador(jugadorId) {
+            window.location.href = `jugador.html?id=${jugadorId}`;
+        }
+        
+        // --- FIN DE SECCIÓN CORREGIDA ---
+
+
+        function renderizarProximosPartidos(partidosParaRenderizar) {
+            const container = document.getElementById('proximosPartidosContainer');
             if (!container) {
                 console.error('Container proximosPartidosContainer no encontrado');
                 return;
             }
-            
-            if (partidos.length === 0) {
+
+            if (!partidosParaRenderizar || partidosParaRenderizar.length === 0) {
                 container.innerHTML = `
                     <div class="proximos-partidos-empty">
-                        <h3>📅 Sin partidos programados</h3>
-                        <p>Los próximos partidos aparecerán aquí cuando se programen en el sistema</p>
-                        <a href="admin.html" class="btn-ver-detalles">
-                            📝 Programar Partidos
-                        </a>
+                        <h3>🗓️ Sin Partidos Programados</h3>
+                        <p>No hay juegos agendados por el momento. ¡Vuelve pronto!</p>
                     </div>
                 `;
                 return;
             }
-            
-            container.className = 'proximos-partidos-container';
-            
-            const html = partidos.map((partido, index) => {
-                const fechaPartido = new Date(partido.fecha_partido + 'T' + (partido.hora_partido || '00:00'));
-                const ahora = new Date();
-                const diferenciaMs = fechaPartido - ahora;
-                const diferenciaDias = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
-                const esHoy = ahora.toDateString() === fechaPartido.toDateString();
 
-                let badgeClass = 'proximo';
-                let badgeText = `EN ${diferenciaDias} DÍAS`;
-                
-                if (esHoy) {
-                    badgeClass = 'hoy';
-                    badgeText = '🔥 HOY';
-                } else if (diferenciaDias === 1) {
-                    badgeClass = 'manana';
-                    badgeText = 'MAÑANA';
-                }
-                
-                const nombreLocal = partido.equipo_local_nombre || 'Equipo Local';
-                const nombreVisitante = partido.equipo_visitante_nombre || 'Equipo Visitante';
-                
-                const recordLocal = calcularRecord(partido.equipo_local_id);
-                const recordVisitante = calcularRecord(partido.equipo_visitante_id);
-                
-                const fechaFormateada = new Date(partido.fecha_partido).toLocaleDateString('es-AR', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    timeZone: 'UTC'
+            container.innerHTML = partidosParaRenderizar.map(partido => {
+                const fecha = new Date(partido.fecha_partido).toLocaleDateString('es-ES', {
+                    weekday: 'long', day: 'numeric', month: 'long'
                 });
-                
-                const horaFormateada = partido.hora_partido ? partido.hora_partido.substring(0, 5) : 'A definir';
-                
+                const hora = partido.hora ? partido.hora.substring(0, 5) : 'Hora no definida';
+
                 return `
-                    <div class="proximo-partido-card" data-partido-id="${partido.partido_id}" data-fecha="${partido.fecha_partido}" data-hora="${partido.hora_partido || '00:00:00'}">
-                        <div class="partido-badge ${badgeClass}">${badgeText}</div>
-                        
-                        <div class="countdown-timer">
-                            <div class="countdown-label">Comienza en:</div>
-                            <div class="countdown-time" id="countdown-${partido.partido_id}">
-                                Calculando...
-                            </div>
+                    <div class="partido-card-enhanced">
+                        <div class="partido-header">
+                            <span class="partido-fecha">${fecha} - ${hora} hs</span>
+                            <span class="partido-estado">${partido.estado}</span>
                         </div>
-                        
                         <div class="equipos-vs">
                             <div class="equipo-info">
-                                <div class="equipo-logo">
-                                    ${getTeamEmoji(nombreLocal)}
-                                </div>
-                                <div class="equipo-nombre">${nombreLocal}</div>
-                                <div class="equipo-record">Record: ${recordLocal}</div>
+                                <span class="equipo-nombre">${partido.equipo_visitante_nombre}</span>
                             </div>
-                            
-                            <div class="vs-divider">VS</div>
-                            
+                            <span class="vs-separator">VS</span>
                             <div class="equipo-info">
-                                <div class="equipo-logo">
-                                    ${getTeamEmoji(nombreVisitante)}
-                                </div>
-                                <div class="equipo-nombre">${nombreVisitante}</div>
-                                <div class="equipo-record">Record: ${recordVisitante}</div>
+                                <span class="equipo-nombre">${partido.equipo_local_nombre}</span>
                             </div>
                         </div>
-                        
-                        <div class="partido-detalles">
-                            <div class="partido-fecha">
-                                📅 ${fechaFormateada}
-                            </div>
-                            <div class="partido-hora">
-                                🕐 ${horaFormateada} hs
-                            </div>
-                        </div>
-                        
-                        <button class="btn-ver-detalles" onclick="verDetallePartido(${partido.partido_id})">
-                            Ver Detalles
-                        </button>
                     </div>
                 `;
             }).join('');
-            
-            container.innerHTML = html;
-            actualizarCountdowns();
-        }
-
-        function actualizarCountdowns() {
-            const cards = document.querySelectorAll('.proximo-partido-card');
-            
-            cards.forEach(card => {
-                const fecha = card.dataset.fecha;
-                const hora = card.dataset.hora || '00:00:00';
-                const partidoId = card.dataset.partidoId;
-                
-                const fechaPartido = new Date(fecha + 'T' + hora);
-                const ahora = new Date();
-                const diferencia = fechaPartido - ahora;
-                
-                const countdownElement = document.getElementById(`countdown-${partidoId}`);
-                
-                if (!countdownElement) return;
-                
-                if (diferencia <= 0) {
-                    countdownElement.textContent = '¡EN VIVO!';
-                    countdownElement.style.color = '#4CAF50';
-                    return;
-                }
-                
-                const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-                const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
-                const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
-                
-                let countdownText = '';
-                
-                if (dias > 0) {
-                    countdownText = `${dias}d ${horas}h ${minutos}m`;
-                } else if (horas > 0) {
-                    countdownText = `${horas}h ${minutos}m ${segundos}s`;
-                } else {
-                    countdownText = `${minutos}m ${segundos}s`;
-                }
-                
-                countdownElement.textContent = countdownText;
-            });
         }
 
         function calcularRecord(equipoId) {
@@ -3809,7 +3714,7 @@
                     } else if (partido.carreras_local < partido.carreras_visitante) {
                         derrotas++;
                     }
-                } else { // equipo visitante
+                } else {
                     if (partido.carreras_visitante > partido.carreras_local) {
                         victorias++;
                     } else if (partido.carreras_visitante < partido.carreras_local) {
@@ -3820,108 +3725,19 @@
             
             return `${victorias}V - ${derrotas}D`;
         }
-
-        function getTeamEmoji(teamName) {
-            const emojiMap = {
-                'guerreros del norte': '⚔️',
-                'la guaira': '🦅',
-                'furia del caribe': '🔥',
-                'tigres unidos': '🐯',
-                'leones dorados': '🦁',
-                'aguilas negras': '🦅',
-                'venearstone': '💎',
-                'desss': '⚡',
-                'caribes rd': '🌊'
-            };
-            
-            const key = teamName.toLowerCase();
-            return emojiMap[key] || '⚾';
-        }
-
-        function verDetallePartido(partidoId) {
-            console.log('Ver detalle del partido:', partidoId);
-            alert(`Funcionalidad de detalle del partido ${partidoId} - Por implementar en futuras fases`);
-        }
         
-        // --- Resto de funciones auxiliares y de UI sin cambios ---
-        let searchTimeout;
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('globalSearch');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    clearTimeout(searchTimeout);
-                    const query = this.value.trim();
-                    if (query.length >= 2) { searchTimeout = setTimeout(() => { buscarEnTiempoReal(query); }, 300); } else { ocultarResultados(); }
-                });
-                searchInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') { realizarBusquedaGlobal(); } });
-            }
+        document.addEventListener('click', function(e) { 
+            const searchContainer = document.querySelector('.search-container'); 
+            if (searchContainer && !searchContainer.contains(e.target)) {
+                const results = document.getElementById('searchResults');
+                if (results) {
+                    results.style.display = 'none';
+                }
+            } 
         });
 
-        function mostrarErrorBusqueda(mensaje) {
-            const container = document.getElementById('searchResults');
-            if (!container) return;
-            container.innerHTML = `<div class="search-result-item" style="color: #dc143c; font-weight: bold;">❌ ${mensaje}</div>`;
-            container.style.display = 'block';
-        }
-        
-        function buscarEnTiempoReal(query) {
-            try { 
-                const resultados = [];
-                const queryLower = query.toLowerCase();
-
-                if (Array.isArray(equipos)) {
-                    equipos.forEach(equipo => {
-                        if (equipo.nombre.toLowerCase().includes(queryLower)) {
-                            resultados.push({ tipo: 'equipo', nombre: equipo.nombre, id: equipo.id, extra: equipo.ciudad || '' });
-                        }
-                    });
-                }
-
-                if (Array.isArray(jugadores)) {
-                    jugadores.forEach(jugador => {
-                        if (jugador.nombre.toLowerCase().includes(queryLower)) {
-                            const equipo = Array.isArray(equipos) ? equipos.find(e => e.id === jugador.equipo_id) : null;
-                            resultados.push({ tipo: 'jugador', nombre: jugador.nombre, id: jugador.id, extra: equipo ? equipo.nombre : 'Sin equipo', equipoId: jugador.equipo_id });
-                        }
-                    });
-                }
-                
-                mostrarResultados(resultados.slice(0, 8));
-
-            } catch (error) {
-                console.error('❌ Error en búsqueda en tiempo real:', error);
-                mostrarErrorBusqueda('No se pudieron cargar los resultados. Intenta de nuevo.');
-            }
-        }
-
-        function mostrarResultados(resultados) {
-            const container = document.getElementById('searchResults');
-            if (!container) return;
-            if (resultados.length === 0) {
-                container.innerHTML = `<div class="search-result-item"><div class="result-name">No se encontraron resultados</div></div>`;
-            } else {
-                container.innerHTML = resultados.map(r => `<div class="search-result-item" onclick="navegarAResultado('${r.tipo}', ${r.id}, ${r.equipoId || 'null'})"><div class="result-name">${r.tipo === 'equipo' ? '🏆' : '👤'} ${r.nombre}</div><div class="result-type">${r.tipo}</div><div class="result-team">${r.extra}</div></div>`).join('');
-            }
-            container.style.display = 'block';
-        }
-
-        function ocultarResultados() { const c = document.getElementById('searchResults'); if(c) c.style.display = 'none'; }
-        
-        function navegarAResultado(tipo, id, equipoId) {
-            if (tipo === 'equipo') window.location.href = `equipo.html?id=${id}`;
-            else if (tipo === 'jugador') window.location.href = `jugador.html?id=${id}&equipo=${equipoId || ''}`;
-            ocultarResultados();
-            document.getElementById('globalSearch').value = '';
-        }
-        
-        function realizarBusquedaGlobal() { const q = document.getElementById('globalSearch').value.trim(); if (q.length >= 2) { buscarEnTiempoReal(q); } }
-        
-        document.addEventListener('click', function(e) { const sc = document.querySelector('.search-container'); if (sc && !sc.contains(e.target)) ocultarResultados(); });
-
         function toggleMobileMenu() { document.querySelector('.mobile-menu').classList.toggle('active'); document.querySelector('.mobile-menu-overlay').classList.toggle('active'); }
-        
         function closeMobileMenu() { document.querySelector('.mobile-menu').classList.remove('active'); document.querySelector('.mobile-menu-overlay').classList.remove('active'); }
-        
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
         
         function initMobileNavigation() {
