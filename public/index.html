@@ -69,20 +69,20 @@
             border-radius: 0 0 20px 20px; /* ✅ Ajuste de borde en modo compacto */
             animation: none; /* ✅ Desactivar animación 'float' al hacer scroll */
         }
-        
+       
         /* ✅ NUEVO: Logo más pequeño en estado scrolled */
         .header.scrolled .logo-chogui {
             width: 50px; /* ✅ Reducir de tamaño original */
             height: 50px; /* ✅ Reducir de tamaño original */
             animation: none; /* ✅ Desactivar animación 'rotate' al hacer scroll */
         }
-        
+       
         /* ✅ NUEVO: Título más pequeño en estado scrolled */
         .header.scrolled h1 {
             font-size: 1.5rem; /* ✅ Reducir tamaño de fuente */
             margin: 5px 0 5px;
         }
-        
+       
         /* ✅ NUEVO: Subtítulo más pequeño en estado scrolled */
         .header.scrolled p {
             font-size: 0.85rem;
@@ -120,7 +120,7 @@
             margin-bottom: 15px;
             transition: margin-bottom 0.3s ease; /* ✅ NUEVO: Transición suave */
         }
-        
+       
         .header.scrolled .logo-container {
             margin-bottom: 5px; /* ✅ Menos margen en modo compacto */
         }
@@ -324,7 +324,7 @@
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3);
         }
-        
+       
         .playoffs-list [data-list] { display: flex; flex-direction: column; gap: 10px; }
         .seed-row { display: flex; align-items: center; background: rgba(255, 215, 0, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #ffd700; }
         .seed-num { font-weight: bold; color: #ffd700; margin-right: 15px; font-size: 1.2em; }
@@ -358,7 +358,7 @@
             color: #ffd700;
             font-weight: bold;
         }
-        
+       
         [data-loader] {
             display: flex;
             justify-content: center;
@@ -380,7 +380,7 @@
             0%, 100% { opacity: 0.4; transform: scale(0.8); }
             50% { opacity: 1; transform: scale(1.2); }
         }
-        
+       
         .admin-link {
             position: fixed;
             top: 15px;
@@ -426,7 +426,7 @@
             font-weight: bold;
             border: 1px solid #dc143c;
         }
-        
+       
         .position-leaders-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -456,7 +456,7 @@
             margin-bottom: 10px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
-        
+       
         .position-leader {
             text-align: left;
             padding: 0;
@@ -539,7 +539,7 @@
             color: white;
             text-decoration: none;
         }
-        
+       
         @media (max-width: 768px) {
             .whatsapp-btn {
                 bottom: 80px;
@@ -810,7 +810,7 @@
             opacity: 0.8;
             line-height: 1.6;
         }
-        
+       
         .leaders-section-header {
             text-align: center;
             margin-bottom: 30px;
@@ -879,7 +879,7 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
         }
-        
+       
         /* ✅ INICIO: ESTILOS MODIFICADOS PARA NUEVAS TARJETAS DE LÍDERES */
         #lideresGrid {
             display: grid;
@@ -957,7 +957,7 @@
             opacity: 0.8;
         }
         /* ✅ FIN: ESTILOS MODIFICADOS PARA NUEVAS TARJETAS DE LÍDERES */
-        
+       
         .leaders-grid-enhanced {
             display: flex;
             flex-direction: column;
@@ -1093,7 +1093,7 @@
                 transform: translateY(0);
             }
         }
-        
+       
         :root {
             --mobile-small: 480px;
             --mobile-large: 768px;
@@ -1113,7 +1113,7 @@
                 border: none;
                 box-shadow: none;
             }
-            
+           
             .nav-tab {
                 background: linear-gradient(145deg, #16213e, #1a1a2e);
                 color: #ffd700;
@@ -1130,11 +1130,11 @@
                 border: 2px solid rgba(255, 215, 0, 0.2);
                 flex: none;
             }
-            
+           
             .nav-tab::before {
                 display: none;
             }
-            
+           
             .container {
                 padding-bottom: 20px;
             }
@@ -1189,7 +1189,7 @@
                 transition: transform 0.3s ease;
                 margin-bottom: 0;
             }
-            
+           
             /* ✅ Efecto táctil al tocar */
             .nav-tab:active {
               transform: scale(0.95);
@@ -1205,7 +1205,7 @@
             .nav-tab.active::before {
               transform: scale(1.2);
             }
-            
+           
             .container {
                 padding-bottom: 120px;
             }
@@ -1217,7 +1217,7 @@
             .proximos-partidos {
                 margin-bottom: 30px;
             }
-            
+           
             .mobile-menu-toggle {
                 position: fixed;
                 top: 15px;
@@ -1380,7 +1380,7 @@
             .nav-tab:hover {
                 transform: none;
             }
-            
+           
             /* Se delega el :active a los estilos de navegación móvil */
 
             .partido-card-enhanced:hover {
@@ -1523,7 +1523,7 @@
                 background: linear-gradient(135deg, #0a0a1a 0%, #0c1428 50%, #061e3c 100%);
             }
         }
-        
+       
         .main-footer {
           background: linear-gradient(145deg, #0f1419, #1a1a2e);
           border-top: 2px solid rgba(255, 215, 0, 0.3);
@@ -1620,561 +1620,561 @@
             grid-template-columns: 1fr;
             text-align: center;
           }
-          
+         
           .footer-logo {
             justify-content: center;
           }
         }
-        
+       
         /* ============= PLAYOFFS ============= */
         .playoffs-container {
-          background: linear-gradient(145deg, rgba(26, 26, 46, 0.9), rgba(15, 15, 30, 0.95));
-          border-radius: 15px;
-          padding: 1.5rem;
-          border: 1px solid rgba(255, 215, 0, 0.2);
+            background: linear-gradient(145deg, rgba(26, 26, 46, 0.9), rgba(15, 15, 30, 0.95));
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 215, 0, 0.2);
         }
         .playoffs-config {
-          display: flex;
-          justify-content: space-around;
-          margin-bottom: 1.5rem;
-          padding: 1rem;
-          background: rgba(255, 215, 0, 0.1);
-          border-radius: 10px;
-          gap: 1rem;
-          flex-wrap: wrap;
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 10px;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
         .playoffs-config span {
-          font-size: 0.95rem;
-          color: #fff;
+            font-size: 0.95rem;
+            color: #fff;
         }
         .playoffs-config strong {
-          color: #ffd700;
-          font-size: 1.1rem;
+            color: #ffd700;
+            font-size: 1.1rem;
         }
         .table-container {
-          overflow-x: auto;
-          margin-bottom: 1.5rem;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
         }
         .tabla-playoffs {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 0.9rem;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
         }
         .tabla-playoffs th {
-          background: linear-gradient(145deg, #ffd700, #ff8c00);
-          color: #1a1a2e;
-          padding: 0.75rem 0.5rem;
-          text-align: center;
-          font-weight: bold;
-          font-size: 0.85rem;
-          white-space: nowrap;
-          position: sticky;
-          top: 0;
-          z-index: 10;
+            background: linear-gradient(145deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         .tabla-playoffs td {
-          padding: 0.75rem 0.5rem;
-          text-align: center;
-          border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-          white-space: nowrap;
+            padding: 0.75rem 0.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+            white-space: nowrap;
         }
         .tabla-playoffs tbody tr {
-          transition: background 0.3s ease;
+            transition: background 0.3s ease;
         }
         .tabla-playoffs tbody tr:hover {
-          background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 215, 0, 0.1);
         }
         /* Estados de clasificación */
         .tabla-playoffs .estado-clasificado {
-          background: rgba(30, 127, 57, 0.15);
+            background: rgba(30, 127, 57, 0.15);
         }
         .tabla-playoffs .estado-eliminado {
-          background: rgba(139, 29, 29, 0.15);
-          opacity: 0.7;
+            background: rgba(139, 29, 29, 0.15);
+            opacity: 0.7;
         }
         /* Columnas especiales */
         .pos-col {
-          font-weight: bold;
-          color: #ffd700;
+            font-weight: bold;
+            color: #ffd700;
         }
         .equipo-col {
-          text-align: left !important;
-          min-width: 150px;
+            text-align: left !important;
+            min-width: 150px;
         }
         .positivo {
-          color: #4ade80;
-          font-weight: bold;
+            color: #4ade80;
+            font-weight: bold;
         }
         .negativo {
-          color: #ef4444;
-          font-weight: bold;
+            color: #ef4444;
+            font-weight: bold;
         }
         /* Badges de estado */
         .badge {
-          display: inline-block;
-          padding: 0.25rem 0.75rem;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .badge.clasificado {
-          background: linear-gradient(145deg, #1e7f39, #16a34a);
-          color: #fff;
-          box-shadow: 0 2px 4px rgba(30, 127, 57, 0.3);
+            background: linear-gradient(145deg, #1e7f39, #16a34a);
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(30, 127, 57, 0.3);
         }
         .badge.contención {
-          background: linear-gradient(145deg, #c68a00, #eab308);
-          color: #1a1a2e;
-          box-shadow: 0 2px 4px rgba(198, 138, 0, 0.3);
+            background: linear-gradient(145deg, #c68a00, #eab308);
+            color: #1a1a2e;
+            box-shadow: 0 2px 4px rgba(198, 138, 0, 0.3);
         }
         .badge.eliminado {
-          background: linear-gradient(145deg, #8b1d1d, #dc2626);
-          color: #fff;
-          box-shadow: 0 2px 4px rgba(139, 29, 29, 0.3);
+            background: linear-gradient(145deg, #8b1d1d, #dc2626);
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(139, 29, 29, 0.3);
         }
         /* Leyenda */
         .playoffs-leyenda {
-          padding: 1rem;
-          background: rgba(26, 26, 46, 0.5);
-          border-radius: 10px;
-          border: 1px solid rgba(255, 215, 0, 0.1);
+            padding: 1rem;
+            background: rgba(26, 26, 46, 0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
         }
         .playoffs-leyenda h4 {
-          color: #ffd700;
-          font-size: 0.95rem;
-          margin-bottom: 0.75rem;
+            color: #ffd700;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
         }
         .playoffs-leyenda ul {
-          list-style: none;
-          padding: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
         .playoffs-leyenda li {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
         }
         .playoffs-leyenda .badge {
-          min-width: 20px;
-          height: 20px;
-          padding: 0;
+            min-width: 20px;
+            height: 20px;
+            padding: 0;
         }
         /* Responsive */
         @media (max-width: 768px) {
-          .tabla-playoffs {
-            font-size: 0.75rem;
-          }
-          .tabla-playoffs th,
-          .tabla-playoffs td {
-            padding: 0.5rem 0.25rem;
-          }
-          .equipo-col {
-            min-width: 100px;
-          }
-          .playoffs-config {
-            flex-direction: column;
-            text-align: center;
-          }
-          .playoffs-leyenda ul {
-            font-size: 0.75rem;
-          }
+            .tabla-playoffs {
+                font-size: 0.75rem;
+            }
+            .tabla-playoffs th,
+            .tabla-playoffs td {
+                padding: 0.5rem 0.25rem;
+            }
+            .equipo-col {
+                min-width: 100px;
+            }
+            .playoffs-config {
+                flex-direction: column;
+                text-align: center;
+            }
+            .playoffs-leyenda ul {
+                font-size: 0.75rem;
+            }
         }
         /* Scroll horizontal en móvil */
         @media (max-width: 640px) {
-          .table-container {
-            margin: 0 -1rem;
-            padding: 0 1rem;
-          }
+            .table-container {
+                margin: 0 -1rem;
+                padding: 0 1rem;
+            }
         }
 
         /* Grid de posiciones (NUEVO) */
         .posiciones-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
         }
         .pos-section {
-          background: rgba(26, 26, 46, 0.3);
-          border-radius: 12px;
-          padding: 1.5rem;
-          border: 1px solid rgba(255, 215, 0, 0.15);
+            background: rgba(26, 26, 46, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 215, 0, 0.15);
         }
         .pos-header {
-          color: #ffd700;
-          font-size: 1.2rem;
-          font-weight: bold;
-          margin-bottom: 1rem;
-          padding-bottom: 0.5rem;
-          border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
         }
         .pos-cards {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
         }
         .leader-card-mini {
-          background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(15, 15, 30, 0.9));
-          border: 1px solid rgba(255, 215, 0, 0.2);
-          border-radius: 10px;
-          padding: 1rem;
-          display: flex;
-          gap: 0.75rem;
-          align-items: center;
-          transition: all 0.3s ease;
+            background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(15, 15, 30, 0.9));
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            transition: all 0.3s ease;
         }
         .leader-card-mini:hover {
-          transform: translateY(-2px);
-          border-color: rgba(255, 215, 0, 0.5);
-          box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+            transform: translateY(-2px);
+            border-color: rgba(255, 215, 0, 0.5);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
         }
         .rank-badge {
-          min-width: 2.5rem;
-          height: 2.5rem;
-          background: linear-gradient(145deg, #ffd700, #ff8c00);
-          color: #1a1a2e;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          font-size: 0.9rem;
+            min-width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(145deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
         }
         .player-info {
-          flex: 1;
+            flex: 1;
         }
         .player-name {
-          font-weight: bold;
-          color: #fff;
-          font-size: 0.95rem;
-          margin-bottom: 0.25rem;
+            font-weight: bold;
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
         }
         .player-team {
-          color: rgba(255, 215, 0, 0.7);
-          font-size: 0.8rem;
+            color: rgba(255, 215, 0, 0.7);
+            font-size: 0.8rem;
         }
         .player-stats {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-          align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
         }
         .stat-primary {
-          background: rgba(255, 215, 0, 0.15);
-          color: #ffd700;
-          padding: 0.25rem 0.5rem;
-          border-radius: 6px;
-          font-weight: bold;
-          font-size: 0.85rem;
+            background: rgba(255, 215, 0, 0.15);
+            color: #ffd700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
         }
         .stat {
-          color: rgba(255, 255, 255, 0.7);
-          font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
         }
         /* Responsive */
         @media (max-width: 768px) {
-          .pos-cards {
-            grid-template-columns: 1fr;
-          }
-          .leader-card-mini {
-            flex-direction: column;
-            text-align: center;
-          }
-          .player-stats {
-            justify-content: center;
-          }
+            .pos-cards {
+                grid-template-columns: 1fr;
+            }
+            .leader-card-mini {
+                flex-direction: column;
+                text-align: center;
+            }
+            .player-stats {
+                justify-content: center;
+            }
         }
 
         /* ✅ NUEVO: ESTILOS PESTAÑA "TODOS" - TAREA 2.1 */
         /* Contenedor principal de posiciones */
         .positions-container {
-          display: flex;
-          flex-direction: column;
-          gap: 50px;
-          padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+            padding: 20px 0;
         }
 
         /* Sección de cada posición */
         .position-section {
-          background: linear-gradient(145deg, #1e1e3f, #1a1a2e);
-          border-radius: 24px;
-          padding: 30px;
-          border: 2px solid rgba(255, 215, 0, 0.2);
-          position: relative;
-          overflow: hidden;
+            background: linear-gradient(145deg, #1e1e3f, #1a1a2e);
+            border-radius: 24px;
+            padding: 30px;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            position: relative;
+            overflow: hidden;
         }
 
         /* Efecto de brillo en background */
         .position-section::before {
-          content: '';
-          position: absolute;
-          top: -50%;
-          left: -50%;
-          width: 200%;
-          height: 200%;
-          background: radial-gradient(circle, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
-          opacity: 0;
-          transition: opacity 0.4s ease;
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
         .position-section:hover::before {
-          opacity: 1;
+            opacity: 1;
         }
 
         /* Título de posición */
         .position-title {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          color: #ffd700;
-          font-size: 1.6rem;
-          font-weight: bold;
-          margin-bottom: 25px;
-          padding-bottom: 15px;
-          border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #ffd700;
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
         }
 
         .position-icon {
-          font-size: 2.2rem;
-          filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+            font-size: 2.2rem;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
         }
 
         /* Grid de cards */
         .position-cards {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-          gap: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
         }
 
         /* ✅ CARD DE JUGADOR PREMIUM */
         .player-card {
-          position: relative;
-          background: linear-gradient(145deg, #252542, #1a1a2e);
-          border-radius: 18px;
-          padding: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-          border: 2px solid rgba(255, 215, 0, 0.2);
-          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-          overflow: hidden;
-          cursor: pointer;
+            position: relative;
+            background: linear-gradient(145deg, #252542, #1a1a2e);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            cursor: pointer;
         }
 
         /* Efecto de brillo deslizante */
         .player-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.15), transparent);
-          transition: left 0.6s ease;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.15), transparent);
+            transition: left 0.6s ease;
         }
         .player-card:hover::before {
-          left: 100%;
+            left: 100%;
         }
 
         /* Hover effect */
         .player-card:hover {
-          transform: translateY(-12px) scale(1.02);
-          border-color: #ffd700;
-          box-shadow: 0 12px 40px rgba(255, 215, 0, 0.4);
+            transform: translateY(-12px) scale(1.02);
+            border-color: #ffd700;
+            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.4);
         }
 
         /* Efecto highlight en búsqueda */
         .player-card.highlight {
-          border-color: #ff8c00;
-          box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
-          animation: pulse-highlight 1.5s infinite;
+            border-color: #ff8c00;
+            box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
+            animation: pulse-highlight 1.5s infinite;
         }
         @keyframes pulse-highlight {
-          0%, 100% { 
-             transform: scale(1); 
-             box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
-          }
-          50% { 
-             transform: scale(1.03); 
-             box-shadow: 0 0 40px rgba(255, 140, 0, 0.8);
-          }
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
+            }
+            50% { 
+                transform: scale(1.03); 
+                box-shadow: 0 0 40px rgba(255, 140, 0, 0.8);
+            }
         }
 
         /* Ranking badge */
         .player-rank {
-          position: absolute;
-          top: 15px;
-          right: 15px;
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.5rem;
-          font-weight: bold;
-          color: #fff;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-          z-index: 2;
-          transition: transform 0.3s ease;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            z-index: 2;
+            transition: transform 0.3s ease;
         }
 
         .player-card:hover .player-rank {
-          transform: scale(1.15) rotate(5deg);
+            transform: scale(1.15) rotate(5deg);
         }
 
         /* Avatar del jugador */
         .player-avatar {
-          width: 90px;
-          height: 90px;
-          border-radius: 50%;
-          overflow: hidden;
-          border: 4px solid #ffd700;
-          margin: 10px auto 0;
-          background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
-          box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-          transition: all 0.3s ease;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #ffd700;
+            margin: 10px auto 0;
+            background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
         }
         .player-card:hover .player-avatar {
-          transform: scale(1.1);
-          box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
         }
         .player-avatar img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         /* Información del jugador */
         .player-card .player-info { /* Especificidad aumentada */
-          text-align: center;
+            text-align: center;
         }
         .player-name {
-          font-size: 1.2rem;
-          font-weight: bold;
-          color: #ffd700;
-          margin-bottom: 5px;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         .player-team {
-          font-size: 0.9rem;
-          color: rgba(255, 255, 255, 0.7);
-          margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
         }
 
         /* Stats del jugador */
         .player-card .player-stats { /* Especificidad aumentada */
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-          gap: 12px;
-          margin-top: 15px;
-          padding-top: 15px;
-          border-top: 1px solid rgba(255, 215, 0, 0.2);
-          justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 215, 0, 0.2);
+            justify-content: center;
         }
         .player-card .player-stats .stat { /* Especificidad aumentada */
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
         }
         .player-card .player-stats .stat-value { /* Especificidad aumentada */
-          font-size: 1.4rem;
-          font-weight: bold;
-          color: #ffd700;
-          text-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
         }
         .player-card .player-stats .stat-label { /* Especificidad aumentada */
-          font-size: 0.7rem;
-          color: rgba(255, 255, 255, 0.6);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Logo del equipo en esquina */
         .team-logo {
-          position: absolute;
-          bottom: 15px;
-          left: 15px;
-          width: 45px;
-          height: 45px;
-          opacity: 0.25;
-          transition: all 0.3s ease;
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            width: 45px;
+            height: 45px;
+            opacity: 0.25;
+            transition: all 0.3s ease;
         }
         .player-card:hover .team-logo {
-          opacity: 0.5;
-          transform: scale(1.1);
+            opacity: 0.5;
+            transform: scale(1.1);
         }
         .team-logo img {
-          width: 100%;
-          height: 100%;
-          object-fit: contain;
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         /* Estado vacío */
         .empty-position {
-          grid-column: 1 / -1;
-          text-align: center;
-          padding: 50px 20px;
-          color: rgba(255, 255, 255, 0.5);
-          font-style: italic;
-          background: rgba(255, 215, 0, 0.05);
-          border-radius: 12px;
-          border: 2px dashed rgba(255, 215, 0, 0.2);
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-style: italic;
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 12px;
+            border: 2px dashed rgba(255, 215, 0, 0.2);
         }
 
         /* Estilos del buscador */
         #searchPlayerInput:focus {
-          outline: none;
-          border-color: #ffd700;
-          box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-          background: rgba(26, 26, 46, 0.95);
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            background: rgba(26, 26, 46, 0.95);
         }
         #searchPlayerInput::placeholder {
-          color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.5);
         }
 
         /* ✅ RESPONSIVE */
         @media (max-width: 768px) {
-          .positions-container {
-            gap: 30px;
-          }
+            .positions-container {
+                gap: 30px;
+            }
             .position-section {
-            padding: 20px;
-          }
+                padding: 20px;
+            }
             .position-title {
-            font-size: 1.3rem;
-            flex-wrap: wrap;
-          }
+                font-size: 1.3rem;
+                flex-wrap: wrap;
+            }
             .position-cards {
-            grid-template-columns: 1fr;
-          }
+                grid-template-columns: 1fr;
+            }
             .player-card {
-            padding: 15px;
-          }
+                padding: 15px;
+            }
             .player-rank {
-            width: 40px;
-            height: 40px;
-            font-size: 1.2rem;
-          }
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
             .player-avatar {
-            width: 70px;
-            height: 70px;
-          }
+                width: 70px;
+                height: 70px;
+            }
             .player-name {
-            font-size: 1.1rem;
-          }
+                font-size: 1.1rem;
+            }
             .player-card .player-stats { /* Especificidad aumentada */
-            gap: 8px;
-          }
+                gap: 8px;
+            }
         }
-        
-        /* ============================================   PRÓXIMOS PARTIDOS - DISEÑO COMPACTO   ============================================ */
+       
+        /* PRÓXIMOS PARTIDOS - DISEÑO COMPACTO */
         .proximos-partidos-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -2275,18 +2275,17 @@
             color: #ff8c00;
             text-shadow: 0 0 10px rgba(255, 140, 0, 0.5);
         }
-        /* Responsive para Próximos Partidos */
         @media (max-width: 768px) {
             .proximos-partidos-container {
                 grid-template-columns: 1fr;
                 gap: 15px;
             }
-                .equipo-logo {
+            .equipo-logo {
                 width: 45px;
                 height: 45px;
                 font-size: 1.3rem;
             }
-                .equipo-nombre {
+            .equipo-nombre {
                 font-size: 0.8rem;
             }
         }
@@ -2312,7 +2311,7 @@
     <div class="swipe-indicator">
         ← Desliza para navegar →
     </div>
-    
+   
     <div class="container">
         <div class="header">
             <div class="header-content">
@@ -2364,7 +2363,7 @@
         #searchInput::placeholder { /* ID actualizado */
             color: rgba(255, 255, 255, 0.6);
         }
-        
+       
         /* Estilos para los resultados de búsqueda de la función corregida */
         .search-results {
             position: absolute;
@@ -2420,7 +2419,7 @@
 
         <nav class="nav-tabs" id="mobileNavigation">
             <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
-            <a href="#proximos-partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
+            <a href="#partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
             <a href="#estadisticas" class="nav-tab" data-section="estadisticas" data-icon="📊">Líderes</a>
             <a href="#playoffs" class="nav-tab" data-section="playoffs" data-icon="🔥">Playoffs</a>
         </nav>
@@ -2440,54 +2439,54 @@
 
         <div id="posiciones" class="tab-content active">
              <div class="card" id="tablaPosiciones">
-                <h3>🏆 Tabla de Posiciones</h3>
-                <div data-loader>Cargando...</div>
-                <div data-empty></div>
-                <div class="table-container">
-                    <table id="posicionesTable">
-                        <thead>
-                            <tr>
-                                <th>Pos</th>
-                                <th>Equipo</th>
-                                <th>PJ</th>
-                                <th>PG</th>
-                                <th>PP</th>
-                                <th>%</th>
-                                <th>CF</th>
-                                <th>CE</th>
-                                <th>DIF</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaPosicionesBody"></tbody>
-                    </table>
-                </div>
-                <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem; position: relative; z-index: 2;">
-                    <strong>Leyenda:</strong> PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, %=Porcentaje, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia
-                </p>
-            </div>
+                 <h3>🏆 Tabla de Posiciones</h3>
+                 <div data-loader>Cargando...</div>
+                 <div data-empty></div>
+                 <div class="table-container">
+                     <table id="posicionesTable">
+                         <thead>
+                             <tr>
+                                 <th>Pos</th>
+                                 <th>Equipo</th>
+                                 <th>PJ</th>
+                                 <th>PG</th>
+                                 <th>PP</th>
+                                 <th>%</th>
+                                 <th>CF</th>
+                                 <th>CE</th>
+                                 <th>DIF</th>
+                                 <th>Estado</th>
+                             </tr>
+                         </thead>
+                         <tbody id="tablaPosicionesBody"></tbody>
+                     </table>
+                 </div>
+                 <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem; position: relative; z-index: 2;">
+                     <strong>Leyenda:</strong> PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, %=Porcentaje, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia
+                 </p>
+             </div>
         </div>
 
         <div id="partidos" class="tab-content">
              <div class="card" id="ultimosPartidos">
-                <h3>🎯 Últimos Partidos</h3>
-                <div data-loader>Cargando...</div>
-                <div data-empty></div>
-                <div class="table-container">
-                    <table id="partidosTable">
-                        <thead>
-                            <tr>
-                                <th>Local</th>
-                                <th>Visitante</th>
-                                <th>Resultado</th>
-                                <th>Innings</th>
-                                <th>Fecha</th>
-                            </tr>
-                        </thead>
-                         <tbody id="ultimosPartidosBody"></tbody>
-                    </table>
-                </div>
-            </div>
+                 <h3>🎯 Últimos Partidos</h3>
+                 <div data-loader>Cargando...</div>
+                 <div data-empty></div>
+                 <div class="table-container">
+                     <table id="partidosTable">
+                         <thead>
+                             <tr>
+                                 <th>Local</th>
+                                 <th>Visitante</th>
+                                 <th>Resultado</th>
+                                 <th>Innings</th>
+                                 <th>Fecha</th>
+                             </tr>
+                         </thead>
+                          <tbody id="ultimosPartidosBody"></tbody>
+                     </table>
+                 </div>
+             </div>
         </div>
 
         <div id="estadisticas" class="tab-content">
@@ -2496,14 +2495,14 @@
                     <h3>🏆 Líderes de la Liga</h3>
                     <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
                 </div>
-                
+               
                 <div class="leaders-filters">
                     <button class="leader-filter active" data-category="bateo">⚾ Bateo</button>
                     <button class="leader-filter" data-category="pitcheo">🎯 Pitcheo</button>
                     <button class="leader-filter" data-category="defensiva">🛡️ Defensiva</button>
                     <button class="leader-filter" data-category="todos">📊 Todos</button>
                 </div>
-                
+               
                 <div class="search-container" id="searchContainerTodos" style="display: none; margin-bottom: 30px;">
                   <div style="max-width: 600px; margin: 0 auto;">
                     <input 
@@ -2534,7 +2533,7 @@
                     </div>
 
                 <div id="positionsContainer" class="positions-container" style="display: none;">
-                  </div>
+                    </div>
 
             </div>
 
@@ -2563,7 +2562,7 @@
                     </table>
                 </div>
             </div>
-            
+           
             <div class="card">
                 <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
                 <div class="position-leaders-grid" id="positionLeadersGrid">
@@ -2579,54 +2578,54 @@
                 <div id="comparisonContent"></div>
             </div>
         </div>
-        
+       
         <div id="playoffs" class="tab-content">
             <section id="playoffs-section" class="section">
               <div class="section-header">
                 <h2>🏆 Clasificación Playoffs</h2>
               </div>
                 <div data-loader style="display: none;">
-                Cargando clasificación...
-              </div>
+                  Cargando clasificación...
+                </div>
                 <div data-empty style="display: none;"></div>
                 <div class="playoffs-container">
-                <div class="playoffs-config">
-                  <span id="playoffs-cupos"></span>
-                  <span id="playoffs-juegos"></span>
+                  <div class="playoffs-config">
+                    <span id="playoffs-cupos"></span>
+                    <span id="playoffs-juegos"></span>
+                  </div>
+               
+                  <div class="table-container">
+                    <table class="tabla-playoffs" id="playoffsTable">
+                      <thead>
+                        <tr>
+                          <th>Pos</th>
+                          <th>Equipo</th>
+                          <th>PJ</th>
+                          <th>PG</th>
+                          <th>PP</th>
+                          <th>%</th>
+                          <th>CF</th>
+                          <th>CE</th>
+                          <th>DIF</th>
+                          <th>Rest</th>
+                          <th>Máx</th>
+                          <th>Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody id="playoffsBody">
+                        </tbody>
+                    </table>
+                  </div>
+               
+                  <div class="playoffs-leyenda">
+                    <h4>📋 Criterios de clasificación:</h4>
+                    <ul>
+                      <li><span class="badge clasificado"></span> <strong>Clasificado:</strong> Ha asegurado un cupo matemáticamente</li>
+                      <li><span class="badge contención"></span> <strong>En contención:</strong> Todavía tiene posibilidades de clasificar</li>
+                      <li><span class="badge eliminado"></span> <strong>No puede alcanzar los playoffs matemáticamente</strong></li>
+                    </ul>
+                  </div>
                 </div>
-            
-                <div class="table-container">
-                  <table class="tabla-playoffs" id="playoffsTable">
-                    <thead>
-                      <tr>
-                        <th>Pos</th>
-                        <th>Equipo</th>
-                        <th>PJ</th>
-                        <th>PG</th>
-                        <th>PP</th>
-                        <th>%</th>
-                        <th>CF</th>
-                        <th>CE</th>
-                        <th>DIF</th>
-                        <th>Rest</th>
-                        <th>Máx</th>
-                        <th>Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody id="playoffsBody">
-                      </tbody>
-                  </table>
-                </div>
-            
-                <div class="playoffs-leyenda">
-                  <h4>📋 Criterios de clasificación:</h4>
-                  <ul>
-                    <li><span class="badge clasificado"></span> <strong>Clasificado:</strong> Ha asegurado un cupo matemáticamente</li>
-                    <li><span class="badge contención"></span> <strong>En contención:</strong> Todavía tiene posibilidades de clasificar</li>
-                    <li><span class="badge eliminado"></span> <strong>No puede alcanzar los playoffs matemáticamente</strong></li>
-                  </ul>
-                </div>
-              </div>
             </section>
         </div>
     </div>
@@ -2635,12 +2634,12 @@
         // Configuración de API - URL de Railway
         const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
         let estadisticas = []; // Variable global para estadísticas de bateo
-        
+       
         function getApiUrl(endpoint) {
             if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
             return `${API_BASE_URL}${endpoint}`;
         }
-        
+       
         // =================================================================================
         // SECCIÓN DE POSICIONES, PARTIDOS (SIN CAMBIOS)
         // =================================================================================
@@ -2701,66 +2700,66 @@
                     <td>${p.innings ?? '-'}</td><td>${fmtFecha(p.fecha_partido)}</td>
                 </tr>`).join('');
         }
-        
+       
         // ============= SISTEMA DE PLAYOFFS (SIN CAMBIOS) =============
         async function cargarPlayoffsClasificacion() {
-          console.log('🏆 Cargando clasificación de playoffs...');
-          setLoading('playoffs-section', true);
+            console.log('🏆 Cargando clasificación de playoffs...');
+            setLoading('playoffs-section', true);
             try {
-            const data = await fetchJSON('/api/playoffs-clasificacion');
+                const data = await fetchJSON('/api/playoffs-clasificacion');
                 if (!data || !data.equipos || data.equipos.length === 0) {
-              setLoading('playoffs-section', false, 'No hay datos de clasificación disponibles');
-              return;
-            }
+                    setLoading('playoffs-section', false, 'No hay datos de clasificación disponibles');
+                    return;
+                }
                 console.log(`📊 Clasificación cargada: ${data.equipos.length} equipos`);
-            renderPlayoffsClasificacion(data);
-            setLoading('playoffs-section', false);
-              } catch (err) {
-            console.error('❌ Error cargando playoffs:', err);
-            setLoading('playoffs-section', false, 'No se pudo cargar la clasificación de playoffs');
-          }
+                renderPlayoffsClasificacion(data);
+                setLoading('playoffs-section', false);
+            } catch (err) {
+                console.error('❌ Error cargando playoffs:', err);
+                setLoading('playoffs-section', false, 'No se pudo cargar la clasificación de playoffs');
+            }
         }
-        
+       
         function renderPlayoffsClasificacion(data) {
-          const { configuracion, equipos } = data;
-          const cuposEl = document.getElementById('playoffs-cupos');
-          const juegosEl = document.getElementById('playoffs-juegos');
+            const { configuracion, equipos } = data;
+            const cuposEl = document.getElementById('playoffs-cupos');
+            const juegosEl = document.getElementById('playoffs-juegos');
             if (cuposEl) {
-            cuposEl.innerHTML = `<strong>${configuracion.cupos_playoffs}</strong> equipos clasifican`;
-          }
+                cuposEl.innerHTML = `<strong>${configuracion.cupos_playoffs}</strong> equipos clasifican`;
+            }
             if (juegosEl) {
-            juegosEl.innerHTML = `Temporada regular: <strong>${configuracion.total_juegos}</strong> juegos`;
-          }
-          const tbody = document.getElementById('playoffsBody');
-          if (!tbody) {
-            console.error('❌ Elemento playoffsBody no encontrado');
-            return;
-          }
+                juegosEl.innerHTML = `Temporada regular: <strong>${configuracion.total_juegos}</strong> juegos`;
+            }
+            const tbody = document.getElementById('playoffsBody');
+            if (!tbody) {
+                console.error('❌ Elemento playoffsBody no encontrado');
+                return;
+            }
             tbody.innerHTML = equipos.map(team => {
-            const estadoClass = team.estado;
-            const estadoTexto = {
-              'clasificado': 'Clasificado',
-              'contención': 'En contención',
-              'eliminado': 'Eliminado'
-            }[team.estado] || team.estado;
+                const estadoClass = team.estado;
+                const estadoTexto = {
+                    'clasificado': 'Clasificado',
+                    'contención': 'En contención',
+                    'eliminado': 'Eliminado'
+                }[team.estado] || team.estado;
                 const porcentajeFormato = (team.porcentaje * 100).toFixed(1) + '%';
                 return `
-              <tr class="estado-${estadoClass}">
-                <td class="pos-col">${team.posicion}</td>
-                <td class="equipo-col"><strong>${team.equipo_nombre}</strong></td>
-                <td>${team.pj}</td>
-                <td>${team.pg}</td>
-                <td>${team.pp}</td>
-                <td>${porcentajeFormato}</td>
-                <td>${team.cf}</td>
-                <td>${team.ce}</td>
-                <td class="${team.dif >= 0 ? 'positivo' : 'negativo'}">${team.dif >= 0 ? '+' : ''}${team.dif}</td>
-                <td>${team.restantes}</td>
-                <td>${team.max_victorias}</td>
-                <td><span class="badge ${estadoClass}">${estadoTexto}</span></td>
-              </tr>
-            `;
-          }).join('');
+                    <tr class="estado-${estadoClass}">
+                        <td class="pos-col">${team.posicion}</td>
+                        <td class="equipo-col"><strong>${team.equipo_nombre}</strong></td>
+                        <td>${team.pj}</td>
+                        <td>${team.pg}</td>
+                        <td>${team.pp}</td>
+                        <td>${porcentajeFormato}</td>
+                        <td>${team.cf}</td>
+                        <td>${team.ce}</td>
+                        <td class="${team.dif >= 0 ? 'positivo' : 'negativo'}">${team.dif >= 0 ? '+' : ''}${team.dif}</td>
+                        <td>${team.restantes}</td>
+                        <td>${team.max_victorias}</td>
+                        <td><span class="badge ${estadoClass}">${estadoTexto}</span></td>
+                    </tr>
+                `;
+            }).join('');
             console.log('✅ Tabla de playoffs renderizada');
         }
 
@@ -2799,7 +2798,7 @@
 
             if (loader) loader.style.display = isLoading ? 'flex' : 'none';
             if (content) content.style.display = isLoading ? 'none' : 'block';
-            
+           
             if (empty) {
                 empty.innerHTML = emptyMessage || '';
                 empty.style.display = (!isLoading && emptyMessage) ? 'block' : 'none';
@@ -2817,672 +2816,672 @@
 
         // 🐛 PROBLEMA 4 CORREGIDO
         async function cargarLideres() {
-          try {
-            // Helper para fetch, no estaba definido fetchWithRetry
-            const fetchWithRetry = (url) => fetchJSON(url);
+            try {
+                // Helper para fetch, no estaba definido fetchWithRetry
+                const fetchWithRetry = (url) => fetchJSON(url);
 
-            // Bateo
-            const bateadores = await fetchWithRetry('/api/leaders?tipo=bateo&limit=10');
-            leadersData.bateo = bateadores || [];
-            console.log('✅ Líderes de bateo:', leadersData.bateo.length, leadersData.bateo);
-                
-            // Pitcheo
-            const pitchers = await fetchWithRetry('/api/leaders?tipo=pitcheo&limit=10');
-            leadersData.pitcheo = pitchers || [];
-            console.log('✅ Líderes de pitcheo:', leadersData.pitcheo.length, leadersData.pitcheo);
-                
-            // Defensiva
-            const defensivos = await fetchWithRetry('/api/leaders?tipo=defensiva&limit=10');
-            leadersData.defensiva = defensivos || [];
-            console.log('✅ Líderes defensivos:', leadersData.defensiva.length, leadersData.defensiva);
-                
-            console.log('📊 DATOS COMPLETOS DE LÍDERES:', leadersData);
-            
-            // Renderizar la categoría por defecto
-            renderizarLideresPorCategoria(currentLeaderCategory);
-            
-          } catch (error) {
-            console.error('❌ Error cargando líderes:', error);
-            const container = document.getElementById('lideresGrid');
-            if (container) {
-                container.innerHTML = `<div class="empty-state" style="display:block;"><h3>Error al cargar</h3><p>No se pudieron obtener los datos de los líderes.</p></div>`;
+                // Bateo
+                const bateadores = await fetchWithRetry('/api/leaders?tipo=bateo&limit=10');
+                leadersData.bateo = bateadores || [];
+                console.log('✅ Líderes de bateo:', leadersData.bateo.length, leadersData.bateo);
+                       
+                // Pitcheo
+                const pitchers = await fetchWithRetry('/api/leaders?tipo=pitcheo&limit=10');
+                leadersData.pitcheo = pitchers || [];
+                console.log('✅ Líderes de pitcheo:', leadersData.pitcheo.length, leadersData.pitcheo);
+                       
+                // Defensiva
+                const defensivos = await fetchWithRetry('/api/leaders?tipo=defensiva&limit=10');
+                leadersData.defensiva = defensivos || [];
+                console.log('✅ Líderes defensivos:', leadersData.defensiva.length, leadersData.defensiva);
+                       
+                console.log('📊 DATOS COMPLETOS DE LÍDERES:', leadersData);
+               
+                // Renderizar la categoría por defecto
+                renderizarLideresPorCategoria(currentLeaderCategory);
+               
+            } catch (error) {
+                console.error('❌ Error cargando líderes:', error);
+                const container = document.getElementById('lideresGrid');
+                if (container) {
+                    container.innerHTML = `<div class="empty-state" style="display:block;"><h3>Error al cargar</h3><p>No se pudieron obtener los datos de los líderes.</p></div>`;
+                }
             }
-          }
         }
-        
+       
         function renderizarLideresPorCategoria(categoria) {
-          currentLeaderCategory = categoria; 
-          
-          const container = document.getElementById('lideresGrid');
-          const positionsContainer = document.getElementById('positionsContainer');
-          const searchContainer = document.getElementById('searchContainerTodos');
+            currentLeaderCategory = categoria; 
+           
+            const container = document.getElementById('lideresGrid');
+            const positionsContainer = document.getElementById('positionsContainer');
+            const searchContainer = document.getElementById('searchContainerTodos');
 
-          document.querySelectorAll('.leader-filter').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.category === categoria);
-          });
+            document.querySelectorAll('.leader-filter').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.category === categoria);
+            });
 
-          if (categoria === 'todos') {
-            if (container) container.style.display = 'none';
-            if (positionsContainer) positionsContainer.style.display = 'block';
-            if (searchContainer) searchContainer.style.display = 'block';
-            renderizarTodosPorPosicion();
-            setTimeout(() => {
-              initBuscadorJugadores();
-            }, 100);
-            return;
-          }
+            if (categoria === 'todos') {
+                if (container) container.style.display = 'none';
+                if (positionsContainer) positionsContainer.style.display = 'block';
+                if (searchContainer) searchContainer.style.display = 'block';
+                renderizarTodosPorPosicion();
+                setTimeout(() => {
+                    initBuscadorJugadores();
+                }, 100);
+                return;
+            }
 
-          if (container) container.style.display = 'grid';
-          if (positionsContainer) positionsContainer.style.display = 'none';
-          if (searchContainer) searchContainer.style.display = 'none';
+            if (container) container.style.display = 'grid';
+            if (positionsContainer) positionsContainer.style.display = 'none';
+            if (searchContainer) searchContainer.style.display = 'none';
 
-          if (!container) {
-            console.error('❌ Contenedor lideresGrid no encontrado');
-            return;
-          }
+            if (!container) {
+                console.error('❌ Contenedor lideresGrid no encontrado');
+                return;
+            }
 
-          const datos = leadersData[categoria] || [];
+            const datos = leadersData[categoria] || [];
 
-          if (datos.length === 0) {
-            container.innerHTML = `
-              <div class="empty-state" style="display:block;">
-                <h3>📊 Sin datos de ${categoria}</h3>
-                <p>Los líderes aparecerán cuando haya estadísticas disponibles</p>
-              </div>
-            `;
-            return;
-          }
+            if (datos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="display:block;">
+                        <h3>📊 Sin datos de ${categoria}</h3>
+                        <p>Los líderes aparecerán cuando haya estadísticas disponibles</p>
+                    </div>
+                `;
+                return;
+            }
 
-          const html = datos.map((lider, index) => generarCardLider(lider, index, categoria)).join('');
-          container.innerHTML = html;
-          console.log(`✅ Renderizados ${datos.length} líderes de ${categoria}`);
+            const html = datos.map((lider, index) => generarCardLider(lider, index, categoria)).join('');
+            container.innerHTML = html;
+            console.log(`✅ Renderizados ${datos.length} líderes de ${categoria}`);
         }
-        
+       
         // 🐛 PROBLEMA 2 CORREGIDO
         /**
          * ✅ Generar card de líder - VERSIÓN MEJORADA
          */
         function generarCardLider(lider, index, categoria) {
-          // ✅ OBTENER NOMBRE CON FALLBACKS
-          const nombreJugador = lider.nombre_jugador || 
-                                lider.nombre || 
-                                lider.jugador_nombre ||
-                                'Sin Nombre';
-            
-          const nombreEquipo = lider.equipo_nombre || 
-                               lider.team_name || 
-                               lider.equipo || 
-                               'Sin Equipo';
+            // ✅ OBTENER NOMBRE CON FALLBACKS
+            const nombreJugador = lider.nombre_jugador || 
+                                    lider.nombre || 
+                                    lider.jugador_nombre ||
+                                    'Sin Nombre';
+           
+            const nombreEquipo = lider.equipo_nombre || 
+                                   lider.team_name || 
+                                   lider.equipo || 
+                                   'Sin Equipo';
 
-          const posicion = lider.posicion || 
-                           lider.posicion_principal || 
-                           lider.pos || 
-                           'UTIL';
+            const posicion = lider.posicion || 
+                               lider.posicion_principal || 
+                               lider.pos || 
+                               'UTIL';
 
-          let statsHTML = '';
-            
-          if (categoria === 'bateo') {
-            const avg = parseFloat(lider.promedio_bateo || lider.avg) || 0;
-            const hr = parseInt(lider.home_runs || lider.hr) || 0;
-            const rbi = parseInt(lider.rbi) || 0;
-            const ops = parseFloat(lider.ops) || 0;
-                
-            statsHTML = `
-              <div class="stat">
-                <span class="stat-value">${avg.toFixed(3)}</span>
-                <span class="stat-label">AVG</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${hr}</span>
-                <span class="stat-label">HR</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${rbi}</span>
-                <span class="stat-label">RBI</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${ops.toFixed(3)}</span>
-                <span class="stat-label">OPS</span>
-              </div>
-            `;
-          } else if (categoria === 'pitcheo') {
-            const era = parseFloat(lider.era) || 0;
-            const so = parseInt(lider.strikeouts || lider.so) || 0;
-            const whip = parseFloat(lider.whip) || 0;
-            const wins = parseInt(lider.wins || lider.w) || 0;
-                
-            statsHTML = `
-              <div class="stat">
-                <span class="stat-value">${era.toFixed(2)}</span>
-                <span class="stat-label">ERA</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${so}</span>
-                <span class="stat-label">SO</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${whip.toFixed(2)}</span>
-                <span class="stat-label">WHIP</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${wins}</span>
-                <span class="stat-label">W</span>
-              </div>
-            `;
-          } else if (categoria === 'defensiva') {
-            const fieldingPct = parseFloat(lider.fielding_percentage || lider.fld_pct) || 0;
-            const putouts = parseInt(lider.putouts || lider.po) || 0;
-            const assists = parseInt(lider.assists || lider.a) || 0;
-            const errors = parseInt(lider.errors || lider.e) || 0;
-                
-            statsHTML = `
-              <div class="stat">
-                <span class="stat-value">${fieldingPct.toFixed(3)}</span>
-                <span class="stat-label">FLD%</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${putouts}</span>
-                <span class="stat-label">PO</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${assists}</span>
-                <span class="stat-label">A</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${errors}</span>
-                <span class="stat-label">E</span>
-              </div>
-            `;
-          }
+            let statsHTML = '';
+           
+            if (categoria === 'bateo') {
+                const avg = parseFloat(lider.promedio_bateo || lider.avg) || 0;
+                const hr = parseInt(lider.home_runs || lider.hr) || 0;
+                const rbi = parseInt(lider.rbi) || 0;
+                const ops = parseFloat(lider.ops) || 0;
+                       
+                statsHTML = `
+                    <div class="stat">
+                        <span class="stat-value">${avg.toFixed(3)}</span>
+                        <span class="stat-label">AVG</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${hr}</span>
+                        <span class="stat-label">HR</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${rbi}</span>
+                        <span class="stat-label">RBI</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${ops.toFixed(3)}</span>
+                        <span class="stat-label">OPS</span>
+                    </div>
+                `;
+            } else if (categoria === 'pitcheo') {
+                const era = parseFloat(lider.era) || 0;
+                const so = parseInt(lider.strikeouts || lider.so) || 0;
+                const whip = parseFloat(lider.whip) || 0;
+                const wins = parseInt(lider.wins || lider.w) || 0;
+                       
+                statsHTML = `
+                    <div class="stat">
+                        <span class="stat-value">${era.toFixed(2)}</span>
+                        <span class="stat-label">ERA</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${so}</span>
+                        <span class="stat-label">SO</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${whip.toFixed(2)}</span>
+                        <span class="stat-label">WHIP</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${wins}</span>
+                        <span class="stat-label">W</span>
+                    </div>
+                `;
+            } else if (categoria === 'defensiva') {
+                const fieldingPct = parseFloat(lider.fielding_percentage || lider.fld_pct) || 0;
+                const putouts = parseInt(lider.putouts || lider.po) || 0;
+                const assists = parseInt(lider.assists || lider.a) || 0;
+                const errors = parseInt(lider.errors || lider.e) || 0;
+                       
+                statsHTML = `
+                    <div class="stat">
+                        <span class="stat-value">${fieldingPct.toFixed(3)}</span>
+                        <span class="stat-label">FLD%</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${putouts}</span>
+                        <span class="stat-label">PO</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${assists}</span>
+                        <span class="stat-label">A</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${errors}</span>
+                        <span class="stat-label">E</span>
+                    </div>
+                `;
+            }
 
-          const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
-          const rankColor = rankColors[index] || '#4A90E2';
+            const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+            const rankColor = rankColors[index] || '#4A90E2';
 
-          return `
-            <div class="leader-card">
-              <div class="leader-rank" style="background: ${rankColor};">
-                ${index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
-              </div>
-              <div class="leader-info">
-                <h3>${nombreJugador}</h3>
-                <p class="team-name">${nombreEquipo}</p>
-                <p class="player-position" style="color: #ffd700; font-size: 0.85rem; margin: 5px 0 10px 0;">
-                  Posición: ${posicion}
-                </p>
-                <div class="leader-stats">
-                  ${statsHTML}
+            return `
+                <div class="leader-card">
+                    <div class="leader-rank" style="background: ${rankColor};">
+                        ${index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`}
+                    </div>
+                    <div class="leader-info">
+                        <h3>${nombreJugador}</h3>
+                        <p class="team-name">${nombreEquipo}</p>
+                        <p class="player-position" style="color: #ffd700; font-size: 0.85rem; margin: 5px 0 10px 0;">
+                            Posición: ${posicion}
+                        </p>
+                        <div class="leader-stats">
+                            ${statsHTML}
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-          `;
+            `;
         }
 
         // Definición de posiciones
         const POSICIONES_BEISBOL = [
-          { codigo: 'C', nombre: 'Catcher', icono: '⚾' },
-          { codigo: '1B', nombre: 'Primera Base', icono: '🥇' },
-          { codigo: '2B', nombre: 'Segunda Base', icono: '🥈' },
-          { codigo: '3B', nombre: 'Tercera Base', icono: '🥉' },
-          { codigo: 'SS', nombre: 'Shortstop', icono: '💎' },
-          { codigo: 'LF', nombre: 'Left Field', icono: '🦅' },
-          { codigo: 'CF', nombre: 'Center Field', icono: '🦅' },
-          { codigo: 'RF', nombre: 'Right Field', icono: '🦅' },
-          { codigo: 'P', nombre: 'Pitcher', icono: '🎯' }
+            { codigo: 'C', nombre: 'Catcher', icono: '⚾' },
+            { codigo: '1B', nombre: 'Primera Base', icono: '🥇' },
+            { codigo: '2B', nombre: 'Segunda Base', icono: '🥈' },
+            { codigo: '3B', nombre: 'Tercera Base', icono: '🥉' },
+            { codigo: 'SS', nombre: 'Shortstop', icono: '💎' },
+            { codigo: 'LF', nombre: 'Left Field', icono: '🦅' },
+            { codigo: 'CF', nombre: 'Center Field', icono: '🦅' },
+            { codigo: 'RF', nombre: 'Right Field', icono: '🦅' },
+            { codigo: 'P', nombre: 'Pitcher', icono: '🎯' }
         ];
 
         function renderizarTodosPorPosicion() {
-          console.log('🔧 Renderizando pestaña "Todos" por posición...');
-          const container = document.getElementById('positionsContainer');
-          if (!container) {
-            console.error('❌ Contenedor positionsContainer no encontrado');
-            return;
-          }
-
-          let html = '';
-          let totalJugadoresRenderizados = 0;
-
-          POSICIONES_BEISBOL.forEach(pos => {
-            
-            // 🐛 PROBLEMA 3 CORREGIDO
-            // Combinar todos los jugadores disponibles
-            const todosJugadores = [
-              ...(leadersData.bateo || []),
-              ...(leadersData.pitcheo || []),
-              ...(leadersData.defensiva || [])
-            ];
-            console.log(`📊 Total jugadores disponibles para ${pos.codigo}:`, todosJugadores.length);
-            
-            // Filtrar por posición y eliminar duplicados
-            const jugadoresUnicos = {};
-            todosJugadores.forEach(j => {
-              // ✅ BUSCAR EN MÚLTIPLES PROPIEDADES
-              const posicionJugador = j.posicion || j.posicion_principal || j.pos || '';
-              const id = j.jugador_id || j.id;
-                
-              // ✅ COMPARACIÓN MÁS FLEXIBLE
-              const coincidePosicion = 
-                 posicionJugador.toUpperCase() === pos.codigo.toUpperCase() ||
-                 posicionJugador === pos.codigo ||
-                 (pos.codigo === 'UTIL' && !posicionJugador); // UTIL para jugadores sin posición
-                
-              if (coincidePosicion && id) {
-                // Si ya existe, mantener el que tenga mejor promedio
-                if (!jugadoresUnicos[id]) {
-                  jugadoresUnicos[id] = j;
-                } else {
-                  const avgActual = parseFloat(jugadoresUnicos[id].promedio_bateo || 0);
-                  const avgNuevo = parseFloat(j.promedio_bateo || 0);
-                  if (avgNuevo > avgActual) {
-                    jugadoresUnicos[id] = j;
-                  }
-                }
-              }
-            });
-            
-            // Convertir a array
-            let jugadoresPosicion = Object.values(jugadoresUnicos);
-            console.log(`✅ Jugadores únicos para ${pos.codigo}:`, jugadoresPosicion.length);
-            
-            // Ordenar según tipo
-            if (pos.codigo === 'P') {
-              // Pitchers: ordenar por ERA (menor es mejor)
-              jugadoresPosicion.sort((a, b) => {
-                const eraA = parseFloat(a.era) || 99.99;
-                const eraB = parseFloat(b.era) || 99.99;
-                return eraA - eraB;
-              });
-            } else {
-              // Bateadores: ordenar por AVG (mayor es mejor)
-              jugadoresPosicion.sort((a, b) => {
-                const avgA = parseFloat(a.promedio_bateo || a.avg) || 0;
-                const avgB = parseFloat(b.promedio_bateo || b.avg) || 0;
-                return avgB - avgA;
-              });
+            console.log('🔧 Renderizando pestaña "Todos" por posición...');
+            const container = document.getElementById('positionsContainer');
+            if (!container) {
+                console.error('❌ Contenedor positionsContainer no encontrado');
+                return;
             }
-            
-            // Top 5
-            jugadoresPosicion = jugadoresPosicion.slice(0, 5);
-            totalJugadoresRenderizados += jugadoresPosicion.length;
-            // FIN DEL BLOQUE CORREGIDO
 
-            html += `
-              <div class="position-section" data-position="${pos.codigo}">
-                <h3 class="position-title">
-                  <span class="position-icon">${pos.icono}</span>
-                  <span>${pos.nombre} (${pos.codigo}) - Top 5</span>
-                </h3>
-                <div class="position-cards">
-                  ${jugadoresPosicion.length > 0 
-                     ? jugadoresPosicion.map((jugador, index) => generarCardJugador(jugador, index, pos.codigo)).join('')
-                     : '<div class="empty-position">Sin jugadores registrados en esta posición</div>'
-                  }
-                </div>
-              </div>
-            `;
-          });
-          container.innerHTML = html;
-          console.log(`✅ Renderizadas ${POSICIONES_BEISBOL.length} posiciones con ${totalJugadoresRenderizados} jugadores totales`);
+            let html = '';
+            let totalJugadoresRenderizados = 0;
+
+            POSICIONES_BEISBOL.forEach(pos => {
+               
+                // 🐛 PROBLEMA 3 CORREGIDO
+                // Combinar todos los jugadores disponibles
+                const todosJugadores = [
+                    ...(leadersData.bateo || []),
+                    ...(leadersData.pitcheo || []),
+                    ...(leadersData.defensiva || [])
+                ];
+                console.log(`📊 Total jugadores disponibles para ${pos.codigo}:`, todosJugadores.length);
+               
+                // Filtrar por posición y eliminar duplicados
+                const jugadoresUnicos = {};
+                todosJugadores.forEach(j => {
+                    // ✅ BUSCAR EN MÚLTIPLES PROPIEDADES
+                    const posicionJugador = j.posicion || j.posicion_principal || j.pos || '';
+                    const id = j.jugador_id || j.id;
+                       
+                    // ✅ COMPARACIÓN MÁS FLEXIBLE
+                    const coincidePosicion = 
+                        posicionJugador.toUpperCase() === pos.codigo.toUpperCase() ||
+                        posicionJugador === pos.codigo ||
+                        (pos.codigo === 'UTIL' && !posicionJugador); // UTIL para jugadores sin posición
+                       
+                    if (coincidePosicion && id) {
+                        // Si ya existe, mantener el que tenga mejor promedio
+                        if (!jugadoresUnicos[id]) {
+                            jugadoresUnicos[id] = j;
+                        } else {
+                            const avgActual = parseFloat(jugadoresUnicos[id].promedio_bateo || 0);
+                            const avgNuevo = parseFloat(j.promedio_bateo || 0);
+                            if (avgNuevo > avgActual) {
+                                jugadoresUnicos[id] = j;
+                            }
+                        }
+                    }
+                });
+               
+                // Convertir a array
+                let jugadoresPosicion = Object.values(jugadoresUnicos);
+                console.log(`✅ Jugadores únicos para ${pos.codigo}:`, jugadoresPosicion.length);
+               
+                // Ordenar según tipo
+                if (pos.codigo === 'P') {
+                    // Pitchers: ordenar por ERA (menor es mejor)
+                    jugadoresPosicion.sort((a, b) => {
+                        const eraA = parseFloat(a.era) || 99.99;
+                        const eraB = parseFloat(b.era) || 99.99;
+                        return eraA - eraB;
+                    });
+                } else {
+                    // Bateadores: ordenar por AVG (mayor es mejor)
+                    jugadoresPosicion.sort((a, b) => {
+                        const avgA = parseFloat(a.promedio_bateo || a.avg) || 0;
+                        const avgB = parseFloat(b.promedio_bateo || b.avg) || 0;
+                        return avgB - avgA;
+                    });
+                }
+               
+                // Top 5
+                jugadoresPosicion = jugadoresPosicion.slice(0, 5);
+                totalJugadoresRenderizados += jugadoresPosicion.length;
+                // FIN DEL BLOQUE CORREGIDO
+
+                html += `
+                    <div class="position-section" data-position="${pos.codigo}">
+                        <h3 class="position-title">
+                            <span class="position-icon">${pos.icono}</span>
+                            <span>${pos.nombre} (${pos.codigo}) - Top 5</span>
+                        </h3>
+                        <div class="position-cards">
+                            ${jugadoresPosicion.length > 0 
+                                ? jugadoresPosicion.map((jugador, index) => generarCardJugador(jugador, index, pos.codigo)).join('')
+                                : '<div class="empty-position">Sin jugadores registrados en esta posición</div>'
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            console.log(`✅ Renderizadas ${POSICIONES_BEISBOL.length} posiciones con ${totalJugadoresRenderizados} jugadores totales`);
         }
-        
+       
         // 🐛 PROBLEMA 1 CORREGIDO
         /**
          * ✅ Generar card individual de jugador - VERSIÓN CORREGIDA
          */
         function generarCardJugador(jugador, index, posicion) {
-          const esPitcher = posicion === 'P';
-          
-          // ✅ OBTENER NOMBRE CON MÚLTIPLES FALLBACKS
-          const nombreJugador = jugador.nombre_jugador || 
-                                jugador.nombre || 
-                                jugador.jugador_nombre ||
-                                jugador.player_name ||
-                                'Sin Nombre';
-            
-          const nombreEquipo = jugador.equipo_nombre || 
-                               jugador.team_name || 
-                               jugador.equipo || 
-                               'Sin Equipo';
-            
-          // Stats según tipo de jugador
-          let statsHTML = '';
-            
-          if (esPitcher) {
-            // ✅ CONVERTIR A NÚMERO PRIMERO
-            const era = parseFloat(jugador.era) || 0;
-            const strikeouts = parseInt(jugador.strikeouts || jugador.so) || 0;
-            const whip = parseFloat(jugador.whip) || 0;
-                
-            statsHTML = `
-              <div class="stat">
-                <span class="stat-value">${era.toFixed(2)}</span>
-                <span class="stat-label">ERA</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${strikeouts}</span>
-                <span class="stat-label">SO</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${whip.toFixed(2)}</span>
-                <span class="stat-label">WHIP</span>
-              </div>
-            `;
-          } else {
-            // ✅ CONVERTIR A NÚMERO PRIMERO
-            const avg = parseFloat(jugador.promedio_bateo || jugador.avg) || 0;
-            const hr = parseInt(jugador.home_runs || jugador.hr) || 0;
-            const rbi = parseInt(jugador.rbi) || 0;
-            const ops = parseFloat(jugador.ops) || 0;
-                
-            statsHTML = `
-              <div class="stat">
-                <span class="stat-value">${avg.toFixed(3)}</span>
-                <span class="stat-label">AVG</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${hr}</span>
-                <span class="stat-label">HR</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${rbi}</span>
-                <span class="stat-label">RBI</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${ops.toFixed(3)}</span>
-                <span class="stat-label">OPS</span>
-              </div>
-            `;
-          }
-            
-          // Colores de ranking
-          const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32', '#4A90E2', '#9B59B6'];
-          const rankColor = rankColors[index] || '#6C757D';
-            
-          // Medallas para top 3
-          const rankDisplay = index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`;
-            
-          // ID del jugador
-          const jugadorId = jugador.jugador_id || jugador.id || 'unknown';
-            
-          // Logo del equipo
-          const logoEquipo = getTeamLogo(nombreEquipo);
-            
-          return `
-            <div class="player-card" 
-                 data-player-id="${jugadorId}" 
-                 data-player-name="${nombreJugador.toLowerCase()}">
-                
-              <div class="player-rank" style="background: ${rankColor};">
-                ${rankDisplay}
-              </div>
-                    
-              <div class="player-avatar">
-                <img 
-                   src="/public/images/players/${jugadorId}.jpg" 
-                   alt="${nombreJugador}"
-                   onerror="this.src='/public/images/default-player.png'"
-                />
-              </div>
-                    
-              <div class="player-info">
-                <h4 class="player-name">${nombreJugador}</h4>
-                <p class="player-team">${nombreEquipo}</p>
-                <p class="player-position" style="color: #ffd700; font-size: 0.9rem; margin: 5px 0;">
-                  ${posicion || 'UTIL'}
-                </p>
-                        
-                <div class="player-stats">
-                  ${statsHTML}
+            const esPitcher = posicion === 'P';
+           
+            // ✅ OBTENER NOMBRE CON MÚLTIPLES FALLBACKS
+            const nombreJugador = jugador.nombre_jugador || 
+                                    jugador.nombre || 
+                                    jugador.jugador_nombre ||
+                                    jugador.player_name ||
+                                    'Sin Nombre';
+           
+            const nombreEquipo = jugador.equipo_nombre || 
+                                   jugador.team_name || 
+                                   jugador.equipo || 
+                                   'Sin Equipo';
+           
+            // Stats según tipo de jugador
+            let statsHTML = '';
+           
+            if (esPitcher) {
+                // ✅ CONVERTIR A NÚMERO PRIMERO
+                const era = parseFloat(jugador.era) || 0;
+                const strikeouts = parseInt(jugador.strikeouts || jugador.so) || 0;
+                const whip = parseFloat(jugador.whip) || 0;
+                       
+                statsHTML = `
+                    <div class="stat">
+                        <span class="stat-value">${era.toFixed(2)}</span>
+                        <span class="stat-label">ERA</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${strikeouts}</span>
+                        <span class="stat-label">SO</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${whip.toFixed(2)}</span>
+                        <span class="stat-label">WHIP</span>
+                    </div>
+                `;
+            } else {
+                // ✅ CONVERTIR A NÚMERO PRIMERO
+                const avg = parseFloat(jugador.promedio_bateo || jugador.avg) || 0;
+                const hr = parseInt(jugador.home_runs || jugador.hr) || 0;
+                const rbi = parseInt(jugador.rbi) || 0;
+                const ops = parseFloat(jugador.ops) || 0;
+                       
+                statsHTML = `
+                    <div class="stat">
+                        <span class="stat-value">${avg.toFixed(3)}</span>
+                        <span class="stat-label">AVG</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${hr}</span>
+                        <span class="stat-label">HR</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${rbi}</span>
+                        <span class="stat-label">RBI</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">${ops.toFixed(3)}</span>
+                        <span class="stat-label">OPS</span>
+                    </div>
+                `;
+            }
+           
+            // Colores de ranking
+            const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32', '#4A90E2', '#9B59B6'];
+            const rankColor = rankColors[index] || '#6C757D';
+           
+            // Medallas para top 3
+            const rankDisplay = index < 3 ? ['🥇', '🥈', '🥉'][index] : `#${index + 1}`;
+           
+            // ID del jugador
+            const jugadorId = jugador.jugador_id || jugador.id || 'unknown';
+           
+            // Logo del equipo
+            const logoEquipo = getTeamLogo(nombreEquipo);
+           
+            return `
+                <div class="player-card" 
+                     data-player-id="${jugadorId}" 
+                     data-player-name="${nombreJugador.toLowerCase()}">
+                   
+                    <div class="player-rank" style="background: ${rankColor};">
+                        ${rankDisplay}
+                    </div>
+                       
+                    <div class="player-avatar">
+                        <img 
+                           src="/public/images/players/${jugadorId}.jpg" 
+                           alt="${nombreJugador}"
+                           onerror="this.src='/public/images/default-player.png'"
+                        />
+                    </div>
+                       
+                    <div class="player-info">
+                        <h4 class="player-name">${nombreJugador}</h4>
+                        <p class="player-team">${nombreEquipo}</p>
+                        <p class="player-position" style="color: #ffd700; font-size: 0.9rem; margin: 5px 0;">
+                            ${posicion || 'UTIL'}
+                        </p>
+                                   
+                        <div class="player-stats">
+                            ${statsHTML}
+                        </div>
+                    </div>
+                       
+                    <div class="team-logo">
+                        <img 
+                           src="${logoEquipo}" 
+                           alt="${nombreEquipo}"
+                        />
+                    </div>
                 </div>
-              </div>
-                    
-              <div class="team-logo">
-                <img 
-                   src="${logoEquipo}" 
-                   alt="${nombreEquipo}"
-                />
-              </div>
-            </div>
-          `;
+            `;
         }
 
         function getTeamLogo(equipoNombre) {
-          if (!equipoNombre) return '/public/images/logos/default-logo.png';
+            if (!equipoNombre) return '/public/images/logos/default-logo.png';
             const logoMap = {
-            'guerreros del norte': 'guerreros-del-norte.png',
-            'la guaira': 'la-guaira.png',
-            'furia del caribe': 'furia-del-caribe.png',
-            'tigres unidos': 'tigres-unidos.png',
-            'leones dorados': 'leones-dorados.png',
-            'aguilas negras': 'aguilas-negras.png',
-            'venearstone': 'venearstone.png',
-            'desss': 'desss.png',
-            'caribes rd': 'caribes-rd.png'
-          };
+                'guerreros del norte': 'guerreros-del-norte.png',
+                'la guaira': 'la-guaira.png',
+                'furia del caribe': 'furia-del-caribe.png',
+                'tigres unidos': 'tigres-unidos.png',
+                'leones dorados': 'leones-dorados.png',
+                'aguilas negras': 'aguilas-negras.png',
+                'venearstone': 'venearstone.png',
+                'desss': 'desss.png',
+                'caribes rd': 'caribes-rd.png'
+            };
             const nombreNormalizado = equipoNombre.toLowerCase().trim();
-          const logoFile = logoMap[nombreNormalizado];
+            const logoFile = logoMap[nombreNormalizado];
             return logoFile 
-             ? `/public/images/logos/${logoFile}` 
-             : '/public/images/logos/default-logo.png';
+                ? `/public/images/logos/${logoFile}` 
+                : '/public/images/logos/default-logo.png';
         }
 
         function initBuscadorJugadores() {
-          const searchInput = document.getElementById('searchPlayerInput');
+            const searchInput = document.getElementById('searchPlayerInput');
             if (!searchInput) {
-            console.warn('⚠️ Buscador no encontrado');
-            return;
-          }
+                console.warn('⚠️ Buscador no encontrado');
+                return;
+            }
             searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            const resultsCount = document.getElementById('searchResultsCount');
-                
-            if (searchTerm.length < 2) {
-              document.querySelectorAll('.player-card').forEach(card => {
-                card.style.display = 'flex';
-                card.classList.remove('highlight');
-              });
-              if (resultsCount) resultsCount.textContent = '';
-              return;
-            }
-                
-            let encontrados = 0;
-            let primerResultado = null;
-                
-            document.querySelectorAll('.player-card').forEach(card => {
-              const playerName = card.dataset.playerName || '';
-                    
-              if (playerName.includes(searchTerm)) {
-                card.style.display = 'flex';
-                card.classList.add('highlight');
-                encontrados++;
-                        
-                if (!primerResultado) {
-                  primerResultado = card;
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const resultsCount = document.getElementById('searchResultsCount');
+                       
+                if (searchTerm.length < 2) {
+                    document.querySelectorAll('.player-card').forEach(card => {
+                        card.style.display = 'flex';
+                        card.classList.remove('highlight');
+                    });
+                    if (resultsCount) resultsCount.textContent = '';
+                    return;
                 }
-              } else {
-                card.style.display = 'none';
-                card.classList.remove('highlight');
-              }
-            });
-                
-            if (resultsCount) {
-              if (encontrados === 0) {
-                resultsCount.textContent = '❌ No se encontraron jugadores';
-                resultsCount.style.color = '#ff4757';
-              } else {
-                resultsCount.textContent = `✅ ${encontrados} jugador${encontrados !== 1 ? 'es' : ''} encontrado${encontrados !== 1 ? 's' : ''}`;
-                resultsCount.style.color = '#ffd700';
-              }
-            }
-                
-            if (primerResultado) {
-              setTimeout(() => {
-                primerResultado.scrollIntoView({ 
-                   behavior: 'smooth', 
-                   block: 'center' 
-                 });
-              }, 100);
-            }
-          });
-            console.log('✅ Buscador de jugadores inicializado');
-        }
-        
-        function configurarTabsLideres() {
-            document.querySelectorAll('.leader-filter').forEach(filter => {
-              filter.addEventListener('click', function() {
-                const categoria = this.dataset.category;
-                renderizarLideresPorCategoria(categoria);
-              });
-            });
-        }
-        
-        async function cargarEstadisticasCompletas() {
-             try {
-                const data = await fetchJSON('/api/estadisticas-ofensivas');
-                let estadisticasFiltradas;
-                const tiene2025 = (data || []).some(r => (r.temporada ?? '').toString().trim() === '2025');
-
-                if (tiene2025) {
-                    estadisticasFiltradas = data.filter(r => (r.temporada ?? '').toString().trim() === '2025');
-                } else {
-                    estadisticasFiltradas = data || [];
-                }
-                estadisticas = estadisticasFiltradas;
-                
-                const tbody = document.getElementById('statsTable').querySelector('tbody');
-                if(tbody) {
-                     tbody.innerHTML = estadisticasFiltradas.slice(0, 10).map(s => `<tr><td>${s.jugador_nombre}</td><td>${s.equipo_nombre}</td><td>${s.posicion || '-'}</td><td>${s.at_bats}</td><td>${s.hits}</td><td>${s.avg}</td><td>${s.obp}</td><td>${s.ops}</td><td>${s.home_runs}</td><td>${s.rbi}</td><td>-</td></tr>`).join('');
-                }
-             } catch(e) { console.error('❌ Error cargando estadísticas completas:', e); }
-
-             try {
-                const lideres = leadersData.defensiva || [];
-                const grid = document.getElementById('positionLeadersGrid');
-                if (grid) {
-                    if (lideres.length > 0) {
-                        // Agrupar por posición y tomar el mejor de cada una
-                        const mejoresPorPosicion = {};
-                        lideres.forEach(l => {
-                            const pos = l.posicion || 'UTIL';
-                            const fldPct = parseFloat(l.fielding_percentage) || 0;
-                            if (!mejoresPorPosicion[pos] || fldPct > parseFloat(mejoresPorPosicion[pos].fielding_percentage || 0)) {
-                                mejoresPorPosicion[pos] = l;
-                            }
-                        });
-                        // Renderizar top 4 posiciones
-                        const posicionesOrdenadas = Object.values(mejoresPorPosicion)
-                            .sort((a, b) => {
-                                const fldA = parseFloat(a.fielding_percentage) || 0;
-                                const fldB = parseFloat(b.fielding_percentage) || 0;
-                                return fldB - fldA;
-                            })
-                            .slice(0, 4);
-                        grid.innerHTML = posicionesOrdenadas.map(l => {
-                            const fldPct = parseFloat(l.fielding_percentage) || 0;
-                            const po = parseInt(l.putouts) || 0;
-                            const a = parseInt(l.assists) || 0;
-                            const e = parseInt(l.errors) || 0;
-                            return `
-                                <div class="position-card" style="
-                                    background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
-                                    border-radius: 16px;
-                                    padding: 20px;
-                                    border: 2px solid rgba(255, 215, 0, 0.2);
-                                ">
-                                    <div class="position-title" style="
-                                        color: #ffd700;
-                                        font-size: 1.2rem;
-                                        font-weight: bold;
-                                        margin-bottom: 15px;
-                                        display: flex;
-                                        align-items: center;
-                                        gap: 8px;
-                                    ">
-                                        🛡️ ${l.posicion || 'UTIL'}
-                                    </div>
-                                    <div class="position-leader-item">
-                                        <div class="position-player-container" style="
-                                            display: flex;
-                                            flex-direction: column;
-                                            gap: 8px;
-                                        ">
-                                            <span class="position-player" style="
-                                                color: #fff;
-                                                font-weight: bold;
-                                                font-size: 1.1rem;
-                                            ">${l.nombre_jugador || l.jugador_nombre || 'Desconocido'}</span>
-                                                                            
-                                            <span class="position-team" style="
-                                                color: rgba(255, 215, 0, 0.7);
-                                                font-size: 0.9rem;
-                                            ">${l.equipo_nombre || 'Sin equipo'}</span>
-                                                                            
-                                            <div style="
-                                                display: flex;
-                                                gap: 12px;
-                                                margin-top: 10px;
-                                                flex-wrap: wrap;
-                                            ">
-                                                <div style="
-                                                    background: rgba(255, 215, 0, 0.15);
-                                                    padding: 6px 12px;
-                                                    border-radius: 8px;
-                                                ">
-                                                    <div style="color: #ffd700; font-size: 0.7rem;">FLD%</div>
-                                                    <div style="color: #fff; font-weight: bold; font-size: 1.1rem;">${fldPct.toFixed(3)}</div>
-                                                </div>
-                                                <div style="
-                                                    background: rgba(255, 255, 255, 0.05);
-                                                    padding: 6px 12px;
-                                                    border-radius: 8px;
-                                                ">
-                                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">PO</div>
-                                                    <div style="color: #fff; font-weight: bold;">${po}</div>
-                                                </div>
-                                                <div style="
-                                                    background: rgba(255, 255, 255, 0.05);
-                                                    padding: 6px 12px;
-                                                    border-radius: 8px;
-                                                ">
-                                                    <div style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">A</div>
-                                                    <div style="color: #fff; font-weight: bold;">${a}</div>
-                                                </div>
-                                                <div style="
-                                                    background: rgba(255, 140, 0, 0.15);
-                                                    padding: 6px 12px;
-                                                    border-radius: 8px;
-                                                ">
-                                                    <div style="color: #ff8c00; font-size: 0.7rem;">E</div>
-                                                    <div style="color: #ff8c00; font-weight: bold;">${e}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('');
+                       
+                let encontrados = 0;
+                let primerResultado = null;
+                       
+                document.querySelectorAll('.player-card').forEach(card => {
+                    const playerName = card.dataset.playerName || '';
+                               
+                    if (playerName.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                        card.classList.add('highlight');
+                        encontrados++;
+                                   
+                        if (!primerResultado) {
+                            primerResultado = card;
+                        }
                     } else {
-                        grid.innerHTML = `
-                            <div class="empty-state" style="
-                                padding: 40px;
-                                text-align: center;
-                                background: rgba(255, 215, 0, 0.05);
-                                border-radius: 16px;
-                                border: 2px dashed rgba(255, 215, 0, 0.3);
-                            ">
-                                <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
-                                <h3 style="color: #ffd700; margin-bottom: 10px;">Sin datos defensivos</h3>
-                                <p style="color: rgba(255,255,255,0.6);">Los líderes aparecerán cuando haya estadísticas disponibles</p>
-                            </div>
-                        `;
+                        card.style.display = 'none';
+                        card.classList.remove('highlight');
+                    }
+                });
+                       
+                if (resultsCount) {
+                    if (encontrados === 0) {
+                        resultsCount.textContent = '❌ No se encontraron jugadores';
+                        resultsCount.style.color = '#ff4757';
+                    } else {
+                        resultsCount.textContent = `✅ ${encontrados} jugador${encontrados !== 1 ? 'es' : ''} encontrado${encontrados !== 1 ? 's' : ''}`;
+                        resultsCount.style.color = '#ffd700';
                     }
                 }
-            } catch(e) { 
-                 console.error('❌ Error renderizando líderes defensivos:', e);
-                 const grid = document.getElementById('positionLeadersGrid');
-                if (grid) {
-                    grid.innerHTML = '<div class="empty-state" style="color: #ff6b6b;">Error al cargar datos defensivos</div>';
+                       
+                if (primerResultado) {
+                    setTimeout(() => {
+                        primerResultado.scrollIntoView({ 
+                           behavior: 'smooth', 
+                           block: 'center' 
+                        });
+                    }, 100);
                 }
-            }
+            });
+            console.log('✅ Buscador de jugadores inicializado');
+        }
+       
+        function configurarTabsLideres() {
+            document.querySelectorAll('.leader-filter').forEach(filter => {
+                filter.addEventListener('click', function() {
+                    const categoria = this.dataset.category;
+                    renderizarLideresPorCategoria(categoria);
+                });
+            });
+        }
+       
+        async function cargarEstadisticasCompletas() {
+             try {
+                 const data = await fetchJSON('/api/estadisticas-ofensivas');
+                 let estadisticasFiltradas;
+                 const tiene2025 = (data || []).some(r => (r.temporada ?? '').toString().trim() === '2025');
+
+                 if (tiene2025) {
+                     estadisticasFiltradas = data.filter(r => (r.temporada ?? '').toString().trim() === '2025');
+                 } else {
+                     estadisticasFiltradas = data || [];
+                 }
+                 estadisticas = estadisticasFiltradas;
+               
+                 const tbody = document.getElementById('statsTable').querySelector('tbody');
+                 if(tbody) {
+                      tbody.innerHTML = estadisticasFiltradas.slice(0, 10).map(s => `<tr><td>${s.jugador_nombre}</td><td>${s.equipo_nombre}</td><td>${s.posicion || '-'}</td><td>${s.at_bats}</td><td>${s.hits}</td><td>${s.avg}</td><td>${s.obp}</td><td>${s.ops}</td><td>${s.home_runs}</td><td>${s.rbi}</td><td>-</td></tr>`).join('');
+                 }
+              } catch(e) { console.error('❌ Error cargando estadísticas completas:', e); }
+
+             try {
+                 const lideres = leadersData.defensiva || [];
+                 const grid = document.getElementById('positionLeadersGrid');
+                 if (grid) {
+                     if (lideres.length > 0) {
+                         // Agrupar por posición y tomar el mejor de cada una
+                         const mejoresPorPosicion = {};
+                         lideres.forEach(l => {
+                             const pos = l.posicion || 'UTIL';
+                             const fldPct = parseFloat(l.fielding_percentage) || 0;
+                             if (!mejoresPorPosicion[pos] || fldPct > parseFloat(mejoresPorPosicion[pos].fielding_percentage || 0)) {
+                                 mejoresPorPosicion[pos] = l;
+                             }
+                         });
+                         // Renderizar top 4 posiciones
+                         const posicionesOrdenadas = Object.values(mejoresPorPosicion)
+                             .sort((a, b) => {
+                                 const fldA = parseFloat(a.fielding_percentage) || 0;
+                                 const fldB = parseFloat(b.fielding_percentage) || 0;
+                                 return fldB - fldA;
+                             })
+                             .slice(0, 4);
+                         grid.innerHTML = posicionesOrdenadas.map(l => {
+                             const fldPct = parseFloat(l.fielding_percentage) || 0;
+                             const po = parseInt(l.putouts) || 0;
+                             const a = parseInt(l.assists) || 0;
+                             const e = parseInt(l.errors) || 0;
+                             return `
+                                 <div class="position-card" style="
+                                     background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
+                                     border-radius: 16px;
+                                     padding: 20px;
+                                     border: 2px solid rgba(255, 215, 0, 0.2);
+                                 ">
+                                     <div class="position-title" style="
+                                         color: #ffd700;
+                                         font-size: 1.2rem;
+                                         font-weight: bold;
+                                         margin-bottom: 15px;
+                                         display: flex;
+                                         align-items: center;
+                                         gap: 8px;
+                                     ">
+                                         🛡️ ${l.posicion || 'UTIL'}
+                                     </div>
+                                     <div class="position-leader-item">
+                                         <div class="position-player-container" style="
+                                             display: flex;
+                                             flex-direction: column;
+                                             gap: 8px;
+                                         ">
+                                             <span class="position-player" style="
+                                                 color: #fff;
+                                                 font-weight: bold;
+                                                 font-size: 1.1rem;
+                                             ">${l.nombre_jugador || l.jugador_nombre || 'Desconocido'}</span>
+                                                                        
+                                             <span class="position-team" style="
+                                                 color: rgba(255, 215, 0, 0.7);
+                                                 font-size: 0.9rem;
+                                             ">${l.equipo_nombre || 'Sin equipo'}</span>
+                                                                        
+                                             <div style="
+                                                 display: flex;
+                                                 gap: 12px;
+                                                 margin-top: 10px;
+                                                 flex-wrap: wrap;
+                                             ">
+                                                 <div style="
+                                                     background: rgba(255, 215, 0, 0.15);
+                                                     padding: 6px 12px;
+                                                     border-radius: 8px;
+                                                 ">
+                                                     <div style="color: #ffd700; font-size: 0.7rem;">FLD%</div>
+                                                     <div style="color: #fff; font-weight: bold; font-size: 1.1rem;">${fldPct.toFixed(3)}</div>
+                                                 </div>
+                                                 <div style="
+                                                     background: rgba(255, 255, 255, 0.05);
+                                                     padding: 6px 12px;
+                                                     border-radius: 8px;
+                                                 ">
+                                                     <div style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">PO</div>
+                                                     <div style="color: #fff; font-weight: bold;">${po}</div>
+                                                 </div>
+                                                 <div style="
+                                                     background: rgba(255, 255, 255, 0.05);
+                                                     padding: 6px 12px;
+                                                     border-radius: 8px;
+                                                 ">
+                                                     <div style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">A</div>
+                                                     <div style="color: #fff; font-weight: bold;">${a}</div>
+                                                 </div>
+                                                 <div style="
+                                                     background: rgba(255, 140, 0, 0.15);
+                                                     padding: 6px 12px;
+                                                     border-radius: 8px;
+                                                 ">
+                                                     <div style="color: #ff8c00; font-size: 0.7rem;">E</div>
+                                                     <div style="color: #ff8c00; font-weight: bold;">${e}</div>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     </div>
+                                 </div>
+                             `;
+                         }).join('');
+                     } else {
+                         grid.innerHTML = `
+                             <div class="empty-state" style="
+                                 padding: 40px;
+                                 text-align: center;
+                                 background: rgba(255, 215, 0, 0.05);
+                                 border-radius: 16px;
+                                 border: 2px dashed rgba(255, 215, 0, 0.3);
+                             ">
+                                 <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
+                                 <h3 style="color: #ffd700; margin-bottom: 10px;">Sin datos defensivos</h3>
+                                 <p style="color: rgba(255,255,255,0.6);">Los líderes aparecerán cuando haya estadísticas disponibles</p>
+                             </div>
+                         `;
+                     }
+                 }
+             } catch(e) { 
+                  console.error('❌ Error renderizando líderes defensivos:', e);
+                  const grid = document.getElementById('positionLeadersGrid');
+                 if (grid) {
+                     grid.innerHTML = '<div class="empty-state" style="color: #ff6b6b;">Error al cargar datos defensivos</div>';
+                 }
+             }
             }
 
         // =================================================================================
@@ -3499,9 +3498,9 @@
             cargarPlayoffsClasificacion();
             await cargarLideres(); 
             configurarTabsLideres();
-            
+           
             await cargarDatosParaBusqueda(); 
-            
+           
             await cargarProximosPartidos(); 
             await cargarEstadisticasCompletas(); 
 
@@ -3515,87 +3514,84 @@
         });
 
         function initStickyHeader() {
-          console.log('🔧 Inicializando header sticky...');
+            console.log('🔧 Inicializando header sticky...');
             const header = document.querySelector('.header');
             if (!header) {
-            console.warn('⚠️ Header no encontrado');
-            return;
-          }
+                console.warn('⚠️ Header no encontrado');
+                return;
+            }
             let lastScroll = 0;
             window.addEventListener('scroll', function() {
-            const currentScroll = window.pageYOffset;
-            if (currentScroll > 100) {
-              if (!header.classList.contains('scrolled')) {
-                header.classList.add('scrolled');
-                console.log('✅ Header compacto activado');
-              }
-            } else {
-              if (header.classList.contains('scrolled')) {
-                header.classList.remove('scrolled');
-                console.log('✅ Header normal restaurado');
-              }
-            }
-                lastScroll = currentScroll;
-          });
+                const currentScroll = window.pageYOffset;
+                if (currentScroll > 100) {
+                    if (!header.classList.contains('scrolled')) {
+                        header.classList.add('scrolled');
+                        console.log('✅ Header compacto activado');
+                    }
+                } else {
+                    if (header.classList.contains('scrolled')) {
+                        header.classList.remove('scrolled');
+                        console.log('✅ Header normal restaurado');
+                    }
+                }
+                    lastScroll = currentScroll;
+            });
             console.log('✅ Header sticky inicializado');
         }
-        
+       
         async function cargarDatosParaBusqueda() {
              try {
-                const [equiposRes, partidosRes] = await Promise.all([
-                    fetchJSON('/api/equipos'),
-                    fetchJSON('/api/partidos')
-                ]);
+                 const [equiposRes, partidosRes] = await Promise.all([
+                     fetchJSON('/api/equipos'),
+                     fetchJSON('/api/partidos')
+                 ]);
 
-                equipos = Array.isArray(equiposRes) ? equiposRes : [];
-                partidos = Array.isArray(partidosRes) ? partidosRes : [];
+                 equipos = Array.isArray(equiposRes) ? equiposRes : [];
+                 partidos = Array.isArray(partidosRes) ? partidosRes : [];
 
-                console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${partidos.length} partidos.`);
+                 console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${partidos.length} partidos.`);
 
-             } catch(e) {
-                 console.error("❌ Error cargando datos para búsqueda:", e);
-                 equipos = [];
-                 partidos = [];
-             }
+              } catch(e) {
+                   console.error("❌ Error cargando datos para búsqueda:", e);
+                   equipos = [];
+                   partidos = [];
+              }
         }
-        
+       
         function mostrarPestana(nombrePestana) {
             console.log(`📍 Navegando a: ${nombrePestana}`);
-
+        
             // 1. Ocultar todas las secciones
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
                 tab.style.display = 'none';
             });
-
+        
             // 2. Mostrar la sección seleccionada
             const pestanaActiva = document.getElementById(nombrePestana);
             if (pestanaActiva) {
                 pestanaActiva.classList.add('active');
                 pestanaActiva.style.display = 'block';
-                console.log(`✅ Sección mostrada: ${nombrePestana}`);
-            } else {
-                console.error(`❌ No se encontró la sección: ${nombrePestana}`);
             }
-
+        
             // 3. Actualizar pestañas desktop
             document.querySelectorAll('.nav-tabs .nav-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-
-            // 4. Activar pestaña correcta (buscar por data-section O href)
+        
+            // 4. Activar pestaña correcta
             const botonActivo = document.querySelector(
                 `.nav-tab[data-section="${nombrePestana}"], .nav-tab[href="#${nombrePestana}"]`
             );
             if (botonActivo) {
                 botonActivo.classList.add('active');
             }
-
-            // 5. Scroll suave a la sección
+        
+            // 5. Scroll suave
             setTimeout(() => {
                 const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
                 const offsetTop = pestanaActiva ? pestanaActiva.offsetTop - headerHeight - 20 : 0;
-
+        
                 window.scrollTo({
                     top: offsetTop,
                     behavior: 'smooth'
@@ -3605,64 +3601,58 @@
 
         // Event listeners para navegación
         document.addEventListener('DOMContentLoaded', () => {
-            // Pestañas desktop
             document.querySelectorAll('.nav-tabs .nav-tab').forEach(tab => {
                 tab.addEventListener('click', (e) => {
                     e.preventDefault();
                     const seccion = tab.dataset.section || tab.getAttribute('href')?.replace('#', '');
-                    if (seccion) {
-                        mostrarPestana(seccion);
-                    }
+                    if (seccion) mostrarPestana(seccion);
                 });
             });
-
-            // Pestañas mobile
+        
             document.querySelectorAll('.mobile-menu-item').forEach(item => {
                 item.addEventListener('click', (e) => {
                     e.preventDefault();
                     const seccion = item.getAttribute('href')?.replace('#', '');
                     if (seccion) {
                         mostrarPestana(seccion);
-                        closeMobileMenu();
+                        if (typeof closeMobileMenu === 'function') closeMobileMenu();
                     }
                 });
             });
-
-            console.log('✅ Event listeners de navegación configurados');
         });
 
         async function cargarProximosPartidos() {
             try {
                 console.log('📅 Cargando próximos partidos...');
-                
+               
                 // ✅ CAMBIO: Usar endpoint correcto
                 const response = await fetch(getApiUrl('/api/proximos-partidos'));
-                
+               
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+               
                 const data = await response.json();
-                
+               
                 // Normalizar respuesta (por si viene como objeto o array)
                 let partidosRecibidos = Array.isArray(data) ? data :
-                                       (data.partidos && Array.isArray(data.partidos)) ? data.partidos :
-                                       (data.data && Array.isArray(data.data)) ? data.data : [];
-                
+                                        (data.partidos && Array.isArray(data.partidos)) ? data.partidos :
+                                        (data.data && Array.isArray(data.data)) ? data.data : [];
+               
                 console.log(`✅ Partidos programados encontrados: ${partidosRecibidos.length}`);
-                
+               
                 renderizarProximosPartidos(partidosRecibidos);
-                
+               
             } catch (error) {
                 console.error('❌ Error cargando próximos partidos:', error);
                 const container = document.getElementById('proximosPartidosContainer');
                 if (container) {
                     container.innerHTML = `
-                        <div class="proximos-partidos-empty">
-                            <h3>⚠️ Error de Conexión</h3>
-                            <p>${error.message || 'No se pudieron cargar los próximos partidos'}</p>
-                            <button class="btn-ver-detalles" onclick="cargarProximosPartidos()">🔄 Reintentar</button>
-                        </div>`;
+                            <div class="proximos-partidos-empty">
+                                <h3>⚠️ Error de Conexión</h3>
+                                <p>${error.message || 'No se pudieron cargar los próximos partidos'}</p>
+                                <button class="btn-ver-detalles" onclick="cargarProximosPartidos()">🔄 Reintentar</button>
+                            </div>`;
                 }
             }
         }
@@ -3671,36 +3661,36 @@
             const searchInput = document.getElementById('searchInput');
             const resultadosContainer = document.getElementById('searchResults');
             const query = searchInput.value.trim();
-            
+           
             if (query.length < 2) {
                 resultadosContainer.innerHTML = '';
                 resultadosContainer.style.display = 'none';
                 return;
             }
-            
+           
             try {
                 const response = await fetch(getApiUrl(`/api/jugadores/buscar?query=${encodeURIComponent(query)}`));
                 if (!response.ok) throw new Error('Error en la búsqueda');
                 const data = await response.json();
-                
+               
                 if (data.jugadores.length === 0) {
                     resultadosContainer.innerHTML = `<div class="no-results"><p>No se encontraron jugadores con "${query}"</p></div>`;
                 } else {
                     resultadosContainer.innerHTML = data.jugadores.map(jugador => `
-                        <div class="search-result-item" onclick="verJugador(${jugador.id})">
-                            <div class="player-info">
-                                <strong>${jugador.nombre}</strong>
-                                ${jugador.numero ? `#${jugador.numero}` : ''}
-                                <span class="team-badge">${jugador.equipo_nombre || 'Sin equipo'}</span>
-                            </div>
-                            <div class="player-stats">
-                                <span>AVG: ${jugador.promedio_bateo || '.000'}</span>
-                                <span>HR: ${jugador.home_runs || 0}</span>
-                            </div>
-                        </div>`).join('');
+                            <div class="search-result-item" onclick="verJugador(${jugador.id})">
+                                <div class="player-info">
+                                    <strong>${jugador.nombre}</strong>
+                                    ${jugador.numero ? `#${jugador.numero}` : ''}
+                                    <span class="team-badge">${jugador.equipo_nombre || 'Sin equipo'}</span>
+                                </div>
+                                <div class="player-stats">
+                                    <span>AVG: ${jugador.promedio_bateo || '.000'}</span>
+                                    <span>HR: ${jugador.home_runs || 0}</span>
+                                </div>
+                            </div>`).join('');
                 }
                 resultadosContainer.style.display = 'block';
-                
+               
             } catch (error) {
                 console.error('Error buscando jugadores:', error);
                 resultadosContainer.innerHTML = `<div class="error-message">Error al buscar. Intenta de nuevo.</div>`;
@@ -3711,7 +3701,7 @@
         function verJugador(jugadorId) {
             window.location.href = `jugador.html?id=${jugadorId}`;
         }
-        
+       
         function renderizarProximosPartidos(partidosParaRenderizar) {
             const container = document.getElementById('proximosPartidosContainer');
             if (!container) return;
@@ -3725,17 +3715,17 @@
                 const fecha = new Date(partido.fecha_partido).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
                 const hora = partido.hora ? partido.hora.substring(0, 5) : 'Hora no definida';
                 return `
-                    <div class="partido-card-enhanced">
-                        <div class="partido-header">
-                            <span class="partido-fecha">${fecha} - ${hora} hs</span>
-                            <span class="partido-estado">${partido.estado}</span>
-                        </div>
-                        <div class="equipos-vs">
-                            <div class="equipo-info"><span class="equipo-nombre">${partido.equipo_visitante_nombre}</span></div>
-                            <span class="vs-separator">VS</span>
-                            <div class="equipo-info"><span class="equipo-nombre">${partido.equipo_local_nombre}</span></div>
-                        </div>
-                    </div>`;
+                        <div class="partido-card-enhanced">
+                            <div class="partido-header">
+                                <span class="partido-fecha">${fecha} - ${hora} hs</span>
+                                <span class="partido-estado">${partido.estado}</span>
+                            </div>
+                            <div class="equipos-vs">
+                                <div class="equipo-info"><span class="equipo-nombre">${partido.equipo_visitante_nombre}</span></div>
+                                <span class="vs-separator">VS</span>
+                                <div class="equipo-info"><span class="equipo-nombre">${partido.equipo_local_nombre}</span></div>
+                            </div>
+                        </div>`;
             }).join('');
         }
 
@@ -3750,28 +3740,28 @@
         function toggleMobileMenu() { document.querySelector('.mobile-menu').classList.toggle('active'); document.querySelector('.mobile-menu-overlay').classList.toggle('active'); }
         function closeMobileMenu() { document.querySelector('.mobile-menu').classList.remove('active'); document.querySelector('.mobile-menu-overlay').classList.remove('active'); }
         function cerrarComparacion() { document.getElementById('comparisonModal').style.display = 'none'; selectedPlayersForComparison = []; }
-        
+       
         function initMobileNavigation() {
-          const isMobile = window.innerWidth <= 768;
-          if (!isMobile) return;
-          const navItems = document.querySelectorAll('#mobileNavigation .nav-tab');
-          if (navItems.length === 0) return;
-          
-          navItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-              e.preventDefault();
-              navItems.forEach(nav => nav.classList.remove('active'));
-              this.classList.add('active');
-              const contentTargetId = this.dataset.section;
-              document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-              const contentPane = document.getElementById(contentTargetId);
-              if (contentPane) contentPane.classList.add('active');
+            const isMobile = window.innerWidth <= 768;
+            if (!isMobile) return;
+            const navItems = document.querySelectorAll('#mobileNavigation .nav-tab');
+            if (navItems.length === 0) return;
+           
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    const contentTargetId = this.dataset.section;
+                    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+                    const contentPane = document.getElementById(contentTargetId);
+                    if (contentPane) contentPane.classList.add('active');
+                });
             });
-          });
         }
 
         window.addEventListener('resize', function() {
-          initMobileNavigation();
+            initMobileNavigation();
         });
     </script>
     <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%2C%20una%20consulta" class="whatsapp-btn" target="_blank">💬 Consultas</a>
@@ -3785,7 +3775,7 @@
           </div>
           <p class="footer-description">Sistema de Gestión Profesional de Softball</p>
         </div>
-        
+       
         <div class="footer-section">
           <h4>Enlaces Rápidos</h4>
           <ul class="footer-links">
@@ -3795,7 +3785,7 @@
             <li><a href="admin.html">Administración</a></li>
           </ul>
         </div>
-        
+       
         <div class="footer-section">
           <h4>Información</h4>
           <ul class="footer-links">
@@ -3805,7 +3795,7 @@
           </ul>
         </div>
       </div>
-      
+     
       <div class="footer-bottom">
         <div class="footer-credits">
           <span>English (US)</span>
