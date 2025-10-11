@@ -1884,7 +1884,7 @@ app.delete('/api/partidos/:id', async (req, res) => {
     }
 });
 
-// ====================== PRÓXIMOS PARTIDOS =========================
+// ====================== PRÓXIMOS PARTIDOS (INICIO DE LA CORRECCIÓN) =========================
 app.get('/api/proximos-partidos', async (req, res) => {
     try {
         const query = `
@@ -1905,65 +1905,91 @@ app.get('/api/proximos-partidos', async (req, res) => {
             FROM partidos p
             LEFT JOIN equipos el ON p.equipo_local_id = el.id
             LEFT JOIN equipos ev ON p.equipo_visitante_id = ev.id
-            WHERE p.fecha_partido >= CURRENT_DATE
-              AND (p.estado = 'programado' OR p.estado IS NULL)
-            ORDER BY p.fecha_partido ASC, p.hora ASC NULLS LAST
-            LIMIT 5
+            WHERE p.estado = 'programado'
+               AND p.fecha_partido >= CURRENT_DATE
+            ORDER BY p.fecha_partido ASC, p.hora ASC
+            LIMIT 10
         `;
-        
-        const result = await pool.query(query);
-        
-        // Calcular records de equipos para cada partido
-        const partidosConRecords = await Promise.all(result.rows.map(async (partido) => {
-            // Calcular record del equipo local
-            const recordLocal = await pool.query(`
-                SELECT 
-                    COUNT(*) FILTER (WHERE 
-                        (equipo_local_id = $1 AND carreras_local > carreras_visitante) OR
-                        (equipo_visitante_id = $1 AND carreras_visitante > carreras_local)
-                    ) as victorias,
-                    COUNT(*) FILTER (WHERE 
-                        (equipo_local_id = $1 AND carreras_local < carreras_visitante) OR
-                        (equipo_visitante_id = $1 AND carreras_visitante < carreras_local)
-                    ) as derrotas
-                FROM partidos 
-                WHERE (equipo_local_id = $1 OR equipo_visitante_id = $1) 
-                  AND carreras_local IS NOT NULL 
-                  AND carreras_visitante IS NOT NULL
-            `, [partido.equipo_local_id]);
-                    
-            // Calcular record del equipo visitante
-            const recordVisitante = await pool.query(`
-                SELECT 
-                    COUNT(*) FILTER (WHERE 
-                        (equipo_local_id = $1 AND carreras_local > carreras_visitante) OR
-                        (equipo_visitante_id = $1 AND carreras_visitante > carreras_local)
-                    ) as victorias,
-                    COUNT(*) FILTER (WHERE 
-                        (equipo_local_id = $1 AND carreras_local < carreras_visitante) OR
-                        (equipo_visitante_id = $1 AND carreras_visitante < carreras_local)
-                    ) as derrotas
-                FROM partidos 
-                WHERE (equipo_local_id = $1 OR equipo_visitante_id = $1) 
-                  AND carreras_local IS NOT NULL 
-                  AND carreras_visitante IS NOT NULL
-            `, [partido.equipo_visitante_id]);
-            
-            // ✅ CORRECCIÓN: Sintaxis de retorno validada (ya estaba bien, se mantiene)
-            return {
-                ...partido,
-                record_local: `${recordLocal.rows[0].victorias}-${recordLocal.rows[0].derrotas}`,
-                record_visitante: `${recordVisitante.rows[0].victorias}-${recordVisitante.rows[0].derrotas}`
-            };
+                
+        const { rows: partidos } = await pool.query(query);
+                
+        if (partidos.length === 0) {
+            return res.json([]);
+        }
+                
+        const partidosConRecords = await Promise.all(partidos.map(async (partido) => {
+            try {
+                // Query para record local
+                const recordLocal = await pool.query(`
+                    SELECT 
+                        COUNT(*) FILTER (WHERE 
+                            (equipo_local_id = $1 AND carreras_local > carreras_visitante) OR
+                            (equipo_visitante_id = $1 AND carreras_visitante > carreras_local)
+                        ) as victorias,
+                        COUNT(*) FILTER (WHERE 
+                            (equipo_local_id = $1 AND carreras_local < carreras_visitante) OR
+                            (equipo_visitante_id = $1 AND carreras_visitante < carreras_local)
+                        ) as derrotas
+                    FROM partidos 
+                    WHERE (equipo_local_id = $1 OR equipo_visitante_id = $1)
+                       AND estado = 'finalizado'
+                      AND carreras_local IS NOT NULL 
+                       AND carreras_visitante IS NOT NULL
+                `, [partido.equipo_local_id]);
+                                
+                // Query para record visitante
+                const recordVisitante = await pool.query(`
+                    SELECT 
+                        COUNT(*) FILTER (WHERE 
+                            (equipo_local_id = $1 AND carreras_local > carreras_visitante) OR
+                            (equipo_visitante_id = $1 AND carreras_visitante > carreras_local)
+                        ) as victorias,
+                        COUNT(*) FILTER (WHERE 
+                            (equipo_local_id = $1 AND carreras_local < carreras_visitante) OR
+                            (equipo_visitante_id = $1 AND carreras_visitante < carreras_local)
+                        ) as derrotas
+                    FROM partidos 
+                    WHERE (equipo_local_id = $1 OR equipo_visitante_id = $1)
+                       AND estado = 'finalizado'
+                      AND carreras_local IS NOT NULL 
+                       AND carreras_visitante IS NOT NULL
+                `, [partido.equipo_visitante_id]);
+                                
+                // ✅ Manejo seguro de records
+                const localVictorias = recordLocal.rows[0]?.victorias || 0;
+                const localDerrotas = recordLocal.rows[0]?.derrotas || 0;
+                const visitanteVictorias = recordVisitante.rows[0]?.victorias || 0;
+                const visitanteDerrotas = recordVisitante.rows[0]?.derrotas || 0;
+                                
+                return {
+                    ...partido,
+                    record_local: `${localVictorias}-${localDerrotas}`,
+                    record_visitante: `${visitanteVictorias}-${visitanteDerrotas}`
+                };
+            } catch (recordError) {
+                console.error('Error calculando records:', recordError);
+                // Si falla el cálculo de records, devolver partido sin records
+                return {
+                    ...partido,
+                    record_local: '0-0',
+                    record_visitante: '0-0'
+                };
+            }
         }));
-        
+                
+        console.log(`✅ Próximos partidos: ${partidosConRecords.length} encontrados`);
         res.json(partidosConRecords);
+            
     } catch (error) {
-        // ✅ CORRECCIÓN: Manejo de errores con el mensaje y formato solicitado
-        console.error('Error obteniendo próximos partidos:', error);
-        res.status(500).json({ error: 'Error obteniendo próximos partidos' });
+        console.error('❌ Error obteniendo próximos partidos:', error);
+        console.error('Detalles del error:', error.message);
+        res.status(500).json({ 
+            error: 'Error obteniendo próximos partidos',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
+// ====================== PRÓXIMOS PARTIDOS (FIN DE LA CORRECCIÓN) =========================
 
 // ====================== ESTADÍSTICAS MEJORADAS =========================
 
