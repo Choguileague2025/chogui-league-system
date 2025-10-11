@@ -504,44 +504,23 @@ app.get('/api/leaders', async (req, res, next) => {
             `;
         } 
         // ============================================================
-        // ✅ QUERY 3: LÍDERES DEFENSIVOS
+        // 🛠️ QUERY 3: LÍDERES DEFENSIVOS (CORREGIDA)
         // ============================================================
         else if (tipo === 'defensiva') {
             sql = `
                 SELECT 
                     j.id as jugador_id,
                     j.nombre as nombre_jugador,
-                    j.nombre,
                     j.posicion,
-                    j.posicion as posicion_principal,
-                    j.posicion as pos,
-                    j.numero,
-                    e.id as equipo_id,
                     e.nombre as equipo_nombre,
                     s.putouts,
-                    s.putouts as po,
                     s.assists,
-                    s.assists as a,
                     s.errors,
-                    s.errors as e,
-                    s.double_plays,
-                    s.passed_balls,
-                    s.chances,
                     CASE 
                         WHEN s.chances > 0 
                         THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
                         ELSE 0.000 
-                    END as fielding_percentage,
-                    CASE 
-                        WHEN s.chances > 0 
-                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
-                        ELSE 0.000 
-                    END as fld_pct,
-                    CASE 
-                        WHEN s.chances > 0 
-                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
-                        ELSE 0.000 
-                    END as fpct
+                    END as fielding_percentage
                 FROM estadisticas_defensivas s
                 JOIN jugadores j ON s.jugador_id = j.id
                 LEFT JOIN equipos e ON j.equipo_id = e.id
