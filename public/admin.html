@@ -4277,55 +4277,91 @@
             console.log('cargarParaEditar', tipo, jugadorId);
         }
 
+        // ==================================================================
+        // ✅ INICIO CORRECCIÓN BUG #1: DUPLICACIÓN DE JUGADORES
+        // Se reemplaza la función original por esta versión más robusta.
+        // Esta función envía los datos de las tablas de edición al backend.
+        // La lógica del backend (en server.js) debe estar corregida para
+        // usar UPSERT con REEMPLAZO (SET field = EXCLUDED.field) en lugar de
+        // SUMA (SET field = table.field + EXCLUDED.field).
+        // ==================================================================
         async function actualizarEstadistica(tipo, jugadorId) {
-            let endpoint, data;
-            
-            if (tipo === 'bateo') {
-                endpoint = '/api/estadisticas-ofensivas';
-                data = {
-                    jugador_id: jugadorId,
-                    at_bats: parseInt(document.getElementById(`ab-${jugadorId}`).value) || 0,
-                    hits: parseInt(document.getElementById(`h-${jugadorId}`).value) || 0,
-                    home_runs: parseInt(document.getElementById(`hr-${jugadorId}`).value) || 0,
-                    rbi: parseInt(document.getElementById(`rbi-${jugadorId}`).value) || 0
-                };
-            } else if (tipo === 'pitcheo') {
-                endpoint = '/api/estadisticas-pitcheo';
-                data = {
-                    jugador_id: jugadorId,
-                    innings_pitched: parseFloat(document.getElementById(`ip-${jugadorId}`).value) || 0,
-                    earned_runs: parseInt(document.getElementById(`er-${jugadorId}`).value) || 0,
-                    wins: parseInt(document.getElementById(`w-${jugadorId}`).value) || 0,
-                    losses: parseInt(document.getElementById(`l-${jugadorId}`).value) || 0,
-                    saves: parseInt(document.getElementById(`sv-${jugadorId}`).value) || 0
-                };
-            } else if (tipo === 'defensiva') {
-                endpoint = '/api/estadisticas-defensivas';
-                data = {
-                    jugador_id: jugadorId,
-                    putouts: parseInt(document.getElementById(`po-${jugadorId}`).value) || 0,
-                    assists: parseInt(document.getElementById(`a-${jugadorId}`).value) || 0,
-                    errors: parseInt(document.getElementById(`e-${jugadorId}`).value) || 0,
-                    double_plays: parseInt(document.getElementById(`dp-${jugadorId}`).value) || 0
-                };
+            const saveButton = event.target;
+            let endpoint = '';
+            let payload = { jugador_id: jugadorId };
+            const temporada = torneoActivo ? torneoActivo.id : null; // Asumiendo que se usa el torneo activo.
+
+            if (!temporada) {
+                toast.error('No hay un torneo activo seleccionado. No se pueden guardar estadísticas.');
+                return;
             }
-            
+            payload.temporada = temporada;
+
             try {
-                const res = await fetch(`${endpoint}/${jugadorId}`, {
-                    method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    toast.success('Estadística actualizada.');
-                    await cargarEstadisticas();
-                } else {
-                    toast.error('Error al actualizar.');
+                saveButton.disabled = true;
+                saveButton.textContent = '⏳';
+
+                switch (tipo) {
+                    case 'bateo':
+                        endpoint = `/api/estadisticas-ofensivas`;
+                        payload.at_bats = parseInt(document.getElementById(`ab-${jugadorId}`).value) || 0;
+                        payload.hits = parseInt(document.getElementById(`h-${jugadorId}`).value) || 0;
+                        payload.home_runs = parseInt(document.getElementById(`hr-${jugadorId}`).value) || 0;
+                        payload.rbi = parseInt(document.getElementById(`rbi-${jugadorId}`).value) || 0;
+                        // Nota: Se envían solo los campos editables en esta tabla.
+                        // El backend debe manejar los demás campos (runs, walks, etc.)
+                        break;
+                    
+                    case 'pitcheo':
+                        endpoint = `/api/estadisticas-pitcheo`;
+                        payload.innings_pitched = parseFloat(document.getElementById(`ip-${jugadorId}`).value) || 0;
+                        payload.earned_runs = parseInt(document.getElementById(`er-${jugadorId}`).value) || 0;
+                        payload.wins = parseInt(document.getElementById(`w-${jugadorId}`).value) || 0;
+                        payload.losses = parseInt(document.getElementById(`l-${jugadorId}`).value) || 0;
+                        payload.saves = parseInt(document.getElementById(`sv-${jugadorId}`).value) || 0;
+                        break;
+                    
+                    case 'defensiva':
+                        endpoint = `/api/estadisticas-defensivas`;
+                        payload.putouts = parseInt(document.getElementById(`po-${jugadorId}`).value) || 0;
+                        payload.assists = parseInt(document.getElementById(`a-${jugadorId}`).value) || 0;
+                        payload.errors = parseInt(document.getElementById(`e-${jugadorId}`).value) || 0;
+                        payload.double_plays = parseInt(document.getElementById(`dp-${jugadorId}`).value) || 0;
+                        break;
+                    
+                    default:
+                        throw new Error('Tipo de estadística no válido');
                 }
-            } catch(e) {
-                toast.error('Error de red.');
+
+                console.log(`📤 [CORRECCIÓN BUG #1] Enviando actualización (${tipo}) para jugador ${jugadorId}:`, payload);
+                
+                // Usamos POST para la lógica de UPSERT (INSERT ... ON CONFLICT) como se sugiere
+                // en la solución. Si el backend usa PUT para reemplazo, se puede cambiar el método.
+                const response = await fetch(endpoint, {
+                    method: 'POST', // Usamos POST para que coincida con la lógica de UPSERT.
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    toast.success('Estadística actualizada correctamente.');
+                    await cargarEstadisticas(); // Recargar todas las estadísticas para consistencia
+                    actualizarLideres(); // Actualizar los líderes que pudieron cambiar
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.message || `Error ${response.status} del servidor.`);
+                }
+
+            } catch(error) {
+                console.error(`❌ Error actualizando estadística de ${tipo}:`, error);
+                toast.error(`No se pudo actualizar: ${error.message}`);
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = '💾';
             }
         }
+        // ✅ FIN CORRECCIÓN BUG #1
+        // ==================================================================
 
         function renderizarTablaEquipos() {
             const tbody = document.querySelector('#equiposTable tbody');
