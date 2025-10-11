@@ -3695,19 +3695,23 @@
         async function cargarProximosPartidos() {
             try {
                 console.log('📅 Cargando próximos partidos...');
-                const response = await fetch(getApiUrl('/api/partidos?estado=Programado&limit=10'));
-                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                
+                // ✅ CAMBIO: Usar endpoint correcto
+                const response = await fetch(getApiUrl('/api/proximos-partidos'));
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
                 
                 const data = await response.json();
-                let partidosRecibidos = Array.isArray(data) ? data : 
-                                       (data.partidos && Array.isArray(data.partidos)) ? data.partidos : 
+                
+                // Normalizar respuesta (por si viene como objeto o array)
+                let partidosRecibidos = Array.isArray(data) ? data :
+                                       (data.partidos && Array.isArray(data.partidos)) ? data.partidos :
                                        (data.data && Array.isArray(data.data)) ? data.data : [];
                 
-                partidosRecibidos = partidosRecibidos
-                    .filter(p => p.estado && p.estado.toLowerCase() === 'programado')
-                    .sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido));
-                
                 console.log(`✅ Partidos programados encontrados: ${partidosRecibidos.length}`);
+                
                 renderizarProximosPartidos(partidosRecibidos);
                 
             } catch (error) {
