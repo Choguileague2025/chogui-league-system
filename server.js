@@ -526,32 +526,32 @@ app.get('/api/leaders', async (req, res, next) => {
                     s.errors as e,
                     s.double_plays,
                     s.passed_balls,
-                    s.chances,
+                    (s.putouts + s.assists + s.errors) as chances,
                     CASE 
-                        WHEN s.chances > 0 
-                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
+                        WHEN (s.putouts + s.assists + s.errors) > 0 
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)
                         ELSE 0.000 
                     END as fielding_percentage,
                     CASE 
-                        WHEN s.chances > 0 
-                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
+                        WHEN (s.putouts + s.assists + s.errors) > 0 
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)
                         ELSE 0.000 
                     END as fld_pct,
                     CASE 
-                        WHEN s.chances > 0 
-                        THEN ROUND((s.putouts + s.assists)::DECIMAL / s.chances, 3) 
+                        WHEN (s.putouts + s.assists + s.errors) > 0 
+                        THEN ROUND((s.putouts + s.assists)::DECIMAL / (s.putouts + s.assists + s.errors), 3)
                         ELSE 0.000 
                     END as fpct
                 FROM estadisticas_defensivas s
                 JOIN jugadores j ON s.jugador_id = j.id
                 LEFT JOIN equipos e ON j.equipo_id = e.id
-                WHERE s.chances > 0
+                WHERE (s.putouts + s.assists + s.errors) > 0
                 ORDER BY fielding_percentage DESC NULLS LAST
                 LIMIT $1;
             `;
         }
         // ============================================================
-        // 🛠️ FIN DE LA CORRECCIÓN APLICADA
+        // 🛠️ FIN DE LA CORRECCIÓN
         // ============================================================ 
         // ============================================================
         // ✅ QUERY 4: TODOS (DEFAULT A BATEO POR OPS)
