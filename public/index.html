@@ -3078,21 +3078,27 @@
               </div>
             `;
           } else if (categoria === 'defensiva') {
+            // ✅ Convertir strings a números antes de usar toFixed
+            const fieldingPct = parseFloat(lider.fielding_percentage) || 0;
+            const putouts = parseInt(lider.putouts) || 0;
+            const assists = parseInt(lider.assists) || 0;
+            const errors = parseInt(lider.errors) || 0;
+        
             statsHTML = `
               <div class="stat">
-                <span class="stat-value">${(lider.fielding_percentage || 0).toFixed(3)}</span>
+                <span class="stat-value">${fieldingPct.toFixed(3)}</span>
                 <span class="stat-label">FLDG%</span>
               </div>
               <div class="stat">
-                <span class="stat-value">${lider.putouts || 0}</span>
+                <span class="stat-value">${putouts}</span>
                 <span class="stat-label">PO</span>
               </div>
               <div class="stat">
-                <span class="stat-value">${lider.assists || 0}</span>
+                <span class="stat-value">${assists}</span>
                 <span class="stat-label">A</span>
               </div>
               <div class="stat">
-                <span class="stat-value">${lider.errors || 0}</span>
+                <span class="stat-value">${errors}</span>
                 <span class="stat-label">E</span>
               </div>
             `;
@@ -3212,42 +3218,53 @@
          */
         function generarCardJugador(jugador, index, posicion) {
           const esPitcher = posicion === 'P';
-            // Stats según tipo de jugador
+          // Stats según tipo de jugador
           let statsHTML = '';
-            if (esPitcher) {
-            statsHTML = `
-              <div class="stat">
-                <span class="stat-value">${jugador.era || '0.00'}</span>
-                <span class="stat-label">ERA</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${jugador.strikeouts || jugador.so || 0}</span>
-                <span class="stat-label">SO</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${jugador.whip || '0.00'}</span>
-                <span class="stat-label">WHIP</span>
-              </div>
-            `;
+          if (esPitcher) {
+              // ✅ Convertir valores a número ANTES de usar toFixed
+              const era = parseFloat(jugador.era) || 0;
+              const strikeouts = parseInt(jugador.strikeouts || jugador.so) || 0;
+              const whip = parseFloat(jugador.whip) || 0;
+          
+              statsHTML = `
+                <div class="stat">
+                  <span class="stat-value">${era.toFixed(2)}</span>
+                  <span class="stat-label">ERA</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">${strikeouts}</span>
+                  <span class="stat-label">SO</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">${whip.toFixed(2)}</span>
+                  <span class="stat-label">WHIP</span>
+                </div>
+              `;
           } else {
-            statsHTML = `
-              <div class="stat">
-                <span class="stat-value">${(jugador.promedio_bateo || 0).toFixed(3)}</span>
-                <span class="stat-label">AVG</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${jugador.home_runs || jugador.hr || 0}</span>
-                <span class="stat-label">HR</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${jugador.rbi || 0}</span>
-                <span class="stat-label">RBI</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${(jugador.ops || 0).toFixed(3)}</span>
-                <span class="stat-label">OPS</span>
-              </div>
-            `;
+              // ✅ Convertir valores a número ANTES de usar toFixed
+              const avg = parseFloat(jugador.promedio_bateo) || 0;
+              const hr = parseInt(jugador.home_runs || jugador.hr) || 0;
+              const rbi = parseInt(jugador.rbi) || 0;
+              const ops = parseFloat(jugador.ops) || 0;
+          
+              statsHTML = `
+                <div class="stat">
+                  <span class="stat-value">${avg.toFixed(3)}</span>
+                  <span class="stat-label">AVG</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">${hr}</span>
+                  <span class="stat-label">HR</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">${rbi}</span>
+                  <span class="stat-label">RBI</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">${ops.toFixed(3)}</span>
+                  <span class="stat-label">OPS</span>
+                </div>
+              `;
           }
             // Colores de ranking
           const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32', '#4A90E2', '#9B59B6'];
@@ -3534,42 +3551,75 @@
         // SECCIÓN CORREGIDA - BUGS #2 Y #3
         // =================================================================================
         
-        /**
-         * 🟡 BUG #2 CORREGIDO
-         * Carga los próximos partidos directamente desde el endpoint filtrado.
-         * Es más robusto y no depende de la carga previa de todos los partidos.
-         */
+        // ============================================================
+        // ✅ FUNCIÓN CORREGIDA: Carga de Próximos Partidos
+        // ============================================================
         async function cargarProximosPartidos() {
             try {
                 console.log('📅 Cargando próximos partidos...');
-                
-                const response = await fetch(getApiUrl('/api/partidos?estado=Programado&limit=10'));
-                
+        
+                // Obtener TODOS los partidos primero
+                const response = await fetch('/api/partidos?limit=100');
+        
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+        
                 const data = await response.json();
-                console.log('📦 Partidos recibidos:', data);
-                
-                let partidosRecibidos = [];
+                console.log('📦 Todos los partidos recibidos:', data);
+        
+                let partidos = [];
                 if (Array.isArray(data)) {
-                    partidosRecibidos = data;
+                    partidos = data;
                 } else if (data.partidos && Array.isArray(data.partidos)) {
-                    partidosRecibidos = data.partidos;
+                    partidos = data.partidos;
                 } else if (data.data && Array.isArray(data.data)) {
-                    partidosRecibidos = data.data;
+                    partidos = data.data;
                 }
-                
-                partidosRecibidos = partidosRecibidos.filter(p => 
-                    p.estado && p.estado.toLowerCase() === 'programado'
-                );
-                
-                partidosRecibidos.sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido));
-                
-                console.log(`✅ Partidos programados encontrados: ${partidosRecibidos.length}`);
-                renderizarProximosPartidos(partidosRecibidos);
-                
+        
+                // ✅ FILTRAR: Solo programados Y con fechas futuras o de hoy
+                const ahora = new Date();
+                ahora.setHours(0, 0, 0, 0); // Resetear a medianoche para comparar solo fechas
+        
+                const partidosProgramados = partidos.filter(p => {
+                    // Verificar estado "Programado" (case insensitive)
+                    if (!p.estado || p.estado.toLowerCase() !== 'programado') {
+                        return false;
+                    }
+            
+                    // Verificar que tenga fecha
+                    if (!p.fecha_partido) {
+                        return false;
+                    }
+            
+                    // Comparar fechas (incluir hoy y futuras)
+                    const fechaPartido = new Date(p.fecha_partido);
+                    fechaPartido.setHours(0, 0, 0, 0);
+            
+                    return fechaPartido >= ahora;
+                });
+        
+                // Ordenar por fecha (más próximos primero)
+                partidosProgramados.sort((a, b) => {
+                    const fechaA = new Date(a.fecha_partido);
+                    const fechaB = new Date(b.fecha_partido);
+            
+                    // Si las fechas son iguales, ordenar por hora
+                    if (fechaA.getTime() === fechaB.getTime() && a.hora && b.hora) {
+                        return a.hora.localeCompare(b.hora);
+                    }
+            
+                    return fechaA - fechaB;
+                });
+        
+                // Limitar a los primeros 10 partidos
+                const partidosMostrar = partidosProgramados.slice(0, 10);
+        
+                console.log(`✅ Partidos programados encontrados: ${partidosMostrar.length}`);
+                console.log('Partidos a mostrar:', partidosMostrar);
+        
+                renderizarProximosPartidos(partidosMostrar);
+            
             } catch (error) {
                 console.error('❌ Error cargando próximos partidos:', error);
                 const container = document.getElementById('proximosPartidosContainer');
@@ -3587,67 +3637,141 @@
             }
         }
 
-        /**
-         * 🔵 BUG #3 CORREGIDO
-         * Busca jugadores dinámicamente usando el nuevo endpoint /api/jugadores/buscar.
-         */
+        // ============================================================
+        // ✅ FUNCIÓN DE BÚSQUEDA MEJORADA (Jugadores + Equipos)
+        // ============================================================
         async function buscarJugador() {
-            const searchInput = document.getElementById('searchInput');
-            const resultadosContainer = document.getElementById('searchResults');
+            const searchInput = document.querySelector('input[type="text"]');
+            const resultadosContainer = document.getElementById('searchResults') ||
+                                         document.querySelector('.search-results');
+        
+            if (!searchInput || !resultadosContainer) {
+                console.error('❌ No se encontró el input o contenedor de resultados');
+                return;
+            }
+        
             const query = searchInput.value.trim();
-            
+        
             if (query.length < 2) {
                 resultadosContainer.innerHTML = '';
                 resultadosContainer.style.display = 'none';
                 return;
             }
-            
+        
             try {
-                const response = await fetch(getApiUrl(`/api/jugadores/buscar?query=${encodeURIComponent(query)}`));
-                
+                console.log('🔍 Buscando:', query);
+        
+                const response = await fetch(`/api/jugadores/buscar?query=${encodeURIComponent(query)}`);
+        
                 if (!response.ok) {
-                    throw new Error('Error en la búsqueda');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+        
                 const data = await response.json();
-                
-                if (data.jugadores.length === 0) {
+                console.log('📦 Resultados recibidos:', data);
+        
+                resultadosContainer.style.display = 'block';
+        
+                if (data.total === 0) {
                     resultadosContainer.innerHTML = `
-                        <div class="no-results">
-                            <p>No se encontraron jugadores con "${query}"</p>
+                        <div class="no-results" style="padding: 20px; text-align: center; color: #ffd700;">
+                            <p>❌ No se encontraron resultados para "${query}"</p>
                         </div>
                     `;
-                } else {
-                    resultadosContainer.innerHTML = data.jugadores.map(jugador => `
-                        <div class="search-result-item" onclick="verJugador(${jugador.id})">
-                            <div class="player-info">
-                                <strong>${jugador.nombre}</strong>
-                                ${jugador.numero ? `#${jugador.numero}` : ''}
-                                <span class="team-badge">${jugador.equipo_nombre || 'Sin equipo'}</span>
-                            </div>
-                            <div class="player-stats">
-                                <span>AVG: ${jugador.promedio_bateo || '.000'}</span>
-                                <span>HR: ${jugador.home_runs || 0}</span>
-                            </div>
-                        </div>
-                    `).join('');
+                    return;
                 }
-                resultadosContainer.style.display = 'block';
-                
+        
+                let html = '';
+        
+                // Renderizar equipos
+                if (data.equipos && data.equipos.length > 0) {
+                    html += `<div style="padding: 10px; background: rgba(255,215,0,0.1); border-bottom: 2px solid #ffd700;">
+                                <strong style="color: #ffd700;">🏆 EQUIPOS (${data.equipos.length})</strong>
+                             </div>`;
+                        
+                    data.equipos.forEach(equipo => {
+                        html += `
+                            <div class="search-result-item" onclick="verEquipo(${equipo.id})"
+                                  style="padding: 15px; border-bottom: 1px solid #333; cursor: pointer; transition: all 0.3s;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong style="color: #ffd700; font-size: 1.1rem;">🏆 ${equipo.nombre}</strong>
+                                        <br>
+                                        <span style="color: #888; font-size: 0.9rem;">
+                                            📍 ${equipo.ciudad} • 👤 Manager: ${equipo.manager}
+                                        </span>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="color: #4CAF50; font-size: 1.2rem;">${equipo.total_jugadores}</div>
+                                        <div style="color: #888; font-size: 0.8rem;">jugadores</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+        
+                // Renderizar jugadores
+                if (data.jugadores && data.jugadores.length > 0) {
+                    html += `<div style="padding: 10px; background: rgba(33,150,243,0.1); border-bottom: 2px solid #2196F3; margin-top: 10px;">
+                                <strong style="color: #2196F3;">⚾ JUGADORES (${data.jugadores.length})</strong>
+                             </div>`;
+                        
+                    data.jugadores.forEach(jugador => {
+                        html += `
+                            <div class="search-result-item" onclick="verJugador(${jugador.id})"
+                                  style="padding: 15px; border-bottom: 1px solid #333; cursor: pointer; transition: all 0.3s;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong style="color: #2196F3; font-size: 1.1rem;">${jugador.nombre}</strong>
+                                        ${jugador.numero ? `<span style="color: #fff; margin-left: 10px;">#${jugador.numero}</span>` : ''}
+                                        <br>
+                                        <span style="color: #888; font-size: 0.9rem;">
+                                            ${jugador.equipo_nombre || 'Sin equipo'}
+                                             ${jugador.posicion ? `• ${jugador.posicion}` : ''}
+                                        </span>
+                                    </div>
+                                    <div style="text-align: right; font-size: 0.9rem;">
+                                        <div style="color: #4CAF50;">AVG: ${jugador.promedio_bateo || '.000'}</div>
+                                        <div style="color: #2196F3;">HR: ${jugador.home_runs || 0}</div>
+                                        <div style="color: #FF9800;">RBI: ${jugador.rbi || 0}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+        
+                resultadosContainer.innerHTML = html;
+        
+                // Agregar hover effects
+                document.querySelectorAll('.search-result-item').forEach(item => {
+                    item.addEventListener('mouseenter', function() {
+                        this.style.background = 'rgba(255, 215, 0, 0.1)';
+                    });
+                    item.addEventListener('mouseleave', function() {
+                        this.style.background = 'transparent';
+                    });
+                });
+        
             } catch (error) {
-                console.error('Error buscando jugadores:', error);
+                console.error('❌ Error buscando:', error);
+                resultadosContainer.style.display = 'block';
                 resultadosContainer.innerHTML = `
-                    <div class="error-message">
-                        Error al buscar. Intenta de nuevo.
+                    <div class="error-message" style="padding: 20px; text-align: center; color: #dc143c;">
+                        <p>⚠️ Error al buscar. Intenta de nuevo.</p>
+                        <small>${error.message}</small>
                     </div>
                 `;
-                resultadosContainer.style.display = 'block';
             }
         }
-
-        /**
-         * Función auxiliar para redirigir a la página de detalle del jugador.
-         */
+        
+        // ✅ Función para ver equipo
+        function verEquipo(equipoId) {
+            window.location.href = `equipo.html?id=${equipoId}`;
+        }
+        
+        // ✅ Función para ver jugador (si no existe)
         function verJugador(jugadorId) {
             window.location.href = `jugador.html?id=${jugadorId}`;
         }
