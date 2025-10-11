@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -3558,45 +3559,34 @@
         }
        
         function mostrarPestana(nombrePestana) {
-            console.log(`📍 Navegando a: ${nombrePestana}`);
-        
-            // 1. Ocultar todas las secciones
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-                tab.style.display = 'none';
-            });
-        
-            // 2. Mostrar la sección seleccionada
-            const pestanaActiva = document.getElementById(nombrePestana);
-            if (pestanaActiva) {
-                pestanaActiva.classList.add('active');
-                pestanaActiva.style.display = 'block';
-            }
-        
-            // 3. Actualizar pestañas desktop
-            document.querySelectorAll('.nav-tabs .nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-        
-            // 4. Activar pestaña correcta
-            const botonActivo = document.querySelector(
-                `.nav-tab[data-section="${nombrePestana}"], .nav-tab[href="#${nombrePestana}"]`
-            );
-            if (botonActivo) {
-                botonActivo.classList.add('active');
-            }
-        
-            // 5. Scroll suave
-            setTimeout(() => {
-                const headerHeight = document.querySelector('.header')?.offsetHeight || 0;
-                const offsetTop = pestanaActiva ? pestanaActiva.offsetTop - headerHeight - 20 : 0;
-        
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
-                });
-            }, 100);
-        }
+    console.log('📍 Navegando a: ' + nombrePestana);
+    document.querySelectorAll('.tab-content').forEach(function(tab) {
+        tab.classList.remove('active');
+        tab.style.display = 'none';
+    });
+    var pestanaActiva = document.getElementById(nombrePestana);
+    if (pestanaActiva) {
+        pestanaActiva.classList.add('active');
+        pestanaActiva.style.display = 'block';
+        console.log('✅ Sección mostrada: ' + nombrePestana);
+    }
+    document.querySelectorAll('.nav-tabs .nav-tab').forEach(function(tab) {
+        tab.classList.remove('active');
+    });
+    var botonActivo = document.querySelector('.nav-tab[data-section="' + nombrePestana + '"], .nav-tab[href="#' + nombrePestana + '"]');
+    if (botonActivo) {
+        botonActivo.classList.add('active');
+    }
+    setTimeout(function() {
+        var header = document.querySelector('.header');
+        var headerHeight = header ? header.offsetHeight : 0;
+        var offsetTop = pestanaActiva ? pestanaActiva.offsetTop - headerHeight - 20 : 0;
+        window.scrollTo({
+            top: offsetTop,
+            behavior: 'smooth'
+        });
+    }, 100);
+}
 
         // Event listeners para navegación
         document.addEventListener('DOMContentLoaded', () => {
