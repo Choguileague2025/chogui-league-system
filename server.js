@@ -1160,26 +1160,27 @@ app.get('/api/jugadores', async (req, res) => {
 });
 
 // ============================================================
-// BUG #2 CORREGIDO: NUEVO ENDPOINT DE BÚSQUEDA DE JUGADORES
-// Se agrega ANTES de /api/jugadores/:id para evitar conflictos.
+// ENDPOINT MEJORADO: Búsqueda de Jugadores Y Equipos
 // ============================================================
 app.get('/api/jugadores/buscar', async (req, res) => {
     try {
         const { query } = req.query;
-        
+                
         if (!query || query.trim().length < 2) {
-            return res.status(400).json({
-                error: 'La búsqueda debe tener al menos 2 caracteres',
+            return res.status(400).json({ 
+                 error: 'La búsqueda debe tener al menos 2 caracteres',
                 jugadores: [],
+                equipos: [],
                 total: 0
             });
         }
-        
+                
         const searchTerm = `%${query.trim()}%`;
-        
-        console.log('🔍 Buscando jugadores con término:', query);
-        
-        const result = await pool.query(`
+                
+        console.log('🔍 Buscando jugadores y equipos con término:', query);
+                
+        // Búsqueda de jugadores
+        const jugadoresResult = await pool.query(`
             SELECT 
                 j.id,
                 j.nombre,
@@ -1192,33 +1193,55 @@ app.get('/api/jugadores/buscar', async (req, res) => {
                 COALESCE(eo.home_runs, 0) as home_runs,
                 COALESCE(eo.rbi, 0) as rbi,
                 CASE 
-                    WHEN COALESCE(eo.at_bats, 0) > 0 
-                    THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / eo.at_bats, 3)
+                     WHEN COALESCE(eo.at_bats, 0) > 0 
+                     THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / eo.at_bats, 3)
                     ELSE 0.000 
-                END as promedio_bateo
+                 END as promedio_bateo,
+                'jugador' as tipo_resultado
             FROM jugadores j
             LEFT JOIN equipos e ON j.equipo_id = e.id
             LEFT JOIN estadisticas_ofensivas eo ON j.id = eo.jugador_id
             WHERE LOWER(j.nombre) LIKE LOWER($1)
-               OR LOWER(e.nombre) LIKE LOWER($1)
             ORDER BY j.nombre ASC
-            LIMIT 20
+            LIMIT 15
         `, [searchTerm]);
-        
-        console.log(`✅ Búsqueda completada: ${result.rows.length} jugadores encontrados`);
-        
+                
+        // Búsqueda de equipos
+        const equiposResult = await pool.query(`
+            SELECT 
+                e.id,
+                e.nombre,
+                e.ciudad,
+                e.manager,
+                COUNT(j.id) as total_jugadores,
+                'equipo' as tipo_resultado
+            FROM equipos e
+            LEFT JOIN jugadores j ON e.id = j.equipo_id
+            WHERE LOWER(e.nombre) LIKE LOWER($1)
+               OR LOWER(e.ciudad) LIKE LOWER($1)
+            GROUP BY e.id, e.nombre, e.ciudad, e.manager
+            ORDER BY e.nombre ASC
+            LIMIT 10
+        `, [searchTerm]);
+                
+        const totalResultados = jugadoresResult.rows.length + equiposResult.rows.length;
+                
+        console.log(`✅ Búsqueda: ${jugadoresResult.rows.length} jugadores, ${equiposResult.rows.length} equipos`);
+                
         res.json({
-            jugadores: result.rows,
-            total: result.rows.length,
+            jugadores: jugadoresResult.rows,
+            equipos: equiposResult.rows,
+            total: totalResultados,
             query: query.trim()
         });
-        
+            
     } catch (error) {
-        console.error('❌ Error buscando jugadores:', error);
-        res.status(500).json({
-            error: 'Error interno del servidor',
+        console.error('❌ Error buscando:', error);
+        res.status(500).json({ 
+             error: 'Error interno del servidor',
             message: error.message,
             jugadores: [],
+            equipos: [],
             total: 0
         });
     }
@@ -2466,4 +2489,3 @@ app.all(/^\/api\/estadisticas[-_]ofensivas\/(\d+)$/i, (req, res, next) => {
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
 startServer();
-
