@@ -1,22 +1,18 @@
-// JUGADOR.JS - CORREGIDO
+// JUGADOR.JS - CORREGIDO FINAL
 
 // --- Configuración de API ---
-// Usamos rutas relativas para que funcione en cualquier entorno (local o producción)
 const API_BASE_URL = ''; 
 
 // --- Variables globales ---
 let currentPlayerId = null;
 let playerData = null;
-let playerStats = null; // Será un objeto, no un array
+let playerStats = null;
 let gamesHistory = [];
 
 // ===================================
 // --- FUNCIONES PRINCIPALES ---
 // ===================================
 
-/**
- * Inicialización al cargar la página: obtiene el ID y carga los datos.
- */
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     currentPlayerId = parseInt(urlParams.get('id'), 10);
@@ -29,14 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarDatosJugador();
 });
 
-/**
- * Carga todos los datos necesarios para la página del jugador desde la API.
- */
 async function cargarDatosJugador() {
     try {
         console.log(`📄 Cargando datos del jugador ID: ${currentPlayerId}...`);
         
-        // ✅ CAMBIO 1.1 APLICADO: Hacemos las llamadas a la API en paralelo para mayor eficiencia
         const [jugadorResponse, statsResponse, partidosResponse] = await Promise.all([
             fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}`),
             fetch(`${API_BASE_URL}/api/estadisticas-ofensivas?jugador_id=${currentPlayerId}`),
@@ -48,31 +40,26 @@ async function cargarDatosJugador() {
         }
         
         playerData = await jugadorResponse.json();
+        console.log('✅ Datos del jugador:', playerData);
         
-        // Las estadísticas pueden no existir, lo manejamos de forma segura
         if (statsResponse.ok) {
             const statsData = await statsResponse.json();
-            // El endpoint puede devolver un array, nos aseguramos de tomar el primer objeto
             playerStats = Array.isArray(statsData) ? statsData[0] : statsData;
+            console.log('✅ Estadísticas del jugador:', playerStats);
         } else {
-            console.warn(`⚠️ No se encontraron estadísticas ofensivas para el jugador ID: ${currentPlayerId}`);
-            playerStats = {}; // Asignamos un objeto vacío para evitar errores
+            console.warn(`⚠️ No se encontraron estadísticas para el jugador ID: ${currentPlayerId}`);
+            playerStats = {};
         }
 
-        // Cargar historial de partidos REALES
         if (partidosResponse.ok) {
             gamesHistory = await partidosResponse.json();
-            console.log('✅ Historial de partidos cargado:', gamesHistory.length);
+            console.log('✅ Historial de partidos cargado:', gamesHistory.length, gamesHistory);
         } else {
             console.warn('⚠️ No se pudieron cargar los partidos del jugador');
             gamesHistory = [];
         }
 
-        console.log('✅ Datos del jugador cargados:', { playerData, playerStats });
-
         renderizarPagina();
-        
-        // Inicializamos funcionalidades avanzadas después de renderizar lo básico
         setTimeout(inicializarFuncionalidadesAvanzadas, 300);
 
     } catch (error) {
@@ -85,9 +72,6 @@ async function cargarDatosJugador() {
 // --- FUNCIONES DE RENDERIZADO ---
 // ===================================
 
-/**
- * Llama a todas las funciones de renderizado para construir la página.
- */
 function renderizarPagina() {
     renderizarHeaderJugador();
     renderizarEstadisticasBateo();
@@ -96,9 +80,6 @@ function renderizarPagina() {
     configurarNavegacion();
 }
 
-/**
- * Renderiza la tarjeta principal del jugador.
- */
 function renderizarHeaderJugador() {
     document.title = `${playerData.nombre} - Chogui League System`;
     
@@ -113,6 +94,7 @@ function renderizarHeaderJugador() {
     document.getElementById('playerName').textContent = playerData.nombre;
     document.getElementById('playerNumber').textContent = `#${playerData.numero || '--'}`;
     document.getElementById('playerPosition').textContent = formatearPosicion(playerData.posicion);
+    
     const playerTeamLink = document.getElementById('playerTeamLink');
     playerTeamLink.textContent = playerData.equipo_nombre || 'Sin equipo';
     if (playerData.equipo_id) {
@@ -123,11 +105,8 @@ function renderizarHeaderJugador() {
     document.getElementById('playerWeight').textContent = playerData.peso ? `${playerData.peso} kg` : 'No disponible';
 }
 
-/**
- * Renderiza las estadísticas de bateo principales.
- */
 function renderizarEstadisticasBateo() {
-    const stats = playerStats || {}; // Objeto seguro
+    const stats = playerStats || {};
     const avg = calcularAVG(stats);
     const obp = calcularOBP(stats);
     const slg = calcularSLG(stats);
@@ -143,31 +122,29 @@ function renderizarEstadisticasBateo() {
     document.getElementById('atBats').textContent = stats.at_bats || 0;
 }
 
-/**
- * Renderiza las métricas avanzadas (con datos simulados si no están en la API).
- */
 function renderizarMetricasAvanzadas() {
     const stats = playerStats || {};
     document.getElementById('warTotal').textContent = (stats.war_total || 0.0).toFixed(2);
-    document.getElementById('wrcPlus').textContent = 'N/A'; // Dato no disponible
+    document.getElementById('wrcPlus').textContent = 'N/A';
     document.getElementById('stolenBases').textContent = stats.stolen_bases || 0;
     document.getElementById('defensiveRating').textContent = (stats.rating_defensivo || 0.0).toFixed(2);
 }
 
-/**
- * Renderiza el historial de partidos.
- */
-// ✅ CAMBIO 1.2 APLICADO: FUNCIÓN COMPLETAMENTE REEMPLAZADA
 function renderizarHistorialPartidos() {
     const container = document.getElementById('gamesHistoryContainer');
     
+    console.log('🔍 Renderizando historial. gamesHistory:', gamesHistory);
+    console.log('🔍 playerData.equipo_id:', playerData.equipo_id);
+    
     if (!gamesHistory || gamesHistory.length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay partidos registrados</div>';
+        container.innerHTML = '<div class="empty-state">No hay partidos registrados para este jugador</div>';
         return;
     }
     
     const html = gamesHistory.map(partido => {
-        const esLocal = partido.equipo_local_id === playerData.equipo_id;
+        console.log('🔍 Procesando partido:', partido);
+        
+        const esLocal = partido.equipo_local_id == playerData.equipo_id;
         const equipoRival = esLocal ? partido.equipo_visitante_nombre : partido.equipo_local_nombre;
         const carrerasEquipo = esLocal ? partido.carreras_local : partido.carreras_visitante;
         const carrerasRival = esLocal ? partido.carreras_visitante : partido.carreras_local;
@@ -175,7 +152,6 @@ function renderizarHistorialPartidos() {
         const resultado = carrerasEquipo > carrerasRival ? 'G' : 'P';
         const resultadoClass = resultado === 'G' ? 'win' : 'loss';
         
-        // Formatear fecha
         const fecha = new Date(partido.fecha_partido + 'T00:00:00Z');
         const fechaFormateada = fecha.toLocaleDateString('es-ES', { 
             day: '2-digit',
@@ -199,7 +175,7 @@ function renderizarHistorialPartidos() {
 }
 
 // ===================================
-// --- FUNCIONES HELPER Y CÁLCULOS ---
+// --- FUNCIONES HELPER ---
 // ===================================
 
 function calcularAVG(stats) {
@@ -239,7 +215,18 @@ function obtenerIniciales(nombre) {
 }
 
 function formatearPosicion(posicion) {
-    const posiciones = { 'P': 'Pitcher', 'C': 'Catcher', '1B': 'Primera Base', '2B': 'Segunda Base', '3B': 'Tercera Base', 'SS': 'Shortstop', 'LF': 'Left Field', 'CF': 'Center Field', 'RF': 'Right Field', 'UTILITY': 'Utility' };
+    const posiciones = {
+        'P': 'Pitcher',
+        'C': 'Catcher',
+        '1B': 'Primera Base',
+        '2B': 'Segunda Base',
+        '3B': 'Tercera Base',
+        'SS': 'Shortstop',
+        'LF': 'Left Field',
+        'CF': 'Center Field',
+        'RF': 'Right Field',
+        'UTILITY': 'Utility'
+    };
     return posiciones[posicion] || posicion || 'N/A';
 }
 
@@ -255,15 +242,20 @@ function configurarNavegacion() {
 function mostrarErrorGeneral(mensaje) {
     const container = document.querySelector('.container');
     if (container) {
-        container.innerHTML = `<div class="error-message"><h2>⚠️ Error</h2><p>${mensaje}</p><a href="index.html" class="btn-primary" style="margin-top:20px;">Volver al Inicio</a></div>`;
+        container.innerHTML = `
+            <div class="error-message">
+                <h2>⚠️ Error</h2>
+                <p>${mensaje}</p>
+                <a href="index.html" class="btn-primary" style="margin-top:20px;">Volver al Inicio</a>
+            </div>
+        `;
     }
 }
 
-// ✅ CAMBIO 1.3 APLICADO: La función generarHistorialPartidosSimulado() ha sido eliminada.
+// ===================================
+// --- FUNCIONALIDADES AVANZADAS ---
+// ===================================
 
-// ==========================================================
-// --- FUNCIONALIDADES AVANZADAS (SIN CAMBIOS) ---
-// ==========================================================
 let performanceCharts = {};
 let playerFavorites = JSON.parse(localStorage.getItem('playerFavorites') || '[]');
 
@@ -276,10 +268,17 @@ function inicializarFuncionalidadesAvanzadas() {
 }
 
 function crearGraficosRendimiento() {
-    // Los gráficos siguen usando datos simulados por ahora.
     const partidosData = generarDatosHistoricosParaGraficos();
     crearGrafico(document.getElementById('battingChart'), 'AVG', partidosData.map(p => p.avg), '#ffd700');
     crearGrafico(document.getElementById('opsChart'), 'OPS', partidosData.map(p => p.ops), '#ff8c00');
+    // Actualizar tendencias (si existe el elemento en HTML)
+    const tendenciaEl = document.getElementById('tendenciaAvg');
+    if (tendenciaEl && partidosData.length >= 2) {
+        const ultimoAvg = partidosData[partidosData.length - 1].avg;
+        const penultimoAvg = partidosData[partidosData.length - 2].avg;
+        const diff = ultimoAvg - penultimoAvg;
+        tendenciaEl.textContent = diff >= 0 ? `+${(diff * 100).toFixed(1)}%` : `${(diff * 100).toFixed(1)}%`;
+    }
 }
 
 function generarDatosHistoricosParaGraficos() {
@@ -302,7 +301,7 @@ function crearGrafico(canvas, label, data, color) {
     const padding = 20;
     const chartWidth = canvas.width - padding * 2;
     const chartHeight = canvas.height - padding * 2;
-    if(chartWidth <= 0 || chartHeight <= 0) return; // Evitar errores si el canvas no es visible
+    if(chartWidth <= 0 || chartHeight <= 0) return;
     const maxValue = Math.max(...data) * 1.1 || 0.5;
     const stepX = chartWidth / (data.length > 1 ? data.length - 1 : 1);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -327,10 +326,16 @@ function crearGrafico(canvas, label, data, color) {
 }
 
 function configurarSistemaFavoritos() {
-    document.getElementById('toggleFavorite').addEventListener('click', toggleFavorito);
-    document.getElementById('sharePlayer').addEventListener('click', compartirJugador);
-    document.getElementById('exportPlayerData').addEventListener('click', exportarDatosJugador);
-    document.getElementById('saveNotes').addEventListener('click', guardarNotasJugador);
+    const toggleBtn = document.getElementById('toggleFavorite');
+    const shareBtn = document.getElementById('sharePlayer');
+    const exportBtn = document.getElementById('exportPlayerData');
+    const saveNotesBtn = document.getElementById('saveNotes');
+    
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleFavorito);
+    if (shareBtn) shareBtn.addEventListener('click', compartirJugador);
+    if (exportBtn) exportBtn.addEventListener('click', exportarDatosJugador);
+    if (saveNotesBtn) saveNotesBtn.addEventListener('click', guardarNotasJugador);
+    
     actualizarEstadoFavorito();
 }
 
@@ -348,9 +353,13 @@ function toggleFavorito() {
 
 function actualizarEstadoFavorito() {
     const isFavorite = playerFavorites.includes(currentPlayerId);
-    document.getElementById('favoriteIcon').textContent = isFavorite ? '★' : '☆';
-    document.getElementById('favoriteText').textContent = isFavorite ? 'Quitar de Favoritos' : 'Agregar a Favoritos';
-    document.getElementById('toggleFavorite').classList.toggle('active', isFavorite);
+    const iconEl = document.getElementById('favoriteIcon');
+    const textEl = document.getElementById('favoriteText');
+    const btnEl = document.getElementById('toggleFavorite');
+    
+    if (iconEl) iconEl.textContent = isFavorite ? '★' : '☆';
+    if (textEl) textEl.textContent = isFavorite ? 'Quitar de Favoritos' : 'Agregar a Favoritos';
+    if (btnEl) btnEl.classList.toggle('active', isFavorite);
 }
 
 function compartirJugador() {
@@ -363,7 +372,11 @@ function compartirJugador() {
 }
 
 function exportarDatosJugador() {
-    const data = { jugador: playerData, estadisticas: playerStats, fechaExportacion: new Date().toISOString() };
+    const data = {
+        jugador: playerData,
+        estadisticas: playerStats,
+        fechaExportacion: new Date().toISOString()
+    };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -374,26 +387,47 @@ function exportarDatosJugador() {
 }
 
 function guardarNotasJugador() {
-    const notes = document.getElementById('playerNotes').value;
-    localStorage.setItem(`player_notes_${currentPlayerId}`, notes);
-    mostrarNotificacion('Notas guardadas', 'success');
+    const notesEl = document.getElementById('playerNotes');
+    if (notesEl) {
+        const notes = notesEl.value;
+        localStorage.setItem(`player_notes_${currentPlayerId}`, notes);
+        mostrarNotificacion('Notas guardadas', 'success');
+    }
 }
 
 function cargarNotasJugador() {
-    const notes = localStorage.getItem(`player_notes_${currentPlayerId}`) || '';
-    document.getElementById('playerNotes').value = notes;
+    const notesEl = document.getElementById('playerNotes');
+    if (notesEl) {
+        const notes = localStorage.getItem(`player_notes_${currentPlayerId}`) || '';
+        notesEl.value = notes;
+    }
 }
 
 function mostrarNotificacion(mensaje, tipo = 'info') {
     const noti = document.createElement('div');
     noti.textContent = mensaje;
     noti.className = `notification ${tipo}`;
+    noti.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${tipo === 'success' ? '#00ff88' : tipo === 'warning' ? '#ff8c00' : '#ffd700'};
+        color: #1a1a2e;
+        border-radius: 8px;
+        font-weight: bold;
+        z-index: 10000;
+        opacity: 0;
+        transition: opacity 0.3s;
+    `;
     document.body.appendChild(noti);
-    setTimeout(() => { noti.classList.add('show'); }, 10);
-    setTimeout(() => { noti.classList.remove('show'); setTimeout(() => noti.remove(), 300); }, 3000);
+    setTimeout(() => { noti.style.opacity = '1'; }, 10);
+    setTimeout(() => {
+        noti.style.opacity = '0';
+        setTimeout(() => noti.remove(), 300);
+    }, 3000);
 }
 
-// Función de comparación (sin cambios)
 function configurarSistemaComparaciones() {
-    // Lógica futura
+    // Lógica futura para PROMPT 2
 }
