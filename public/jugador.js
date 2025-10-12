@@ -1,4 +1,4 @@
-// JUGADOR.JS - VERSIÓN COMPLETA CON TODAS LAS FUNCIONALIDADES
+// JUGADOR.JS - VERSIÓN FINAL 2025 - TODAS LAS FUNCIONALIDADES
 
 // --- Configuración de API ---
 const API_BASE_URL = ''; 
@@ -234,10 +234,12 @@ function formatearPosicion(posicion) {
 
 function configurarNavegacion() {
     const backBtn = document.getElementById('backToTeamBtn');
-    if (playerData.equipo_id) {
-        backBtn.href = `equipo.html?id=${playerData.equipo_id}`;
-    } else {
-        backBtn.style.display = 'none';
+    if (backBtn) {
+        if (playerData.equipo_id) {
+            backBtn.href = `equipo.html?id=${playerData.equipo_id}`;
+        } else {
+            backBtn.style.display = 'none';
+        }
     }
 }
 
@@ -364,7 +366,7 @@ async function cargarJugadoresMismaPosicion() {
                     <div class="related-team">${jugador.equipo_nombre || 'Sin equipo'}</div>
                 </div>
                 <div class="related-stat">
-                    <span style="color: #ffd700; font-weight: bold;">${jugador.avg.toFixed(3)}</span>
+                    <span style="color: #ffd700; font-weight: bold;">${(jugador.avg || 0).toFixed(3)}</span>
                     <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
                 </div>
             </a>
@@ -404,7 +406,7 @@ async function cargarJugadoresMismoEquipo() {
                     <div class="related-team">${formatearPosicion(jugador.posicion)}</div>
                 </div>
                 <div class="related-stat">
-                    <span style="color: #ffd700; font-weight: bold;">${jugador.avg.toFixed(3)}</span>
+                    <span style="color: #ffd700; font-weight: bold;">${(jugador.avg || 0).toFixed(3)}</span>
                     <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
                 </div>
             </a>
@@ -578,6 +580,8 @@ function compartirJugador() {
     } else {
         navigator.clipboard.writeText(url).then(() => {
             mostrarNotificacion('Enlace copiado al portapapeles', 'success');
+        }).catch(() => {
+            mostrarNotificacion('No se pudo copiar el enlace', 'warning');
         });
     }
 }
