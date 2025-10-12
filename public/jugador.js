@@ -1,4 +1,4 @@
-// JUGADOR.JS - CORREGIDO PARA FASE 1
+// JUGADOR.JS - CORREGIDO
 
 // --- Configuración de API ---
 // Usamos rutas relativas para que funcione en cualquier entorno (local o producción)
@@ -36,10 +36,11 @@ async function cargarDatosJugador() {
     try {
         console.log(`🔄 Cargando datos del jugador ID: ${currentPlayerId}...`);
         
-        // Hacemos las llamadas a la API en paralelo para mayor eficiencia
-        const [jugadorResponse, statsResponse] = await Promise.all([
+        // ✅ CAMBIO 1.1 APLICADO: Hacemos las llamadas a la API en paralelo para mayor eficiencia
+        const [jugadorResponse, statsResponse, partidosResponse] = await Promise.all([
             fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}`),
-            fetch(`${API_BASE_URL}/api/estadisticas-ofensivas?jugador_id=${currentPlayerId}`)
+            fetch(`${API_BASE_URL}/api/estadisticas-ofensivas?jugador_id=${currentPlayerId}`),
+            fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}/partidos`)
         ]);
 
         if (!jugadorResponse.ok) {
@@ -58,8 +59,7 @@ async function cargarDatosJugador() {
             playerStats = {}; // Asignamos un objeto vacío para evitar errores
         }
 
-        // ✅ INICIO DE CORRECCIÓN 4.1: Cargar historial de partidos REALES
-        const partidosResponse = await fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}/partidos`);
+        // Cargar historial de partidos REALES
         if (partidosResponse.ok) {
             gamesHistory = await partidosResponse.json();
             console.log('✅ Historial de partidos cargado:', gamesHistory.length);
@@ -67,7 +67,6 @@ async function cargarDatosJugador() {
             console.warn('⚠️ No se pudieron cargar los partidos del jugador');
             gamesHistory = [];
         }
-        // ✅ FIN DE CORRECCIÓN 4.1
 
         console.log('✅ Datos del jugador cargados:', { playerData, playerStats });
 
@@ -158,24 +157,24 @@ function renderizarMetricasAvanzadas() {
 /**
  * Renderiza el historial de partidos.
  */
-// ✅ INICIO DE CORRECCIÓN 4.2: REEMPLAZO COMPLETO DE LA FUNCIÓN
+// ✅ CAMBIO 1.2 APLICADO: FUNCIÓN COMPLETAMENTE REEMPLAZADA
 function renderizarHistorialPartidos() {
     const container = document.getElementById('gamesHistoryContainer');
-
+    
     if (!gamesHistory || gamesHistory.length === 0) {
         container.innerHTML = '<div class="empty-state">No hay partidos registrados</div>';
         return;
     }
-
+    
     const html = gamesHistory.map(partido => {
         const esLocal = partido.equipo_local_id === playerData.equipo_id;
         const equipoRival = esLocal ? partido.equipo_visitante_nombre : partido.equipo_local_nombre;
         const carrerasEquipo = esLocal ? partido.carreras_local : partido.carreras_visitante;
         const carrerasRival = esLocal ? partido.carreras_visitante : partido.carreras_local;
-
+        
         const resultado = carrerasEquipo > carrerasRival ? 'G' : 'P';
         const resultadoClass = resultado === 'G' ? 'win' : 'loss';
-
+        
         // Formatear fecha
         const fecha = new Date(partido.fecha_partido + 'T00:00:00Z');
         const fechaFormateada = fecha.toLocaleDateString('es-ES', { 
@@ -184,7 +183,7 @@ function renderizarHistorialPartidos() {
              year: 'numeric',
             timeZone: 'UTC'
         });
-
+        
         return `
             <div class="game-item">
                 <div class="game-opponent">vs ${equipoRival}</div>
@@ -195,10 +194,9 @@ function renderizarHistorialPartidos() {
             </div>
         `;
     }).join('');
-
+    
     container.innerHTML = html;
 }
-// ✅ FIN DE CORRECCIÓN 4.2
 
 // ===================================
 // --- FUNCIONES HELPER Y CÁLCULOS ---
@@ -261,12 +259,10 @@ function mostrarErrorGeneral(mensaje) {
     }
 }
 
-// ✅ INICIO DE CORRECCIÓN 4.3: FUNCIÓN SIMULADA ELIMINADA
-// La función generarHistorialPartidosSimulado() ha sido removida de esta sección.
-// ✅ FIN DE CORRECCIÓN 4.3
+// ✅ CAMBIO 1.3 APLICADO: La función generarHistorialPartidosSimulado() ha sido eliminada.
 
 // ==========================================================
-// --- FUNCIONALIDADES AVANZADAS (SIN CAMBIOS PARA PROMPT 1) ---
+// --- FUNCIONALIDADES AVANZADAS (SIN CAMBIOS) ---
 // ==========================================================
 let performanceCharts = {};
 let playerFavorites = JSON.parse(localStorage.getItem('playerFavorites') || '[]');
@@ -280,7 +276,7 @@ function inicializarFuncionalidadesAvanzadas() {
 }
 
 function crearGraficosRendimiento() {
-    // Los gráficos siguen usando datos simulados por ahora, como indica el prompt.
+    // Los gráficos siguen usando datos simulados por ahora.
     const partidosData = generarDatosHistoricosParaGraficos();
     crearGrafico(document.getElementById('battingChart'), 'AVG', partidosData.map(p => p.avg), '#ffd700');
     crearGrafico(document.getElementById('opsChart'), 'OPS', partidosData.map(p => p.ops), '#ff8c00');
@@ -399,5 +395,5 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
 
 // Función de comparación (sin cambios)
 function configurarSistemaComparaciones() {
-    // Lógica futura para prompt 2
+    // Lógica futura
 }
