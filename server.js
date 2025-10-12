@@ -908,7 +908,7 @@ app.post('/api/torneos', async (req, res) => {
         }
 
         const totalJuegosFinal = total_juegos ? parseInt(total_juegos, 10) : 22;
-        const cuposPlayoffsFinal = cupos_playoffs ? parseInt(cupos_playoffs, 10) : 8;
+        const cuposPlayoffsFinal = cupos_playoffs ? parseInt(cupos_playoffs, 10) : 6;
 
         if (isNaN(totalJuegosFinal) || totalJuegosFinal <= 0) {
             return res.status(400).json({ error: 'El total de juegos debe ser un número positivo.' });
