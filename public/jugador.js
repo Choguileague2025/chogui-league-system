@@ -1,4 +1,4 @@
-// JUGADOR.JS - CORREGIDO FINAL
+// JUGADOR.JS - VERSIÓN COMPLETA CON TODAS LAS FUNCIONALIDADES
 
 // --- Configuración de API ---
 const API_BASE_URL = ''; 
@@ -8,6 +8,8 @@ let currentPlayerId = null;
 let playerData = null;
 let playerStats = null;
 let gamesHistory = [];
+let performanceCharts = {};
+let playerFavorites = JSON.parse(localStorage.getItem('playerFavorites') || '[]');
 
 // ===================================
 // --- FUNCIONES PRINCIPALES ---
@@ -137,7 +139,7 @@ function renderizarHistorialPartidos() {
     console.log('🔍 playerData.equipo_id:', playerData.equipo_id);
     
     if (!gamesHistory || gamesHistory.length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay partidos registrados para este jugador</div>';
+        container.innerHTML = '<div class="empty-state">No hay partidos finalizados para este jugador</div>';
         return;
     }
     
@@ -256,22 +258,24 @@ function mostrarErrorGeneral(mensaje) {
 // --- FUNCIONALIDADES AVANZADAS ---
 // ===================================
 
-let performanceCharts = {};
-let playerFavorites = JSON.parse(localStorage.getItem('playerFavorites') || '[]');
-
 function inicializarFuncionalidadesAvanzadas() {
     if (!playerData) return;
     crearGraficosRendimiento();
     configurarSistemaFavoritos();
     configurarSistemaComparaciones();
+    cargarJugadoresRelacionados();
     cargarNotasJugador();
 }
+
+// ===================================
+// --- GRÁFICOS DE RENDIMIENTO ---
+// ===================================
 
 function crearGraficosRendimiento() {
     const partidosData = generarDatosHistoricosParaGraficos();
     crearGrafico(document.getElementById('battingChart'), 'AVG', partidosData.map(p => p.avg), '#ffd700');
     crearGrafico(document.getElementById('opsChart'), 'OPS', partidosData.map(p => p.ops), '#ff8c00');
-    // Actualizar tendencias (si existe el elemento en HTML)
+    
     const tendenciaEl = document.getElementById('tendenciaAvg');
     if (tendenciaEl && partidosData.length >= 2) {
         const ultimoAvg = partidosData[partidosData.length - 1].avg;
@@ -325,6 +329,208 @@ function crearGrafico(canvas, label, data, color) {
     });
 }
 
+// ===================================
+// --- JUGADORES RELACIONADOS ---
+// ===================================
+
+async function cargarJugadoresRelacionados() {
+    await cargarJugadoresMismaPosicion();
+    await cargarJugadoresMismoEquipo();
+}
+
+async function cargarJugadoresMismaPosicion() {
+    const container = document.getElementById('samePositionPlayers');
+    if (!container) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}/similares?limit=5`);
+        
+        if (!response.ok) {
+            throw new Error('Error cargando jugadores similares');
+        }
+        
+        const jugadores = await response.json();
+        
+        if (jugadores.length === 0) {
+            container.innerHTML = '<div class="empty-state">No hay otros jugadores en esta posición</div>';
+            return;
+        }
+        
+        const html = jugadores.map(jugador => `
+            <a href="jugador.html?id=${jugador.id}" class="related-player">
+                <div class="related-avatar">${obtenerIniciales(jugador.nombre)}</div>
+                <div class="related-info">
+                    <div class="related-name">${jugador.nombre}</div>
+                    <div class="related-team">${jugador.equipo_nombre || 'Sin equipo'}</div>
+                </div>
+                <div class="related-stat">
+                    <span style="color: #ffd700; font-weight: bold;">${jugador.avg.toFixed(3)}</span>
+                    <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
+                </div>
+            </a>
+        `).join('');
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error cargando jugadores de misma posición:', error);
+        container.innerHTML = '<div class="empty-state">Error cargando jugadores</div>';
+    }
+}
+
+async function cargarJugadoresMismoEquipo() {
+    const container = document.getElementById('sameTeamPlayers');
+    if (!container) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}/companeros?limit=5`);
+        
+        if (!response.ok) {
+            throw new Error('Error cargando compañeros');
+        }
+        
+        const jugadores = await response.json();
+        
+        if (jugadores.length === 0) {
+            container.innerHTML = '<div class="empty-state">No hay otros jugadores en este equipo</div>';
+            return;
+        }
+        
+        const html = jugadores.map(jugador => `
+            <a href="jugador.html?id=${jugador.id}" class="related-player">
+                <div class="related-avatar">${obtenerIniciales(jugador.nombre)}</div>
+                <div class="related-info">
+                    <div class="related-name">${jugador.nombre}</div>
+                    <div class="related-team">${formatearPosicion(jugador.posicion)}</div>
+                </div>
+                <div class="related-stat">
+                    <span style="color: #ffd700; font-weight: bold;">${jugador.avg.toFixed(3)}</span>
+                    <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
+                </div>
+            </a>
+        `).join('');
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error cargando compañeros de equipo:', error);
+        container.innerHTML = '<div class="empty-state">Error cargando jugadores</div>';
+    }
+}
+
+// ===================================
+// --- COMPARACIÓN DE JUGADORES ---
+// ===================================
+
+function configurarSistemaComparaciones() {
+    const generateBtn = document.getElementById('generateComparison');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', generarComparacion);
+    }
+}
+
+async function generarComparacion() {
+    const positionSelect = document.getElementById('comparisonPosition');
+    const metricSelect = document.getElementById('comparisonMetric');
+    const resultsContainer = document.getElementById('comparisonResults');
+    
+    if (!positionSelect || !metricSelect || !resultsContainer) return;
+    
+    const positionFilter = positionSelect.value;
+    const metric = metricSelect.value;
+    
+    resultsContainer.innerHTML = '<div class="loading">Generando comparación...</div>';
+    
+    try {
+        let endpoint = '';
+        
+        if (positionFilter === 'team') {
+            endpoint = `${API_BASE_URL}/api/jugadores/${currentPlayerId}/companeros?limit=10`;
+        } else {
+            endpoint = `${API_BASE_URL}/api/jugadores/${currentPlayerId}/similares?limit=10`;
+        }
+        
+        const response = await fetch(endpoint);
+        
+        if (!response.ok) {
+            throw new Error('Error obteniendo datos para comparación');
+        }
+        
+        const jugadores = await response.json();
+        
+        if (jugadores.length === 0) {
+            resultsContainer.innerHTML = '<div class="empty-state">No hay jugadores disponibles para comparar</div>';
+            return;
+        }
+        
+        // Agregar jugador actual a la comparación
+        const jugadorActual = {
+            id: currentPlayerId,
+            nombre: playerData.nombre,
+            equipo_nombre: playerData.equipo_nombre,
+            avg: calcularAVG(playerStats),
+            hits: playerStats.hits || 0,
+            home_runs: playerStats.home_runs || 0,
+            rbi: playerStats.rbi || 0,
+            at_bats: playerStats.at_bats || 0
+        };
+        
+        const obp = calcularOBP(playerStats);
+        const slg = calcularSLG(playerStats);
+        jugadorActual.ops = obp + slg;
+        
+        const todosJugadores = [jugadorActual, ...jugadores];
+        
+        // Ordenar según métrica seleccionada
+        todosJugadores.sort((a, b) => {
+            const valA = parseFloat(a[metric]) || 0;
+            const valB = parseFloat(b[metric]) || 0;
+            return valB - valA;
+        });
+        
+        // Generar HTML de comparación
+        const html = todosJugadores.map(jugador => {
+            const esJugadorActual = jugador.id == currentPlayerId;
+            const valor = jugador[metric] || 0;
+            const valorFormateado = (metric === 'avg' || metric === 'ops') ? 
+                parseFloat(valor).toFixed(3) : Math.round(valor);
+            
+            return `
+                <div class="comparison-player ${esJugadorActual ? 'current-player' : ''}" 
+                     style="${esJugadorActual ? 'border-left: 4px solid #00ff88; background: rgba(0, 255, 136, 0.1);' : ''}">
+                    <div class="comparison-player-info">
+                        <div class="comparison-avatar">${obtenerIniciales(jugador.nombre)}</div>
+                        <div>
+                            <div style="font-weight: bold; color: #fff;">
+                                ${jugador.nombre} ${esJugadorActual ? '(Tú)' : ''}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #ffd700;">
+                                ${jugador.equipo_nombre || 'Sin equipo'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comparison-stats">
+                        <div class="comparison-stat">
+                            <div class="comparison-stat-value">${valorFormateado}</div>
+                            <div class="comparison-stat-label">${metric.toUpperCase()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        resultsContainer.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error generando comparación:', error);
+        resultsContainer.innerHTML = '<div class="empty-state">Error generando comparación</div>';
+    }
+}
+
+// ===================================
+// --- SISTEMA DE FAVORITOS ---
+// ===================================
+
 function configurarSistemaFavoritos() {
     const toggleBtn = document.getElementById('toggleFavorite');
     const shareBtn = document.getElementById('sharePlayer');
@@ -365,9 +571,14 @@ function actualizarEstadoFavorito() {
 function compartirJugador() {
     const url = window.location.href;
     if (navigator.share) {
-        navigator.share({ title: `Perfil de ${playerData.nombre}`, url }).catch(console.error);
+        navigator.share({ 
+            title: `Perfil de ${playerData.nombre}`, 
+            url 
+        }).catch(console.error);
     } else {
-        navigator.clipboard.writeText(url).then(() => mostrarNotificacion('Enlace copiado', 'success'));
+        navigator.clipboard.writeText(url).then(() => {
+            mostrarNotificacion('Enlace copiado al portapapeles', 'success');
+        });
     }
 }
 
@@ -375,6 +586,7 @@ function exportarDatosJugador() {
     const data = {
         jugador: playerData,
         estadisticas: playerStats,
+        historial_partidos: gamesHistory,
         fechaExportacion: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -383,7 +595,7 @@ function exportarDatosJugador() {
     link.download = `${playerData.nombre.replace(/\s+/g, '_')}_data.json`;
     link.click();
     URL.revokeObjectURL(link.href);
-    mostrarNotificacion('Datos exportados', 'success');
+    mostrarNotificacion('Datos exportados correctamente', 'success');
 }
 
 function guardarNotasJugador() {
@@ -391,7 +603,7 @@ function guardarNotasJugador() {
     if (notesEl) {
         const notes = notesEl.value;
         localStorage.setItem(`player_notes_${currentPlayerId}`, notes);
-        mostrarNotificacion('Notas guardadas', 'success');
+        mostrarNotificacion('Notas guardadas correctamente', 'success');
     }
 }
 
@@ -419,6 +631,7 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
         z-index: 10000;
         opacity: 0;
         transition: opacity 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     `;
     document.body.appendChild(noti);
     setTimeout(() => { noti.style.opacity = '1'; }, 10);
@@ -426,8 +639,4 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
         noti.style.opacity = '0';
         setTimeout(() => noti.remove(), 300);
     }, 3000);
-}
-
-function configurarSistemaComparaciones() {
-    // Lógica futura para PROMPT 2
 }
