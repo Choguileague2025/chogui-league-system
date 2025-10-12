@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 async function cargarDatosJugador() {
     try {
-        console.log(`🔄 Cargando datos del jugador ID: ${currentPlayerId}...`);
+        console.log(`📄 Cargando datos del jugador ID: ${currentPlayerId}...`);
         
         // ✅ CAMBIO 1.1 APLICADO: Hacemos las llamadas a la API en paralelo para mayor eficiencia
         const [jugadorResponse, statsResponse, partidosResponse] = await Promise.all([
@@ -178,9 +178,9 @@ function renderizarHistorialPartidos() {
         // Formatear fecha
         const fecha = new Date(partido.fecha_partido + 'T00:00:00Z');
         const fechaFormateada = fecha.toLocaleDateString('es-ES', { 
-             day: '2-digit', 
-             month: '2-digit', 
-             year: 'numeric',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
             timeZone: 'UTC'
         });
         
