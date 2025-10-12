@@ -1,7 +1,7 @@
 // EQUIPO-DETALLE.JS - VERSIÓN FINAL CORREGIDA
 
 // Configuración de API
-const API_BASE_URL = '';
+const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
 
 // Variables globales
 let currentTeamId = null;
