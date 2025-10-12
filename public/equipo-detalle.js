@@ -1,7 +1,7 @@
 // EQUIPO-DETALLE.JS - ACTUALIZADO HASTA PASO 15.5
 
 // Configuración de API
-const API_BASE_URL = ''; // Usar rutas relativas
+const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
 
 // Variables globales
 let currentTeamId = null;
@@ -57,30 +57,27 @@ function getTeamLogo(equipoNombre) {
   return `/public/images/logos/${nombreArchivo}`;
 }
 
-// =================================================================
-// INICIO DE LA CORRECCIÓN: Logo de equipo con fallback a iniciales
-// =================================================================
-
+// ✅ INICIO DE LA CORRECCIÓN: Función de manejo de logos con fallback a iniciales
 function mostrarLogoEquipo(logoUrl, equipoNombre) {
-    const logoContainer = document.querySelector('.team-logo'); 
+    const logoContainer = document.querySelector('.team-logo');
     if (!logoContainer) return;
 
     const img = new Image();
-    
+
     img.onload = function() {
         logoContainer.style.backgroundImage = `url('${logoUrl}')`;
         logoContainer.style.backgroundSize = 'contain';
         logoContainer.style.backgroundRepeat = 'no-repeat';
         logoContainer.style.backgroundPosition = 'center';
-        logoContainer.innerHTML = ''; // Limpiar iniciales si hay logo
+        logoContainer.innerHTML = ''; // Limpiar iniciales si el logo carga correctamente
     };
-    
+
     img.onerror = function() {
         console.warn(`Logo no encontrado para ${equipoNombre}, usando iniciales`);
         
         // Generar iniciales
         const iniciales = generarIniciales(equipoNombre);
-        
+
         // Mostrar iniciales en lugar de logo
         logoContainer.style.backgroundImage = 'none';
         logoContainer.innerHTML = `
@@ -101,11 +98,11 @@ function mostrarLogoEquipo(logoUrl, equipoNombre) {
             </div>
         `;
     };
-    
+
     img.src = logoUrl;
 }
 
-// Función auxiliar para generar iniciales
+// ✅ Función auxiliar para generar iniciales
 function generarIniciales(nombreEquipo) {
     if (!nombreEquipo) return '?';
     
@@ -122,11 +119,7 @@ function generarIniciales(nombreEquipo) {
             .join('');
     }
 }
-
-// ===============================================================
-// FIN DE LA CORRECCIÓN
-// ===============================================================
-
+// ✅ FIN DE LA CORRECCIÓN
 
 // Inicialización mejorada
 document.addEventListener('DOMContentLoaded', function() {
@@ -167,7 +160,7 @@ async function cargarDatosEquipo() {
             cargarPartidosRecientes()
         ]);
         calcularEstadisticas();
-        // actualizarBreadcrumbConPosicion(); // Esta función no existe, la comento.
+        actualizarBreadcrumbConPosicion();
     } catch (error) {
         console.error('Error cargando datos del equipo:', error);
     }
@@ -201,7 +194,7 @@ async function cargarInformacionEquipo() {
 async function cargarRosterEquipo() {
     const container = document.getElementById('rosterContainer');
     try {
-        const response = await fetch(getApiUrl(`/api/jugadores?equipo_id=${currentTeamId}&limit=100`)); // Aumentado el límite para traer todo el roster
+        const response = await fetch(getApiUrl(`/api/jugadores?equipo_id=${currentTeamId}`));
         if (!response.ok) {
             throw new Error(`Error cargando roster: ${response.status}`);
         }
@@ -226,16 +219,13 @@ async function cargarRosterEquipo() {
 async function cargarPartidosRecientes() {
     const container = document.getElementById('recentGamesContainer');
     try {
-        // Este endpoint no existe, debería ser `/api/jugadores/:id/partidos` o similar
-        // Por ahora, asumimos que hay un endpoint de partidos por equipo
         const response = await fetch(getApiUrl(`/api/partidos?equipo_id=${currentTeamId}&limit=10`));
         if (!response.ok) {
             throw new Error(`Error cargando partidos: ${response.status}`);
         }
         
-        // La API de partidos devuelve un array directamente o un objeto {partidos: []}
         const data = await response.json();
-        recentGames = data.partidos || data || [];
+        recentGames = data.partidos || [];
         
         renderizarPartidosRecientes();
         
@@ -282,7 +272,12 @@ function renderizarInformacionEquipo() {
         
         const nuevaURL = `equipo.html?id=${currentTeamId}&nombre=${nombreAmigable}`;
         
-        window.history.replaceState(null, document.title, nuevaURL);
+        const currentPath = window.location.pathname;
+        const newFullPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1) + nuevaURL;
+        
+        if (window.location.href !== window.location.origin + newFullPath) {
+            window.history.replaceState(null, document.title, nuevaURL);
+        }
         
         const breadcrumb = document.getElementById('teamBreadcrumb');
         if (breadcrumb) {
@@ -393,7 +388,7 @@ function calcularEstadisticas() {
     const porcentajeVictorias = partidosJugados > 0 ? (victorias / partidosJugados) : 0;
     
     document.getElementById('teamRecord').textContent = `${victorias}-${derrotas}`;
-    document.getElementById('teamPosition').textContent = '--'; // Se necesitaría API de standings
+    document.getElementById('teamPosition').textContent = '--';
     document.getElementById('teamAverage').textContent = porcentajeVictorias.toFixed(3);
     document.getElementById('teamRuns').textContent = carrerasAnotadas;
     
@@ -440,7 +435,18 @@ function obtenerResultadoPartido(partido, esLocal) {
 
 // ACTUALIZADO PARA NAVEGAR A JUGADOR.HTML
 function verJugador(jugadorId) {
-    window.location.href = `jugador.html?id=${jugadorId}`;
+    const jugador = rosterData.find(j => j.id === jugadorId);
+    if (!jugador) {
+        alert('Información del jugador no disponible');
+        return;
+    }
+    
+    const nombreAmigable = jugador.nombre
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+    
+    window.location.href = `jugador.html?id=${jugadorId}&nombre=${nombreAmigable}&equipo=${currentTeamId}`;
 }
 
 function precargarDatosCriticos() {
