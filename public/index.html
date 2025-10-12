@@ -2709,9 +2709,9 @@
 
         <div class="search-container">
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="🔎 Buscar jugadores por nombre..." maxlength="50">
+                <input type="text" id="searchInput" placeholder="🔎 Buscar jugadores o equipos..." maxlength="50">
             </div>
-            <div id="searchResults" class="search-results"></div> 
+            <div id="searchResults" class="search-results" style="display: none;"></div> 
         </div>
 
         <style>
@@ -2793,6 +2793,17 @@
         .player-stats { font-size: 0.85rem; color: #ccc; }
         .player-stats span { margin-left: 10px; }
         .no-results, .error-message { padding: 20px; text-align: center; color: #ffd700; }
+
+        /* ✅ INICIO: CSS AÑADIDO */
+        .search-category {
+            padding: 10px 18px;
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        /* ✅ FIN: CSS AÑADIDO */
 
         @media (max-width: 768px) {
             .search-bar {
@@ -4144,19 +4155,111 @@
             await cargarLideres(); 
             configurarTabsLideres();
            
-            await cargarDatosParaBusqueda(); 
-           
             await cargarProximosPartidos(); 
             await cargarEstadisticasCompletas(); 
 
             initMobileNavigation();
             initStickyHeader();
 
+            // ✅ INICIO: CÓDIGO DEL BUSCADOR MODIFICADO
+            // El código antiguo de 'buscarJugador' se elimina y se reemplaza por este bloque.
+            // Buscador universal (jugadores + equipos)
             const searchInput = document.getElementById('searchInput');
-            if(searchInput) {
-                searchInput.addEventListener('input', buscarJugador);
+            const searchResults = document.getElementById('searchResults');
+            if (searchInput) {
+                let searchTimeout;
+
+                searchInput.addEventListener('input', function(e) {
+                    const query = e.target.value.trim();
+
+                    clearTimeout(searchTimeout);
+
+                    if (query.length < 2) {
+                        searchResults.innerHTML = '';
+                        searchResults.style.display = 'none';
+                        return;
+                    }
+
+                    searchTimeout = setTimeout(async () => {
+                        try {
+                            const response = await fetch(getApiUrl(`/api/buscar?q=${encodeURIComponent(query)}`));
+                                            
+                            if (!response.ok) {
+                                throw new Error('Error en la búsqueda');
+                            }
+                                            
+                            const data = await response.json();
+                            mostrarResultadosBusqueda(data);
+                                        
+                        } catch (error) {
+                            console.error('Error en búsqueda:', error);
+                            searchResults.innerHTML = '<div class="error-message">Error al buscar. Intenta de nuevo.</div>';
+                            searchResults.style.display = 'block';
+                        }
+                    }, 300);
+                });
+
+                // Cerrar resultados al hacer clic fuera
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                        searchResults.style.display = 'none';
+                    }
+                });
             }
+            // ✅ FIN: CÓDIGO DEL BUSCADOR MODIFICADO
         });
+
+        // ✅ INICIO: NUEVA FUNCIÓN AÑADIDA
+        function mostrarResultadosBusqueda(data) {
+            const searchResults = document.getElementById('searchResults');
+            const { jugadores, equipos } = data;
+
+            if (jugadores.length === 0 && equipos.length === 0) {
+                searchResults.innerHTML = '<div class="no-results">No se encontraron resultados</div>';
+                searchResults.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+
+            // Mostrar equipos
+            if (equipos.length > 0) {
+                html += '<div class="search-category">🏆 EQUIPOS</div>';
+                equipos.forEach(equipo => {
+                    html += `
+                        <div class="search-result-item" onclick="window.location.href='equipo.html?id=${equipo.id}'">
+                            <div class="player-info">
+                                <strong>${equipo.nombre}</strong>
+                                <span class="team-badge">${equipo.ciudad || 'Sin ciudad'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Mostrar jugadores
+            if (jugadores.length > 0) {
+                html += '<div class="search-category">👤 JUGADORES</div>';
+                jugadores.forEach(jugador => {
+                    html += `
+                        <div class="search-result-item" onclick="window.location.href='jugador.html?id=${jugador.id}'">
+                            <div class="player-info">
+                                <strong>${jugador.nombre}</strong>
+                                <span class="team-badge">${jugador.equipo_nombre || 'Sin equipo'}</span>
+                            </div>
+                            <div class="player-stats">
+                                <span>${jugador.posicion || 'N/A'}</span>
+                                <span>#${jugador.numero || '--'}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            searchResults.innerHTML = html;
+            searchResults.style.display = 'block';
+        }
+        // ✅ FIN: NUEVA FUNCIÓN AÑADIDA
 
         function initStickyHeader() {
             console.log('🔧 Inicializando header sticky...');
@@ -4182,25 +4285,6 @@
                     lastScroll = currentScroll;
             });
             console.log('✅ Header sticky inicializado');
-        }
-       
-        async function cargarDatosParaBusqueda() {
-             try {
-                 const [equiposRes, partidosRes] = await Promise.all([
-                     fetchJSON('/api/equipos'),
-                     fetchJSON('/api/partidos')
-                 ]);
-
-                 equipos = Array.isArray(equiposRes) ? equiposRes : [];
-                 partidos = Array.isArray(partidosRes) ? partidosRes : [];
-
-                 console.log(`✅ Datos para búsqueda cargados: ${equipos.length} equipos, ${partidos.length} partidos.`);
-
-              } catch(e) {
-                   console.error("❌ Error cargando datos para búsqueda:", e);
-                   equipos = [];
-                   partidos = [];
-              }
         }
        
         function mostrarPestana(nombrePestana) {
@@ -4307,50 +4391,7 @@
             }
         }
 
-        async function buscarJugador() {
-            const searchInput = document.getElementById('searchInput');
-            const resultadosContainer = document.getElementById('searchResults');
-            const query = searchInput.value.trim();
-           
-            if (query.length < 2) {
-                resultadosContainer.innerHTML = '';
-                resultadosContainer.style.display = 'none';
-                return;
-            }
-           
-            try {
-                const response = await fetch(getApiUrl(`/api/jugadores/buscar?query=${encodeURIComponent(query)}`));
-                if (!response.ok) throw new Error('Error en la búsqueda');
-                const data = await response.json();
-               
-                if (data.jugadores.length === 0) {
-                    resultadosContainer.innerHTML = `<div class="no-results"><p>No se encontraron jugadores con "${query}"</p></div>`;
-                } else {
-                    resultadosContainer.innerHTML = data.jugadores.map(jugador => `
-                            <div class="search-result-item" onclick="verJugador(${jugador.id})">
-                                <div class="player-info">
-                                    <strong>${jugador.nombre}</strong>
-                                    ${jugador.numero ? `#${jugador.numero}` : ''}
-                                    <span class="team-badge">${jugador.equipo_nombre || 'Sin equipo'}</span>
-                                </div>
-                                <div class="player-stats">
-                                    <span>AVG: ${jugador.promedio_bateo || '.000'}</span>
-                                    <span>HR: ${jugador.home_runs || 0}</span>
-                                </div>
-                            </div>`).join('');
-                }
-                resultadosContainer.style.display = 'block';
-               
-            } catch (error) {
-                console.error('Error buscando jugadores:', error);
-                resultadosContainer.innerHTML = `<div class="error-message">Error al buscar. Intenta de nuevo.</div>`;
-                resultadosContainer.style.display = 'block';
-            }
-        }
-
-        function verJugador(jugadorId) {
-            window.location.href = `jugador.html?id=${jugadorId}`;
-        }
+        // ❌ LA FUNCIÓN ANTIGUA 'buscarJugador' Y 'verJugador' SE ELIMINARON.
        
         function renderizarProximosPartidos(partidosParaRenderizar) {
             const container = document.getElementById('proximosPartidosContainer');
@@ -4378,14 +4419,6 @@
                         </div>`;
             }).join('');
         }
-
-        document.addEventListener('click', function(e) { 
-            const searchContainer = document.querySelector('.search-container'); 
-            if (searchContainer && !searchContainer.contains(e.target)) {
-                const results = document.getElementById('searchResults');
-                if (results) results.style.display = 'none';
-            } 
-        });
 
         function toggleMobileMenu() { document.querySelector('.mobile-menu').classList.toggle('active'); document.querySelector('.mobile-menu-overlay').classList.toggle('active'); }
         function closeMobileMenu() { document.querySelector('.mobile-menu').classList.remove('active'); document.querySelector('.mobile-menu-overlay').classList.remove('active'); }
@@ -4456,4 +4489,3 @@
     </footer>
     </body>
 </html>
-
