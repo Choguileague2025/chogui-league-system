@@ -2972,10 +2972,19 @@
                   Cargando clasificación...
                 </div>
                 <div data-empty style="display: none;"></div>
+
+                <div class="playoffs-view-toggle">
+                    <button class="toggle-btn active" data-view="tabla">
+                        📊 Vista Tabla
+                    </button>
+                    <button class="toggle-btn" data-view="barras">
+                        📈 Vista Barras
+                    </button>
+                </div>
+                
                 <div class="playoffs-container">
                   <div class="playoffs-config">
                     <span id="playoffs-cupos"></span>
-                    <span id="playoffs-juegos"></span>
                   </div>
                
                   <div class="table-container">
@@ -3009,7 +3018,40 @@
                       <li><span class="badge eliminado"></span> <strong>No puede alcanzar los playoffs matemáticamente</strong></li>
                     </ul>
                   </div>
-<div class="playoffs-view-toggle">    <button class="toggle-btn active" data-view="tabla">        📊 Vista Tabla    </button>    <button class="toggle-btn" data-view="barras">        📈 Vista Barras    </button></div><div class="playoffs-barras-container" style="display: none;">    <div class="barras-header">        <h3>🏆 Carrera hacia los Playoffs</h3>        <p class="barras-subtitle">Probabilidad de clasificación • Top 6 avanzan</p>    </div>    <div class="equipos-barras-grid">                <div class="equipo-barra-card clasificado-zona">            <div class="equipo-info-bar">                <div class="equipo-ranking">1°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">Guerreros del Norte</h4>                    <p class="equipo-record">12-3 • .800</p>                </div>                <div class="equipo-probabilidad">95%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill clasificado-fill" style="width: 95%;"></div>            </div>            <span class="estado-badge clasificado-badge">✅ Clasificado</span>        </div>        <div class="equipo-barra-card clasificado-zona">            <div class="equipo-info-bar">                <div class="equipo-ranking">2°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">Tigres Unidos</h4>                    <p class="equipo-record">11-4 • .733</p>                </div>                <div class="equipo-probabilidad">88%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill clasificado-fill" style="width: 88%;"></div>            </div>            <span class="estado-badge clasificado-badge">✅ Clasificado</span>        </div>        <div class="equipo-barra-card contencion-zona">            <div class="equipo-info-bar">                <div class="equipo-ranking">3°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">Leones Dorados</h4>                    <p class="equipo-record">10-5 • .667</p>                </div>                <div class="equipo-probabilidad">72%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill contencion-fill" style="width: 72%;"></div>            </div>            <span class="estado-badge contencion-badge">🟡 En Contención</span>        </div>        <div class="equipo-barra-card contencion-zona">            <div class="equipo-info-bar">                <div class="equipo-ranking">4°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">La Guaira</h4>                    <p class="equipo-record">9-6 • .600</p>                </div>                <div class="equipo-probabilidad">65%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill contencion-fill" style="width: 65%;"></div>            </div>            <span class="estado-badge contencion-badge">🟡 En Contención</span>        </div>        <div class="equipo-barra-card contencion-zona">            <div class="equipo-info-bar">                <div class="equipo-ranking">5°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">Furia del Caribe</h4>                    <p class="equipo-record">8-7 • .533</p>                </div>                <div class="equipo-probabilidad">52%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill contencion-fill" style="width: 52%;"></div>            </div>            <span class="estado-badge contencion-badge">🟡 En Contención</span>        </div>        <div class="equipo-barra-card contencion-zona corte-playoffs">            <div class="equipo-info-bar">                <div class="equipo-ranking">6°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">Águilas Negras</h4>                    <p class="equipo-record">7-8 • .467</p>                </div>                <div class="equipo-probabilidad">45%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill contencion-fill" style="width: 45%;"></div>            </div>            <span class="estado-badge contencion-badge">🟡 En Contención</span>            <div class="linea-corte">                <span>✂️ LÍNEA DE CORTE</span>            </div>        </div>        <div class="equipo-barra-card peligro-zona">            <div class="equipo-info-bar">                <div class="equipo-ranking">7°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">Venearstone</h4>                    <p class="equipo-record">6-9 • .400</p>                </div>                <div class="equipo-probabilidad">28%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill peligro-fill" style="width: 28%;"></div>            </div>            <span class="estado-badge peligro-badge">🟠 Zona Peligro</span>        </div>        <div class="equipo-barra-card eliminado-zona">            <div class="equipo-info-bar">                <div class="equipo-ranking">8°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">Desss</h4>                    <p class="equipo-record">4-11 • .267</p>                </div>                <div class="equipo-probabilidad">8%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill eliminado-fill" style="width: 8%;"></div>            </div>            <span class="estado-badge eliminado-badge">❌ Eliminado</span>        </div>        <div class="equipo-barra-card eliminado-zona">            <div class="equipo-info-bar">                <div class="equipo-ranking">9°</div>                <div class="equipo-detalles">                    <h4 class="equipo-nombre-bar">Caribes RD</h4>                    <p class="equipo-record">2-13 • .133</p>                </div>                <div class="equipo-probabilidad">2%</div>            </div>            <div class="barra-progreso">                <div class="barra-fill eliminado-fill" style="width: 2%;"></div>            </div>            <span class="estado-badge eliminado-badge">❌ Eliminado</span>        </div>    </div>    <div class="barras-leyenda">        <h4>📊 Zonas de Clasificación:</h4>        <div class="leyenda-items">            <div class="leyenda-item">                <span class="leyenda-color clasificado-color"></span>                <span>85-100% • Clasificado matemáticamente</span>            </div>            <div class="leyenda-item">                <span class="leyenda-color contencion-color"></span>                <span>40-84% • En contención por un cupo</span>            </div>            <div class="leyenda-item">                <span class="leyenda-color peligro-color"></span>                <span>10-39% • Necesita ganar urgente</span>            </div>            <div class="leyenda-item">                <span class="leyenda-color eliminado-color"></span>                <span>0-9% • Eliminado matemáticamente</span>            </div>        </div>    </div></div>
+                </div>
+
+                <div class="playoffs-barras-container" style="display: none;">
+                    <div class="barras-header">
+                        <h3>🏆 Carrera hacia los Playoffs</h3>
+                        <p class="barras-subtitle">Probabilidad de clasificación • Top 6 avanzan</p>
+                    </div>
+                    <div class="equipos-barras-grid">
+                        <div class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <p>Cargando probabilidades...</p>
+                        </div>
+                    </div>
+                    <div class="barras-leyenda">
+                        <h4>📊 Zonas de Clasificación:</h4>
+                        <div class="leyenda-items">
+                            <div class="leyenda-item">
+                                <span class="leyenda-color clasificado-color"></span>
+                                <span>85-100% • Clasificado matemáticamente</span>
+                            </div>
+                            <div class="leyenda-item">
+                                <span class="leyenda-color contencion-color"></span>
+                                <span>40-84% • En contención por un cupo</span>
+                            </div>
+                            <div class="leyenda-item">
+                                <span class="leyenda-color peligro-color"></span>
+                                <span>10-39% • Necesita ganar urgente</span>
+                            </div>
+                            <div class="leyenda-item">
+                                <span class="leyenda-color eliminado-color"></span>
+                                <span>0-9% • Eliminado matemáticamente</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -3086,7 +3128,7 @@
                 </tr>`).join('');
         }
        
-        // ============= SISTEMA DE PLAYOFFS (SIN CAMBIOS) =============
+        // ============= SISTEMA DE PLAYOFFS (CON MODIFICACIONES) =============
         async function cargarPlayoffsClasificacion() {
             console.log('🏆 Cargando clasificación de playoffs...');
             setLoading('playoffs-section', true);
@@ -3108,13 +3150,15 @@
         function renderPlayoffsClasificacion(data) {
             const { configuracion, equipos } = data;
             const cuposEl = document.getElementById('playoffs-cupos');
-            const juegosEl = document.getElementById('playoffs-juegos');
+            
+            // ✅ SUB-PASO 3.2: Corrección de textos estáticos
             if (cuposEl) {
-                cuposEl.innerHTML = `<strong>${configuracion.cupos_playoffs}</strong> equipos clasifican`;
+                const cupos = configuracion.cupos_playoffs || 6; // Forzar 6 si no viene del backend
+                cuposEl.innerHTML = `<strong>${cupos}</strong> equipos clasifican`;
             }
-            if (juegosEl) {
-                juegosEl.innerHTML = `Temporada regular: <strong>${configuracion.total_juegos}</strong> juegos`;
-            }
+
+            // ❌ SUB-PASO 3.2: ELIMINADO EL BLOQUE DE "total_juegos"
+
             const tbody = document.getElementById('playoffsBody');
             if (!tbody) {
                 console.error('❌ Elemento playoffsBody no encontrado');
@@ -3147,6 +3191,235 @@
             }).join('');
             console.log('✅ Tabla de playoffs renderizada');
         }
+
+        /* ✅ INICIO: NUEVAS FUNCIONES DE SUB-PASO 3.2 */
+
+        /**
+         * ✅ SUB-PASO 3.2: Toggle entre Vista Tabla y Vista Barras
+         */
+        function initPlayoffsToggle() {
+            const toggleButtons = document.querySelectorAll('.toggle-btn');
+            const tablaContainer = document.querySelector('.playoffs-container');
+            const barrasContainer = document.querySelector('.playoffs-barras-container');
+
+            if (!toggleButtons.length || !tablaContainer || !barrasContainer) {
+                console.warn('⚠️ Elementos de toggle de playoffs no encontrados');
+                return;
+            }
+
+            toggleButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const vista = this.dataset.view;
+
+                    // Actualizar botones activos
+                    toggleButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Mostrar/ocultar contenedores
+                    if (vista === 'tabla') {
+                        tablaContainer.style.display = 'block';
+                        barrasContainer.style.display = 'none';
+                    } else if (vista === 'barras') {
+                        tablaContainer.style.display = 'none';
+                        barrasContainer.style.display = 'block';
+
+                        // Cargar datos de barras si aún no se han cargado
+                        if (!barrasContainer.dataset.loaded) {
+                            cargarPlayoffsBarras();
+                            barrasContainer.dataset.loaded = 'true';
+                        }
+                    }
+                });
+            });
+
+            console.log('✅ Toggle de playoffs inicializado');
+        }
+
+        /**
+         * ✅ SUB-PASO 3.2: Cargar datos para vista de barras
+         */
+        async function cargarPlayoffsBarras() {
+            console.log('📊 Cargando datos para barras de playoffs...');
+            try {
+                const data = await fetchJSON('/api/playoffs-clasificacion');
+                if (!data || !data.equipos || data.equipos.length === 0) {
+                    console.error('❌ No hay datos de playoffs disponibles');
+                    const container = document.querySelector('.equipos-barras-grid');
+                    if (container) container.innerHTML = '<p>No hay datos de playoffs para mostrar.</p>';
+                    return;
+                }
+                console.log(`✅ Datos recibidos: ${data.equipos.length} equipos`);
+                renderPlayoffsBarras(data);
+            } catch (err) {
+                console.error('❌ Error cargando datos de barras:', err);
+                const container = document.querySelector('.equipos-barras-grid');
+                if (container) container.innerHTML = '<p>Error al cargar los datos. Intente de nuevo.</p>';
+            }
+        }
+
+        /**
+         * ✅ SUB-PASO 3.2: Renderizar barras de playoffs con datos reales
+         */
+        function renderPlayoffsBarras(data) {
+            const { configuracion, equipos } = data;
+            const container = document.querySelector('.equipos-barras-grid');
+
+            if (!container) {
+                console.error('❌ Contenedor de barras no encontrado');
+                return;
+            }
+
+            // Actualizar header con cupos correctos
+            const headerSubtitle = document.querySelector('.barras-subtitle');
+            if (headerSubtitle) {
+                const cupos = configuracion.cupos_playoffs || 6;
+                headerSubtitle.textContent = `Probabilidad de clasificación • Top ${cupos} avanzan`;
+            }
+
+            // Generar HTML de cada equipo
+            const html = equipos.map((equipo, index) => {
+                const posicion = index + 1;
+                const cupos = configuracion.cupos_playoffs || 6;
+
+                // Calcular probabilidad visual (0-100%)
+                const probabilidad = calcularProbabilidadVisual(equipo, posicion, cupos, equipos);
+
+                // Determinar zona y colores
+                const zona = determinarZona(probabilidad);
+
+                // Determinar si es la línea de corte
+                const esLineaCorte = posicion === cupos;
+
+                // Formatear récord
+                const record = `${equipo.pg}-${equipo.pp}`;
+                const porcentajeFormato = (equipo.porcentaje * 100).toFixed(1) + '%';
+
+                // Emojis de ranking
+                const rankingEmojis = ['🥇', '🥈', '🥉'];
+                const rankingDisplay = posicion <= 3 ? rankingEmojis[posicion - 1] : `${posicion}°`;
+
+                return `
+                    <div class="equipo-barra-card ${zona.clase} ${esLineaCorte ? 'corte-playoffs' : ''}">
+                        <div class="equipo-info-bar">
+                            <div class="equipo-ranking">${rankingDisplay}</div>
+                            <div class="equipo-detalles">
+                                <h4 class="equipo-nombre-bar">${equipo.equipo_nombre}</h4>
+                                <p class="equipo-record">${record} • ${porcentajeFormato}</p>
+                            </div>
+                            <div class="equipo-probabilidad">${probabilidad}%</div>
+                        </div>
+                        <div class="barra-progreso">
+                            <div class="barra-fill ${zona.fillClass}" style="width: ${probabilidad}%;"></div>
+                        </div>
+                        <span class="estado-badge ${zona.badgeClass}">${zona.icono} ${zona.texto}</span>
+                        ${esLineaCorte ? `
+                            <div class="linea-corte">
+                                <span>✂️ LÍNEA DE CORTE</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Insertar HTML con animación
+            container.style.opacity = '0';
+            container.innerHTML = html;
+
+            setTimeout(() => {
+                container.style.transition = 'opacity 0.5s ease';
+                container.style.opacity = '1';
+            }, 100);
+
+            console.log(`✅ ${equipos.length} equipos renderizados en barras`);
+        }
+
+        /**
+         * ✅ SUB-PASO 3.2: Calcular probabilidad visual de clasificación (0-100%)
+         */
+        function calcularProbabilidadVisual(equipo, posicion, cupos, todosEquipos) {
+            const { pg, pp, pj, restantes, max_victorias, estado } = equipo;
+
+            // Si está clasificado matemáticamente → 85-100%
+            if (estado === 'clasificado') {
+                // Cuanto mejor posición, más cerca del 100%
+                const factorPosicion = (cupos - posicion + 1) / cupos;
+                return Math.round(85 + (factorPosicion * 15));
+            }
+
+            // Si está eliminado matemáticamente → 0-9%
+            if (estado === 'eliminado') {
+                // Equipos más alejados tienen % más bajo
+                const posicionDesdeAbajo = todosEquipos.length - posicion + 1;
+                return Math.max(0, Math.round(10 - (posicionDesdeAbajo * 2)));
+            }
+
+            // En contención → Calcular basado en múltiples factores
+            // Factor 1: Distancia al corte (posición)
+            let probabilidad = 50; // Base para equipos en contención
+
+            if (posicion <= cupos) {
+                // Está dentro de la zona de clasificación
+                const distanciaAlCorte = cupos - posicion;
+                probabilidad = 50 + (distanciaAlCorte * 8); // Más cerca del top = más probabilidad
+            } else {
+                // Está fuera de la zona
+                const distanciaDesdeCorte = posicion - cupos;
+                probabilidad = 50 - (distanciaDesdeCorte * 10); // Más alejado = menos probabilidad
+            }
+
+            // Factor 2: Juegos restantes (más juegos = más oportunidad)
+            const factorRestantes = (restantes / (pj + restantes)) * 20;
+            probabilidad += factorRestantes;
+
+            // Factor 3: Porcentaje actual (momentum)
+            const porcentajeBono = (equipo.porcentaje - 0.5) * 40;
+            probabilidad += porcentajeBono;
+
+            // Limitar a rango 10-84% (zona de contención)
+            probabilidad = Math.max(10, Math.min(84, probabilidad));
+
+            return Math.round(probabilidad);
+        }
+
+        /**
+         * ✅ SUB-PASO 3.2: Determinar zona de color según probabilidad
+         */
+        function determinarZona(probabilidad) {
+            if (probabilidad >= 85) {
+                return {
+                    clase: 'clasificado-zona',
+                    fillClass: 'clasificado-fill',
+                    badgeClass: 'clasificado-badge',
+                    icono: '✅',
+                    texto: 'Clasificado'
+                };
+            } else if (probabilidad >= 40) {
+                return {
+                    clase: 'contencion-zona',
+                    fillClass: 'contencion-fill',
+                    badgeClass: 'contencion-badge',
+                    icono: '🟡',
+                    texto: 'En Contención'
+                };
+            } else if (probabilidad >= 10) {
+                return {
+                    clase: 'peligro-zona',
+                    fillClass: 'peligro-fill',
+                    badgeClass: 'peligro-badge',
+                    icono: '🟠',
+                    texto: 'Zona Peligro'
+                };
+            } else {
+                return {
+                    clase: 'eliminado-zona',
+                    fillClass: 'eliminado-fill',
+                    badgeClass: 'eliminado-badge',
+                    icono: '❌',
+                    texto: 'Eliminado'
+                };
+            }
+        }
+        /* ✅ FIN: NUEVAS FUNCIONES DE SUB-PASO 3.2 */
 
         // ===============================================================
         // INICIO DE LA SECCIÓN DE CÓDIGO MODIFICADA PARA LÍDERES
@@ -3867,7 +4140,7 @@
         document.addEventListener('DOMContentLoaded', async function() {
             cargarTablaPosiciones();
             cargarUltimosPartidos();
-            cargarPlayoffsClasificacion();
+            cargarPlayoffsClasificacion(); // Carga inicial para la tabla
             await cargarLideres(); 
             configurarTabsLideres();
            
@@ -3933,13 +4206,11 @@
         function mostrarPestana(nombrePestana) {
             console.log('📍 Navegando a: ' + nombrePestana);
         
-            // 1. Ocultar todas las secciones
             document.querySelectorAll('.tab-content').forEach(function(tab) {
                 tab.classList.remove('active');
                 tab.style.display = 'none';
             });
         
-            // 2. Mostrar la sección seleccionada
             var pestanaActiva = document.getElementById(nombrePestana);
             if (pestanaActiva) {
                 pestanaActiva.classList.add('active');
@@ -3949,18 +4220,23 @@
                 console.error('❌ No se encontró la sección: ' + nombrePestana);
             }
         
-            // 3. Actualizar pestañas
             document.querySelectorAll('.nav-tabs .nav-tab').forEach(function(tab) {
                 tab.classList.remove('active');
             });
         
-            // 4. Activar pestaña correcta
             var botonActivo = document.querySelector('.nav-tab[data-section="' + nombrePestana + '"], .nav-tab[href="#' + nombrePestana + '"]');
             if (botonActivo) {
                 botonActivo.classList.add('active');
             }
+
+            // ✅ SUB-PASO 3.2: MODIFICACIÓN para inicializar el toggle
+            if (nombrePestana === 'playoffs') {
+                cargarPlayoffsClasificacion(); // Recargar datos por si cambiaron
+                setTimeout(() => {
+                    initPlayoffsToggle();
+                }, 500); // Pequeño delay para asegurar que el DOM esté listo
+            }
         
-            // 5. Scroll suave
             setTimeout(function() {
                 var header = document.querySelector('.header');
                 var headerHeight = header ? header.offsetHeight : 0;
