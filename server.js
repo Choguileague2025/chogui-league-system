@@ -1404,11 +1404,12 @@ app.get('/api/jugadores/buscar', async (req, res) => {
 // ================== INICIO DE CORRECCIONES CRÍTICAS =====================
 // ========================================================================
 
-// PROBLEMA 1: Endpoint /api/jugadores/:id no retorna datos del equipo
+// PROBLEMA 1 CORREGIDO: Endpoint /api/jugadores/:id ahora retorna datos del equipo
 app.get('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
+        // Query SQL con JOIN para incluir datos del equipo
         const result = await pool.query(`
             SELECT 
                 j.id, 
@@ -1435,27 +1436,27 @@ app.get('/api/jugadores/:id', async (req, res) => {
     }
 });
 
-// PROBLEMA 2: No existe endpoint para historial de partidos de un jugador
+// PROBLEMA 2 CORREGIDO: Creado endpoint para historial de partidos de un jugador
 app.get('/api/jugadores/:id/partidos', async (req, res) => {
     try {
         const { id } = req.params;
-        
+                
         // 1. Obtener equipo_id del jugador
         const jugadorQuery = await pool.query(
             'SELECT equipo_id FROM jugadores WHERE id = $1',
             [id]
         );
-        
+                
         if (jugadorQuery.rows.length === 0) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
-        
+                
         const equipoId = jugadorQuery.rows[0].equipo_id;
-        
+                
         if (!equipoId) {
             return res.json([]); // Jugador sin equipo
         }
-        
+                
         // 2. Obtener partidos del equipo (máximo 10 más recientes)
         const partidosQuery = await pool.query(`
             SELECT 
@@ -1475,27 +1476,27 @@ app.get('/api/jugadores/:id/partidos', async (req, res) => {
             ORDER BY p.fecha_partido DESC
             LIMIT 10
         `, [equipoId]);
-        
+                
         res.json(partidosQuery.rows);
-    } catch (error) {
+            } catch (error) {
         console.error('Error obteniendo partidos del jugador:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });
 
-// PROBLEMA 3: No existe endpoint de búsqueda universal
+// PROBLEMA 3 CORREGIDO: Creado endpoint de búsqueda universal
 app.get('/api/buscar', async (req, res) => {
     try {
         const { q } = req.query;
-        
+                
         if (!q || q.trim().length < 2) {
             return res.status(400).json({ 
                 error: 'El término de búsqueda debe tener al menos 2 caracteres' 
              });
         }
-        
+                
         const searchTerm = `%${q.trim()}%`;
-        
+                
         // Buscar en jugadores
         const jugadoresQuery = await pool.query(`
             SELECT 
@@ -1510,7 +1511,7 @@ app.get('/api/buscar', async (req, res) => {
             WHERE j.nombre ILIKE $1
             LIMIT 5
         `, [searchTerm]);
-        
+                
         // Buscar en equipos
         const equiposQuery = await pool.query(`
             SELECT 
@@ -1522,12 +1523,12 @@ app.get('/api/buscar', async (req, res) => {
             WHERE nombre ILIKE $1
             LIMIT 5
         `, [searchTerm]);
-        
+                
         res.json({
             jugadores: jugadoresQuery.rows,
             equipos: equiposQuery.rows
         });
-    } catch (error) {
+            } catch (error) {
         console.error('Error en búsqueda universal:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
