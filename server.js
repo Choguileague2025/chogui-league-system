@@ -148,7 +148,7 @@ async function inicializarBaseDeDatos() {
                     activo BOOLEAN DEFAULT false, 
                     fecha_inicio TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                     total_juegos INTEGER DEFAULT 22,
-                    cupos_playoffs INTEGER DEFAULT 8
+                    cupos_playoffs INTEGER DEFAULT 6
                 );`
             },
             {
@@ -217,7 +217,7 @@ async function inicializarBaseDeDatos() {
         // MIGRACIONES
         try {
             await pool.query(`ALTER TABLE torneos ADD COLUMN IF NOT EXISTS total_juegos INTEGER DEFAULT 22;`);
-            await pool.query(`ALTER TABLE torneos ADD COLUMN IF NOT EXISTS cupos_playoffs INTEGER DEFAULT 8;`);
+            await pool.query(`ALTER TABLE torneos ADD COLUMN IF NOT EXISTS cupos_playoffs INTEGER DEFAULT 6;`);
             console.log('✅ Columnas de playoffs añadidas a la tabla torneos');
         } catch(e) {
             console.warn("⚠️ No se pudo agregar columnas de playoffs a torneos:", e.message);
@@ -671,7 +671,7 @@ app.get('/api/playoffs', async (req, res, next) => {
                 s.pg || '-' || s.pp as record
             FROM standings s
             ORDER BY seed ASC
-            LIMIT 8; -- Límite de 8 equipos para playoffs
+            LIMIT 8; -- Límite de 6 equipos para playoffs
         `;
         const { rows } = await pool.query(query);
         res.json(rows);
