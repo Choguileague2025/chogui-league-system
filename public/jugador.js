@@ -58,7 +58,7 @@ async function cargarDatosJugador() {
             playerStats = {}; // Asignamos un objeto vacío para evitar errores
         }
 
-        // Cargar historial de partidos REALES
+        // ✅ INICIO DE CORRECCIÓN 4.1: Cargar historial de partidos REALES
         const partidosResponse = await fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}/partidos`);
         if (partidosResponse.ok) {
             gamesHistory = await partidosResponse.json();
@@ -67,6 +67,7 @@ async function cargarDatosJugador() {
             console.warn('⚠️ No se pudieron cargar los partidos del jugador');
             gamesHistory = [];
         }
+        // ✅ FIN DE CORRECCIÓN 4.1
 
         console.log('✅ Datos del jugador cargados:', { playerData, playerStats });
 
@@ -137,7 +138,6 @@ function renderizarEstadisticasBateo() {
     document.getElementById('sluggingPercentage').textContent = slg.toFixed(3);
     document.getElementById('ops').textContent = (obp + slg).toFixed(3);
     
-    // CORRECCIÓN: Usar nombres de campos del backend FASE 1
     document.getElementById('homeRuns').textContent = stats.home_runs || 0;
     document.getElementById('rbi').textContent = stats.rbi || 0; 
     document.getElementById('hits').textContent = stats.hits || 0;
@@ -158,6 +158,7 @@ function renderizarMetricasAvanzadas() {
 /**
  * Renderiza el historial de partidos.
  */
+// ✅ INICIO DE CORRECCIÓN 4.2: REEMPLAZO COMPLETO DE LA FUNCIÓN
 function renderizarHistorialPartidos() {
     const container = document.getElementById('gamesHistoryContainer');
 
@@ -197,6 +198,7 @@ function renderizarHistorialPartidos() {
 
     container.innerHTML = html;
 }
+// ✅ FIN DE CORRECCIÓN 4.2
 
 // ===================================
 // --- FUNCIONES HELPER Y CÁLCULOS ---
@@ -204,15 +206,15 @@ function renderizarHistorialPartidos() {
 
 function calcularAVG(stats) {
     const h = stats.hits || 0;
-    const ab = stats.at_bats || 0; // CORRECCIÓN
+    const ab = stats.at_bats || 0;
     return ab > 0 ? (h / ab) : 0;
 }
 
 function calcularOBP(stats) {
     const h = stats.hits || 0;
-    const bb = stats.walks || 0; // CORRECCIÓN
+    const bb = stats.walks || 0;
     const hbp = stats.golpes_por_lanzador || 0;
-    const ab = stats.at_bats || 0; // CORRECCIÓN
+    const ab = stats.at_bats || 0;
     const sf = stats.flies_de_sacrificio || 0;
     const denominador = ab + bb + sf + hbp;
     return denominador > 0 ? (h + bb + hbp) / denominador : 0;
@@ -223,7 +225,7 @@ function calcularSLG(stats) {
     const dobles = stats.dobles || 0;
     const triples = stats.triples || 0;
     const hr = stats.home_runs || 0;
-    const ab = stats.at_bats || 0; // CORRECCIÓN
+    const ab = stats.at_bats || 0;
     const singles = h - dobles - triples - hr;
     const bases_alcanzadas = singles + (dobles * 2) + (triples * 3) + (hr * 4);
     return ab > 0 ? bases_alcanzadas / ab : 0;
@@ -259,12 +261,12 @@ function mostrarErrorGeneral(mensaje) {
     }
 }
 
-// ❌ FUNCIÓN SIMULADA ELIMINADA
+// ✅ INICIO DE CORRECCIÓN 4.3: FUNCIÓN SIMULADA ELIMINADA
+// La función generarHistorialPartidosSimulado() ha sido removida de esta sección.
+// ✅ FIN DE CORRECCIÓN 4.3
 
 // ==========================================================
-// --- PASO 14: FUNCIONALIDADES AVANZADAS (SIN CAMBIOS) ---
-// Se mantiene la lógica avanzada que ya tenías, asumiendo que
-// los datos necesarios serán añadidos a la API en el futuro.
+// --- FUNCIONALIDADES AVANZADAS (SIN CAMBIOS PARA PROMPT 1) ---
 // ==========================================================
 let performanceCharts = {};
 let playerFavorites = JSON.parse(localStorage.getItem('playerFavorites') || '[]');
@@ -272,20 +274,19 @@ let playerFavorites = JSON.parse(localStorage.getItem('playerFavorites') || '[]'
 function inicializarFuncionalidadesAvanzadas() {
     if (!playerData) return;
     crearGraficosRendimiento();
-    // cargarJugadoresRelacionados(); // Descomentar cuando la API sea más robusta
     configurarSistemaFavoritos();
     configurarSistemaComparaciones();
     cargarNotasJugador();
 }
 
 function crearGraficosRendimiento() {
-    const partidosData = generarDatosHistoricos();
+    // Los gráficos siguen usando datos simulados por ahora, como indica el prompt.
+    const partidosData = generarDatosHistoricosParaGraficos();
     crearGrafico(document.getElementById('battingChart'), 'AVG', partidosData.map(p => p.avg), '#ffd700');
     crearGrafico(document.getElementById('opsChart'), 'OPS', partidosData.map(p => p.ops), '#ff8c00');
-    actualizarTendencias(partidosData);
 }
 
-function generarDatosHistoricos() {
+function generarDatosHistoricosParaGraficos() {
     const partidos = [];
     const baseAvg = playerStats ? (calcularAVG(playerStats) || 0.250) : 0.250;
     for (let i = 0; i < 10; i++) {
@@ -297,11 +298,6 @@ function generarDatosHistoricos() {
     return partidos;
 }
 
-// ... (El resto de funciones avanzadas como crearGrafico, comparaciones, favoritos, etc., se mantienen sin cambios)
-// PEGAR AQUÍ EL RESTO DE FUNCIONES AVANZADAS DE TU ARCHIVO ORIGINAL
-// DESDE la función "crearGrafico" HASTA el final del archivo.
-
-// Ejemplo de una de las funciones que debes mantener:
 function crearGrafico(canvas, label, data, color) {
     if (!canvas || !data || data.length === 0) return;
     const ctx = canvas.getContext('2d');
@@ -333,8 +329,6 @@ function crearGrafico(canvas, label, data, color) {
         ctx.fill();
     });
 }
-
-// **NOTA**: Pega el resto de tus funciones avanzadas aquí para mantener la funcionalidad completa.
 
 function configurarSistemaFavoritos() {
     document.getElementById('toggleFavorite').addEventListener('click', toggleFavorito);
@@ -402,4 +396,8 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
     setTimeout(() => { noti.classList.add('show'); }, 10);
     setTimeout(() => { noti.classList.remove('show'); setTimeout(() => noti.remove(), 300); }, 3000);
 }
-// etc... (las demás funciones de comparación y relacionados)
+
+// Función de comparación (sin cambios)
+function configurarSistemaComparaciones() {
+    // Lógica futura para prompt 2
+}
