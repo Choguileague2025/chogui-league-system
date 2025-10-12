@@ -343,37 +343,41 @@ async function cargarJugadoresRelacionados() {
 async function cargarJugadoresMismaPosicion() {
     const container = document.getElementById('samePositionPlayers');
     if (!container) return;
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}/similares?limit=5`);
-        
+
         if (!response.ok) {
             throw new Error('Error cargando jugadores similares');
         }
-        
+
         const jugadores = await response.json();
-        
+
         if (jugadores.length === 0) {
             container.innerHTML = '<div class="empty-state">No hay otros jugadores en esta posición</div>';
             return;
         }
-        
-        const html = jugadores.map(jugador => `
-            <a href="jugador.html?id=${jugador.id}" class="related-player">
-                <div class="related-avatar">${obtenerIniciales(jugador.nombre)}</div>
-                <div class="related-info">
-                    <div class="related-name">${jugador.nombre}</div>
-                    <div class="related-team">${jugador.equipo_nombre || 'Sin equipo'}</div>
-                </div>
-                <div class="related-stat">
-                    <span style="color: #ffd700; font-weight: bold;">${(jugador.avg || 0).toFixed(3)}</span>
-                    <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
-                </div>
-            </a>
-        `).join('');
-        
+
+        const html = jugadores.map(jugador => {
+            // ✅ CORRECCIÓN: Convertir avg a número antes de usar toFixed
+            const avgValue = parseFloat(jugador.avg) || 0;
+
+            return `
+                <a href="jugador.html?id=${jugador.id}" class="related-player">
+                    <div class="related-avatar">${obtenerIniciales(jugador.nombre)}</div>
+                    <div class="related-info">
+                        <div class="related-name">${jugador.nombre}</div>
+                        <div class="related-team">${jugador.equipo_nombre || 'Sin equipo'}</div>
+                    </div>
+                    <div class="related-stat">
+                        <span style="color: #ffd700; font-weight: bold;">${avgValue.toFixed(3)}</span>
+                        <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
+                    </div>
+                </a>
+            `;
+        }).join('');
+
         container.innerHTML = html;
-        
     } catch (error) {
         console.error('Error cargando jugadores de misma posición:', error);
         container.innerHTML = '<div class="empty-state">Error cargando jugadores</div>';
@@ -383,42 +387,47 @@ async function cargarJugadoresMismaPosicion() {
 async function cargarJugadoresMismoEquipo() {
     const container = document.getElementById('sameTeamPlayers');
     if (!container) return;
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}/companeros?limit=5`);
-        
+
         if (!response.ok) {
             throw new Error('Error cargando compañeros');
         }
-        
+
         const jugadores = await response.json();
-        
+
         if (jugadores.length === 0) {
             container.innerHTML = '<div class="empty-state">No hay otros jugadores en este equipo</div>';
             return;
         }
-        
-        const html = jugadores.map(jugador => `
-            <a href="jugador.html?id=${jugador.id}" class="related-player">
-                <div class="related-avatar">${obtenerIniciales(jugador.nombre)}</div>
-                <div class="related-info">
-                    <div class="related-name">${jugador.nombre}</div>
-                    <div class="related-team">${formatearPosicion(jugador.posicion)}</div>
-                </div>
-                <div class="related-stat">
-                    <span style="color: #ffd700; font-weight: bold;">${(jugador.avg || 0).toFixed(3)}</span>
-                    <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
-                </div>
-            </a>
-        `).join('');
-        
+
+        const html = jugadores.map(jugador => {
+            // ✅ CORRECCIÓN: Convertir avg a número antes de usar toFixed
+            const avgValue = parseFloat(jugador.avg) || 0;
+
+            return `
+                <a href="jugador.html?id=${jugador.id}" class="related-player">
+                    <div class="related-avatar">${obtenerIniciales(jugador.nombre)}</div>
+                    <div class="related-info">
+                        <div class="related-name">${jugador.nombre}</div>
+                        <div class="related-team">${formatearPosicion(jugador.posicion)}</div>
+                    </div>
+                    <div class="related-stat">
+                        <span style="color: #ffd700; font-weight: bold;">${avgValue.toFixed(3)}</span>
+                        <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
+                    </div>
+                </a>
+            `;
+        }).join('');
+
         container.innerHTML = html;
-        
     } catch (error) {
         console.error('Error cargando compañeros de equipo:', error);
         container.innerHTML = '<div class="empty-state">Error cargando jugadores</div>';
     }
 }
+
 
 // ===================================
 // --- COMPARACIÓN DE JUGADORES ---
@@ -470,7 +479,7 @@ async function generarComparacion() {
             id: currentPlayerId,
             nombre: playerData.nombre,
             equipo_nombre: playerData.equipo_nombre,
-            avg: calcularAVG(playerStats),
+            avg: calcularAVG(playerStats),  // ✅ Ya devuelve número
             hits: playerStats.hits || 0,
             home_runs: playerStats.home_runs || 0,
             rbi: playerStats.rbi || 0,
@@ -494,8 +503,11 @@ async function generarComparacion() {
         const html = todosJugadores.map(jugador => {
             const esJugadorActual = jugador.id == currentPlayerId;
             const valor = jugador[metric] || 0;
+        
+            // ✅ CORRECCIÓN: Asegurar que valor sea número
+            const valorNumerico = parseFloat(valor) || 0;
             const valorFormateado = (metric === 'avg' || metric === 'ops') ? 
-                parseFloat(valor).toFixed(3) : Math.round(valor);
+                 valorNumerico.toFixed(3) : Math.round(valorNumerico);
             
             return `
                 <div class="comparison-player ${esJugadorActual ? 'current-player' : ''}" 
