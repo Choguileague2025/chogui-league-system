@@ -1,6 +1,6 @@
 // EQUIPO-DETALLE.JS - ACTUALIZADO HASTA PASO 15.5
 
-// ConfiguraciÃ³n de API
+// Configuración de API
 const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
 
 // Variables globales
@@ -17,7 +17,7 @@ function getTeamIdFromUrl() {
     return urlParams.get('id');
 }
 
-// FunciÃ³n helper para construir URLs de API
+// Función helper para construir URLs de API
 function getApiUrl(endpoint) {
     if (!endpoint.startsWith('/')) {
         endpoint = '/' + endpoint;
@@ -49,7 +49,7 @@ function getTeamLogo(equipoNombre) {
     return `/public/images/logos/${logoFile}`;
   }
   
-  // Fallback: generar nombre de archivo automÃ¡ticamente
+  // Fallback: generar nombre de archivo automáticamente
   const nombreArchivo = nombreNormalizado
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '') + '.png';
@@ -57,7 +57,7 @@ function getTeamLogo(equipoNombre) {
   return `/public/images/logos/${nombreArchivo}`;
 }
 
-// âœ… INICIO DE LA CORRECCIÃ“N: FunciÃ³n de manejo de logos con fallback a iniciales
+// ✅ INICIO DE LA CORRECCIÓN: Función de manejo de logos con fallback a iniciales
 function mostrarLogoEquipo(logoUrl, equipoNombre) {
     const logoContainer = document.querySelector('.team-logo');
     if (!logoContainer) return;
@@ -102,7 +102,7 @@ function mostrarLogoEquipo(logoUrl, equipoNombre) {
     img.src = logoUrl;
 }
 
-// âœ… FunciÃ³n auxiliar para generar iniciales
+// ✅ Función auxiliar para generar iniciales
 function generarIniciales(nombreEquipo) {
     if (!nombreEquipo) return '?';
     
@@ -112,26 +112,26 @@ function generarIniciales(nombreEquipo) {
         // Una palabra: primeras 2 letras
         return palabras[0].substring(0, 2).toUpperCase();
     } else {
-        // MÃºltiples palabras: primera letra de cada palabra (mÃ¡ximo 3)
+        // Múltiples palabras: primera letra de cada palabra (máximo 3)
         return palabras
             .slice(0, 3)
             .map(p => p.charAt(0).toUpperCase())
             .join('');
     }
 }
-// âœ… FIN DE LA CORRECCIÃ“N
+// ✅ FIN DE LA CORRECCIÓN
 
-// InicializaciÃ³n mejorada
+// Inicialización mejorada
 document.addEventListener('DOMContentLoaded', function() {
     currentTeamId = getTeamIdFromUrl();
     
     if (!currentTeamId) {
-        mostrarErrorEquipo('No se especificÃ³ un equipo vÃ¡lido. Verifica la URL.');
+        mostrarErrorEquipo('No se especificó un equipo válido. Verifica la URL.');
         return;
     }
     
     if (isNaN(currentTeamId)) {
-        mostrarErrorEquipo('ID de equipo invÃ¡lido. Debe ser un nÃºmero.');
+        mostrarErrorEquipo('ID de equipo inválido. Debe ser un número.');
         return;
     }
     
@@ -185,7 +185,7 @@ async function cargarInformacionEquipo() {
         renderizarInformacionEquipo();
         
     } catch (error) {
-        console.error('Error cargando informaciÃ³n del equipo:', error);
+        console.error('Error cargando información del equipo:', error);
         mostrarErrorEquipo(error.message);
         throw error;
     }
@@ -200,7 +200,7 @@ async function cargarRosterEquipo() {
         }
         
         const data = await response.json();
-        // CorrecciÃ³n: La API devuelve un objeto con la propiedad 'jugadores'
+        // Corrección: La API devuelve un objeto con la propiedad 'jugadores'
         rosterData = Array.isArray(data.jugadores) ? data.jugadores : [];
         filteredRoster = [...rosterData];
         renderizarRoster();
@@ -209,9 +209,9 @@ async function cargarRosterEquipo() {
         console.error('Error cargando roster:', error);
         container.innerHTML = `
             <div class="empty-state">
-                <h4>âš ï¸ Error cargando roster</h4>
-                <p>No se pudo cargar la informaciÃ³n de los jugadores.<br>
-                <button onclick="cargarRosterEquipo()" class="btn-secondary" style="margin-top: 10px;">ðŸ”„ Reintentar</button></p>
+                <h4>⚠️ Error cargando roster</h4>
+                <p>No se pudo cargar la información de los jugadores.<br>
+                <button onclick="cargarRosterEquipo()" class="btn-secondary" style="margin-top: 10px;">🔄 Reintentar</button></p>
             </div>`;
     }
 }
@@ -233,9 +233,9 @@ async function cargarPartidosRecientes() {
         console.error('Error cargando partidos recientes:', error);
         container.innerHTML = `
             <div class="empty-state">
-                <h4>âš ï¸ Error cargando partidos</h4>
+                <h4>⚠️ Error cargando partidos</h4>
                 <p>No se pudo cargar el historial de partidos.<br>
-                <button onclick="cargarPartidosRecientes()" class="btn-secondary" style="margin-top: 10px;">ðŸ”„ Reintentar</button></p>
+                <button onclick="cargarPartidosRecientes()" class="btn-secondary" style="margin-top: 10px;">🔄 Reintentar</button></p>
             </div>`;
     }
 }
@@ -245,11 +245,11 @@ function mostrarErrorEquipo(mensaje) {
     if (!mainCard) return;
     mainCard.innerHTML = `
         <div style="text-align: center; padding: 40px 20px;">
-            <h2 style="color: #dc143c; margin-bottom: 20px;">âš ï¸ Error</h2>
+            <h2 style="color: #dc143c; margin-bottom: 20px;">⚠️ Error</h2>
             <p style="color: #fff; margin-bottom: 20px;">${mensaje}</p>
             <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                <button onclick="location.reload()" class="btn-primary">ðŸ”„ Reintentar</button>
-                <a href="index.html" class="btn-secondary">ðŸ  Volver al Inicio</a>
+                <button onclick="location.reload()" class="btn-primary">🔄 Reintentar</button>
+                <a href="index.html" class="btn-secondary">🏠 Volver al Inicio</a>
             </div>
         </div>
     `;
@@ -288,21 +288,21 @@ function renderizarInformacionEquipo() {
     
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-        metaDesc.content = `InformaciÃ³n completa de ${teamData.nombre} - Roster, estadÃ­sticas y partidos en Chogui League`;
+        metaDesc.content = `Información completa de ${teamData.nombre} - Roster, estadísticas y partidos en Chogui League`;
     }
     
-    // LÃ³gica de carga de logo actualizada
+    // Lógica de carga de logo actualizada
     const logoUrl = getTeamLogo(teamData.nombre);
     mostrarLogoEquipo(logoUrl, teamData.nombre);
     
     document.getElementById('teamName').textContent = teamData.nombre;
-    document.getElementById('teamLocation').textContent = teamData.ciudad || 'UbicaciÃ³n no especificada';
+    document.getElementById('teamLocation').textContent = teamData.ciudad || 'Ubicación no especificada';
     document.getElementById('teamManager').textContent = teamData.manager || 'Manager no asignado';
     
     if (teamData.fecha_creacion) {
         const fecha = new Date(teamData.fecha_creacion);
-        const aÃ±o = fecha.getFullYear();
-        document.getElementById('teamFounded').textContent = isNaN(aÃ±o) ? 'Fecha no disponible' : aÃ±o;
+        const año = fecha.getFullYear();
+        document.getElementById('teamFounded').textContent = isNaN(año) ? 'Fecha no disponible' : año;
     } else {
         document.getElementById('teamFounded').textContent = 'Fecha no disponible';
     }
@@ -420,7 +420,7 @@ function formatearPosicion(posicion) {
 
 function formatearFecha(fechaString) {
     if (!fechaString) return 'Fecha no disp.';
-    // La fecha de la DB viene sin hora, asÃ­ que la tratamos como UTC para evitar problemas de zona horaria
+    // La fecha de la DB viene sin hora, así que la tratamos como UTC para evitar problemas de zona horaria
     const date = new Date(fechaString + 'T00:00:00Z');
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
 }
@@ -437,7 +437,7 @@ function obtenerResultadoPartido(partido, esLocal) {
 function verJugador(jugadorId) {
     const jugador = rosterData.find(j => j.id === jugadorId);
     if (!jugador) {
-        alert('InformaciÃ³n del jugador no disponible');
+        alert('Información del jugador no disponible');
         return;
     }
     
