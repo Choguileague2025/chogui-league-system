@@ -428,7 +428,6 @@ async function cargarJugadoresMismoEquipo() {
     }
 }
 
-
 // ===================================
 // --- COMPARACIÓN DE JUGADORES ---
 // ===================================
@@ -479,7 +478,7 @@ async function generarComparacion() {
             id: currentPlayerId,
             nombre: playerData.nombre,
             equipo_nombre: playerData.equipo_nombre,
-            avg: calcularAVG(playerStats),  // ✅ Ya devuelve número
+            avg: calcularAVG(playerStats),
             hits: playerStats.hits || 0,
             home_runs: playerStats.home_runs || 0,
             rbi: playerStats.rbi || 0,
@@ -507,7 +506,7 @@ async function generarComparacion() {
             // ✅ CORRECCIÓN: Asegurar que valor sea número
             const valorNumerico = parseFloat(valor) || 0;
             const valorFormateado = (metric === 'avg' || metric === 'ops') ? 
-                 valorNumerico.toFixed(3) : Math.round(valorNumerico);
+                valorNumerico.toFixed(3) : Math.round(valorNumerico);
             
             return `
                 <div class="comparison-player ${esJugadorActual ? 'current-player' : ''}" 
