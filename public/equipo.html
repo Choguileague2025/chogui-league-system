@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equipo - Chogui League System</title>
-    <meta name="description" content="Detalles del equipo, roster y estadísticas en Chogui League.">
-    <link rel="stylesheet" href="equipo.css">
+    <title>Jugador - Chogui League System</title>
+    <meta name="description" content="Perfil completo del jugador con estadísticas, historial y métricas avanzadas.">
+    <link rel="stylesheet" href="jugador.css">
     
     <style>
         /* Footer profesional */
@@ -111,9 +111,9 @@
           }
         }
     </style>
-    </head>
+</head>
 <body>
-    <a href="login.html" class="admin-link">🔑 Admin</a>
+    <button onclick="window.location.href='login.html'" class="btn-admin">🔑 Admin</button>
     
     <div class="container">
         <div class="header">
@@ -123,144 +123,216 @@
                 </div>
                 <h1>🏆 CHOGUI LEAGUE</h1>
                 <p>Sistema de Gestión Profesional de Softbol</p>
-                </div>
+            </div>
         </div>
 
         <div class="breadcrumb">
-            <a href="index.html" onclick="irAInicio()">🏠 Inicio</a>
+            <a href="index.html">🏠 Inicio</a>
             <span>></span>
-            <a href="index.html#posiciones" onclick="irAPosiciones()">📊 Posiciones</a>
+            <a href="index.html#posiciones" id="teamBreadcrumbLink">📊 Posiciones</a>
             <span>></span>
-            <span id="teamBreadcrumb">Cargando...</span>
-            <span id="teamPosition" style="margin-left: 10px; color: #ff8c00; font-size: 0.8rem;"></span>
+            <span id="playerBreadcrumb">Cargando...</span>
         </div>
 
-        <script>
-        function irAInicio() {
-            window.location.href = 'index.html';
-        }
-
-        function irAPosiciones() {
-            window.location.href = 'index.html#posiciones';
-        }
-
-        // Actualizar breadcrumb con posición del equipo
-        function actualizarBreadcrumbConPosicion() {
-            if (!teamData) return;
-            
-            // Si tenemos cache de equipos, calcular posición
-            if (window.equiposCache && recentGames.length > 0) {
-                // Lógica simplificada de posición
-                const posicionElement = document.getElementById('teamPosition');
-                posicionElement.textContent = '(Calculando posición...)';
-                
-                // Aquí se podría hacer una llamada para obtener la posición exacta
-                setTimeout(() => {
-                    posicionElement.textContent = '(Ver posición en tabla)';
-                }, 2000);
-            }
-        }
-        </script>
-
-        <div class="team-main-card">
-            <div class="team-header">
-                <div class="team-logo"></div> <div class="team-info">
-                    <h2 id="teamName">Cargando equipo...</h2>
-                    <div class="team-subtitle" id="teamLocation">-</div>
-                    <div style="color: #fff; margin-top: 10px;">
-                        <strong>Manager:</strong> <span id="teamManager">-</span>
+        <div class="player-main-card">
+            <div class="player-header">
+                <div class="player-avatar" id="playerAvatar">MC</div>
+                <div class="player-info">
+                    <h2 id="playerName">Cargando jugador...</h2>
+                    <div class="player-details">
+                        <span id="playerNumber">#--</span>
+                        <span id="playerPosition">-</span>
+                        <a href="#" id="playerTeamLink" style="color: #ffd700; text-decoration: none;">Sin equipo</a>
                     </div>
-                    <div style="color: #fff; margin-top: 5px;">
-                        <strong>Fundado:</strong> <span id="teamFounded">-</span>
+                    <div class="player-bio">
+                        <span><strong>Altura:</strong> <span id="playerHeight">No disponible</span></span>
+                        <span><strong>Peso:</strong> <span id="playerWeight">No disponible</span></span>
                     </div>
-                </div>
-            </div>
-            
-            <div class="team-stats-row" id="teamStats">
-                <div class="stat-item">
-                    <span class="stat-value" id="teamRecord">-</span>
-                    <span class="stat-label">Record (G-P)</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="teamPosition">-</span>
-                    <span class="stat-label">Posición</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="teamAverage">-.---</span>
-                    <span class="stat-label">Promedio</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="teamRuns">-</span>
-                    <span class="stat-label">Carreras</span>
                 </div>
             </div>
         </div>
 
         <div class="content-grid">
-            <div class="roster-section">
-                <h3 class="section-title">👥 Roster del Equipo</h3>
+            <div class="batting-stats">
+                <h3 class="section-title">⚾ Estadísticas de Bateo</h3>
                 
-                <div class="roster-filters">
-                    <button class="filter-btn active" data-position="all">Todos</button>
-                    <button class="filter-btn" data-position="P">Pitchers</button>
-                    <button class="filter-btn" data-position="C">Catchers</button>
-                    <button class="filter-btn" data-position="IF">Infield</button>
-                    <button class="filter-btn" data-position="OF">Outfield</button>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="battingAverage">1.000</div>
+                        <div class="stat-label">AVG</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="onBasePercentage">1.000</div>
+                        <div class="stat-label">OBP</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="sluggingPercentage">2.500</div>
+                        <div class="stat-label">SLG</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="ops">3.500</div>
+                        <div class="stat-label">OPS</div>
+                    </div>
                 </div>
                 
-                <div id="rosterContainer">
-                    <div class="loading">Cargando roster...</div>
+                <div class="stats-grid" style="margin-top: 20px;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="homeRuns">2</div>
+                        <div class="stat-label">HR</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="rbi">1</div>
+                        <div class="stat-label">RBI</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="hits">4</div>
+                        <div class="stat-label">H</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="atBats">4</div>
+                        <div class="stat-label">AB</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="stats-section">
-                <h3 class="section-title">📊 Estadísticas</h3>
+            <div class="advanced-metrics">
+                <h3 class="section-title">📊 Métricas Avanzadas</h3>
                 
-                <div class="record-display">
-                    <div class="record-number" id="winPercentage">-.---</div>
-                    <div class="record-label">Porcentaje de Victorias</div>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
-                        <span>Partidos Jugados:</span>
-                        <strong id="gamesPlayed">-</strong>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">WAR Total</div>
+                        <div class="metric-value" id="warTotal">0.00</div>
+                        <div class="metric-desc">Wins Above Replacement</div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
-                        <span>Victorias:</span>
-                        <strong id="wins" style="color: #4CAF50;">-</strong>
+                    <div class="metric-card">
+                        <div class="metric-label">wRC+</div>
+                        <div class="metric-value" id="wrcPlus">N/A</div>
+                        <div class="metric-desc">Weighted Runs Created</div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
-                        <span>Derrotas:</span>
-                        <strong id="losses" style="color: #dc143c;">-</strong>
+                    <div class="metric-card">
+                        <div class="metric-label">Bases Robadas</div>
+                        <div class="metric-value" id="stolenBases">0</div>
+                        <div class="metric-desc">SB</div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
-                        <span>Carreras Anotadas:</span>
-                        <strong id="runsScored" style="color: #ffd700;">-</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
-                        <span>Carreras Permitidas:</span>
-                        <strong id="runsAllowed" style="color: #ff8c00;">-</strong>
+                    <div class="metric-card">
+                        <div class="metric-label">Def Rating</div>
+                        <div class="metric-value" id="defensiveRating">0.00</div>
+                        <div class="metric-desc">Defensive Rating</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="recent-games">
-            <h3 class="section-title">🎯 Últimos Partidos</h3>
-            <div id="recentGamesContainer">
-                <div class="loading">Cargando partidos recientes...</div>
+        <div class="games-history">
+            <h3 class="section-title">🎯 Historial de Partidos</h3>
+            <div id="gamesHistoryContainer">
+                <div class="loading">Cargando historial...</div>
+            </div>
+        </div>
+
+        <div class="performance-charts">
+            <h3 class="section-title">📈 Evolución del Rendimiento</h3>
+            
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h4>Promedio de Bateo - Últimos 10 Partidos</h4>
+                    <canvas id="battingChart"></canvas>
+                    <div class="chart-info">
+                        <span>Tendencia (7 días): <strong id="tendenciaAvg">+5.2%</strong></span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h4>Evolución OPS</h4>
+                    <canvas id="opsChart"></canvas>
+                    <div class="chart-info">
+                        <span>Tendencia (30 días): <strong>-2.1%</strong></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="projections">
+                <h4>Proyección Temporada</h4>
+                <div class="projection-stat">
+                    <span>AVG Proyectado:</span>
+                    <strong>.285 AVG</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="comparison-section">
+            <h3 class="section-title">🔍 Comparar con Jugadores Similares</h3>
+            
+            <div class="comparison-controls">
+                <select id="comparisonPosition" class="comparison-select">
+                    <option value="">Misma posición</option>
+                    <option value="all">Todos los jugadores</option>
+                    <option value="team">Mismo equipo</option>
+                </select>
+                
+                <select id="comparisonMetric" class="comparison-select">
+                    <option value="avg">Promedio de Bateo</option>
+                    <option value="ops">OPS</option>
+                    <option value="home_runs">Home Runs</option>
+                    <option value="rbi">RBI</option>
+                </select>
+                
+                <button id="generateComparison" class="btn-secondary">🔄 Generar Comparación</button>
+            </div>
+            
+            <div id="comparisonResults" class="comparison-results">
+                <div class="loading">Selecciona opciones y genera comparación...</div>
+            </div>
+        </div>
+
+        <div class="related-players">
+            <h3 class="section-title">👥 Jugadores Relacionados</h3>
+            
+            <div class="related-categories">
+                <div class="related-category">
+                    <h4 class="related-subtitle">🥇 Misma Posición</h4>
+                    <div id="samePositionPlayers" class="related-grid">
+                        <div class="loading">Cargando jugadores...</div>
+                    </div>
+                </div>
+                
+                <div class="related-category">
+                    <h4 class="related-subtitle">⚾ Mismo Equipo</h4>
+                    <div id="sameTeamPlayers" class="related-grid">
+                        <div class="loading">Cargando jugadores...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="favorites-section">
+            <h3 class="section-title">⭐ Seguimiento de Jugador</h3>
+            
+            <div class="favorites-controls">
+                <button id="toggleFavorite" class="btn-favorite">
+                    <span id="favoriteIcon">☆</span>
+                    <span id="favoriteText">Agregar a Favoritos</span>
+                </button>
+                
+                <button id="sharePlayer" class="btn-secondary">📤 Compartir Jugador</button>
+                
+                <button id="exportPlayerData" class="btn-secondary">💾 Exportar Datos</button>
+            </div>
+            
+            <div class="player-notes">
+                <label for="playerNotes">📝 Notas del Jugador:</label>
+                <textarea id="playerNotes" placeholder="Agregar notas personales sobre este jugador..." rows="3"></textarea>
+                <button id="saveNotes" class="btn-secondary">💾 Guardar Notas</button>
             </div>
         </div>
 
         <div class="action-buttons">
-            <a href="index.html" class="btn-primary">🏠 Volver al Inicio</a>
-            <a href="index.html#posiciones" class="btn-secondary">📊 Ver Posiciones</a>
-            <a href="login.html" class="btn-secondary">⚙️ Panel Admin</a>
+            <a href="#" id="backToTeamBtn" class="btn-primary">🏅 Volver al Equipo</a>
+            <a href="index.html" class="btn-secondary">🏠 Inicio</a>
+            <a href="index.html#estadisticas" class="btn-secondary">📊 Ver Líderes</a>
         </div>
     </div>
 
-    <script src="equipo-detalle.js"></script>
+    <script src="jugador.js?v=2025"></script>
 
     <footer class="main-footer">
       <div class="footer-content">
@@ -300,5 +372,5 @@
         </div>
       </div>
     </footer>
-    </body>
+</body>
 </html>
