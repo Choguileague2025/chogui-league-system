@@ -1,9 +1,13 @@
-// JUGADOR.JS - VERSIÓN FINAL 2025 - TODAS LAS FUNCIONALIDADES
+// JUGADOR.JS - VERSIÓN FINAL 2025 - CORREGIDA
 
-// --- Configuración de API ---
-const API_BASE_URL = ''; 
+// ===================================
+// CONFIGURACIÓN DE API
+// ===================================
+const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
 
-// --- Variables globales ---
+// ===================================
+// VARIABLES GLOBALES
+// ===================================
 let currentPlayerId = null;
 let playerData = null;
 let playerStats = null;
@@ -12,7 +16,7 @@ let performanceCharts = {};
 let playerFavorites = JSON.parse(localStorage.getItem('playerFavorites') || '[]');
 
 // ===================================
-// --- FUNCIONES PRINCIPALES ---
+// FUNCIONES PRINCIPALES
 // ===================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -71,7 +75,7 @@ async function cargarDatosJugador() {
 }
 
 // ===================================
-// --- FUNCIONES DE RENDERIZADO ---
+// FUNCIONES DE RENDERIZADO
 // ===================================
 
 function renderizarPagina() {
@@ -177,7 +181,7 @@ function renderizarHistorialPartidos() {
 }
 
 // ===================================
-// --- FUNCIONES HELPER ---
+// FUNCIONES HELPER
 // ===================================
 
 function calcularAVG(stats) {
@@ -257,7 +261,7 @@ function mostrarErrorGeneral(mensaje) {
 }
 
 // ===================================
-// --- FUNCIONALIDADES AVANZADAS ---
+// FUNCIONALIDADES AVANZADAS
 // ===================================
 
 function inicializarFuncionalidadesAvanzadas() {
@@ -270,7 +274,7 @@ function inicializarFuncionalidadesAvanzadas() {
 }
 
 // ===================================
-// --- GRÁFICOS DE RENDIMIENTO ---
+// GRÁFICOS DE RENDIMIENTO
 // ===================================
 
 function crearGraficosRendimiento() {
@@ -332,7 +336,7 @@ function crearGrafico(canvas, label, data, color) {
 }
 
 // ===================================
-// --- JUGADORES RELACIONADOS ---
+// JUGADORES RELACIONADOS
 // ===================================
 
 async function cargarJugadoresRelacionados() {
@@ -359,7 +363,6 @@ async function cargarJugadoresMismaPosicion() {
         }
 
         const html = jugadores.map(jugador => {
-            // ✅ CORRECCIÓN: Convertir avg a número antes de usar toFixed
             const avgValue = parseFloat(jugador.avg) || 0;
 
             return `
@@ -403,7 +406,6 @@ async function cargarJugadoresMismoEquipo() {
         }
 
         const html = jugadores.map(jugador => {
-            // ✅ CORRECCIÓN: Convertir avg a número antes de usar toFixed
             const avgValue = parseFloat(jugador.avg) || 0;
 
             return `
@@ -429,7 +431,7 @@ async function cargarJugadoresMismoEquipo() {
 }
 
 // ===================================
-// --- COMPARACIÓN DE JUGADORES ---
+// COMPARACIÓN DE JUGADORES
 // ===================================
 
 function configurarSistemaComparaciones() {
@@ -473,7 +475,6 @@ async function generarComparacion() {
             return;
         }
         
-        // Agregar jugador actual a la comparación
         const jugadorActual = {
             id: currentPlayerId,
             nombre: playerData.nombre,
@@ -491,19 +492,15 @@ async function generarComparacion() {
         
         const todosJugadores = [jugadorActual, ...jugadores];
         
-        // Ordenar según métrica seleccionada
         todosJugadores.sort((a, b) => {
             const valA = parseFloat(a[metric]) || 0;
             const valB = parseFloat(b[metric]) || 0;
             return valB - valA;
         });
         
-        // Generar HTML de comparación
         const html = todosJugadores.map(jugador => {
             const esJugadorActual = jugador.id == currentPlayerId;
             const valor = jugador[metric] || 0;
-        
-            // ✅ CORRECCIÓN: Asegurar que valor sea número
             const valorNumerico = parseFloat(valor) || 0;
             const valorFormateado = (metric === 'avg' || metric === 'ops') ? 
                 valorNumerico.toFixed(3) : Math.round(valorNumerico);
@@ -541,7 +538,7 @@ async function generarComparacion() {
 }
 
 // ===================================
-// --- SISTEMA DE FAVORITOS ---
+// SISTEMA DE FAVORITOS
 // ===================================
 
 function configurarSistemaFavoritos() {
