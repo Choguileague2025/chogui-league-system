@@ -1484,6 +1484,125 @@ app.get('/api/jugadores/:id/partidos', async (req, res) => {
     }
 });
 
+// =================================================================================
+// ===================== INICIO DE NUEVOS ENDPOINTS PARA JUGADOR =====================
+// =================================================================================
+
+// ====================== JUGADORES SIMILARES (MISMA POSICIÓN) ======================
+app.get('/api/jugadores/:id/similares', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const limit = parseInt(req.query.limit) || 5;
+                
+        // 1. Obtener posición del jugador actual
+        const jugadorQuery = await pool.query(
+            'SELECT posicion, equipo_id FROM jugadores WHERE id = $1',
+            [id]
+        );
+                
+        if (jugadorQuery.rows.length === 0) {
+            return res.status(404).json({ error: 'Jugador no encontrado' });
+        }
+                
+        const { posicion, equipo_id } = jugadorQuery.rows[0];
+                
+        if (!posicion) {
+            return res.json([]); // Sin posición definida
+        }
+                
+        // 2. Buscar jugadores con la misma posición (excluyendo al jugador actual)
+        const similaresQuery = await pool.query(`
+            SELECT 
+                j.id,
+                j.nombre,
+                j.numero,
+                j.posicion,
+                e.nombre as equipo_nombre,
+                COALESCE(eo.at_bats, 0) as at_bats,
+                COALESCE(eo.hits, 0) as hits,
+                COALESCE(eo.home_runs, 0) as home_runs,
+                COALESCE(eo.rbi, 0) as rbi,
+                CASE 
+                    WHEN COALESCE(eo.at_bats, 0) > 0 
+                    THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / COALESCE(eo.at_bats, 1), 3)
+                    ELSE 0.000
+                END as avg
+            FROM jugadores j
+            LEFT JOIN equipos e ON j.equipo_id = e.id
+            LEFT JOIN estadisticas_ofensivas eo ON j.id = eo.jugador_id
+            WHERE j.posicion = $1 
+                AND j.id != $2
+                AND j.equipo_id IS NOT NULL
+            ORDER BY avg DESC, eo.hits DESC
+            LIMIT $3
+        `, [posicion, id, limit]);
+                
+        res.json(similaresQuery.rows);
+            } catch (error) {
+        console.error('Error obteniendo jugadores similares:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// ====================== JUGADORES DEL MISMO EQUIPO ======================
+app.get('/api/jugadores/:id/companeros', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const limit = parseInt(req.query.limit) || 5;
+                
+        // 1. Obtener equipo del jugador actual
+        const jugadorQuery = await pool.query(
+            'SELECT equipo_id FROM jugadores WHERE id = $1',
+            [id]
+        );
+                
+        if (jugadorQuery.rows.length === 0) {
+            return res.status(404).json({ error: 'Jugador no encontrado' });
+        }
+                
+        const { equipo_id } = jugadorQuery.rows[0];
+                
+        if (!equipo_id) {
+            return res.json([]); // Sin equipo asignado
+        }
+                
+        // 2. Buscar compañeros de equipo (excluyendo al jugador actual)
+        const companerosQuery = await pool.query(`
+            SELECT 
+                j.id,
+                j.nombre,
+                j.numero,
+                j.posicion,
+                e.nombre as equipo_nombre,
+                COALESCE(eo.at_bats, 0) as at_bats,
+                COALESCE(eo.hits, 0) as hits,
+                COALESCE(eo.home_runs, 0) as home_runs,
+                COALESCE(eo.rbi, 0) as rbi,
+                CASE 
+                    WHEN COALESCE(eo.at_bats, 0) > 0 
+                    THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / COALESCE(eo.at_bats, 1), 3)
+                    ELSE 0.000
+                END as avg
+            FROM jugadores j
+            LEFT JOIN equipos e ON j.equipo_id = e.id
+            LEFT JOIN estadisticas_ofensivas eo ON j.id = eo.jugador_id
+            WHERE j.equipo_id = $1 
+                AND j.id != $2
+            ORDER BY avg DESC, eo.hits DESC
+            LIMIT $3
+        `, [equipo_id, id, limit]);
+                
+        res.json(companerosQuery.rows);
+            } catch (error) {
+        console.error('Error obteniendo compañeros de equipo:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+// =================================================================================
+// ====================== FIN DE NUEVOS ENDPOINTS PARA JUGADOR =======================
+// =================================================================================
+
 // PROBLEMA 3 CORREGIDO: Creado endpoint de búsqueda universal
 app.get('/api/buscar', async (req, res) => {
     try {
