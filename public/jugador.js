@@ -58,8 +58,15 @@ async function cargarDatosJugador() {
             playerStats = {}; // Asignamos un objeto vacío para evitar errores
         }
 
-        // Simulación de historial de partidos (se puede conectar a /api/partidos si es necesario)
-        gamesHistory = generarHistorialPartidosSimulado();
+        // Cargar historial de partidos REALES
+        const partidosResponse = await fetch(`${API_BASE_URL}/api/jugadores/${currentPlayerId}/partidos`);
+        if (partidosResponse.ok) {
+            gamesHistory = await partidosResponse.json();
+            console.log('✅ Historial de partidos cargado:', gamesHistory.length);
+        } else {
+            console.warn('⚠️ No se pudieron cargar los partidos del jugador');
+            gamesHistory = [];
+        }
 
         console.log('✅ Datos del jugador cargados:', { playerData, playerStats });
 
@@ -153,23 +160,43 @@ function renderizarMetricasAvanzadas() {
  */
 function renderizarHistorialPartidos() {
     const container = document.getElementById('gamesHistoryContainer');
-    if (gamesHistory.length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay historial de partidos recientes.</div>';
+
+    if (!gamesHistory || gamesHistory.length === 0) {
+        container.innerHTML = '<div class="empty-state">No hay partidos registrados</div>';
         return;
     }
-    container.innerHTML = gamesHistory.map(game => `
-        <div class="game-history-item">
-            <div class="game-opponent">vs ${game.oponente}</div>
-            <div class="game-performance">
-                <div class="game-stat"><span class="game-stat-value">${game.ab}</span><span class="game-stat-label">AB</span></div>
-                <div class="game-stat"><span class="game-stat-value">${game.h}</span><span class="game-stat-label">H</span></div>
-                <div class="game-stat"><span class="game-stat-value">${game.rbi}</span><span class="game-stat-label">RBI</span></div>
-            </div>
-            <div class="game-date">${game.fecha}</div>
-        </div>
-    `).join('');
-}
 
+    const html = gamesHistory.map(partido => {
+        const esLocal = partido.equipo_local_id === playerData.equipo_id;
+        const equipoRival = esLocal ? partido.equipo_visitante_nombre : partido.equipo_local_nombre;
+        const carrerasEquipo = esLocal ? partido.carreras_local : partido.carreras_visitante;
+        const carrerasRival = esLocal ? partido.carreras_visitante : partido.carreras_local;
+
+        const resultado = carrerasEquipo > carrerasRival ? 'G' : 'P';
+        const resultadoClass = resultado === 'G' ? 'win' : 'loss';
+
+        // Formatear fecha
+        const fecha = new Date(partido.fecha_partido + 'T00:00:00Z');
+        const fechaFormateada = fecha.toLocaleDateString('es-ES', { 
+             day: '2-digit', 
+             month: '2-digit', 
+             year: 'numeric',
+            timeZone: 'UTC'
+        });
+
+        return `
+            <div class="game-item">
+                <div class="game-opponent">vs ${equipoRival}</div>
+                <div class="game-result ${resultadoClass}">
+                    ${resultado} ${carrerasEquipo}-${carrerasRival}
+                </div>
+                <div class="game-date">${fechaFormateada}</div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+}
 
 // ===================================
 // --- FUNCIONES HELPER Y CÁLCULOS ---
@@ -232,22 +259,7 @@ function mostrarErrorGeneral(mensaje) {
     }
 }
 
-function generarHistorialPartidosSimulado() {
-    const historial = [];
-    for(let i=0; i<5; i++){
-        const ab = Math.floor(Math.random() * 5) + 1;
-        const h = Math.floor(Math.random() * (ab + 1));
-        historial.push({
-            oponente: `Equipo ${i+1}`,
-            ab: ab,
-            h: h,
-            rbi: Math.floor(Math.random() * 4),
-            fecha: `0${i+1}/10/2025`
-        })
-    }
-    return historial;
-}
-
+// ❌ FUNCIÓN SIMULADA ELIMINADA
 
 // ==========================================================
 // --- PASO 14: FUNCIONALIDADES AVANZADAS (SIN CAMBIOS) ---
