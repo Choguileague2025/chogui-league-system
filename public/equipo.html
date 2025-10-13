@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="equipo.css">
     
     <style>
+        /* Footer profesional */
         .main-footer {
           background: linear-gradient(145deg, #0f1419, #1a1a2e);
           border-top: 2px solid rgba(255, 215, 0, 0.3);
@@ -110,7 +111,7 @@
           }
         }
     </style>
-</head>
+    </head>
 <body>
     <a href="login.html" class="admin-link">🔑 Admin</a>
     
@@ -122,21 +123,48 @@
                 </div>
                 <h1>🏆 CHOGUI LEAGUE</h1>
                 <p>Sistema de Gestión Profesional de Softbol</p>
-            </div>
+                </div>
         </div>
 
         <div class="breadcrumb">
-            <a href="index.html">🏠 Inicio</a>
+            <a href="index.html" onclick="irAInicio()">🏠 Inicio</a>
             <span>></span>
-            <a href="index.html#posiciones">📊 Posiciones</a>
+            <a href="index.html#posiciones" onclick="irAPosiciones()">📊 Posiciones</a>
             <span>></span>
             <span id="teamBreadcrumb">Cargando...</span>
+            <span id="teamPosition" style="margin-left: 10px; color: #ff8c00; font-size: 0.8rem;"></span>
         </div>
+
+        <script>
+        function irAInicio() {
+            window.location.href = 'index.html';
+        }
+
+        function irAPosiciones() {
+            window.location.href = 'index.html#posiciones';
+        }
+
+        // Actualizar breadcrumb con posición del equipo
+        function actualizarBreadcrumbConPosicion() {
+            if (!teamData) return;
+            
+            // Si tenemos cache de equipos, calcular posición
+            if (window.equiposCache && recentGames.length > 0) {
+                // Lógica simplificada de posición
+                const posicionElement = document.getElementById('teamPosition');
+                posicionElement.textContent = '(Calculando posición...)';
+                
+                // Aquí se podría hacer una llamada para obtener la posición exacta
+                setTimeout(() => {
+                    posicionElement.textContent = '(Ver posición en tabla)';
+                }, 2000);
+            }
+        }
+        </script>
 
         <div class="team-main-card">
             <div class="team-header">
-                <div class="team-logo"></div>
-                <div class="team-info">
+                <div class="team-logo"></div> <div class="team-info">
                     <h2 id="teamName">Cargando equipo...</h2>
                     <div class="team-subtitle" id="teamLocation">-</div>
                     <div style="color: #fff; margin-top: 10px;">
@@ -232,7 +260,6 @@
         </div>
     </div>
 
-    <!-- ⚠️ CRÍTICO: ESTE DEBE SER EL ÚNICO SCRIPT -->
     <script src="equipo-detalle.js"></script>
 
     <footer class="main-footer">
@@ -273,5 +300,5 @@
         </div>
       </div>
     </footer>
-</body>
+    </body>
 </html>
