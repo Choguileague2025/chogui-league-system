@@ -1,3 +1,9 @@
+// ===================================
+// ARCHIVO: server.js
+// MODIFICADO: 2025-10-12
+// CAMBIOS: 
+//   - Agregado endpoint GET /api/equipos/:id/logo (línea 1254-1311)
+// ===================================
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -1131,6 +1137,71 @@ app.get('/api/equipos/:id/estadisticas/ofensivas', async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
+// ========================================================================
+// =================== INICIO DEL NUEVO CÓDIGO AÑADIDO ====================
+// ========================================================================
+
+app.get('/api/equipos/:id/logo', async (req, res) => {
+    const equipoId = parseInt(req.params.id, 10);
+    
+    if (isNaN(equipoId)) {
+        return res.status(400).json({ error: 'El ID del equipo debe ser un número válido' });
+    }
+
+    const logosPath = path.join(__dirname, 'public', 'images', 'logos');
+
+    // Paso 1: Buscar logo por convención de ID (ej: equipo-78.png)
+    const logoByIdPath = path.join(logosPath, `equipo-${equipoId}.png`);
+    
+    if (fs.existsSync(logoByIdPath)) {
+        return res.sendFile(logoByIdPath);
+    }
+
+    // Paso 2: Si no existe, buscar en la base de datos y normalizar el nombre
+    try {
+        const result = await pool.query('SELECT nombre FROM equipos WHERE id = $1', [equipoId]);
+
+        if (result.rows.length === 0) {
+            // Si el equipo no existe en la DB, tampoco tendrá logo por nombre.
+            return res.status(404).json({
+                error: 'Logo not found',
+                equipo_id: equipoId,
+                fallback: 'use_initials'
+            });
+        }
+
+        const nombreEquipo = result.rows[0].nombre;
+        const nombreNormalizado = nombreEquipo
+            .toLowerCase()
+            .replace(/\s+/g, '-') // Reemplaza espacios con guiones
+            .replace(/[^a-z0-9-]/g, ''); // Elimina caracteres especiales
+
+        const logoByNamePath = path.join(logosPath, `${nombreNormalizado}.png`);
+
+        if (fs.existsSync(logoByNamePath)) {
+            return res.sendFile(logoByNamePath);
+        }
+
+        // Paso 3: Si ninguno de los logos existe, devolver 404 con JSON
+        return res.status(404).json({
+            error: 'Logo not found',
+            equipo_id: equipoId,
+            fallback: 'use_initials'
+        });
+
+    } catch (error) {
+        console.error(`Error buscando logo para equipo ID ${equipoId}:`, error);
+        return res.status(500).json({
+            error: 'Error interno del servidor',
+            details: error.message
+        });
+    }
+});
+
+// ========================================================================
+// ===================== FIN DEL NUEVO CÓDIGO AÑADIDO =====================
+// ========================================================================
 
 app.post('/api/equipos', async (req, res) => {
     try {
