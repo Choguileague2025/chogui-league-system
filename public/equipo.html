@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Equipo - Chogui League System</title>
-    <meta name="description" content="Detalles del equipo, roster y estadÃ­sticas en Chogui League.">
+    <meta name="description" content="Detalles del equipo, roster y estadísticas en Chogui League.">
     <link rel="stylesheet" href="equipo.css">
     
     <style>
@@ -111,9 +111,9 @@
           }
         }
     </style>
-    </head>
+</head>
 <body>
-    <a href="login.html" class="admin-link">ðŸ”‘ Admin</a>
+    <a href="login.html" class="admin-link">🔑 Admin</a>
     
     <div class="container">
         <div class="header">
@@ -121,50 +121,23 @@
                 <div class="logo-container">
                     <div class="logo-chogui"></div>
                 </div>
-                <h1>ðŸ† CHOGUI LEAGUE</h1>
-                <p>Sistema de GestiÃ³n Profesional de Softbol</p>
-                </div>
+                <h1>🏆 CHOGUI LEAGUE</h1>
+                <p>Sistema de Gestión Profesional de Softbol</p>
+            </div>
         </div>
 
         <div class="breadcrumb">
-            <a href="index.html" onclick="irAInicio()">ðŸ  Inicio</a>
+            <a href="index.html">🏠 Inicio</a>
             <span>></span>
-            <a href="index.html#posiciones" onclick="irAPosiciones()">ðŸ“Š Posiciones</a>
+            <a href="index.html#posiciones">📊 Posiciones</a>
             <span>></span>
             <span id="teamBreadcrumb">Cargando...</span>
-            <span id="teamPosition" style="margin-left: 10px; color: #ff8c00; font-size: 0.8rem;"></span>
         </div>
-
-        <script>
-        function irAInicio() {
-            window.location.href = 'index.html';
-        }
-
-        function irAPosiciones() {
-            window.location.href = 'index.html#posiciones';
-        }
-
-        // Actualizar breadcrumb con posiciÃ³n del equipo
-        function actualizarBreadcrumbConPosicion() {
-            if (!teamData) return;
-            
-            // Si tenemos cache de equipos, calcular posiciÃ³n
-            if (window.equiposCache && recentGames.length > 0) {
-                // LÃ³gica simplificada de posiciÃ³n
-                const posicionElement = document.getElementById('teamPosition');
-                posicionElement.textContent = '(Calculando posiciÃ³n...)';
-                
-                // AquÃ­ se podrÃ­a hacer una llamada para obtener la posiciÃ³n exacta
-                setTimeout(() => {
-                    posicionElement.textContent = '(Ver posiciÃ³n en tabla)';
-                }, 2000);
-            }
-        }
-        </script>
 
         <div class="team-main-card">
             <div class="team-header">
-                <div class="team-logo"></div> <div class="team-info">
+                <div class="team-logo"></div>
+                <div class="team-info">
                     <h2 id="teamName">Cargando equipo...</h2>
                     <div class="team-subtitle" id="teamLocation">-</div>
                     <div style="color: #fff; margin-top: 10px;">
@@ -183,7 +156,7 @@
                 </div>
                 <div class="stat-item">
                     <span class="stat-value" id="teamPosition">-</span>
-                    <span class="stat-label">PosiciÃ³n</span>
+                    <span class="stat-label">Posición</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-value" id="teamAverage">-.---</span>
@@ -198,7 +171,7 @@
 
         <div class="content-grid">
             <div class="roster-section">
-                <h3 class="section-title">ðŸ‘¥ Roster del Equipo</h3>
+                <h3 class="section-title">👥 Roster del Equipo</h3>
                 
                 <div class="roster-filters">
                     <button class="filter-btn active" data-position="all">Todos</button>
@@ -214,7 +187,7 @@
             </div>
 
             <div class="stats-section">
-                <h3 class="section-title">ðŸ“Š EstadÃ­sticas</h3>
+                <h3 class="section-title">📊 Estadísticas</h3>
                 
                 <div class="record-display">
                     <div class="record-number" id="winPercentage">-.---</div>
@@ -247,16 +220,16 @@
         </div>
 
         <div class="recent-games">
-            <h3 class="section-title">ðŸŽ¯ Ãšltimos Partidos</h3>
+            <h3 class="section-title">🎯 Últimos Partidos</h3>
             <div id="recentGamesContainer">
                 <div class="loading">Cargando partidos recientes...</div>
             </div>
         </div>
 
         <div class="action-buttons">
-            <a href="index.html" class="btn-primary">ðŸ  Volver al Inicio</a>
-            <a href="index.html#posiciones" class="btn-secondary">ðŸ“Š Ver Posiciones</a>
-            <a href="login.html" class="btn-secondary">âš™ï¸ Panel Admin</a>
+            <a href="index.html" class="btn-primary">🏠 Volver al Inicio</a>
+            <a href="index.html#posiciones" class="btn-secondary">📊 Ver Posiciones</a>
+            <a href="login.html" class="btn-secondary">⚙️ Panel Admin</a>
         </div>
     </div>
 
@@ -269,21 +242,21 @@
             <div class="logo-chogui"></div>
             <span class="footer-brand">CHOGUI LEAGUE</span>
           </div>
-          <p class="footer-description">Sistema de GestiÃ³n Profesional de Softball</p>
+          <p class="footer-description">Sistema de Gestión Profesional de Softball</p>
         </div>
         
         <div class="footer-section">
-          <h4>Enlaces RÃ¡pidos</h4>
+          <h4>Enlaces Rápidos</h4>
           <ul class="footer-links">
             <li><a href="index.html">Inicio</a></li>
             <li><a href="index.html#partidos">Partidos</a></li>
-            <li><a href="index.html#estadisticas">LÃ­deres</a></li>
-            <li><a href="admin.html">AdministraciÃ³n</a></li>
+            <li><a href="index.html#estadisticas">Líderes</a></li>
+            <li><a href="admin.html">Administración</a></li>
           </ul>
         </div>
         
         <div class="footer-section">
-          <h4>InformaciÃ³n</h4>
+          <h4>Información</h4>
           <ul class="footer-links">
             <li><a href="#">Contacto</a></li>
             <li><a href="#">Soporte</a></li>
@@ -296,9 +269,9 @@
         <div class="footer-credits">
           <span>English (US)</span>
           <span class="separator">|</span>
-          <span>Copyright Â©2025 ATRAELAB / All rights reserved</span>
+          <span>Copyright ©2025 ATRAELAB / All rights reserved</span>
         </div>
       </div>
     </footer>
-    </body>
+</body>
 </html>
