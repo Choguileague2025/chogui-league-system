@@ -249,7 +249,7 @@ body::before {
     text-decoration: underline;
 }
 
-/* Grid de estadÃ­sticas */
+/* Grid de estadísticas */
 .stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -257,7 +257,7 @@ body::before {
     margin-bottom: 30px;
 }
 
-/* EstadÃ­sticas principales */
+/* Estadísticas principales */
 .main-stats {
     background: linear-gradient(145deg, #16213e, #1a1a2e);
     border-radius: 20px;
@@ -320,7 +320,7 @@ body::before {
     letter-spacing: 0.5px;
 }
 
-/* SecciÃ³n de rendimiento */
+/* Sección de rendimiento */
 .performance-section {
     background: linear-gradient(145deg, #16213e, #1a1a2e);
     border-radius: 20px;
@@ -430,7 +430,7 @@ body::before {
     opacity: 0.6;
 }
 
-/* Botones de acciÃ³n */
+/* Botones de acción */
 .action-buttons {
     display: flex;
     gap: 15px;
@@ -616,7 +616,7 @@ body::before {
 
 /* PASO 14: Funcionalidades Avanzadas */
 
-/* GrÃ¡ficos de rendimiento */
+/* Gráficos de rendimiento */
 .performance-charts {
     background: linear-gradient(145deg, #16213e, #1a1a2e);
     border-radius: 20px;
@@ -975,3 +975,4 @@ body::before {
         flex-direction: column;
         gap: 8px;
     }
+}
