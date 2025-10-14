@@ -1,5 +1,4 @@
-/* JUGADOR.CSS - FASE 5: POLISH PROFESIONAL - SUBTAREA 1 */
-/* MODIFICADO: Eliminadas animaciones del header */
+/* JUGADOR.CSS - PASO 13: Sistema de Perfiles de Jugadores */
 
 * {
     margin: 0;
@@ -41,7 +40,7 @@ body::before {
     z-index: 1;
 }
 
-/* ✅ CORRECCIÓN SUBTAREA 1: Header SIN animaciones */
+/* Header consistente */
 .header {
     text-align: center;
     margin-bottom: 40px;
@@ -49,19 +48,11 @@ body::before {
     background: linear-gradient(45deg, #ffd700, #ff8c00, #ff6b35);
     border-radius: 20px;
     box-shadow: 0 15px 40px rgba(255, 215, 0, 0.4);
-    /* ❌ ELIMINADO: animation: float 6s ease-in-out infinite; */
+    animation: float 6s ease-in-out infinite;
     position: relative;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* ✅ CORRECCIÓN: Hover sutil en lugar de animación constante */
-.header:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 50px rgba(255, 215, 0, 0.5);
-}
-
-/* ❌ ELIMINADO: Animación shine del ::before */
 .header::before {
     content: '';
     position: absolute;
@@ -70,12 +61,18 @@ body::before {
     width: 200%;
     height: 200%;
     background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    /* ❌ ELIMINADO: animation: shine 3s infinite; */
+    animation: shine 3s infinite;
 }
 
-/* ❌ ELIMINADAS: Keyframes de animaciones */
-/* @keyframes float - ELIMINADO */
-/* @keyframes shine - ELIMINADO */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+@keyframes shine {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 .header-content {
     position: relative;
@@ -90,19 +87,16 @@ body::before {
     width: 80px;
     height: 80px;
     margin: 0 auto 10px;
-    background: url('/public/images/logos/chogui-league.png') center/contain no-repeat;
+    background: url('/images/logos/chogui-league.png') center/contain no-repeat;
     border-radius: 50%;
     box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-    /* ❌ ELIMINADO: animation: rotate 20s linear infinite; */
-    transition: transform 0.3s ease;
+    animation: rotate 20s linear infinite;
 }
 
-/* ✅ CORRECCIÓN: Hover sutil en lugar de rotación constante */
-.logo-chogui:hover {
-    transform: scale(1.05);
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
-
-/* ❌ ELIMINADO: @keyframes rotate */
 
 .header h1 {
     font-size: clamp(1.8rem, 4vw, 2.5rem);
@@ -120,28 +114,6 @@ body::before {
     opacity: 0.9;
     color: #1a1a2e;
     font-weight: 600;
-}
-
-/* Botón Admin fijo */
-.btn-admin {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(45deg, #ffd700, #ff8c00);
-    color: #1a1a2e;
-    padding: 12px 25px;
-    border-radius: 30px;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
-
-.btn-admin:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
 }
 
 /* Breadcrumb */
@@ -242,46 +214,62 @@ body::before {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
-.player-details {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 10px;
-    align-items: center;
-}
-
-.player-details span {
+.player-info .player-subtitle {
+    font-size: 1.2rem;
     color: #ff8c00;
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.player-bio {
+    margin-bottom: 15px;
     display: flex;
-    gap: 20px;
-    color: #fff;
-    font-size: 0.95rem;
+    align-items: center;
+    gap: 15px;
 }
 
-/* Grid de contenido */
-.content-grid {
+.player-number-display {
+    background: linear-gradient(45deg, #16213e, #1a1a2e);
+    color: #ffd700;
+    border: 2px solid #ffd700;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.team-link {
+    color: #ff8c00;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.team-link:hover {
+    color: #ffd700;
+    text-decoration: underline;
+}
+
+/* Grid de estadÃ­sticas */
+.stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
     margin-bottom: 30px;
 }
 
-/* Sección de estadísticas */
-.batting-stats, .advanced-metrics {
+/* EstadÃ­sticas principales */
+.main-stats {
     background: linear-gradient(145deg, #16213e, #1a1a2e);
     border-radius: 20px;
     padding: 25px;
     border: 2px solid rgba(255, 215, 0, 0.2);
-    transition: all 0.3s ease;
 }
 
-.batting-stats:hover, .advanced-metrics:hover {
-    border-color: rgba(255, 215, 0, 0.4);
-    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+.stats-section {
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    border-radius: 20px;
+    padding: 25px;
+    border: 2px solid rgba(255, 215, 0, 0.2);
 }
 
 .section-title {
@@ -293,23 +281,23 @@ body::before {
     padding-bottom: 10px;
 }
 
-/* Grid de stats */
-.stats-grid {
+.stats-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 15px;
+    margin-bottom: 20px;
 }
 
-.stat-card {
+.stat-box {
     text-align: center;
     padding: 15px;
     background: rgba(255, 215, 0, 0.1);
     border-radius: 10px;
     border: 1px solid rgba(255, 215, 0, 0.3);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease;
 }
 
-.stat-card:hover {
+.stat-box:hover {
     transform: translateY(-3px);
     background: rgba(255, 215, 0, 0.2);
     box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
@@ -332,45 +320,54 @@ body::before {
     letter-spacing: 0.5px;
 }
 
-/* Métricas avanzadas */
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
+/* SecciÃ³n de rendimiento */
+.performance-section {
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 30px;
+    border: 2px solid rgba(255, 215, 0, 0.2);
 }
 
-.metric-card {
+.performance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.performance-card {
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 15px;
     padding: 20px;
-    background: rgba(255, 215, 0, 0.05);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    text-align: center;
     transition: all 0.3s ease;
 }
 
-.metric-card:hover {
-    background: rgba(255, 215, 0, 0.1);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+.performance-card:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: scale(1.02);
 }
 
-.metric-label {
-    font-size: 0.9rem;
-    color: #fff;
-    opacity: 0.8;
-    margin-bottom: 10px;
+.performance-title {
+    color: #ffd700;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 15px;
 }
 
-.metric-value {
+.performance-value {
     font-size: 2rem;
     font-weight: bold;
-    color: #ffd700;
-    display: block;
-    margin-bottom: 5px;
+    color: #ff8c00;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
-.metric-desc {
+.performance-subtitle {
+    color: #fff;
     font-size: 0.8rem;
-    color: #ff8c00;
+    opacity: 0.8;
+    margin-top: 8px;
 }
 
 /* Historial de partidos */
@@ -382,48 +379,244 @@ body::before {
     border: 2px solid rgba(255, 215, 0, 0.2);
 }
 
-.game-item {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 15px;
+.game-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 15px;
+    margin: 10px 0;
     background: rgba(255, 215, 0, 0.05);
     border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-left: 4px solid #ffd700;
     transition: all 0.3s ease;
 }
 
-.game-item:hover {
-    background: rgba(255, 215, 0, 0.1);
-    transform: translateX(5px);
+.game-history-item:hover {
+    background: rgba(255, 215, 0, 0.15);
+    transform: translateX(10px);
 }
 
 .game-opponent {
     font-weight: bold;
-    color: #fff;
+    color: #ffd700;
 }
 
-.game-result {
-    font-weight: bold;
+.game-performance {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.game-stat {
     text-align: center;
 }
 
-.game-result.win {
-    color: #4CAF50;
+.game-stat-value {
+    font-weight: bold;
+    color: #ff8c00;
+    font-size: 1.1rem;
 }
 
-.game-result.loss {
-    color: #dc143c;
+.game-stat-label {
+    font-size: 0.7rem;
+    color: #fff;
+    opacity: 0.8;
+    text-transform: uppercase;
 }
 
 .game-date {
-    color: #ff8c00;
-    text-align: right;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    color: #fff;
+    opacity: 0.6;
 }
 
-/* Gráficos de rendimiento */
+/* Botones de acciÃ³n */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: linear-gradient(145deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.6);
+}
+
+.btn-secondary {
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    color: #ffd700;
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(145deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    transform: translateY(-3px) scale(1.05);
+}
+
+/* Admin link */
+.admin-link {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(145deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.admin-link:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.6);
+    color: #1a1a2e;
+    text-decoration: none;
+}
+
+/* Estados de carga */
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #ffd700;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #ffd700;
+    font-style: italic;
+}
+
+.error-message {
+    background: rgba(220, 20, 60, 0.2);
+    color: #dc143c;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    font-weight: bold;
+    border: 1px solid #dc143c;
+    text-align: center;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+        padding-top: 60px;
+        padding-bottom: 100px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .player-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .player-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+    }
+    
+    .player-info h2 {
+        font-size: 2rem;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .performance-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-primary, .btn-secondary {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .breadcrumb {
+        font-size: 0.9rem;
+        padding: 10px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .game-performance {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .player-info h2 {
+        font-size: 1.8rem;
+    }
+}
+
+/* PASO 14: Funcionalidades Avanzadas */
+
+/* GrÃ¡ficos de rendimiento */
 .performance-charts {
     background: linear-gradient(145deg, #16213e, #1a1a2e);
     border-radius: 20px;
@@ -434,63 +627,66 @@ body::before {
 
 .charts-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 25px;
 }
 
 .chart-container {
     background: rgba(255, 215, 0, 0.05);
-    border-radius: 12px;
+    border-radius: 15px;
     padding: 20px;
     border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
-.chart-container h4 {
-    color: #ffd700;
-    font-size: 1rem;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.chart-container canvas {
-    width: 100%;
-    height: 200px;
-}
-
-.chart-info {
-    margin-top: 15px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: #fff;
-}
-
-.projections {
-    background: rgba(255, 215, 0, 0.05);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.projections h4 {
+.chart-title {
     color: #ffd700;
     font-size: 1.1rem;
     margin-bottom: 15px;
+    text-align: center;
 }
 
-.projection-stat {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+.chart-wrapper {
+    position: relative;
+    height: 200px;
+    width: 100%;
 }
 
-.projection-stat strong {
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.trend-indicators {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.trend-item {
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.trend-label {
+    color: #fff;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.trend-value {
     color: #ffd700;
+    font-size: 1.2rem;
+    font-weight: bold;
 }
 
-/* Sección de comparación */
-.comparison-section {
+/* Comparaciones */
+.player-comparisons {
     background: linear-gradient(145deg, #16213e, #1a1a2e);
     border-radius: 20px;
     padding: 25px;
@@ -503,78 +699,68 @@ body::before {
     gap: 15px;
     margin-bottom: 20px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .comparison-select {
-    flex: 1;
-    min-width: 200px;
-    padding: 12px 15px;
     background: rgba(255, 215, 0, 0.1);
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    border-radius: 10px;
-    color: #fff;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.comparison-select:hover {
-    background: rgba(255, 215, 0, 0.2);
-    border-color: #ffd700;
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
 }
 
 .comparison-select option {
     background: #1a1a2e;
-    color: #fff;
+    color: #ffd700;
 }
 
 .comparison-results {
-    min-height: 200px;
+    min-height: 100px;
 }
 
 .comparison-player {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
+    padding: 12px 15px;
     background: rgba(255, 215, 0, 0.05);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 8px;
+    margin: 8px 0;
+    border-left: 4px solid #ffd700;
+    cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .comparison-player:hover {
-    background: rgba(255, 215, 0, 0.1);
+    background: rgba(255, 215, 0, 0.15);
     transform: translateX(5px);
-}
-
-.comparison-player.current-player {
-    border-left: 4px solid #00ff88;
-    background: rgba(0, 255, 136, 0.1);
 }
 
 .comparison-player-info {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
 }
 
 .comparison-avatar {
-    width: 50px;
-    height: 50px;
+    width: 35px;
+    height: 35px;
     background: linear-gradient(45deg, #ffd700, #ff8c00);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 0.8rem;
     font-weight: bold;
     color: #1a1a2e;
 }
 
 .comparison-stats {
     display: flex;
-    gap: 20px;
+    gap: 15px;
+    align-items: center;
 }
 
 .comparison-stat {
@@ -582,14 +768,14 @@ body::before {
 }
 
 .comparison-stat-value {
-    font-size: 1.5rem;
-    font-weight: bold;
     color: #ffd700;
+    font-weight: bold;
+    font-size: 1.1rem;
 }
 
 .comparison-stat-label {
-    font-size: 0.8rem;
     color: #fff;
+    font-size: 0.7rem;
     opacity: 0.8;
 }
 
@@ -604,57 +790,60 @@ body::before {
 
 .related-categories {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
 }
 
 .related-category {
-    margin-bottom: 20px;
+    background: rgba(255, 215, 0, 0.05);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
 }
 
 .related-subtitle {
     color: #ffd700;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+    text-align: center;
 }
 
 .related-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: 10px;
 }
 
 .related-player {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 12px;
+    gap: 12px;
+    padding: 10px;
     background: rgba(255, 215, 0, 0.05);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
-    text-decoration: none;
+    border-radius: 8px;
+    cursor: pointer;
     transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
 }
 
 .related-player:hover {
     background: rgba(255, 215, 0, 0.15);
-    border-color: #ffd700;
-    transform: translateX(5px);
+    transform: scale(1.02);
+    text-decoration: none;
+    color: inherit;
 }
 
 .related-avatar {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     background: linear-gradient(45deg, #ffd700, #ff8c00);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 0.7rem;
     font-weight: bold;
     color: #1a1a2e;
-    font-size: 0.9rem;
 }
 
 .related-info {
@@ -662,21 +851,18 @@ body::before {
 }
 
 .related-name {
-    font-weight: bold;
-    color: #fff;
-    margin-bottom: 3px;
-}
-
-.related-team {
-    font-size: 0.85rem;
     color: #ffd700;
+    font-weight: bold;
+    font-size: 0.9rem;
 }
 
-.related-stat {
-    text-align: right;
+.related-details {
+    color: #fff;
+    font-size: 0.7rem;
+    opacity: 0.8;
 }
 
-/* Sección de favoritos */
+/* Sistema de favoritos */
 .favorites-section {
     background: linear-gradient(145deg, #16213e, #1a1a2e);
     border-radius: 20px;
@@ -693,11 +879,11 @@ body::before {
 }
 
 .btn-favorite {
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    color: #ffd700;
+    border: 2px solid rgba(255, 215, 0, 0.5);
     padding: 12px 25px;
-    background: rgba(255, 215, 0, 0.1);
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    border-radius: 10px;
-    color: #fff;
+    border-radius: 25px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -707,15 +893,14 @@ body::before {
 }
 
 .btn-favorite:hover {
-    background: rgba(255, 215, 0, 0.2);
-    border-color: #ffd700;
+    background: linear-gradient(145deg, #ffd700, #ff8c00);
+    color: #1a1a2e;
     transform: translateY(-2px);
 }
 
 .btn-favorite.active {
-    background: linear-gradient(45deg, #ffd700, #ff8c00);
+    background: linear-gradient(145deg, #ffd700, #ff8c00);
     color: #1a1a2e;
-    border-color: #ffd700;
 }
 
 .player-notes {
@@ -725,155 +910,68 @@ body::before {
 .player-notes label {
     display: block;
     color: #ffd700;
-    font-weight: bold;
     margin-bottom: 10px;
+    font-weight: bold;
 }
 
 .player-notes textarea {
     width: 100%;
-    padding: 15px;
-    background: rgba(255, 215, 0, 0.05);
-    border: 2px solid rgba(255, 215, 0, 0.2);
-    border-radius: 10px;
+    background: rgba(255, 215, 0, 0.1);
     color: #fff;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 12px;
     font-family: inherit;
-    font-size: 1rem;
     resize: vertical;
-    transition: all 0.3s ease;
+    margin-bottom: 10px;
 }
 
 .player-notes textarea:focus {
     outline: none;
-    background: rgba(255, 215, 0, 0.1);
     border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.15);
 }
 
-/* Botones de acción */
-.action-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 30px;
-}
-
-.btn-primary, .btn-secondary {
-    padding: 15px 30px;
-    border-radius: 30px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    border: none;
-    font-size: 1rem;
-}
-
-.btn-primary {
-    background: linear-gradient(45deg, #ffd700, #ff8c00);
-    color: #1a1a2e;
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-}
-
-.btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
-}
-
-.btn-secondary {
-    background: rgba(255, 215, 0, 0.1);
-    color: #ffd700;
-    border: 2px solid #ffd700;
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 215, 0, 0.2);
-    transform: translateY(-3px);
-}
-
-/* Estados vacíos */
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #fff;
-    opacity: 0.6;
-}
-
-.loading {
-    text-align: center;
-    padding: 40px 20px;
-    color: #ffd700;
-    font-size: 1.2rem;
-}
-
-.error-message {
-    text-align: center;
-    padding: 40px 20px;
-    color: #dc143c;
-}
-
-.error-message h2 {
-    color: #dc143c;
-    margin-bottom: 20px;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .content-grid {
-        grid-template-columns: 1fr;
-    }
-    
+/* Responsive para funcionalidades avanzadas */
+@media (max-width: 768px) {
     .charts-grid {
         grid-template-columns: 1fr;
     }
     
-    .related-categories {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .player-header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .player-details {
-        justify-content: center;
-    }
-    
-    .player-bio {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .game-item {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-    
-    .game-date {
-        text-align: center;
-    }
-    
     .comparison-controls {
         flex-direction: column;
+        align-items: stretch;
     }
     
     .comparison-select {
-        min-width: 100%;
+        width: 100%;
     }
     
-    .comparison-player {
-        flex-direction: column;
-        text-align: center;
+    .related-categories {
+        grid-template-columns: 1fr;
     }
     
     .favorites-controls {
         flex-direction: column;
     }
     
-    .btn-favorite, .btn-secondary {
-        width: 100%;
+    .comparison-player {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .comparison-stats {
         justify-content: center;
     }
 }
+
+@media (max-width: 480px) {
+    .trend-indicators {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-stats {
+        flex-direction: column;
+        gap: 8px;
+    }
