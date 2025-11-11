@@ -1,11 +1,3 @@
-// EQUIPO-DETALLE.JS - VERSIÓN FINAL DEFINITIVA
-// MODIFICADO: 2025-01-XX - FASE 1: Corrección de fechas en últimos partidos
-
-// ===================================
-// CONFIGURACIÓN DE API
-// ===================================
-const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
-
 // ===================================
 // VARIABLES GLOBALES
 // ===================================
@@ -17,140 +9,30 @@ let filteredRoster = [];
 let currentFilter = 'all';
 
 // ===================================
-// FUNCIONES DE INICIALIZACIÓN
-// ===================================
-
-function getTeamIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('id');
-}
-
-function getApiUrl(endpoint) {
-    if (!endpoint.startsWith('/')) {
-        endpoint = '/' + endpoint;
-    }
-    return `${API_BASE_URL}${endpoint}`;
-}
-
-// ===================================
-// MANEJO DE LOGOS CON FALLBACK
-// ===================================
-
-function getTeamLogo(equipoNombre) {
-    if (!equipoNombre) return '/public/images/logos/default-logo.png';
-    
-    const logoMap = {
-        'guerreros del norte': 'guerreros-del-norte.png',
-        'la guaira': 'la-guaira.png',
-        'furia del caribe': 'furia-del-caribe.png',
-        'tigres unidos': 'tigres-unidos.png',
-        'leones dorados': 'leones-dorados.png',
-        'aguilas negras': 'aguilas-negras.png',
-        'venearstone': 'venearstone.png',
-        'desss': 'desss.png',
-        'caribes rd': 'caribes-rd.png',
-        'dragones fc': 'dragones-fc.png'
-    };
-    
-    const nombreNormalizado = equipoNombre.toLowerCase().trim();
-    const logoFile = logoMap[nombreNormalizado];
-    
-    if (logoFile) {
-        return `/public/images/logos/${logoFile}`;
-    }
-    
-    const nombreArchivo = nombreNormalizado
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '') + '.png';
-    
-    return `/public/images/logos/${nombreArchivo}`;
-}
-
-function mostrarLogoEquipo(logoUrl, equipoNombre) {
-    const logoContainer = document.querySelector('.team-logo');
-    if (!logoContainer) return;
-
-    const img = new Image();
-
-    img.onload = function() {
-        logoContainer.style.backgroundImage = `url('${logoUrl}')`;
-        logoContainer.style.backgroundSize = 'contain';
-        logoContainer.style.backgroundRepeat = 'no-repeat';
-        logoContainer.style.backgroundPosition = 'center';
-        logoContainer.innerHTML = '';
-    };
-
-    img.onerror = function() {
-        console.warn(`Logo no encontrado para ${equipoNombre}, usando iniciales`);
-        
-        const iniciales = generarIniciales(equipoNombre);
-
-        logoContainer.style.backgroundImage = 'none';
-        logoContainer.innerHTML = `
-            <div style="
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: linear-gradient(145deg, #ffd700, #ff8c00);
-                border-radius: 50%;
-                font-size: 2.5rem;
-                font-weight: bold;
-                color: #1a1a2e;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            ">
-                ${iniciales}
-            </div>
-        `;
-    };
-
-    img.src = logoUrl;
-}
-
-function generarIniciales(nombreEquipo) {
-    if (!nombreEquipo) return '?';
-    
-    const palabras = nombreEquipo.trim().split(/\s+/);
-    
-    if (palabras.length === 1) {
-        return palabras[0].substring(0, 2).toUpperCase();
-    } else {
-        return palabras
-            .slice(0, 3)
-            .map(p => p.charAt(0).toUpperCase())
-            .join('');
-    }
-}
-
-// ===================================
 // MANEJO DE FECHAS
 // ===================================
-
 function formatearFecha(fechaString) {
     if (!fechaString) return 'Fecha no disp.';
-    const date = new Date(fechaString + 'T00:00:00Z');
+    const date = new Date(fechaString);
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
 }
 
 // ===================================
 // INICIALIZACIÓN DEL DOM
 // ===================================
-
 document.addEventListener('DOMContentLoaded', function() {
-    currentTeamId = getTeamIdFromUrl();
+    currentTeamId = getIdFromUrl('id');
     
     if (!currentTeamId) {
-        mostrarErrorEquipo('No se especificó un equipo válido. Verifica la URL.');
+        showAppError('.container', 'No se especificó un equipo válido. Verifica la URL.');
         return;
     }
     
     if (isNaN(currentTeamId)) {
-        mostrarErrorEquipo('ID de equipo inválido. Debe ser un número.');
+        showAppError('.container', 'ID de equipo inválido. Debe ser un número.');
         return;
     }
     
-    precargarDatosCriticos();
     configurarEventListeners();
     cargarDatosEquipo();
 });
@@ -166,20 +48,9 @@ function configurarEventListeners() {
     });
 }
 
-function precargarDatosCriticos() {
-    new Image().src = '/public/images/logos/default-logo.png';
-    if (!window.equiposCache) {
-        fetch(getApiUrl('/api/equipos'))
-            .then(res => res.ok ? res.json() : Promise.reject(res))
-            .then(data => { window.equiposCache = data; })
-            .catch(err => console.log('Cache de equipos no disponible:', err));
-    }
-}
-
 // ===================================
 // CARGA DE DATOS
 // ===================================
-
 async function cargarDatosEquipo() {
     try {
         await Promise.all([
@@ -196,25 +67,21 @@ async function cargarDatosEquipo() {
 
 async function cargarInformacionEquipo() {
     try {
-        const response = await fetch(getApiUrl(`/api/equipos/${currentTeamId}`));
+        const response = await fetch(`/api/equipos/${currentTeamId}`);
         if (!response.ok) {
-            if (response.status === 404) {
-                throw new Error(`Equipo con ID ${currentTeamId} no encontrado`);
-            }
+            if (response.status === 404) throw new Error(`Equipo con ID ${currentTeamId} no encontrado`);
             throw new Error(`Error del servidor: ${response.status}`);
         }
         
         teamData = await response.json();
         
-        if (!teamData.nombre) {
-            throw new Error('Datos del equipo incompletos');
-        }
+        if (!teamData.nombre) throw new Error('Datos del equipo incompletos');
         
         renderizarInformacionEquipo();
         
     } catch (error) {
         console.error('Error cargando información del equipo:', error);
-        mostrarErrorEquipo(error.message);
+        showAppError('.container', error.message);
         throw error;
     }
 }
@@ -222,34 +89,25 @@ async function cargarInformacionEquipo() {
 async function cargarRosterEquipo() {
     const container = document.getElementById('rosterContainer');
     try {
-        const response = await fetch(getApiUrl(`/api/jugadores?equipo_id=${currentTeamId}`));
-        if (!response.ok) {
-            throw new Error(`Error cargando roster: ${response.status}`);
-        }
+        const response = await fetch(`/api/jugadores?equipo_id=${currentTeamId}`);
+        if (!response.ok) throw new Error(`Error cargando roster: ${response.status}`);
         
         const data = await response.json();
-        rosterData = Array.isArray(data.jugadores) ? data.jugadores : [];
+        rosterData = Array.isArray(data.jugadores) ? data.jugadores : (Array.isArray(data) ? data : []);
         filteredRoster = [...rosterData];
         renderizarRoster();
         
     } catch (error) {
         console.error('Error cargando roster:', error);
-        container.innerHTML = `
-            <div class="empty-state">
-                <h4>⚠️ Error cargando roster</h4>
-                <p>No se pudo cargar la información de los jugadores.<br>
-                <button onclick="cargarRosterEquipo()" class="btn-secondary" style="margin-top: 10px;">🔄 Reintentar</button></p>
-            </div>`;
+        container.innerHTML = `<div class="empty-state"><h4>⚠️ Error cargando roster</h4><p>No se pudo cargar la información de los jugadores.<br><button onclick="cargarRosterEquipo()" class="btn-secondary" style="margin-top: 10px;">🔄 Reintentar</button></p></div>`;
     }
 }
 
 async function cargarPartidosRecientes() {
     const container = document.getElementById('recentGamesContainer');
     try {
-        const response = await fetch(getApiUrl(`/api/partidos?equipo_id=${currentTeamId}&limit=10`));
-        if (!response.ok) {
-            throw new Error(`Error cargando partidos: ${response.status}`);
-        }
+        const response = await fetch(`/api/partidos?equipo_id=${currentTeamId}&limit=10`);
+        if (!response.ok) throw new Error(`Error cargando partidos: ${response.status}`);
         
         const data = await response.json();
         recentGames = data.partidos || [];
@@ -258,19 +116,13 @@ async function cargarPartidosRecientes() {
         
     } catch (error) {
         console.error('Error cargando partidos recientes:', error);
-        container.innerHTML = `
-            <div class="empty-state">
-                <h4>⚠️ Error cargando partidos</h4>
-                <p>No se pudo cargar el historial de partidos.<br>
-                <button onclick="cargarPartidosRecientes()" class="btn-secondary" style="margin-top: 10px;">🔄 Reintentar</button></p>
-            </div>`;
+        container.innerHTML = `<div class="empty-state"><h4>⚠️ Error cargando partidos</h4><p>No se pudo cargar el historial de partidos.<br><button onclick="cargarPartidosRecientes()" class="btn-secondary" style="margin-top: 10px;">🔄 Reintentar</button></p></div>`;
     }
 }
 
 // ===================================
 // RENDERIZADO
 // ===================================
-
 function renderizarInformacionEquipo() {
     if (!teamData) return;
     
@@ -279,42 +131,29 @@ function renderizarInformacionEquipo() {
     function actualizarURLAmigable() {
         if (!teamData || !teamData.nombre) return;
         
-        const nombreAmigable = teamData.nombre
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, '');
-        
+        const nombreAmigable = teamData.nombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
         const nuevaURL = `equipo.html?id=${currentTeamId}&nombre=${nombreAmigable}`;
         
-        const currentPath = window.location.pathname;
-        const newFullPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1) + nuevaURL;
-        
-        if (window.location.href !== window.location.origin + newFullPath) {
-            window.history.replaceState(null, document.title, nuevaURL);
-        }
+        window.history.replaceState(null, document.title, nuevaURL);
         
         const breadcrumb = document.getElementById('teamBreadcrumb');
-        if (breadcrumb) {
-            breadcrumb.innerHTML = `<strong style="color: #ffd700;">${teamData.nombre}</strong>`;
-        }
+        if (breadcrumb) breadcrumb.innerHTML = `<strong style="color: #ffd700;">${teamData.nombre}</strong>`;
     }
     actualizarURLAmigable();
     
     const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-        metaDesc.content = `Información completa de ${teamData.nombre} - Roster, estadísticas y partidos en Chogui League`;
-    }
+    if (metaDesc) metaDesc.content = `Información completa de ${teamData.nombre} - Roster, estadísticas y partidos en Chogui League`;
     
+    // Usar la función de utils.js
     const logoUrl = getTeamLogo(teamData.nombre);
-    mostrarLogoEquipo(logoUrl, teamData.nombre);
+    displayTeamLogo('.team-logo', logoUrl, teamData.nombre);
     
     document.getElementById('teamName').textContent = teamData.nombre;
     document.getElementById('teamLocation').textContent = teamData.ciudad || 'Ubicación no especificada';
     document.getElementById('teamManager').textContent = teamData.manager || 'Manager no asignado';
     
     if (teamData.fecha_creacion) {
-        const fecha = new Date(teamData.fecha_creacion);
-        const año = fecha.getFullYear();
+        const año = new Date(teamData.fecha_creacion).getFullYear();
         document.getElementById('teamFounded').textContent = isNaN(año) ? 'Fecha no disponible' : año;
     } else {
         document.getElementById('teamFounded').textContent = 'Fecha no disponible';
@@ -323,21 +162,18 @@ function renderizarInformacionEquipo() {
 
 function renderizarRoster() {
     const container = document.getElementById('rosterContainer');
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const jugadorDestacado = urlParams.get('jugador');
+    const jugadorDestacado = getIdFromUrl('jugador');
     
     if (!filteredRoster || filteredRoster.length === 0) {
         container.innerHTML = '<div class="empty-state">No hay jugadores en este equipo</div>';
         return;
     }
     
-    let html = '';
-    filteredRoster.forEach(jugador => {
+    container.innerHTML = filteredRoster.map(jugador => {
         const esDestacado = jugadorDestacado && jugador.nombre.toLowerCase().includes(jugadorDestacado.toLowerCase());
-        const claseDestacado = esDestacado ? ' style="background: rgba(255, 215, 0, 0.3); border: 2px solid #ffd700; animation: highlight 2s ease-in-out;"' : '';
+        const claseDestacado = esDestacado ? ' style="background: rgba(245, 158, 11, 0.3); border: 2px solid var(--accent-gold); animation: highlight 2s ease-in-out;"' : '';
         
-        html += `
+        return `
             <div class="player-card"${claseDestacado} onclick="verJugador(${jugador.id})">
                 <div class="player-number">${jugador.numero || '--'}</div>
                 <div class="player-info">
@@ -346,23 +182,16 @@ function renderizarRoster() {
                 </div>
             </div>
         `;
-    });
-    
-    container.innerHTML = html;
+    }).join('');
     
     if (jugadorDestacado) {
         setTimeout(() => {
-            const jugadorElement = container.querySelector('[style*="rgba(255, 215, 0, 0.3)"]');
-            if (jugadorElement) {
-                jugadorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            const el = container.querySelector('[style*="rgba(245, 158, 11, 0.3)"]');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 500);
     }
 }
 
-// ===================================
-// ✅ FASE 1: CORRECCIÓN - FECHAS EN ÚLTIMOS PARTIDOS
-// ===================================
 function renderizarPartidosRecientes() {
     const container = document.getElementById('recentGamesContainer');
     if (!recentGames || recentGames.length === 0) {
@@ -374,8 +203,6 @@ function renderizarPartidosRecientes() {
         const esLocal = partido.equipo_local_id == currentTeamId;
         const equipoRival = esLocal ? partido.equipo_visitante_nombre : partido.equipo_local_nombre;
         const resultado = obtenerResultadoPartido(partido, esLocal);
-        
-        // ✅ CORRECCIÓN: Agregar fecha formateada
         const fechaFormateada = formatearFecha(partido.fecha_partido);
         
         return `
@@ -391,11 +218,10 @@ function renderizarPartidosRecientes() {
 // ===================================
 // CÁLCULOS Y ESTADÍSTICAS
 // ===================================
-
 function calcularEstadisticas() {
     let victorias = 0, derrotas = 0, carrerasAnotadas = 0, carrerasPermitidas = 0;
     
-    const partidosFinalizados = recentGames.filter(partido => partido.carreras_local !== null && partido.carreras_visitante !== null);
+    const partidosFinalizados = recentGames.filter(p => p.carreras_local !== null && p.carreras_visitante !== null);
     
     partidosFinalizados.forEach(partido => {
         const esLocal = partido.equipo_local_id == currentTeamId;
@@ -427,24 +253,22 @@ function calcularEstadisticas() {
 
 async function actualizarBreadcrumbConPosicion() {
     try {
-        const response = await fetch(getApiUrl('/api/posiciones'));
+        const response = await fetch('/api/posiciones');
         if (!response.ok) return;
         
         const standings = await response.json();
         const posicion = standings.findIndex(e => e.id == currentTeamId) + 1;
         
-        if (posicion > 0) {
-            document.getElementById('teamPosition').textContent = `#${posicion}`;
-        }
+        if (posicion > 0) document.getElementById('teamPosition').textContent = `#${posicion}`;
+
     } catch (error) {
         console.warn('No se pudo obtener la posición en la tabla');
     }
 }
 
 // ===================================
-// FUNCIONES AUXILIARES
+// FUNCIONES AUXILIARES Y NAVEGACIÓN
 // ===================================
-
 function filtrarRoster() {
     if (currentFilter === 'all') {
         filteredRoster = [...rosterData];
@@ -459,17 +283,7 @@ function filtrarRoster() {
 }
 
 function formatearPosicion(posicion) {
-    const posiciones = { 
-        'P': 'Pitcher', 
-        'C': 'Catcher', 
-        '1B': 'Primera Base', 
-        '2B': 'Segunda Base', 
-        '3B': 'Tercera Base', 
-        'SS': 'Shortstop', 
-        'LF': 'Left Field', 
-        'CF': 'Center Field', 
-        'RF': 'Right Field' 
-    };
+    const posiciones = { 'P': 'Pitcher', 'C': 'Catcher', '1B': 'Primera Base', '2B': 'Segunda Base', '3B': 'Tercera Base', 'SS': 'Shortstop', 'LF': 'Left Field', 'CF': 'Center Field', 'RF': 'Right Field', 'UTIL': 'Utility' };
     return posiciones[posicion] || posicion || 'N/A';
 }
 
@@ -482,33 +296,5 @@ function obtenerResultadoPartido(partido, esLocal) {
 }
 
 function verJugador(jugadorId) {
-    const jugador = rosterData.find(j => j.id === jugadorId);
-    if (!jugador) {
-        alert('Información del jugador no disponible');
-        return;
-    }
-    
-    const nombreAmigable = jugador.nombre
-        .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
-    
-    window.location.href = `jugador.html?id=${jugadorId}&nombre=${nombreAmigable}&equipo=${currentTeamId}`;
-}
-
-function mostrarErrorEquipo(mensaje) {
-    const mainCard = document.querySelector('.team-main-card');
-    if (!mainCard) return;
-    mainCard.innerHTML = `
-        <div style="text-align: center; padding: 40px 20px;">
-            <h2 style="color: #dc143c; margin-bottom: 20px;">⚠️ Error</h2>
-            <p style="color: #fff; margin-bottom: 20px;">${mensaje}</p>
-            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                <button onclick="location.reload()" class="btn-primary">🔄 Reintentar</button>
-                <a href="index.html" class="btn-secondary">🏠 Volver al Inicio</a>
-            </div>
-        </div>
-    `;
-    document.querySelector('.content-grid').style.display = 'none';
-    document.querySelector('.recent-games').style.display = 'none';
+    window.location.href = `jugador.html?id=${jugadorId}`;
 }
