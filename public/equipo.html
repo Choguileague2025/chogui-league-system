@@ -5,113 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Equipo - Chogui League System</title>
     <meta name="description" content="Detalles del equipo, roster y estadísticas en Chogui League.">
-    <link rel="stylesheet" href="equipo.css">
-    
-    <style>
-        /* Footer profesional */
-        .main-footer {
-          background: linear-gradient(145deg, #0f1419, #1a1a2e);
-          border-top: 2px solid rgba(255, 215, 0, 0.3);
-          margin-top: 60px;
-          padding: 40px 0 20px;
-        }
-
-        .footer-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 20px;
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 30px;
-        }
-
-        .footer-section h4 {
-          color: #ffd700;
-          font-size: 1.1rem;
-          margin-bottom: 15px;
-          font-weight: bold;
-        }
-
-        .footer-logo {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 15px;
-        }
-
-        .footer-logo .logo-chogui {
-          width: 40px;
-          height: 40px;
-          background: url('/public/images/logos/chogui-league.png') center/contain no-repeat;
-          background-size: contain;
-          background-repeat: no-repeat;
-          background-position: center;
-          border-radius: 50%;
-        }
-
-        .footer-brand {
-          color: #ffd700;
-          font-size: 1.2rem;
-          font-weight: bold;
-        }
-
-        .footer-description {
-          color: #ffffff;
-          opacity: 0.8;
-          font-size: 0.9rem;
-        }
-
-        .footer-links {
-          list-style: none;
-          padding: 0;
-        }
-
-        .footer-links li {
-          margin-bottom: 8px;
-        }
-
-        .footer-links a {
-          color: #ffffff;
-          text-decoration: none;
-          opacity: 0.7;
-          transition: color 0.3s ease;
-          font-size: 0.9rem;
-        }
-
-        .footer-links a:hover {
-          color: #ffd700;
-          opacity: 1;
-        }
-
-        .footer-bottom {
-          border-top: 1px solid rgba(255, 215, 0, 0.2);
-          margin-top: 30px;
-          padding-top: 20px;
-          text-align: center;
-        }
-
-        .footer-credits {
-          color: #ffffff;
-          opacity: 0.6;
-          font-size: 0.8rem;
-        }
-
-        .separator {
-          margin: 0 10px;
-        }
-
-        @media (max-width: 768px) {
-          .footer-content {
-            grid-template-columns: 1fr;
-            text-align: center;
-          }
-          
-          .footer-logo {
-            justify-content: center;
-          }
-        }
-    </style>
-    </head>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
     <a href="login.html" class="admin-link">🔑 Admin</a>
     
@@ -127,40 +22,13 @@
         </div>
 
         <div class="breadcrumb">
-            <a href="index.html" onclick="irAInicio()">🏠 Inicio</a>
+            <a href="index.html">🏠 Inicio</a>
             <span>></span>
-            <a href="index.html#posiciones" onclick="irAPosiciones()">📊 Posiciones</a>
+            <a href="index.html#posiciones">📊 Posiciones</a>
             <span>></span>
             <span id="teamBreadcrumb">Cargando...</span>
             <span id="teamPosition" style="margin-left: 10px; color: #ff8c00; font-size: 0.8rem;"></span>
         </div>
-
-        <script>
-        function irAInicio() {
-            window.location.href = 'index.html';
-        }
-
-        function irAPosiciones() {
-            window.location.href = 'index.html#posiciones';
-        }
-
-        // Actualizar breadcrumb con posición del equipo
-        function actualizarBreadcrumbConPosicion() {
-            if (!teamData) return;
-            
-            // Si tenemos cache de equipos, calcular posición
-            if (window.equiposCache && recentGames.length > 0) {
-                // Lógica simplificada de posición
-                const posicionElement = document.getElementById('teamPosition');
-                posicionElement.textContent = '(Calculando posición...)';
-                
-                // Aquí se podría hacer una llamada para obtener la posición exacta
-                setTimeout(() => {
-                    posicionElement.textContent = '(Ver posición en tabla)';
-                }, 2000);
-            }
-        }
-        </script>
 
         <div class="team-main-card">
             <div class="team-header">
@@ -259,9 +127,7 @@
             <a href="login.html" class="btn-secondary">⚙️ Panel Admin</a>
         </div>
     </div>
-
-    <script src="equipo-detalle.js"></script>
-
+    
     <footer class="main-footer">
       <div class="footer-content">
         <div class="footer-section">
@@ -300,5 +166,7 @@
         </div>
       </div>
     </footer>
+    <script src="utils.js" defer></script>
+    <script src="equipo-detalle.js" defer></script>
     </body>
 </html>
