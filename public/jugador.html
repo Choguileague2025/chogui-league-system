@@ -1,365 +1,103 @@
-<style>
-    /* Footer profesional */
-    .main-footer {
-      background: linear-gradient(145deg, #0f1419, #1a1a2e);
-      border-top: 2px solid rgba(255, 215, 0, 0.3);
-      margin-top: 60px;
-      padding: 40px 0 20px;
-    }
-
-    .footer-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 30px;
-    }
-
-    .footer-section h4 {
-      color: #ffd700;
-      font-size: 1.1rem;
-      margin-bottom: 15px;
-      font-weight: bold;
-    }
-
-    .footer-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 15px;
-    }
-
-    .footer-logo .logo-chogui {
-      width: 40px;
-      height: 40px;
-      background: url('/public/images/logos/chogui-league.png') center/contain no-repeat;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
-      border-radius: 50%;
-    }
-
-    .footer-brand {
-      color: #ffd700;
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-
-    .footer-description {
-      color: #ffffff;
-      opacity: 0.8;
-      font-size: 0.9rem;
-    }
-
-    .footer-links {
-      list-style: none;
-      padding: 0;
-    }
-
-    .footer-links li {
-      margin-bottom: 8px;
-    }
-
-    .footer-links a {
-      color: #ffffff;
-      text-decoration: none;
-      opacity: 0.7;
-      transition: color 0.3s ease;
-      font-size: 0.9rem;
-    }
-
-    .footer-links a:hover {
-      color: #ffd700;
-      opacity: 1;
-    }
-
-    .footer-bottom {
-      border-top: 1px solid rgba(255, 215, 0, 0.2);
-      margin-top: 30px;
-      padding-top: 20px;
-      text-align: center;
-    }
-
-    .footer-credits {
-      color: #ffffff;
-      opacity: 0.6;
-      font-size: 0.8rem;
-    }
-
-    .separator {
-      margin: 0 10px;
-    }
-
-    @media (max-width: 768px) {
-      .footer-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-      
-      .footer-logo {
-        justify-content: center;
-      }
-    }
-</style>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil del Jugador - Chogui League</title>
+    <meta name="description" content="Estadísticas y perfil completo del jugador en la Chogui League.">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <button onclick="window.location.href='login.html'" class="btn-admin">🔑 Admin</button>
-<div class="container">
-    <div class="header">
-        <div class="header-content">
-            <div class="logo-container">
-                <div class="logo-chogui"></div>
-            </div>
-            <h1>🏆 CHOGUI LEAGUE</h1>
-            <p>Sistema de Gestión Profesional de Softbol</p>
-        </div>
-    </div>
-
-    <div class="breadcrumb">
-        <a href="index.html">🏠 Inicio</a>
-        <span>></span>
-        <a href="index.html#posiciones" id="teamBreadcrumbLink">📊 Posiciones</a>
-        <span>></span>
-        <span id="playerBreadcrumb">Cargando...</span>
-    </div>
-
-    <div class="player-main-card">
-        <div class="player-header">
-            <div class="player-avatar" id="playerAvatar">MC</div>
-            <div class="player-info">
-                <h2 id="playerName">Cargando jugador...</h2>
-                <div class="player-details">
-                    <span id="playerNumber">#--</span>
-                    <span id="playerPosition">-</span>
-                    <a href="#" id="playerTeamLink" style="color: #ffd700; text-decoration: none;">Sin equipo</a>
+    <a href="login.html" class="admin-link">🔑 Admin</a>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <div class="logo-chogui"></div>
                 </div>
-                <div class="player-bio">
-                    <span><strong>Altura:</strong> <span id="playerHeight">No disponible</span></span>
-                    <span><strong>Peso:</strong> <span id="playerWeight">No disponible</span></span>
-                </div>
+                <h1>🏆 CHOGUI LEAGUE</h1>
+                <p>Sistema de Gestión Profesional de Softbol</p>
             </div>
         </div>
-    </div>
 
-    <div class="content-grid">
-        <div class="batting-stats">
-            <h3 class="section-title">⚾ Estadísticas de Bateo</h3>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="battingAverage">1.000</div>
-                    <div class="stat-label">AVG</div>
+        <div class="breadcrumb">
+            <a href="index.html">🏠 Inicio</a>
+            <span>></span>
+            <span id="teamBreadcrumbLink">Cargando...</span>
+            <span>></span>
+            <span id="playerBreadcrumb">Cargando...</span>
+        </div>
+
+        <div class="player-profile-card">
+            <div class="player-header">
+                <div class="player-jersey-number" id="playerNumber">--</div>
+                <div class="player-info-main">
+                    <h2 id="playerName">Cargando Jugador...</h2>
+                    <p id="playerPosition" class="player-position-badge">--</p>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="onBasePercentage">1.000</div>
-                    <div class="stat-label">OBP</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="sluggingPercentage">2.500</div>
-                    <div class="stat-label">SLG</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="ops">3.500</div>
-                    <div class="stat-label">OPS</div>
+                <div class="team-logo-player" id="teamLogo"></div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <!-- Bateo -->
+            <div class="card">
+                <h3>⚾ Estadísticas de Bateo</h3>
+                <div id="statsBateoContainer" class="stats-container">
+                    <div class="loading">Cargando estadísticas...</div>
                 </div>
             </div>
-            
-            <div class="stats-grid" style="margin-top: 20px;">
-                <div class="stat-card">
-                    <div class="stat-value" id="homeRuns">2</div>
-                    <div class="stat-label">HR</div>
+
+            <!-- Pitcheo -->
+            <div class="card">
+                <h3>🎯 Estadísticas de Pitcheo</h3>
+                <div id="statsPitcheoContainer" class="stats-container">
+                    <div class="loading">Cargando estadísticas...</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="rbi">1</div>
-                    <div class="stat-label">RBI</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="hits">4</div>
-                    <div class="stat-label">H</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="atBats">4</div>
-                    <div class="stat-label">AB</div>
+            </div>
+
+            <!-- Defensa -->
+            <div class="card">
+                <h3>🛡️ Estadísticas Defensivas</h3>
+                <div id="statsDefensaContainer" class="stats-container">
+                    <div class="loading">Cargando estadísticas...</div>
                 </div>
             </div>
         </div>
 
-        <div class="advanced-metrics">
-            <h3 class="section-title">📊 Métricas Avanzadas</h3>
-            
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-label">WAR Total</div>
-                    <div class="metric-value" id="warTotal">0.00</div>
-                    <div class="metric-desc">Wins Above Replacement</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">wRC+</div>
-                    <div class="metric-value" id="wrcPlus">N/A</div>
-                    <div class="metric-desc">Weighted Runs Created</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Bases Robadas</div>
-                    <div class="metric-value" id="stolenBases">0</div>
-                    <div class="metric-desc">SB</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label">Def Rating</div>
-                    <div class="metric-value" id="defensiveRating">0.00</div>
-                    <div class="metric-desc">Defensive Rating</div>
-                </div>
-            </div>
+        <div class="action-buttons">
+            <a href="index.html" class="btn-primary">🏠 Volver al Inicio</a>
+            <a href="#" id="backToTeamButton" class="btn-secondary">🏅 Volver al Equipo</a>
         </div>
-    </div>
-
-    <div class="games-history">
-        <h3 class="section-title">🎯 Historial de Partidos</h3>
-        <div id="gamesHistoryContainer">
-            <div class="loading">Cargando historial...</div>
-        </div>
-    </div>
-
-    <div class="performance-charts">
-        <h3 class="section-title">📈 Evolución del Rendimiento</h3>
-        
-        <div class="charts-grid">
-            <div class="chart-container">
-                <h4>Promedio de Bateo - Últimos 10 Partidos</h4>
-                <canvas id="battingChart"></canvas>
-                <div class="chart-info">
-                    <span>Tendencia (7 días): <strong id="tendenciaAvg">+5.2%</strong></span>
-                </div>
-            </div>
-            <div class="chart-container">
-                <h4>Evolución OPS</h4>
-                <canvas id="opsChart"></canvas>
-                <div class="chart-info">
-                    <span>Tendencia (30 días): <strong>-2.1%</strong></span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="projections">
-            <h4>Proyección Temporada</h4>
-            <div class="projection-stat">
-                <span>AVG Proyectado:</span>
-                <strong>.285 AVG</strong>
-            </div>
-        </div>
-    </div>
-
-    <div class="comparison-section">
-        <h3 class="section-title">🔍 Comparar con Jugadores Similares</h3>
-        
-        <div class="comparison-controls">
-            <select id="comparisonPosition" class="comparison-select">
-                <option value="">Misma posición</option>
-                <option value="all">Todos los jugadores</option>
-                <option value="team">Mismo equipo</option>
-            </select>
-            
-            <select id="comparisonMetric" class="comparison-select">
-                <option value="avg">Promedio de Bateo</option>
-                <option value="ops">OPS</option>
-                <option value="home_runs">Home Runs</option>
-                <option value="rbi">RBI</option>
-            </select>
-            
-            <button id="generateComparison" class="btn-secondary">🔄 Generar Comparación</button>
-        </div>
-        
-        <div id="comparisonResults" class="comparison-results">
-            <div class="loading">Selecciona opciones y genera comparación...</div>
-        </div>
-    </div>
-
-    <div class="related-players">
-        <h3 class="section-title">👥 Jugadores Relacionados</h3>
-        
-        <div class="related-categories">
-            <div class="related-category">
-                <h4 class="related-subtitle">🥇 Misma Posición</h4>
-                <div id="samePositionPlayers" class="related-grid">
-                    <div class="loading">Cargando jugadores...</div>
-                </div>
-            </div>
-            
-            <div class="related-category">
-                <h4 class="related-subtitle">⚾ Mismo Equipo</h4>
-                <div id="sameTeamPlayers" class="related-grid">
-                    <div class="loading">Cargando jugadores...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="favorites-section">
-        <h3 class="section-title">⭐ Seguimiento de Jugador</h3>
-        
-        <div class="favorites-controls">
-            <button id="toggleFavorite" class="btn-favorite">
-                <span id="favoriteIcon">☆</span>
-                <span id="favoriteText">Agregar a Favoritos</span>
-            </button>
-            
-            <button id="sharePlayer" class="btn-secondary">📤 Compartir Jugador</button>
-            
-            <button id="exportPlayerData" class="btn-secondary">💾 Exportar Datos</button>
-        </div>
-        
-        <div class="player-notes">
-            <label for="playerNotes">📝 Notas del Jugador:</label>
-            <textarea id="playerNotes" placeholder="Agregar notas personales sobre este jugador..." rows="3"></textarea>
-            <button id="saveNotes" class="btn-secondary">💾 Guardar Notas</button>
-        </div>
-    </div>
-
-    <div class="action-buttons">
-        <a href="#" id="backToTeamBtn" class="btn-primary">🏅 Volver al Equipo</a>
-        <a href="index.html" class="btn-secondary">🏠 Inicio</a>
-        <a href="index.html#estadisticas" class="btn-secondary">📊 Ver Líderes</a>
-    </div>
-</div>
-
-<!-- ✅ CORRECCIÓN: Cambiado de player-profile.js a jugador.js -->
-<script src="jugador.js"></script>
-
-<footer class="main-footer">
-  <div class="footer-content">
-    <div class="footer-section">
-      <div class="footer-logo">
-        <div class="logo-chogui"></div>
-        <span class="footer-brand">CHOGUI LEAGUE</span>
-      </div>
-      <p class="footer-description">Sistema de Gestión Profesional de Softball</p>
     </div>
     
-    <div class="footer-section">
-      <h4>Enlaces Rápidos</h4>
-      <ul class="footer-links">
-        <li><a href="index.html">Inicio</a></li>
-        <li><a href="index.html#partidos">Partidos</a></li>
-        <li><a href="index.html#estadisticas">Líderes</a></li>
-        <li><a href="admin.html">Administración</a></li>
-      </ul>
-    </div>
-    
-    <div class="footer-section">
-      <h4>Información</h4>
-      <ul class="footer-links">
-        <li><a href="#">Contacto</a></li>
-        <li><a href="#">Soporte</a></li>
-        <li><a href="#">Privacidad</a></li>
-      </ul>
-    </div>
-  </div>
-  
-  <div class="footer-bottom">
-    <div class="footer-credits">
-      <span>English (US)</span>
-      <span class="separator">|</span>
-      <span>Copyright ©2025 ATRAELAB / All rights reserved</span>
-    </div>
-  </div>
-</footer>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <div class="logo-chogui"></div>
+                    <span class="footer-brand">CHOGUI LEAGUE</span>
+                </div>
+                <p class="footer-description">Sistema de Gestión Profesional de Softball</p>
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces Rápidos</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="index.html#partidos">Partidos</a></li>
+                    <li><a href="index.html#estadisticas">Líderes</a></li>
+                    <li><a href="admin.html">Administración</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-credits">
+                <span>Copyright ©2025 ATRAELAB / All rights reserved</span>
+            </div>
+        </div>
+    </footer>
+    <script src="utils.js" defer></script>
+    <script src="jugador-detalle.js" defer></script>
+</body>
+</html>
