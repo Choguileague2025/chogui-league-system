@@ -1763,8 +1763,8 @@
                         <input type="number" id="earnedRuns" min="0" value="0">
                     </div>
                     <div class="form-group">
-                        <label for="strikeouts">Ponches (SO):</label>
-                        <input type="number" id="strikeouts" min="0" value="0">
+                        <label for="strikeoutsP">Ponches (SO):</label>
+                        <input type="number" id="strikeoutsP" min="0" value="0">
                     </div>
                     <div class="form-group">
                         <label for="walksAllowed">Bases por Bolas (BB):</label>
@@ -2248,7 +2248,7 @@
                 const pestanaActiva = document.getElementById(nombrePestana);
                 if (pestanaActiva) pestanaActiva.classList.add('active');
                 const botonActivo = document.querySelector(`[data-tab="${nombrePestana}"]`);
-                if (botonActivo) botonActivo.classList.add('active');
+                if (botonActivo) botonActiva.classList.add('active');
                 if (nombrePestana === 'lideres') {
                     actualizarLideres();
                     actualizarLideresPorPosicion();
@@ -3580,7 +3580,8 @@
                 runs: parseInt(document.getElementById('runs').value) || 0,
                 walks: parseInt(document.getElementById('walks').value) || 0,
                 stolen_bases: parseInt(document.getElementById('stolenBases').value) || 0,
-                strikeouts: parseInt(document.getElementById('strikeouts').value) || 0
+                // MODIFICACIÓN #2: Agregar 'strikeouts' al objeto de datos
+                strikeouts: parseInt(document.getElementById('strikeouts').value) || 0 // <-- CAMBIO CRÍTICO
             };
             
             try {
@@ -3592,7 +3593,8 @@
                 if (res.ok) {
                     toast.success('Estadísticas registradas exitosamente.');
                     await cargarEstadisticas();
-                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases, #strikeouts').forEach(el => el.value = 0);
+                    // MODIFICACIÓN #3: Actualizar sistema de reset para incluir #strikeouts
+                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases, #strikeouts').forEach(el => el.value = 0); // <-- CAMBIO CRÍTICO
                 } else {
                     toast.error('Error al registrar estadísticas.');
                 }
@@ -3872,7 +3874,7 @@
                 innings_pitched: parseFloat(document.getElementById('inningsPitched').value) || 0,
                 hits_allowed: parseInt(document.getElementById('hitsAllowed').value) || 0,
                 earned_runs: parseInt(document.getElementById('earnedRuns').value) || 0,
-                strikeouts: parseInt(document.getElementById('strikeouts').value) || 0,
+                strikeouts: parseInt(document.getElementById('strikeoutsP').value) || 0,
                 walks_allowed: parseInt(document.getElementById('walksAllowed').value) || 0,
                 home_runs_allowed: parseInt(document.getElementById('homeRunsAllowed').value) || 0,
                 wins: parseInt(document.getElementById('wins').value) || 0,
@@ -3889,7 +3891,7 @@
                 if (res.ok) {
                     toast.success('Estadísticas de pitcheo registradas.');
                     await cargarEstadisticas();
-                    document.querySelectorAll('#inningsPitched, #hitsAllowed, #earnedRuns, #strikeouts, #walksAllowed, #homeRunsAllowed, #wins, #losses, #saves').forEach(el => el.value = 0);
+                    document.querySelectorAll('#inningsPitched, #hitsAllowed, #earnedRuns, #strikeoutsP, #walksAllowed, #homeRunsAllowed, #wins, #losses, #saves').forEach(el => el.value = 0);
                 } else {
                     toast.error('Error al registrar estadísticas.');
                 }
@@ -4295,7 +4297,7 @@
             const saveButton = event.target;
             let endpoint = '';
             let payload = { jugador_id: jugadorId };
-            const temporada = torneoActivo ? torneoActivo.id : null; // Asumiendo que se usa el torneo activo.
+            const temporada = torneoActivo ? torneoActeo.id : null; // Asumiendo que se usa el torneo activo.
 
             if (!temporada) {
                 toast.error('No hay un torneo activo seleccionado. No se pueden guardar estadísticas.');
