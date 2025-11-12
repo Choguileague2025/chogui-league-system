@@ -1,5 +1,5 @@
 // ===================================
-// JUGADOR-DETALLES.JS - VERSIÓN CORREGIDA
+// JUGADOR-DETALLES.JS - VERSIÃ"N CORREGIDA
 // ===================================
 
 // Variables globales
@@ -7,19 +7,19 @@ let currentPlayerId = null;
 let playerData = null;
 
 // ===================================
-// INICIALIZACIÓN DEL DOM
+// INICIALIZACIÃ"N DEL DOM
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Usar la función de utils.js
+    // Usar la funciÃ³n de utils.js
     currentPlayerId = getIdFromUrl('id');
 
     if (!currentPlayerId || isNaN(currentPlayerId)) {
-        // Usar la función de utils.js para mostrar el error
-        showAppError('.container', "ID de jugador inválido o no encontrado en la URL.");
+        // Usar la funciÃ³n de utils.js para mostrar el error
+        showAppError('.container', "ID de jugador invÃ¡lido o no encontrado en la URL.");
         return;
     }
 
-    console.log('🔄 Cargando datos del jugador ID:', currentPlayerId);
+    console.log('ðŸ"„ Cargando datos del jugador ID:', currentPlayerId);
     loadPlayerData(currentPlayerId);
 });
 
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===================================
 async function loadPlayerData(id) {
     try {
-        console.log('📡 Iniciando carga de datos del jugador...');
+        console.log('ðŸ"¡ Iniciando carga de datos del jugador...');
         
         const [player, statsOfensivas, statsPitcheo, statsDefensivas] = await Promise.all([
             fetch(`/api/jugadores/${id}`).then(res => {
@@ -40,42 +40,42 @@ async function loadPlayerData(id) {
             fetch(`/api/estadisticas-defensivas?jugador_id=${id}`).then(res => res.json()).catch(e => [])
         ]);
 
-        console.log('✅ Datos cargados:', { player, statsOfensivas, statsPitcheo, statsDefensivas });
+        console.log('âœ… Datos cargados:', { player, statsOfensivas, statsPitcheo, statsDefensivas });
 
         // Guardar datos globalmente
         playerData = player;
 
-        // Renderizar información
+        // Renderizar informaciÃ³n
         renderPlayerInfo(player);
         renderStats(statsOfensivas, 'statsBateoContainer', 'bateo');
         renderStats(statsPitcheo, 'statsPitcheoContainer', 'pitcheo');
         renderStats(statsPitcheo, 'statsPitcheoDetailContainer', 'pitcheo-detail');
         renderStats(statsDefensivas, 'statsDefensaContainer', 'defensa');
         
-        // Configurar navegación
+        // Configurar navegaciÃ³n
         configurarNavegacion(player);
 
     } catch (error) {
-        console.error("❌ Error al cargar los datos del jugador:", error);
+        console.error("âŒ Error al cargar los datos del jugador:", error);
         showAppError('.container', `No se pudieron cargar los datos del jugador. ${error.message}`);
     }
 }
 
 // ===================================
-// RENDERIZADO DE INFORMACIÓN DEL JUGADOR
+// RENDERIZADO DE INFORMACIÃ"N DEL JUGADOR
 // ===================================
 function renderPlayerInfo(player) {
     if (!player) {
-        showAppError('.container', "No se encontró la información principal del jugador.");
+        showAppError('.container', "No se encontrÃ³ la informaciÃ³n principal del jugador.");
         return;
     }
 
-    console.log('🎨 Renderizando información del jugador:', player.nombre);
+    console.log('ðŸŽ¨ Renderizando informaciÃ³n del jugador:', player.nombre);
 
-    // Título de la página
+    // TÃ­tulo de la pÃ¡gina
     document.title = `${player.nombre} - Perfil - Chogui League`;
     
-    // Información básica del jugador
+    // InformaciÃ³n bÃ¡sica del jugador
     document.getElementById('playerName').textContent = player.nombre;
     document.getElementById('playerNumber').textContent = player.numero ? `#${player.numero}` : '#--';
     document.getElementById('playerPosition').textContent = formatearPosicion(player.posicion);
@@ -85,7 +85,7 @@ function renderPlayerInfo(player) {
     const teamNameHeaderEl = document.getElementById('playerTeamNameHeader');
     if (teamNameEl) {
         teamNameEl.textContent = player.equipo_nombre || 'Sin Equipo';
-        // ✅ NUEVO: Ajustar tamaño si es muy largo
+        // âœ… NUEVO: Ajustar tamaÃ±o si es muy largo
         if (player.equipo_nombre && player.equipo_nombre.length > 12) {
             teamNameEl.style.fontSize = '1.5rem';
         }
@@ -127,21 +127,21 @@ function renderPlayerInfo(player) {
         }
     }
 
-    console.log('✅ Información del jugador renderizada correctamente');
+    console.log('âœ… InformaciÃ³n del jugador renderizada correctamente');
 }
 
 // ===================================
-// RENDERIZADO DE ESTADÍSTICAS
+// RENDERIZADO DE ESTADÃSTICAS
 // ===================================
 function renderStats(stats, containerId, type) {
     const container = document.getElementById(containerId);
     if (!container) {
-        console.warn(`⚠️ Contenedor ${containerId} no encontrado`);
+        console.warn(`âš ï¸ Contenedor ${containerId} no encontrado`);
         return;
     }
 
     if (!stats || stats.length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay estadísticas disponibles.</div>';
+        container.innerHTML = '<div class="empty-state">No hay estadÃ­sticas disponibles.</div>';
         return;
     }
 
@@ -159,6 +159,7 @@ function renderStats(stats, containerId, type) {
             { label: 'Carreras (R)', value: stat.runs || 0 },
             { label: 'Bases Robadas (SB)', value: stat.stolen_bases || 0 },
             { label: 'Bases por Bolas (BB)', value: stat.walks || 0 },
+            { label: 'Ponches (SO)', value: stat.strikeouts || 0 },
         ],
         pitcheo: [
             { label: 'ERA', value: (stat.innings_pitched > 0 ? (stat.earned_runs * 9) / stat.innings_pitched : 0).toFixed(2) },
@@ -182,7 +183,7 @@ function renderStats(stats, containerId, type) {
         ]
     };
     
-    // Crear HTML para las estadísticas
+    // Crear HTML para las estadÃ­sticas
     if (statMapping[type]) {
         html = statMapping[type].map(s => `
             <div class="stat-item">
@@ -191,14 +192,14 @@ function renderStats(stats, containerId, type) {
             </div>
         `).join('');
 
-        // Actualizar estadísticas principales si es bateo
+        // Actualizar estadÃ­sticas principales si es bateo
         if (type === 'bateo') {
             actualizarEstadisticasPrincipales(stat);
         }
     }
 
-    container.innerHTML = html || '<div class="empty-state">No hay estadísticas disponibles.</div>';
-    console.log(`✅ Estadísticas ${type} renderizadas en ${containerId}`);
+    container.innerHTML = html || '<div class="empty-state">No hay estadÃ­sticas disponibles.</div>';
+    console.log(`âœ… EstadÃ­sticas ${type} renderizadas en ${containerId}`);
 }
 
 // ===================================
@@ -233,7 +234,7 @@ function calcularFieldingPercentage(stat) {
 }
 
 function actualizarEstadisticasPrincipales(stat) {
-    // Actualizar estadísticas en la card principal
+    // Actualizar estadÃ­sticas en la card principal
     const avgEl = document.getElementById('playerAVG');
     const hrEl = document.getElementById('playerHR');
     const rbiEl = document.getElementById('playerRBI');
@@ -261,21 +262,21 @@ function mostrarInicialesJugador(elemento, nombreJugador) {
     // Generar iniciales del jugador
     const iniciales = generarIniciales(nombreJugador);
     
-    // Aplicar estilos para las iniciales - TAMAÑO FINAL OPTIMIZADO
+    // Aplicar estilos para las iniciales - TAMAÃ'O FINAL OPTIMIZADO
     elemento.style.backgroundImage = 'linear-gradient(45deg, #ffd700, #ff8c00)';
     elemento.style.display = 'flex';
     elemento.style.alignItems = 'center';
     elemento.style.justifyContent = 'center';
-    elemento.style.fontSize = '1.4rem'; // ✅ REDUCIDO más de 1.8rem a 1.4rem
+    elemento.style.fontSize = '1.4rem'; // âœ… REDUCIDO mÃ¡s de 1.8rem a 1.4rem
     elemento.style.fontWeight = 'bold';
     elemento.style.color = '#1a1a2e';
     elemento.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
     elemento.style.border = '3px solid #fff';
     elemento.style.boxShadow = '0 8px 25px rgba(255, 215, 0, 0.4)';
-    elemento.style.letterSpacing = '1px'; // ✅ REDUCIDO de 2px a 1px
-    elemento.style.width = '120px'; // ✅ FORZAR tamaño exacto
-    elemento.style.height = '120px'; // ✅ FORZAR tamaño exacto
-    elemento.style.borderRadius = '50%'; // ✅ ASEGURAR círculo perfecto
+    elemento.style.letterSpacing = '1px'; // âœ… REDUCIDO de 2px a 1px
+    elemento.style.width = '120px'; // âœ… FORZAR tamaÃ±o exacto
+    elemento.style.height = '120px'; // âœ… FORZAR tamaÃ±o exacto
+    elemento.style.borderRadius = '50%'; // âœ… ASEGURAR cÃ­rculo perfecto
     
     // Mostrar iniciales
     elemento.innerHTML = iniciales;
@@ -289,9 +290,9 @@ function generarIniciales(nombre) {
         // Si solo hay una palabra, tomar las primeras 2 letras
         return palabras[0].substring(0, 2).toUpperCase();
     } else {
-        // Si hay múltiples palabras, tomar primera letra de las primeras 2 palabras
+        // Si hay mÃºltiples palabras, tomar primera letra de las primeras 2 palabras
         return palabras.slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('');
     }
 }
 
-console.log('📄 jugador-detalles.js cargado correctamente');
+console.log('ðŸ"„ jugador-detalles.js cargado correctamente');
