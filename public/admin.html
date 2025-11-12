@@ -2248,7 +2248,8 @@
                 const pestanaActiva = document.getElementById(nombrePestana);
                 if (pestanaActiva) pestanaActiva.classList.add('active');
                 const botonActivo = document.querySelector(`[data-tab="${nombrePestana}"]`);
-                if (botonActivo) botonActiva.classList.add('active');
+                // CORRECCIÓN CRÍTICA: Cambiar 'botonActiva' a 'botonActivo'
+                if (botonActivo) botonActivo.classList.add('active'); 
                 if (nombrePestana === 'lideres') {
                     actualizarLideres();
                     actualizarLideresPorPosicion();
@@ -4297,7 +4298,7 @@
             const saveButton = event.target;
             let endpoint = '';
             let payload = { jugador_id: jugadorId };
-            const temporada = torneoActivo ? torneoActeo.id : null; // Asumiendo que se usa el torneo activo.
+            const temporada = torneoActivo ? torneoActivo.id : null; // Asumiendo que se usa el torneo activo.
 
             if (!temporada) {
                 toast.error('No hay un torneo activo seleccionado. No se pueden guardar estadísticas.');
