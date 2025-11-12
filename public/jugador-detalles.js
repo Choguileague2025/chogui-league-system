@@ -80,10 +80,14 @@ function renderPlayerInfo(player) {
     document.getElementById('playerNumber').textContent = player.numero ? `#${player.numero}` : '#--';
     document.getElementById('playerPosition').textContent = formatearPosicion(player.posicion);
     
-    // Equipo en el resumen
+    // Equipo en el resumen y header
     const teamNameEl = document.getElementById('playerTeamName');
+    const teamNameHeaderEl = document.getElementById('playerTeamNameHeader');
     if (teamNameEl) {
         teamNameEl.textContent = player.equipo_nombre || 'Sin Equipo';
+    }
+    if (teamNameHeaderEl) {
+        teamNameHeaderEl.textContent = player.equipo_nombre || 'Sin Equipo';
     }
     
     // Breadcrumbs
@@ -95,10 +99,28 @@ function renderPlayerInfo(player) {
     }
     document.getElementById('playerBreadcrumb').textContent = player.nombre;
 
-    // Logo del Equipo (usando utils.js)
-    if (player.equipo_nombre) {
-        const logoUrl = getTeamLogo(player.equipo_nombre);
-        displayTeamLogo('#teamLogo', logoUrl, player.equipo_nombre);
+    // Logo del Jugador: Iniciales si no hay logo de equipo
+    const teamLogoEl = document.getElementById('teamLogo');
+    if (teamLogoEl) {
+        if (player.equipo_nombre) {
+            const logoUrl = getTeamLogo(player.equipo_nombre);
+            // Intentar mostrar logo del equipo, si falla mostrar iniciales del jugador
+            const img = new Image();
+            img.onload = function() {
+                teamLogoEl.style.backgroundImage = `url('${logoUrl}')`;
+                teamLogoEl.style.backgroundSize = 'cover';
+                teamLogoEl.style.backgroundPosition = 'center';
+                teamLogoEl.innerHTML = '';
+            };
+            img.onerror = function() {
+                // Si falla el logo, mostrar iniciales del jugador
+                mostrarInicialesJugador(teamLogoEl, player.nombre);
+            };
+            img.src = logoUrl;
+        } else {
+            // Si no hay equipo, mostrar iniciales del jugador
+            mostrarInicialesJugador(teamLogoEl, player.nombre);
+        }
     }
 
     console.log('✅ Información del jugador renderizada correctamente');
@@ -228,6 +250,39 @@ function configurarNavegacion(player) {
         } else {
             backButton.style.display = 'none';
         }
+    }
+}
+
+function mostrarInicialesJugador(elemento, nombreJugador) {
+    // Generar iniciales del jugador
+    const iniciales = generarIniciales(nombreJugador);
+    
+    // Aplicar estilos para las iniciales
+    elemento.style.backgroundImage = 'linear-gradient(45deg, #ffd700, #ff8c00)';
+    elemento.style.display = 'flex';
+    elemento.style.alignItems = 'center';
+    elemento.style.justifyContent = 'center';
+    elemento.style.fontSize = '2.5rem';
+    elemento.style.fontWeight = 'bold';
+    elemento.style.color = '#1a1a2e';
+    elemento.style.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
+    elemento.style.border = '3px solid #fff';
+    elemento.style.boxShadow = '0 8px 25px rgba(255, 215, 0, 0.4)';
+    
+    // Mostrar iniciales
+    elemento.innerHTML = iniciales;
+}
+
+function generarIniciales(nombre) {
+    if (!nombre) return 'JG';
+    
+    const palabras = nombre.trim().split(/\s+/);
+    if (palabras.length === 1) {
+        // Si solo hay una palabra, tomar las primeras 2 letras
+        return palabras[0].substring(0, 2).toUpperCase();
+    } else {
+        // Si hay múltiples palabras, tomar primera letra de las primeras 2 palabras
+        return palabras.slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('');
     }
 }
 
