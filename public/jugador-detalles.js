@@ -42,6 +42,21 @@ async function loadPlayerData(id) {
 
         console.log('✅ Datos cargados:', { player, statsOfensivas, statsPitcheo, statsDefensivas });
 
+        // 🔍 DEBUGGING ESPECÍFICO PARA STRIKEOUTS
+        console.log('🔍 DEBUGGING DETALLADO - STRIKEOUTS:');
+        console.log('  📊 Estadísticas Ofensivas (Bateador):', statsOfensivas);
+        console.log('  ⚾ Estadísticas Pitcheo:', statsPitcheo);
+        
+        if (statsOfensivas && statsOfensivas.length > 0) {
+            console.log('  🎯 STRIKEOUTS DEL BATEADOR:', statsOfensivas[0].strikeouts);
+            console.log('  📋 TODOS LOS CAMPOS OFENSIVOS:', Object.keys(statsOfensivas[0]));
+        }
+        
+        if (statsPitcheo && statsPitcheo.length > 0) {
+            console.log('  🥎 STRIKEOUTS DEL PITCHER:', statsPitcheo[0].strikeouts);
+            console.log('  📋 TODOS LOS CAMPOS PITCHEO:', Object.keys(statsPitcheo[0]));
+        }
+
         // Guardar datos globalmente
         playerData = player;
 
