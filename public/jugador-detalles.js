@@ -146,6 +146,12 @@ function renderStats(stats, containerId, type) {
     }
 
     const stat = stats[0]; // Asumimos que la API devuelve un array con un solo objeto
+    
+    // 🔍 DEBUGGING: Ver qué datos llegan
+    console.log('🔍 DEBUGGING - Datos de estadísticas:', stat);
+    console.log('🔍 DEBUGGING - Strikeouts value:', stat.strikeouts);
+    console.log('🔍 DEBUGGING - Tipo de estadística:', type);
+    
     let html = '';
 
     const statMapping = {
@@ -159,7 +165,7 @@ function renderStats(stats, containerId, type) {
             { label: 'Carreras (R)', value: stat.runs || 0 },
             { label: 'Bases Robadas (SB)', value: stat.stolen_bases || 0 },
             { label: 'Bases por Bolas (BB)', value: stat.walks || 0 },
-            { label: 'Ponches (SO)', value: stat.strikeouts || 0 },
+            { label: 'Ponches (SO)', value: stat.strikeouts || stat.so || stat.strike_outs || 0 },
         ],
         pitcheo: [
             { label: 'ERA', value: (stat.innings_pitched > 0 ? (stat.earned_runs * 9) / stat.innings_pitched : 0).toFixed(2) },
@@ -192,6 +198,11 @@ function renderStats(stats, containerId, type) {
             </div>
         `).join('');
 
+        // 🔍 DEBUGGING: Ver el HTML generado
+        if (type === 'bateo') {
+            console.log('🔍 DEBUGGING - HTML de bateo generado:', html);
+        }
+
         // Actualizar estadísticas principales si es bateo
         if (type === 'bateo') {
             actualizarEstadisticasPrincipales(stat);
@@ -200,6 +211,11 @@ function renderStats(stats, containerId, type) {
 
     container.innerHTML = html || '<div class="empty-state">No hay estadísticas disponibles.</div>';
     console.log(`✅ Estadísticas ${type} renderizadas en ${containerId}`);
+    
+    // 🔍 DEBUGGING: Verificar que se renderizó correctamente
+    if (type === 'bateo') {
+        console.log('🔍 DEBUGGING - Contenedor después de renderizar:', container.innerHTML);
+    }
 }
 
 // ===================================
