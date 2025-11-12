@@ -85,6 +85,10 @@ function renderPlayerInfo(player) {
     const teamNameHeaderEl = document.getElementById('playerTeamNameHeader');
     if (teamNameEl) {
         teamNameEl.textContent = player.equipo_nombre || 'Sin Equipo';
+        // ✅ NUEVO: Ajustar tamaño si es muy largo
+        if (player.equipo_nombre && player.equipo_nombre.length > 12) {
+            teamNameEl.style.fontSize = '1.5rem';
+        }
     }
     if (teamNameHeaderEl) {
         teamNameHeaderEl.textContent = player.equipo_nombre || 'Sin Equipo';
@@ -257,18 +261,21 @@ function mostrarInicialesJugador(elemento, nombreJugador) {
     // Generar iniciales del jugador
     const iniciales = generarIniciales(nombreJugador);
     
-    // Aplicar estilos para las iniciales - TAMAÑO OPTIMIZADO
+    // Aplicar estilos para las iniciales - TAMAÑO FINAL OPTIMIZADO
     elemento.style.backgroundImage = 'linear-gradient(45deg, #ffd700, #ff8c00)';
     elemento.style.display = 'flex';
     elemento.style.alignItems = 'center';
     elemento.style.justifyContent = 'center';
-    elemento.style.fontSize = '1.8rem'; // ✅ REDUCIDO de 2.5rem
+    elemento.style.fontSize = '1.4rem'; // ✅ REDUCIDO más de 1.8rem a 1.4rem
     elemento.style.fontWeight = 'bold';
     elemento.style.color = '#1a1a2e';
-    elemento.style.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
+    elemento.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
     elemento.style.border = '3px solid #fff';
     elemento.style.boxShadow = '0 8px 25px rgba(255, 215, 0, 0.4)';
-    elemento.style.letterSpacing = '2px'; // ✅ NUEVO: Mejor espaciado
+    elemento.style.letterSpacing = '1px'; // ✅ REDUCIDO de 2px a 1px
+    elemento.style.width = '120px'; // ✅ FORZAR tamaño exacto
+    elemento.style.height = '120px'; // ✅ FORZAR tamaño exacto
+    elemento.style.borderRadius = '50%'; // ✅ ASEGURAR círculo perfecto
     
     // Mostrar iniciales
     elemento.innerHTML = iniciales;
