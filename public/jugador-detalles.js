@@ -1,5 +1,5 @@
 // ===================================
-// JUGADOR-DETALLES.JS - VERSIÃ"N CORREGIDA
+// JUGADOR-DETALLES.JS - VERSIÓN CORREGIDA CON STRIKEOUTS
 // ===================================
 
 // Variables globales
@@ -7,19 +7,19 @@ let currentPlayerId = null;
 let playerData = null;
 
 // ===================================
-// INICIALIZACIÃ"N DEL DOM
+// INICIALIZACIÓN DEL DOM
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Usar la funciÃ³n de utils.js
+    // Usar la función de utils.js
     currentPlayerId = getIdFromUrl('id');
 
     if (!currentPlayerId || isNaN(currentPlayerId)) {
-        // Usar la funciÃ³n de utils.js para mostrar el error
-        showAppError('.container', "ID de jugador invÃ¡lido o no encontrado en la URL.");
+        // Usar la función de utils.js para mostrar el error
+        showAppError('.container', "ID de jugador inválido o no encontrado en la URL.");
         return;
     }
 
-    console.log('ðŸ"„ Cargando datos del jugador ID:', currentPlayerId);
+    console.log('🔄 Cargando datos del jugador ID:', currentPlayerId);
     loadPlayerData(currentPlayerId);
 });
 
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===================================
 async function loadPlayerData(id) {
     try {
-        console.log('ðŸ"¡ Iniciando carga de datos del jugador...');
+        console.log('📡 Iniciando carga de datos del jugador...');
         
         const [player, statsOfensivas, statsPitcheo, statsDefensivas] = await Promise.all([
             fetch(`/api/jugadores/${id}`).then(res => {
@@ -40,42 +40,42 @@ async function loadPlayerData(id) {
             fetch(`/api/estadisticas-defensivas?jugador_id=${id}`).then(res => res.json()).catch(e => [])
         ]);
 
-        console.log('âœ… Datos cargados:', { player, statsOfensivas, statsPitcheo, statsDefensivas });
+        console.log('✅ Datos cargados:', { player, statsOfensivas, statsPitcheo, statsDefensivas });
 
         // Guardar datos globalmente
         playerData = player;
 
-        // Renderizar informaciÃ³n
+        // Renderizar información
         renderPlayerInfo(player);
         renderStats(statsOfensivas, 'statsBateoContainer', 'bateo');
         renderStats(statsPitcheo, 'statsPitcheoContainer', 'pitcheo');
         renderStats(statsPitcheo, 'statsPitcheoDetailContainer', 'pitcheo-detail');
         renderStats(statsDefensivas, 'statsDefensaContainer', 'defensa');
         
-        // Configurar navegaciÃ³n
+        // Configurar navegación
         configurarNavegacion(player);
 
     } catch (error) {
-        console.error("âŒ Error al cargar los datos del jugador:", error);
+        console.error("⚠ Error al cargar los datos del jugador:", error);
         showAppError('.container', `No se pudieron cargar los datos del jugador. ${error.message}`);
     }
 }
 
 // ===================================
-// RENDERIZADO DE INFORMACIÃ"N DEL JUGADOR
+// RENDERIZADO DE INFORMACIÓN DEL JUGADOR
 // ===================================
 function renderPlayerInfo(player) {
     if (!player) {
-        showAppError('.container', "No se encontrÃ³ la informaciÃ³n principal del jugador.");
+        showAppError('.container', "No se encontró la información principal del jugador.");
         return;
     }
 
-    console.log('ðŸŽ¨ Renderizando informaciÃ³n del jugador:', player.nombre);
+    console.log('🎨 Renderizando información del jugador:', player.nombre);
 
-    // TÃ­tulo de la pÃ¡gina
+    // Título de la página
     document.title = `${player.nombre} - Perfil - Chogui League`;
     
-    // InformaciÃ³n bÃ¡sica del jugador
+    // Información básica del jugador
     document.getElementById('playerName').textContent = player.nombre;
     document.getElementById('playerNumber').textContent = player.numero ? `#${player.numero}` : '#--';
     document.getElementById('playerPosition').textContent = formatearPosicion(player.posicion);
@@ -85,7 +85,7 @@ function renderPlayerInfo(player) {
     const teamNameHeaderEl = document.getElementById('playerTeamNameHeader');
     if (teamNameEl) {
         teamNameEl.textContent = player.equipo_nombre || 'Sin Equipo';
-        // âœ… NUEVO: Ajustar tamaÃ±o si es muy largo
+        // ✅ NUEVO: Ajustar tamaño si es muy largo
         if (player.equipo_nombre && player.equipo_nombre.length > 12) {
             teamNameEl.style.fontSize = '1.5rem';
         }
@@ -127,21 +127,21 @@ function renderPlayerInfo(player) {
         }
     }
 
-    console.log('âœ… InformaciÃ³n del jugador renderizada correctamente');
+    console.log('✅ Información del jugador renderizada correctamente');
 }
 
 // ===================================
-// RENDERIZADO DE ESTADÃSTICAS
+// RENDERIZADO DE ESTADÍSTICAS
 // ===================================
 function renderStats(stats, containerId, type) {
     const container = document.getElementById(containerId);
     if (!container) {
-        console.warn(`âš ï¸ Contenedor ${containerId} no encontrado`);
+        console.warn(`⚠️ Contenedor ${containerId} no encontrado`);
         return;
     }
 
     if (!stats || stats.length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay estadÃ­sticas disponibles.</div>';
+        container.innerHTML = '<div class="empty-state">No hay estadísticas disponibles.</div>';
         return;
     }
 
@@ -183,7 +183,7 @@ function renderStats(stats, containerId, type) {
         ]
     };
     
-    // Crear HTML para las estadÃ­sticas
+    // Crear HTML para las estadísticas
     if (statMapping[type]) {
         html = statMapping[type].map(s => `
             <div class="stat-item">
@@ -192,14 +192,14 @@ function renderStats(stats, containerId, type) {
             </div>
         `).join('');
 
-        // Actualizar estadÃ­sticas principales si es bateo
+        // Actualizar estadísticas principales si es bateo
         if (type === 'bateo') {
             actualizarEstadisticasPrincipales(stat);
         }
     }
 
-    container.innerHTML = html || '<div class="empty-state">No hay estadÃ­sticas disponibles.</div>';
-    console.log(`âœ… EstadÃ­sticas ${type} renderizadas en ${containerId}`);
+    container.innerHTML = html || '<div class="empty-state">No hay estadísticas disponibles.</div>';
+    console.log(`✅ Estadísticas ${type} renderizadas en ${containerId}`);
 }
 
 // ===================================
@@ -234,7 +234,7 @@ function calcularFieldingPercentage(stat) {
 }
 
 function actualizarEstadisticasPrincipales(stat) {
-    // Actualizar estadÃ­sticas en la card principal
+    // Actualizar estadísticas en la card principal
     const avgEl = document.getElementById('playerAVG');
     const hrEl = document.getElementById('playerHR');
     const rbiEl = document.getElementById('playerRBI');
@@ -262,21 +262,21 @@ function mostrarInicialesJugador(elemento, nombreJugador) {
     // Generar iniciales del jugador
     const iniciales = generarIniciales(nombreJugador);
     
-    // Aplicar estilos para las iniciales - TAMAÃ'O FINAL OPTIMIZADO
+    // Aplicar estilos para las iniciales - TAMAÑO FINAL OPTIMIZADO
     elemento.style.backgroundImage = 'linear-gradient(45deg, #ffd700, #ff8c00)';
     elemento.style.display = 'flex';
     elemento.style.alignItems = 'center';
     elemento.style.justifyContent = 'center';
-    elemento.style.fontSize = '1.4rem'; // âœ… REDUCIDO mÃ¡s de 1.8rem a 1.4rem
+    elemento.style.fontSize = '1.4rem'; // ✅ REDUCIDO más de 1.8rem a 1.4rem
     elemento.style.fontWeight = 'bold';
     elemento.style.color = '#1a1a2e';
     elemento.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
     elemento.style.border = '3px solid #fff';
     elemento.style.boxShadow = '0 8px 25px rgba(255, 215, 0, 0.4)';
-    elemento.style.letterSpacing = '1px'; // âœ… REDUCIDO de 2px a 1px
-    elemento.style.width = '120px'; // âœ… FORZAR tamaÃ±o exacto
-    elemento.style.height = '120px'; // âœ… FORZAR tamaÃ±o exacto
-    elemento.style.borderRadius = '50%'; // âœ… ASEGURAR cÃ­rculo perfecto
+    elemento.style.letterSpacing = '1px'; // ✅ REDUCIDO de 2px a 1px
+    elemento.style.width = '120px'; // ✅ FORZAR tamaño exacto
+    elemento.style.height = '120px'; // ✅ FORZAR tamaño exacto
+    elemento.style.borderRadius = '50%'; // ✅ ASEGURAR círculo perfecto
     
     // Mostrar iniciales
     elemento.innerHTML = iniciales;
@@ -290,9 +290,9 @@ function generarIniciales(nombre) {
         // Si solo hay una palabra, tomar las primeras 2 letras
         return palabras[0].substring(0, 2).toUpperCase();
     } else {
-        // Si hay mÃºltiples palabras, tomar primera letra de las primeras 2 palabras
+        // Si hay múltiples palabras, tomar primera letra de las primeras 2 palabras
         return palabras.slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('');
     }
 }
 
-console.log('ðŸ"„ jugador-detalles.js cargado correctamente');
+console.log('🔄 jugador-detalles.js cargado correctamente');
