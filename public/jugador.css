@@ -5,8 +5,8 @@
 
 /* Mejoras específicas para el logo del jugador */
 .team-logo {
-    width: 120px;
-    height: 120px;
+    width: 120px !important;
+    height: 120px !important;
     border-radius: 50%;
     border: 3px solid #ffd700;
     box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
@@ -26,9 +26,24 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 1.6rem !important;
+    font-size: 1.4rem !important;
     font-weight: bold !important;
     letter-spacing: 1px !important;
+}
+
+/* ✅ NUEVO: Controlar el tamaño del nombre del equipo en resumen */
+.record-number {
+    font-size: 2rem !important; /* Reducido de tamaño por defecto */
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    line-height: 1.2;
+    word-break: break-word; /* Para nombres largos */
+}
+
+/* Para equipos con nombres muy largos */
+.record-number.long-name {
+    font-size: 1.5rem !important;
 }
 
 /* Mejorar el subtítulo del jugador */
@@ -55,12 +70,20 @@
 /* Responsive para móviles */
 @media (max-width: 768px) {
     .team-logo {
-        width: 100px;
-        height: 100px;
+        width: 100px !important;
+        height: 100px !important;
     }
     
     .team-logo.iniciales {
+        font-size: 1.2rem !important;
+    }
+    
+    .record-number {
         font-size: 1.4rem !important;
+    }
+    
+    .record-number.long-name {
+        font-size: 1.2rem !important;
     }
     
     .team-subtitle {
