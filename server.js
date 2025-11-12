@@ -3,6 +3,7 @@
 // MODIFICADO: 2025-10-12
 // CAMBIOS: 
 //   - Agregado endpoint GET /api/equipos/:id/logo (línea 1254-1311)
+//   - CRÍTICO: Soporte completo para 'strikeouts' (K recibidos) en estadisticas_ofensivas
 // ===================================
 const express = require('express');
 const cors = require('cors');
@@ -169,7 +170,8 @@ async function inicializarBaseDeDatos() {
                     rbi INTEGER DEFAULT 0, 
                     runs INTEGER DEFAULT 0, 
                     walks INTEGER DEFAULT 0, 
-                    stolen_bases INTEGER DEFAULT 0, 
+                    stolen_bases INTEGER DEFAULT 0,
+                    strikeouts INTEGER DEFAULT 0, -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
                     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
                     UNIQUE(jugador_id, temporada)
                 );`
@@ -219,7 +221,7 @@ async function inicializarBaseDeDatos() {
         try {
             await pool.query(`ALTER TABLE equipos ADD COLUMN IF NOT EXISTS estado VARCHAR(20) DEFAULT 'activo';`);
         } catch(e) { console.warn("No se pudo agregar columna estado a equipos"); }
-
+        
         // MIGRACIONES
         try {
             await pool.query(`ALTER TABLE torneos ADD COLUMN IF NOT EXISTS total_juegos INTEGER DEFAULT 22;`);
@@ -228,7 +230,7 @@ async function inicializarBaseDeDatos() {
         } catch(e) {
             console.warn("⚠️ No se pudo agregar columnas de playoffs a torneos:", e.message);
         }
-
+        
         // Migración de partidos (hora y estado)
         try {
             await pool.query(`
@@ -252,7 +254,7 @@ async function inicializarBaseDeDatos() {
         } catch (error) {
             console.warn('⚠️ Error en migración de partidos:', error.message);
         }
-
+        
         // Permitir NULL en carreras para partidos programados
         try {
             await pool.query(`
@@ -276,7 +278,7 @@ async function inicializarBaseDeDatos() {
         } catch (e) {
             console.warn('⚠️ No se pudo ajustar NOT NULL de carreras_*:', e.message);
         }
-
+        
         // Permitir NULL en posición y número de jugadores
         try {
             await pool.query(`
@@ -299,6 +301,24 @@ async function inicializarBaseDeDatos() {
             console.log('✅ Columnas jugadores.posicion/numero permiten NULL');
         } catch (e) {
             console.warn('⚠️ No se pudo ajustar NOT NULL de jugadores.posicion/numero:', e.message);
+        }
+        
+        // MIGRACIÓN CRÍTICA: Agregar columna 'strikeouts' a estadisticas_ofensivas
+        try {
+             await pool.query(`
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='estadisticas_ofensivas' AND column_name='strikeouts'
+                    ) THEN
+                        ALTER TABLE estadisticas_ofensivas ADD COLUMN strikeouts INTEGER DEFAULT 0;
+                        console.log('✅ Columna estadisticas_ofensivas.strikeouts añadida');
+                    END IF;
+                END $$;
+            `);
+        } catch (e) {
+            console.warn('⚠️ No se pudo agregar la columna strikeouts a estadisticas_ofensivas:', e.message);
         }
 
         // Crear índices para optimización
@@ -434,6 +454,7 @@ app.get('/api/leaders', async (req, res, next) => {
                     s.runs,
                     s.walks,
                     s.stolen_bases,
+                    s.strikeouts, -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
                     CASE 
                         WHEN s.at_bats > 0 
                         THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
@@ -577,6 +598,7 @@ app.get('/api/leaders', async (req, res, next) => {
                     s.rbi,
                     s.at_bats,
                     s.hits,
+                    s.strikeouts, -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
                     CASE 
                         WHEN s.at_bats > 0 
                         THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
@@ -1121,6 +1143,7 @@ app.get('/api/equipos/:id/estadisticas/ofensivas', async (req, res) => {
                 COALESCE(eo.runs, 0) as runs,
                 COALESCE(eo.walks, 0) as walks,
                 COALESCE(eo.stolen_bases, 0) as stolen_bases,
+                COALESCE(eo.strikeouts, 0) as strikeouts, -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
                 CASE 
                     WHEN COALESCE(eo.at_bats, 0) > 0 THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / eo.at_bats, 3)
                     ELSE 0.000 
@@ -1415,6 +1438,7 @@ app.get('/api/jugadores/buscar', async (req, res) => {
                 COALESCE(eo.hits, 0) as hits,
                 COALESCE(eo.home_runs, 0) as home_runs,
                 COALESCE(eo.rbi, 0) as rbi,
+                COALESCE(eo.strikeouts, 0) as strikeouts, -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
                 CASE 
                      WHEN COALESCE(eo.at_bats, 0) > 0 
                      THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / eo.at_bats, 3)
@@ -1593,6 +1617,7 @@ app.get('/api/jugadores/:id/similares', async (req, res) => {
                 COALESCE(eo.hits, 0) as hits,
                 COALESCE(eo.home_runs, 0) as home_runs,
                 COALESCE(eo.rbi, 0) as rbi,
+                COALESCE(eo.strikeouts, 0) as strikeouts, -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
                 CASE 
                     WHEN COALESCE(eo.at_bats, 0) > 0 
                     THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / COALESCE(eo.at_bats, 1), 3)
@@ -1649,6 +1674,7 @@ app.get('/api/jugadores/:id/companeros', async (req, res) => {
                 COALESCE(eo.hits, 0) as hits,
                 COALESCE(eo.home_runs, 0) as home_runs,
                 COALESCE(eo.rbi, 0) as rbi,
+                COALESCE(eo.strikeouts, 0) as strikeouts, -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
                 CASE 
                     WHEN COALESCE(eo.at_bats, 0) > 0 
                     THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / COALESCE(eo.at_bats, 1), 3)
@@ -2310,13 +2336,14 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
                        ELSE 0.000 
                    END as avg,
                    CASE 
-                       WHEN eo.at_bats > 0 THEN ROUND((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks), 3)
+                       WHEN (eo.at_bats + eo.walks) > 0 THEN ROUND((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks), 3)
                        ELSE 0.000 
                    END as obp,
                    CASE 
                        WHEN eo.at_bats > 0 THEN ROUND((eo.hits + eo.home_runs * 3)::DECIMAL / eo.at_bats, 3)
                        ELSE 0.000 
-                   END as slg
+                   END as slg,
+                   eo.strikeouts -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
             FROM estadisticas_ofensivas eo
             JOIN jugadores j ON eo.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
@@ -2361,7 +2388,8 @@ app.get('/api/lideres-ofensivos', async (req, res) => {
             SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
                    ROUND(eo.hits::DECIMAL / eo.at_bats, 3) as avg,
                    ROUND((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks), 3) as obp,
-                   ROUND((eo.hits + eo.home_runs * 3)::DECIMAL / eo.at_bats, 3) as slg
+                   ROUND((eo.hits + eo.home_runs * 3)::DECIMAL / eo.at_bats, 3) as slg,
+                   eo.strikeouts -- <<-- MODIFICACIÓN CRÍTICA: NUEVO CAMPO
             FROM estadisticas_ofensivas eo
             JOIN jugadores j ON eo.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
@@ -2690,7 +2718,9 @@ app.get('/api/lideres-pitcheo', async (req, res) => {
 // ============================================================
 async function upsertEstadisticasOfensivas(req, res) {
     try {
-        const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, temporada } = req.body;
+        // <<-- MODIFICACIÓN CRÍTICA: AGREGAR 'strikeouts'
+        const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts, temporada } = req.body;
+        
         if (!jugador_id) {
             return res.status(400).json({ error: 'ID del jugador es requerido' });
         }
@@ -2701,15 +2731,18 @@ async function upsertEstadisticasOfensivas(req, res) {
         const runsV = parseInt(runs || 0, 10);
         const bb = parseInt(walks || 0, 10);
         const sb = parseInt(stolen_bases || 0, 10);
+        const k = parseInt(strikeouts || 0, 10); // <<-- MODIFICACIÓN CRÍTICA: NUEVO VALOR
         const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : '2025';
+        
         if (h > ab) {
             return res.status(400).json({ error: 'Los hits no pueden ser mayores que los at-bats' });
         }
+        
         const result = await pool.query(`
             INSERT INTO estadisticas_ofensivas (
-                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases
+                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) -- <<-- MODIFICACIÓN CRÍTICA: $10 para strikeouts
             ON CONFLICT (jugador_id, temporada) DO UPDATE SET
                 at_bats = EXCLUDED.at_bats,
                 hits = EXCLUDED.hits,
@@ -2717,9 +2750,11 @@ async function upsertEstadisticasOfensivas(req, res) {
                 rbi = EXCLUDED.rbi,
                 runs = EXCLUDED.runs,
                 walks = EXCLUDED.walks,
-                stolen_bases = EXCLUDED.stolen_bases
+                stolen_bases = EXCLUDED.stolen_bases,
+                strikeouts = EXCLUDED.strikeouts -- <<-- MODIFICACIÓN CRÍTICA: UPDATE
             RETURNING *;
-        `, [jugador_id, temp, ab, h, hr, rbiV, runsV, bb, sb]);
+        `, [jugador_id, temp, ab, h, hr, rbiV, runsV, bb, sb, k]); // <<-- MODIFICACIÓN CRÍTICA: NUEVO PARÁMETRO
+        
         console.log('✅ Estadísticas ofensivas actualizadas:', result.rows[0]);
         res.json(result.rows[0]);
             } catch (error) {
