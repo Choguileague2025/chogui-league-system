@@ -1724,6 +1724,11 @@
                         <input type="number" id="stolenBases" min="0" value="0">
                     </div>
                     <div class="form-group">
+                        <label for="strikeouts">Ponches (SO):</label>
+                        <input type="number" id="strikeouts" min="0" value="0">
+                        <small style="color: #ffd700; font-size: 0.8rem;">Ponches recibidos por el bateador</small>
+                    </div>
+                    <div class="form-group">
                         <label for="errors" style="color: #ff8c00; opacity: 0.7;">Errores (E):</label>
                         <input type="number" id="errors" min="0" value="0" disabled>
                           <small style="color: #ff8c00; font-size: 0.8rem;">Los errores se registran en el form defensivo.</small>
@@ -3574,7 +3579,8 @@
                 rbi: parseInt(document.getElementById('rbi').value) || 0,
                 runs: parseInt(document.getElementById('runs').value) || 0,
                 walks: parseInt(document.getElementById('walks').value) || 0,
-                stolen_bases: parseInt(document.getElementById('stolenBases').value) || 0
+                stolen_bases: parseInt(document.getElementById('stolenBases').value) || 0,
+                strikeouts: parseInt(document.getElementById('strikeouts').value) || 0
             };
             
             try {
@@ -3586,7 +3592,7 @@
                 if (res.ok) {
                     toast.success('Estadísticas registradas exitosamente.');
                     await cargarEstadisticas();
-                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases').forEach(el => el.value = 0);
+                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases, #strikeouts').forEach(el => el.value = 0);
                 } else {
                     toast.error('Error al registrar estadísticas.');
                 }
