@@ -10,11 +10,12 @@ let playerData = null;
 // INICIALIZACIÓN DEL DOM
 // ===================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Usar la función de utils.js
-    currentPlayerId = getIdFromUrl('id');
+    // Implementación directa de getIdFromUrl para evitar dependencias
+    const urlParams = new URLSearchParams(window.location.search);
+    currentPlayerId = parseInt(urlParams.get('id'));
 
     if (!currentPlayerId || isNaN(currentPlayerId)) {
-        // Usar la función de utils.js para mostrar el error
+        // Mostrar error sin dependencia de utils.js
         showAppError('.container', "ID de jugador inválido o no encontrado en la URL.");
         return;
     }
@@ -22,6 +23,20 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🔄 Cargando datos del jugador ID:', currentPlayerId);
     loadPlayerData(currentPlayerId);
 });
+
+// Función de error simple sin dependencias
+function showAppError(selector, message) {
+    const container = document.querySelector(selector);
+    if (container) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 50px; color: #ff8c00;">
+                <h2>⚠️ Error</h2>
+                <p>${message}</p>
+                <a href="index.html" style="color: #ffd700;">Volver al Inicio</a>
+            </div>
+        `;
+    }
+}
 
 // ===================================
 // CARGA DE DATOS PRINCIPAL
@@ -324,6 +339,12 @@ function generarIniciales(nombre) {
         // Si hay múltiples palabras, tomar primera letra de las primeras 2 palabras
         return palabras.slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('');
     }
+}
+
+// Función para obtener logo del equipo (implementación simple)
+function getTeamLogo(teamName) {
+    // Implementación básica - podrías mejorar esto con logos reales
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=ffd700&color=1a1a2e&size=120`;
 }
 
 console.log('🔄 jugador-detalles.js cargado correctamente');
