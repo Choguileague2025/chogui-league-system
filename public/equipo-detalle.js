@@ -1,5 +1,5 @@
-// EQUIPO-DETALLE.JS - VERSIÓN FINAL DEFINITIVA
-// MODIFICADO: 2025-01-XX - FASE 1: Corrección de fechas en últimos partidos
+// EQUIPO-DETALLE.JS - VERSIÓN CORREGIDA UTF-8
+// MODIFICADO: 2025-11-12 - Corrección de caracteres y funcionalidad completa
 
 // ===================================
 // CONFIGURACIÓN DE API
@@ -49,7 +49,8 @@ function getTeamLogo(equipoNombre) {
         'venearstone': 'venearstone.png',
         'desss': 'desss.png',
         'caribes rd': 'caribes-rd.png',
-        'dragones fc': 'dragones-fc.png'
+        'dragones fc': 'dragones-fc.png',
+        'los del sur': 'los-del-sur.png'
     };
     
     const nombreNormalizado = equipoNombre.toLowerCase().trim();
@@ -360,9 +361,6 @@ function renderizarRoster() {
     }
 }
 
-// ===================================
-// ✅ FASE 1: CORRECCIÓN - FECHAS EN ÚLTIMOS PARTIDOS
-// ===================================
 function renderizarPartidosRecientes() {
     const container = document.getElementById('recentGamesContainer');
     if (!recentGames || recentGames.length === 0) {
@@ -512,3 +510,5 @@ function mostrarErrorEquipo(mensaje) {
     document.querySelector('.content-grid').style.display = 'none';
     document.querySelector('.recent-games').style.display = 'none';
 }
+
+console.log('✅ equipo-detalle.js cargado correctamente');
