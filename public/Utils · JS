@@ -1,0 +1,52 @@
+// ===================================
+// UTILS.JS - FUNCIONES UTILITARIAS
+// ===================================
+
+/**
+ * Obtiene un parámetro de la URL por su nombre
+ */
+function getIdFromUrl(paramName) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return parseInt(urlParams.get(paramName));
+}
+
+/**
+ * Muestra un error en el contenedor especificado
+ */
+function showAppError(selector, message) {
+    const container = document.querySelector(selector);
+    if (container) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 50px; color: #ff8c00;">
+                <h2>⚠️ Error</h2>
+                <p>${message}</p>
+                <a href="index.html" style="color: #ffd700; text-decoration: none;">🏠 Volver al Inicio</a>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Obtiene el logo del equipo
+ */
+function getTeamLogo(teamName) {
+    // Implementación básica usando service de avatares
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=ffd700&color=1a1a2e&size=120`;
+}
+
+/**
+ * Formatea números con separadores de miles
+ */
+function formatNumber(num) {
+    return new Intl.NumberFormat('es-ES').format(num);
+}
+
+/**
+ * Valida si un email es válido
+ */
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+console.log('✅ utils.js cargado correctamente');
