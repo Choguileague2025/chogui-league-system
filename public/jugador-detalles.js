@@ -1,5 +1,5 @@
 // ===================================
-// JUGADOR-DETALLES.JS - VERSIÓN CORREGIDA CON STRIKEOUTS
+// JUGADOR-DETALLES.JS - VERSIÓN FINAL CON STRIKEOUTS CORREGIDOS
 // ===================================
 
 // Variables globales
@@ -161,7 +161,7 @@ function renderPlayerInfo(player) {
 }
 
 // ===================================
-// RENDERIZADO DE ESTADÍSTICAS
+// RENDERIZADO DE ESTADÍSTICAS - VERSIÓN CORREGIDA
 // ===================================
 function renderStats(stats, containerId, type) {
     const container = document.getElementById(containerId);
@@ -195,7 +195,7 @@ function renderStats(stats, containerId, type) {
             { label: 'Carreras (R)', value: stat.runs || 0 },
             { label: 'Bases Robadas (SB)', value: stat.stolen_bases || 0 },
             { label: 'Bases por Bolas (BB)', value: stat.walks || 0 },
-            { label: 'Ponches (SO)', value: stat.strikeouts || stat.so || stat.strike_outs || 0 },
+            { label: 'Ponches (SO)', value: stat.strikeouts || 0 }, // ✅ CORREGIDO: Agregado strikeouts
         ],
         pitcheo: [
             { label: 'ERA', value: (stat.innings_pitched > 0 ? (stat.earned_runs * 9) / stat.innings_pitched : 0).toFixed(2) },
