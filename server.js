@@ -3,6 +3,7 @@
 // MODIFICADO: 2025-10-12
 // CAMBIOS: 
 //   - Agregado endpoint GET /api/equipos/:id/logo (línea 1254-1311)
+//   - Soporte completo para 'strikeouts' en estadisticas_ofensivas (línea ~2693)
 // ===================================
 const express = require('express');
 const cors = require('cors');
@@ -301,6 +302,24 @@ async function inicializarBaseDeDatos() {
             console.warn('⚠️ No se pudo ajustar NOT NULL de jugadores.posicion/numero:', e.message);
         }
 
+        // MIGRACIÓN CRÍTICA (Agregar columna strikeouts si no existe)
+        try {
+            await pool.query(`
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='estadisticas_ofensivas' AND column_name='strikeouts'
+                    ) THEN
+                        ALTER TABLE estadisticas_ofensivas ADD COLUMN strikeouts INTEGER DEFAULT 0;
+                    END IF;
+                END $$;
+            `);
+            console.log('✅ Columna strikeouts en estadisticas_ofensivas verificada/añadida');
+        } catch (error) {
+            console.warn('⚠️ Error en migración de strikeouts:', error.message);
+        }
+
         // Crear índices para optimización
         const indexes = [
             'CREATE INDEX IF NOT EXISTS idx_jugadores_equipo ON jugadores(equipo_id);',
@@ -338,7 +357,7 @@ async function inicializarBaseDeDatos() {
 // ======================= RUTAS API ============================
 // ===============================================================
 
-// ... (TODAS TUS RUTAS API EXISTENTES, SIN CAMBIOS) ...
+// ... (TODAS TUS RUTAS API EXISTENTES, SIN CAMBIOS HASTA LÍNEA ~2693) ...
 // =================================================================================
 // ============== NUEVOS ENDPOINTS PARA EL LANDING PAGE (CORRECCIÓN) ===============
 // =================================================================================
@@ -434,6 +453,7 @@ app.get('/api/leaders', async (req, res, next) => {
                     s.runs,
                     s.walks,
                     s.stolen_bases,
+                    s.strikeouts,
                     CASE 
                         WHEN s.at_bats > 0 
                         THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
@@ -1121,6 +1141,7 @@ app.get('/api/equipos/:id/estadisticas/ofensivas', async (req, res) => {
                 COALESCE(eo.runs, 0) as runs,
                 COALESCE(eo.walks, 0) as walks,
                 COALESCE(eo.stolen_bases, 0) as stolen_bases,
+                COALESCE(eo.strikeouts, 0) as strikeouts,
                 CASE 
                     WHEN COALESCE(eo.at_bats, 0) > 0 THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / eo.at_bats, 3)
                     ELSE 0.000 
@@ -2690,10 +2711,13 @@ app.get('/api/lideres-pitcheo', async (req, res) => {
 // ============================================================
 async function upsertEstadisticasOfensivas(req, res) {
     try {
-        const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, temporada } = req.body;
+        // MODIFICACIÓN #1: Agregar strikeouts a la desestructuración
+        const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts, temporada } = req.body;
+        
         if (!jugador_id) {
             return res.status(400).json({ error: 'ID del jugador es requerido' });
         }
+        
         const ab = parseInt(at_bats || 0, 10);
         const h = parseInt(hits || 0, 10);
         const hr = parseInt(home_runs || 0, 10);
@@ -2701,15 +2725,22 @@ async function upsertEstadisticasOfensivas(req, res) {
         const runsV = parseInt(runs || 0, 10);
         const bb = parseInt(walks || 0, 10);
         const sb = parseInt(stolen_bases || 0, 10);
+        
+        // MODIFICACIÓN #2: Agregar validación de strikeouts
+        const so = parseInt(strikeouts || 0, 10); 
+        
         const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : '2025';
+        
         if (h > ab) {
             return res.status(400).json({ error: 'Los hits no pueden ser mayores que los at-bats' });
         }
+        
+        // MODIFICACIÓN #3: Actualizar consulta INSERT
         const result = await pool.query(`
             INSERT INTO estadisticas_ofensivas (
-                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases
+                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             ON CONFLICT (jugador_id, temporada) DO UPDATE SET
                 at_bats = EXCLUDED.at_bats,
                 hits = EXCLUDED.hits,
@@ -2717,9 +2748,11 @@ async function upsertEstadisticasOfensivas(req, res) {
                 rbi = EXCLUDED.rbi,
                 runs = EXCLUDED.runs,
                 walks = EXCLUDED.walks,
-                stolen_bases = EXCLUDED.stolen_bases
+                stolen_bases = EXCLUDED.stolen_bases,
+                strikeouts = EXCLUDED.strikeouts 
             RETURNING *;
-        `, [jugador_id, temp, ab, h, hr, rbiV, runsV, bb, sb]);
+        `, [jugador_id, temp, ab, h, hr, rbiV, runsV, bb, sb, so]); // MODIFICACIÓN #5: Agregar 'so' a los parámetros
+        
         console.log('✅ Estadísticas ofensivas actualizadas:', result.rows[0]);
         res.json(result.rows[0]);
             } catch (error) {
