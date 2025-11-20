@@ -6,6 +6,7 @@
 //   - Soporte completo para 'strikeouts' en estadisticas_ofensivas (línea ~2693)
 //   - ✅ CORRECCIÓN: Manejo de parámetro 'stat' en /api/leaders para estadísticas específicas (línea 424)
 //   - 🟢 CORRECCIÓN CRÍTICA APLICADA: Endpoint GET /api/jugadores/:id para incluir 'strikeouts' (Línea ~1870)
+//   - ⭐ INTEGRACIÓN SSE: Agregados endpoints /api/live-updates y /api/sse-test para tiempo real.
 // ===================================
 const express = require('express');
 const cors = require('cors');
@@ -1398,9 +1399,9 @@ app.put('/api/equipos/:id', async (req, res) => {
             });
         }
 
-        if (nombre.length < 2 || manager.length < 2 || ciudad.length < 2) {
+        if (nombre.length < 2 || nombre.length > 100) {
             return res.status(400).json({ 
-                error: 'Todos los campos deben tener al menos 2 caracteres' 
+                error: 'El nombre debe tener entre 2 y 100 caracteres' 
             });
         }
 
@@ -2981,20 +2982,235 @@ function verificarLogos() {
   }
 }
 
-// // Manejo de 404 para SPA - ELIMINADO SEGÚN INSTRUCCIONES
-// app.get('*', (req, res) => {
-//   if (req.path.startsWith('/api/')) {
-//     res.status(404).json({ error: 'Endpoint no encontrado' });
-//   } else {
-//     res.sendFile(path.join(__dirname, 'index.html'));
-//   }
-// });
-
 // Ejecutar verificación al iniciar servidor
 verificarLogos();
 
 console.log('🚀 Chogui League System optimizado para Railway');
 
+
+// Salud del API (útil para el index)
+app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
+
+// ===============================================================
+// =================== INICIO DE INTEGRACIÓN SSE =================
+// ===============================================================
+
+// Variable global para contar las conexiones activas SSE
+let activeConnections = 0;
+console.log('✨ Preparando el sistema SSE...');
+
+/**
+ * ENDPOINT DE ACTUALIZACIONES EN TIEMPO REAL
+ * Envía datos actualizados cada 30 segundos a todas las páginas conectadas
+ * Compatible con Railway y optimizado para béisbol/sóftbol
+ */
+app.get('/api/live-updates', async (req, res) => {
+    // Incrementar el contador global
+    activeConnections++;
+    console.log(`📡 Nueva conexión SSE establecida desde IP: ${req.ip}. Total de conexiones activas: ${activeConnections}`);
+    
+    // Configurar headers para Server-Sent Events
+    res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*', // Crucial para CORS en Railway
+        'Access-Control-Allow-Headers': 'Cache-Control',
+        'X-Accel-Buffering': 'no' // Deshabilita el buffering en algunos proxies como Nginx
+    });
+
+    // Enviar mensaje inicial de conexión
+    res.write(`data: {"type":"connected","message":"Conectado al sistema de actualizaciones","timestamp":"${new Date().toISOString()}"}\n\n`);
+
+    // Función para obtener todos los datos actualizados
+    async function getAllUpdatedData() {
+        try {
+            console.log('🔄 Recopilando datos actualizados para SSE...');
+
+            // 1. LÍDERES OFENSIVOS COMPLETOS (Top 10 AVG)
+            const lideresOfensivos = await pool.query(`
+                SELECT 
+                    j.id as jugador_id,
+                    j.nombre as jugador_nombre,
+                    e.nombre as equipo_nombre,
+                    s.hits,
+                    s.at_bats,
+                    s.home_runs,
+                    s.rbi,
+                    s.stolen_bases,
+                    s.strikeouts,
+                    CASE 
+                        WHEN s.at_bats > 0 
+                        THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
+                        ELSE 0.000 
+                    END as avg
+                FROM estadisticas_ofensivas s
+                JOIN jugadores j ON s.jugador_id = j.id
+                LEFT JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.at_bats > 0
+                ORDER BY avg DESC
+                LIMIT 10
+            `);
+
+            // 2. TABLA DE POSICIONES ACTUALIZADA
+            const standings = await pool.query(`
+                SELECT 
+                    e.id,
+                    e.nombre,
+                    COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local > p.carreras_visitante) OR 
+                                       (p.equipo_visitante_id = e.id AND p.carreras_visitante > p.carreras_local) 
+                              THEN 1 END) as victorias,
+                    COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local < p.carreras_visitante) OR 
+                                       (p.equipo_visitante_id = e.id AND p.carreras_visitante < p.carreras_local) 
+                              THEN 1 END) as derrotas,
+                    CASE 
+                        WHEN COUNT(p.id) > 0 THEN 
+                        ROUND(COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local > p.carreras_visitante) OR 
+                                                 (p.equipo_visitante_id = e.id AND p.carreras_visitante > p.carreras_local) 
+                                            THEN 1 END)::DECIMAL / COUNT(p.id), 3)
+                        ELSE 0.000 
+                    END as pct
+                FROM equipos e
+                LEFT JOIN partidos p ON (e.id = p.equipo_local_id OR e.id = p.equipo_visitante_id) 
+                                      AND p.estado = 'finalizado'
+                GROUP BY e.id, e.nombre
+                ORDER BY pct DESC, victorias DESC
+            `);
+
+            // 3. LÍDERES DE PITCHEO (Top 5 ERA)
+            const lideresPitcheo = await pool.query(`
+                SELECT 
+                    j.id as jugador_id,
+                    j.nombre as jugador_nombre,
+                    e.nombre as equipo_nombre,
+                    s.wins,
+                    s.losses,
+                    s.strikeouts,
+                    s.innings_pitched,
+                    CASE 
+                        WHEN s.innings_pitched >= 5 THEN 
+                        ROUND((s.earned_runs * 9.0) / s.innings_pitched, 2)
+                        ELSE 99.99 
+                    END as era
+                FROM estadisticas_pitcheo s
+                JOIN jugadores j ON s.jugador_id = j.id
+                LEFT JOIN equipos e ON j.equipo_id = e.id
+                WHERE s.innings_pitched >= 5
+                ORDER BY era ASC
+                LIMIT 5
+            `);
+
+            // 4. ÚLTIMOS PARTIDOS FINALIZADOS
+            const recentGames = await pool.query(`
+                SELECT 
+                    p.id,
+                    p.fecha_partido,
+                    p.carreras_local,
+                    p.carreras_visitante,
+                    el.nombre as equipo_local_nombre,
+                    ev.nombre as equipo_visitante_nombre
+                FROM partidos p
+                JOIN equipos el ON p.equipo_local_id = el.id
+                JOIN equipos ev ON p.equipo_visitante_id = ev.id
+                WHERE p.estado = 'finalizado'
+                ORDER BY p.fecha_partido DESC
+                LIMIT 5
+            `);
+
+            // 5. PRÓXIMOS PARTIDOS
+            const upcomingGames = await pool.query(`
+                SELECT 
+                    p.id,
+                    p.fecha_partido,
+                    p.hora,
+                    el.nombre as equipo_local_nombre,
+                    ev.nombre as equipo_visitante_nombre
+                FROM partidos p
+                JOIN equipos el ON p.equipo_local_id = el.id
+                JOIN equipos ev ON p.equipo_visitante_id = ev.id
+                WHERE p.estado = 'programado'
+                ORDER BY p.fecha_partido ASC
+                LIMIT 5
+            `);
+
+            return {
+                timestamp: new Date().toISOString(),
+                lideresOfensivos: lideresOfensivos.rows,
+                standings: standings.rows,
+                lideresPitcheo: lideresPitcheo.rows,
+                recentGames: recentGames.rows,
+                upcomingGames: upcomingGames.rows,
+                totalConnections: activeConnections
+            };
+
+        } catch (error) {
+            console.error('❌ Error recopilando datos para SSE:', error);
+            return {
+                timestamp: new Date().toISOString(),
+                error: 'Error obteniendo datos actualizados',
+                details: error.message
+            };
+        }
+    }
+
+    // Intervalo principal de actualización - CADA 30 SEGUNDOS
+    const updateInterval = setInterval(async () => {
+        try {
+            const updatedData = await getAllUpdatedData();
+            const message = `data: ${JSON.stringify(updatedData)}\n\n`;
+            res.write(message);
+            console.log(`📊 Datos SSE enviados a ${activeConnections} conexiones`);
+        } catch (error) {
+            console.error('❌ Error enviando datos SSE:', error);
+        }
+    }, 30000); // 30 segundos
+
+    // Envío inmediato de datos al conectar
+    setTimeout(async () => {
+        try {
+            const initialData = await getAllUpdatedData();
+            res.write(`data: ${JSON.stringify(initialData)}\n\n`);
+            console.log('📡 Datos iniciales enviados a nueva conexión SSE');
+        } catch (error) {
+            console.error('❌ Error enviando datos iniciales SSE:', error);
+        }
+    }, 1000);
+
+    // Manejo de desconexión del cliente
+    req.on('close', () => {
+        activeConnections--;
+        clearInterval(updateInterval);
+        console.log(`🔌 Conexión SSE cerrada. Conexiones activas: ${activeConnections}`);
+    });
+
+    req.on('error', (error) => {
+        activeConnections--;
+        clearInterval(updateInterval);
+        console.error('❌ Error en conexión SSE:', error);
+    });
+});
+
+// ===============================================================
+// ============ ENDPOINT ADICIONAL PARA DEBUGGING ==============	
+// ===============================================================
+
+/**
+ * ENDPOINT DE TESTING PARA SSE
+ * Permite verificar si el SSE está funcionando correctamente
+ */
+app.get('/api/sse-test', (req, res) => {
+    console.log('🔍 Endpoint de test SSE solicitado');
+    res.json({
+        message: 'SSE endpoint disponible',
+        url: '/api/live-updates',
+        interval: '30 segundos',
+        status: 'activo',
+        timestamp: new Date().toISOString(),
+        note: 'Este endpoint confirma que /api/live-updates está listo para emitir eventos.'
+    });
+});
+
+console.log('✅ Endpoints SSE configurados correctamente');
 
 // ===============================================================
 // =================== MIDDLEWARE FINAL =========================
