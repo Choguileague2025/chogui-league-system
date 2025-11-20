@@ -4,6 +4,7 @@
 // CAMBIOS: 
 //   - Agregado endpoint GET /api/equipos/:id/logo (línea 1254-1311)
 //   - Soporte completo para 'strikeouts' en estadisticas_ofensivas (línea ~2693)
+//   - ✅ CORRECCIÓN: Manejo de parámetro 'stat' en /api/leaders para estadísticas específicas (línea 424)
 // ===================================
 const express = require('express');
 const cors = require('cors');
@@ -421,7 +422,8 @@ app.get('/api/standings', async (req, res, next) => {
  */
 app.get('/api/leaders', async (req, res, next) => {
     try {
-        const { tipo = 'bateo', limit = 10 } = req.query;
+        // 1. Modificación de la línea 424 para capturar 'stat'
+        const { tipo = 'bateo', limit = 10, stat } = req.query;
         let sql = '';
         const params = [Number(limit) || 10];
         const validTypes = ['bateo', 'pitcheo', 'defensiva', 'todos'];
@@ -430,11 +432,123 @@ app.get('/api/leaders', async (req, res, next) => {
                 error: 'Tipo de líder no válido. Use: bateo, pitcheo, defensiva, o todos'
             });
         }
-        console.log(`📊 Obteniendo líderes de tipo: ${tipo}, limit: ${params[0]}`);
+        console.log(`📊 Obteniendo líderes de tipo: ${tipo}, stat: ${stat || 'default'}, limit: ${params[0]}`);
+
         // ============================================================
-        // ✅ QUERY 1: LÍDERES DE BATEO
+        // ✅ MANEJO DE ESTADÍSTICAS ESPECÍFICAS
         // ============================================================
-        if (tipo === 'bateo') {
+        if (stat && tipo === 'bateo') {
+            switch (stat) {
+                case 'strikeouts':
+                    sql = `
+                        SELECT 
+                            j.id as jugador_id,
+                            j.nombre as jugador_nombre,
+                            j.nombre,
+                            e.id as equipo_id,
+                            e.nombre as equipo_nombre,
+                            s.strikeouts,
+                            s.at_bats,
+                            s.hits,
+                            CASE 
+                                WHEN s.at_bats > 0 
+                                THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
+                                ELSE 0.000 
+                            END as avg
+                        FROM estadisticas_ofensivas s
+                        JOIN jugadores j ON s.jugador_id = j.id
+                        LEFT JOIN equipos e ON j.equipo_id = e.id
+                        WHERE s.strikeouts > 0
+                        ORDER BY s.strikeouts DESC
+                        LIMIT $1;
+                    `;
+                    break;
+                case 'home_runs':
+                    sql = `
+                        SELECT 
+                            j.id as jugador_id,
+                            j.nombre as jugador_nombre,
+                            e.nombre as equipo_nombre,
+                            s.home_runs
+                        FROM estadisticas_ofensivas s
+                        JOIN jugadores j ON s.jugador_id = j.id
+                        LEFT JOIN equipos e ON j.equipo_id = e.id
+                        WHERE s.home_runs > 0
+                        ORDER BY s.home_runs DESC
+                        LIMIT $1;
+                    `;
+                    break;
+                case 'rbi':
+                    sql = `
+                        SELECT 
+                            j.id as jugador_id,
+                            j.nombre as jugador_nombre,
+                            e.nombre as equipo_nombre,
+                            s.rbi
+                        FROM estadisticas_ofensivas s
+                        JOIN jugadores j ON s.jugador_id = j.id
+                        LEFT JOIN equipos e ON j.equipo_id = e.id
+                        WHERE s.rbi > 0
+                        ORDER BY s.rbi DESC
+                        LIMIT $1;
+                    `;
+                    break;
+                case 'hits':
+                    sql = `
+                        SELECT 
+                            j.id as jugador_id,
+                            j.nombre as jugador_nombre,
+                            e.nombre as equipo_nombre,
+                            s.hits
+                        FROM estadisticas_ofensivas s
+                        JOIN jugadores j ON s.jugador_id = j.id
+                        LEFT JOIN equipos e ON j.equipo_id = e.id
+                        WHERE s.hits > 0
+                        ORDER BY s.hits DESC
+                        LIMIT $1;
+                    `;
+                    break;
+                case 'stolen_bases':
+                    sql = `
+                        SELECT 
+                            j.id as jugador_id,
+                            j.nombre as jugador_nombre,
+                            e.nombre as equipo_nombre,
+                            s.stolen_bases
+                        FROM estadisticas_ofensivas s
+                        JOIN jugadores j ON s.jugador_id = j.id
+                        LEFT JOIN equipos e ON j.equipo_id = e.id
+                        WHERE s.stolen_bases > 0
+                        ORDER BY s.stolen_bases DESC
+                        LIMIT $1;
+                    `;
+                    break;
+                case 'avg':
+                    sql = `
+                        SELECT 
+                            j.id as jugador_id,
+                            j.nombre as jugador_nombre,
+                            e.nombre as equipo_nombre,
+                            s.hits,
+                            s.at_bats,
+                            CASE 
+                                WHEN s.at_bats > 0 
+                                THEN ROUND(s.hits::DECIMAL / s.at_bats, 3) 
+                                ELSE 0.000 
+                            END as avg
+                        FROM estadisticas_ofensivas s
+                        JOIN jugadores j ON s.jugador_id = j.id
+                        LEFT JOIN equipos e ON j.equipo_id = e.id
+                        WHERE s.at_bats >= 10
+                        ORDER BY avg DESC
+                        LIMIT $1;
+                    `;
+                    break;
+            }
+        } 
+        // 3. Modificación a 'else if' para la lógica de bateo por defecto
+        // Si no hay parámetro 'stat', continuar con la lógica original (default a AVG)
+        else if (tipo === 'bateo') {
             sql = `
                 SELECT 
                     j.id as jugador_id,
@@ -624,6 +738,18 @@ app.get('/api/leaders', async (req, res, next) => {
             `;
         }
         
+        // Si después de todas las comprobaciones, 'sql' sigue vacío, es un error 400.
+        // Esto solo ocurre si 'tipo' es válido, pero 'stat' era inválido o no se proporcionó
+        // Y 'tipo' no era 'bateo', 'pitcheo' o 'defensiva'. Sin embargo, ya filtramos 
+        // los 'tipos' inválidos. Un 'stat' inválido dentro de 'tipo=bateo' dejaría
+        // 'sql' vacío, por lo que debemos manejar el caso de fallback del 'switch'.
+        if (!sql) {
+            // Este caso captura: tipo=bateo y stat=estadistica_invalida
+             return res.status(400).json({ 
+                error: `Estadística ofensiva '${stat}' no soportada. Opciones: strikeouts, home_runs, rbi, hits, stolen_bases, avg` 
+            });
+        }
+        
         // ============================================================
         // ✅ EJECUTAR QUERY Y DEVOLVER RESULTADOS
         // ============================================================
@@ -644,7 +770,7 @@ app.get('/api/leaders', async (req, res, next) => {
         res.json(rows);
             
     } catch (err) {
-        console.error(`❌ ERROR en /api/leaders (tipo: ${req.query.tipo}):`, err);
+        console.error(`❌ ERROR en /api/leaders (tipo: ${req.query.tipo}, stat: ${req.query.stat}):`, err);
         res.status(500).json({ 
             error: 'Error obteniendo líderes',
             details: err.message 
