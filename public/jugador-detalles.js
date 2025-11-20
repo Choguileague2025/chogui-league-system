@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    console.log('🔄 Cargando datos del jugador ID:', currentPlayerId);
+    console.log('📄 Cargando datos del jugador ID:', currentPlayerId);
     loadPlayerData(currentPlayerId);
 });
 
@@ -59,11 +59,13 @@ async function loadPlayerData(id) {
 
         // 🔍 DEBUGGING ESPECÍFICO PARA STRIKEOUTS
         console.log('🔍 DEBUGGING DETALLADO - STRIKEOUTS:');
-        console.log('  📊 Estadísticas Ofensivas (Bateador):', statsOfensivas);
+        console.log('  📊 Datos del Player (API /jugadores):', player);
+        console.log('  🎯 STRIKEOUTS DEL PLAYER:', player.strikeouts);
+        console.log('  📊 Estadísticas Ofensivas (API /estadisticas-ofensivas):', statsOfensivas);
         console.log('  ⚾ Estadísticas Pitcheo:', statsPitcheo);
         
         if (statsOfensivas && statsOfensivas.length > 0) {
-            console.log('  🎯 STRIKEOUTS DEL BATEADOR:', statsOfensivas[0].strikeouts);
+            console.log('  🎯 STRIKEOUTS DE STATS OFENSIVAS:', statsOfensivas[0].strikeouts);
             console.log('  📋 TODOS LOS CAMPOS OFENSIVOS:', Object.keys(statsOfensivas[0]));
         }
         
@@ -77,7 +79,8 @@ async function loadPlayerData(id) {
 
         // Renderizar información
         renderPlayerInfo(player);
-        renderStats(statsOfensivas, 'statsBateoContainer', 'bateo');
+        // ✅ CORRECCIÓN CRÍTICA: Usar datos del player que incluyen strikeouts actualizados
+        renderStats([player], 'statsBateoContainer', 'bateo');
         renderStats(statsPitcheo, 'statsPitcheoContainer', 'pitcheo');
         renderStats(statsPitcheo, 'statsPitcheoDetailContainer', 'pitcheo-detail');
         renderStats(statsDefensivas, 'statsDefensaContainer', 'defensa');
@@ -347,4 +350,4 @@ function getTeamLogo(teamName) {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=ffd700&color=1a1a2e&size=120`;
 }
 
-console.log('🔄 jugador-detalles.js cargado correctamente');
+console.log('📄 jugador-detalles.js cargado correctamente - VERSIÓN CON STRIKEOUTS CORREGIDOS');
