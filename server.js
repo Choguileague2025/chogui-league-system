@@ -3132,4 +3132,4 @@ app.all(/^\/api\/estadisticas[-_]ofensivas\/(\d+)$/i, (req, res, next) => {
 // Salud del API (útil para el index)
 app.get('/api/health', (req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
-startServer(); 
+startServer();
