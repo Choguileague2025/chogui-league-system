@@ -2931,6 +2931,16 @@
                     </div>
 
             </div>
+            
+            <div class="card">
+                <h3>⭐ Líderes Ofensivos Destacados</h3>
+                <div id="lideresOfensivosContainer" class="leaders-grid-enhanced">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Cargando líderes ofensivos...</p>
+                    </div>
+                </div>
+            </div>
 
             <div class="card">
                 <h3>📊 Estadísticas Completas de Bateo</h3>
@@ -3477,6 +3487,200 @@
                 if(emptyMessage && content) content.style.display = 'none';
             }
         }
+        
+        // =====================================================
+        // ⭐ CÓDIGO AÑADIDO / MODIFICADO PARA LA TAREA SO ⭐
+        // =====================================================
+
+        // ✅ 1. LOCALIZAR Y REEMPLAZAR LA VARIABLE "lideresOfensivos"
+        const lideresOfensivos = [
+            { title: 'AVG - Promedio de Bateo', key: 'avg', endpoint: '/api/leaders?tipo=bateo&stat=avg' },
+            { title: 'HR - Cuadrangulares', key: 'home_runs', endpoint: '/api/leaders?tipo=bateo&stat=home_runs' },
+            { title: 'RBI - Carreras Impulsadas', key: 'rbi', endpoint: '/api/leaders?tipo=bateo&stat=rbi' },
+            { title: 'H - Hits', key: 'hits', endpoint: '/api/leaders?tipo=bateo&stat=hits' },
+            { title: 'SB - Bases Robadas', key: 'stolen_bases', endpoint: '/api/leaders?tipo=bateo&stat=stolen_bases' },
+            { title: 'SO - Ponches', key: 'strikeouts', endpoint: '/api/leaders?tipo=bateo&stat=strikeouts' } // ✅ NUEVO: Strikeouts (SO)
+        ];
+
+        // ✅ 2. AGREGAR LA FUNCIÓN DE RENDERIZADO DE LÍDERES OFENSIVOS
+
+        /**
+         * Función auxiliar para formatear el valor de la estadística según su clave.
+         * Se requiere para mostrar correctamente decimales (AVG) o enteros (HR, RBI, SO).
+         */
+        function formatearValorLider(key, lider) {
+            // Función para formatear valores según el tipo de estadística
+            switch(key) {
+                case 'avg':
+                    return lider.avg ? parseFloat(lider.avg).toFixed(3) : '0.000';
+                case 'home_runs':
+                    return lider.home_runs || 0;
+                case 'rbi':
+                    return lider.rbi || 0;
+                case 'hits':
+                    return lider.hits || 0;
+                case 'stolen_bases':
+                    return lider.stolen_bases || 0;
+                case 'strikeouts':
+                    return lider.strikeouts || 0; // ✅ NUEVO: Manejo de strikeouts
+                default:
+                    return lider[key] || 0;
+            }
+        }
+        
+        /**
+         * Carga y renderiza los líderes ofensivos definidos en el array `lideresOfensivos`.
+         */
+        async function cargarLideresOfensivos() {
+            try {
+                console.log('📊 Cargando líderes ofensivos...');
+        
+                const container = document.getElementById('lideresOfensivosContainer');
+                if (!container) {
+                    console.warn('❌ Contenedor lideresOfensivosContainer no encontrado');
+                    return;
+                }
+        
+                container.innerHTML = `<div class="loading-state"><div class="loading-spinner"></div><p>Cargando líderes ofensivos...</p></div>`;
+        
+                // Cargar todos los líderes de forma paralela
+                const promesasLideres = lideresOfensivos.map(async (categoria) => {
+                    try {
+                        const response = await fetch(getApiUrl(categoria.endpoint));
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        const data = await response.json();
+                        // Devolver hasta 5 líderes por categoría
+                        return { categoria: categoria.title, key: categoria.key, lideres: data.slice(0, 5) };
+                    } catch (error) {
+                        console.error(`❌ Error cargando ${categoria.title}:`, error);
+                        return { categoria: categoria.title, key: categoria.key, lideres: [] };
+                    }
+                });
+        
+                const resultados = await Promise.all(promesasLideres);
+        
+                // Renderizar cada categoría de líderes
+                container.innerHTML = resultados.map(resultado => {
+                    if (resultado.lideres.length === 0) {
+                        return `
+                            <div class="lideres-categoria">
+                                <h3>${resultado.categoria}</h3>
+                                <div class="lideres-lista">
+                                    <div class="lider-item">
+                                        <span class="lider-info">No hay datos disponibles</span>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }
+                    return `
+                        <div class="lideres-categoria">
+                            <h3>${resultado.categoria}</h3>
+                            <div class="lideres-lista">
+                                ${resultado.lideres.map((lider, index) => `
+                                    <div class="lider-item" onclick="window.open('jugador.html?id=${lider.jugador_id || lider.id}', '_blank')">
+                                        <span class="lider-posicion">${index + 1}</span>
+                                        <span class="lider-info">
+                                            <strong>${lider.jugador_nombre || 'Desconocido'}</strong><br>
+                                            <small>${lider.equipo_nombre || 'Sin Equipo'}</small>
+                                        </span>
+                                        <span class="lider-valor">${formatearValorLider(resultado.key, lider)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                }).join('');
+        
+                // Aplicar estilos para el contenedor (simulación de la estructura esperada)
+                container.style.display = 'grid';
+                container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(280px, 1fr))';
+                container.style.gap = '20px';
+                
+                // Estilos para la card individual (para que se vea bien)
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    .lideres-categoria { 
+                        background: rgba(255, 215, 0, 0.05); 
+                        border-radius: 12px; 
+                        padding: 15px; 
+                        border: 1px solid rgba(255, 215, 0, 0.15);
+                        transition: all 0.3s ease;
+                    }
+                    .lideres-categoria:hover {
+                        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1);
+                    }
+                    .lideres-categoria h3 { 
+                        color: #ffd700; 
+                        font-size: 1.1rem; 
+                        margin-bottom: 15px; 
+                        padding-bottom: 8px; 
+                        border-bottom: 1px solid rgba(255, 215, 0, 0.2); 
+                    }
+                    .lideres-lista { 
+                        display: flex; 
+                        flex-direction: column; 
+                        gap: 10px; 
+                    }
+                    .lider-item { 
+                        display: flex; 
+                        justify-content: space-between; 
+                        align-items: center; 
+                        padding: 8px 10px; 
+                        background: rgba(0, 0, 0, 0.1); 
+                        border-radius: 8px; 
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    .lider-item:hover { 
+                        background: rgba(255, 215, 0, 0.1); 
+                        transform: translateX(5px);
+                    }
+                    .lider-posicion { 
+                        font-weight: bold; 
+                        color: #ff8c00; 
+                        min-width: 25px; 
+                    }
+                    .lider-info { 
+                        flex-grow: 1; 
+                        margin-left: 10px; 
+                        font-size: 0.9rem;
+                    }
+                    .lider-info small { 
+                        color: rgba(255, 255, 255, 0.6); 
+                        display: block;
+                    }
+                    .lider-valor { 
+                        font-weight: bold; 
+                        color: #ffd700; 
+                        font-size: 1.1rem;
+                    }
+                    @media (max-width: 600px) {
+                        .lideres-categoria {
+                            padding: 10px;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+        
+                console.log('✅ Líderes ofensivos cargados y renderizados correctamente');
+        
+            } catch (error) {
+                console.error('❌ Error general cargando líderes ofensivos:', error);
+                const container = document.getElementById('lideresOfensivosContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="error-state" style="padding: 40px; text-align: center;">
+                            <h3>⚠️ Error de Conexión</h3>
+                            <p>No se pudieron cargar los líderes ofensivos</p>
+                            <button onclick="cargarLideresOfensivos()" class="btn-primary" style="margin-top: 15px;">🔄 Reintentar</button>
+                        </div>`;
+                }
+            }
+        }
+        
+        // =====================================================
+        // ⭐ FIN CÓDIGO AÑADIDO / MODIFICADO PARA LA TAREA SO ⭐
+        // =====================================================
+
 
         // ============= ✅ NUEVO: SISTEMA DE LÍDERES CENTRALIZADO =============
         let leadersData = {
@@ -4161,6 +4365,9 @@
            
             await cargarProximosPartidos(); 
             await cargarEstadisticasCompletas(); 
+            
+            // ✅ LLAMADA AÑADIDA: Cargar los líderes ofensivos
+            cargarLideresOfensivos(); 
 
             initMobileNavigation();
             initStickyHeader();
@@ -4418,7 +4625,7 @@
                             <div class="equipos-vs">
                                 <div class="equipo-info"><span class="equipo-nombre">${partido.equipo_visitante_nombre}</span></div>
                                 <span class="vs-separator">VS</span>
-                                <div class="equipo-info"><span class="equipo-nombre">${partido.equipo_local_nombre}</span></div>
+                                <div class="equipo-info"><span class="equipo_nombre">${partido.equipo_local_nombre}</span></div>
                             </div>
                         </div>`;
             }).join('');
