@@ -1,0 +1,402 @@
+// ===============================================================
+// ================== SSE CLIENT UNIVERSAL ===================== 
+// ===============================================================
+// Este archivo maneja las actualizaciones automáticas en tiempo real
+// Compatible con index.html, jugador.html, equipo.html y admin.html
+
+(function() {
+    'use strict';
+
+    let eventSource = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    let isConnected = false;
+
+    // ===============================================================
+    // =================== INICIALIZACIÓN SSE ======================
+    // ===============================================================
+    
+    function initializeSSE() {
+        console.log('🔄 Iniciando conexión SSE...');
+        
+        if (typeof EventSource === "undefined") {
+            console.warn('⚠️ EventSource no soportado en este navegador');
+            return;
+        }
+
+        try {
+            eventSource = new EventSource('/api/live-updates');
+            
+            eventSource.onopen = function(event) {
+                console.log('✅ Conexión SSE establecida');
+                isConnected = true;
+                reconnectAttempts = 0;
+                showConnectionStatus('Conectado - Actualizaciones automáticas activas', 'success');
+            };
+
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('📡 Datos SSE recibidos:', data.timestamp);
+                    
+                    if (data.type === 'connected') {
+                        console.log('🎉', data.message);
+                    } else {
+                        // Actualizar todos los componentes de la página
+                        updatePageComponents(data);
+                    }
+                } catch (error) {
+                    console.error('❌ Error procesando datos SSE:', error);
+                }
+            };
+
+            eventSource.onerror = function(event) {
+                console.error('❌ Error en conexión SSE');
+                isConnected = false;
+                handleSSEError();
+            };
+
+        } catch (error) {
+            console.error('❌ Error iniciando SSE:', error);
+            handleSSEError();
+        }
+    }
+
+    // ===============================================================
+    // ============== ACTUALIZACIÓN DE COMPONENTES =================
+    // ===============================================================
+
+    function updatePageComponents(data) {
+        console.log('🔄 Actualizando componentes de la página...');
+        
+        // Detectar qué página estamos y actualizar accordingly
+        const currentPage = getCurrentPage();
+        
+        switch (currentPage) {
+            case 'index':
+                updateIndexPage(data);
+                break;
+            case 'jugador':
+                updatePlayerPage(data);
+                break;
+            case 'equipo':
+                updateTeamPage(data);
+                break;
+            case 'admin':
+                updateAdminPage(data);
+                break;
+            default:
+                console.log('📄 Página no reconocida para actualización SSE');
+        }
+
+        // Actualizar componentes universales (si existen)
+        updateUniversalComponents(data);
+        
+        // Mostrar notificación de actualización
+        showUpdateNotification();
+    }
+
+    // ===============================================================
+    // ================ ACTUALIZACIONES POR PÁGINA ==================
+    // ===============================================================
+
+    function updateIndexPage(data) {
+        console.log('🏠 Actualizando página INDEX');
+        
+        // 1. ACTUALIZAR LÍDERES OFENSIVOS
+        if (data.lideresOfensivos && window.cargarLideresOfensivos) {
+            updateLeadersSection(data.lideresOfensivos, 'lideresOfensivosContainer');
+        }
+
+        // 2. ACTUALIZAR TABLA DE POSICIONES  
+        if (data.standings && document.getElementById('standingsTableBody')) {
+            updateStandingsTable(data.standings);
+        }
+
+        // 3. ACTUALIZAR PRÓXIMOS PARTIDOS
+        if (data.upcomingGames && document.getElementById('proximosPartidosContainer')) {
+            updateUpcomingGames(data.upcomingGames);
+        }
+
+        // 4. ACTUALIZAR LÍDERES DE PITCHEO
+        if (data.lideresPitcheo && document.getElementById('lideresPitcheoContainer')) {
+            updatePitchingLeaders(data.lideresPitcheo);
+        }
+    }
+
+    function updatePlayerPage(data) {
+        console.log('👤 Actualizando página JUGADOR');
+        
+        // Obtener ID del jugador actual
+        const playerId = getCurrentPlayerId();
+        if (!playerId) return;
+
+        // Buscar datos actualizados del jugador en los líderes
+        const updatedPlayerData = findPlayerInData(playerId, data);
+        
+        if (updatedPlayerData) {
+            // Actualizar estadísticas del jugador
+            updatePlayerStats(updatedPlayerData);
+        }
+
+        // Recargar datos completos del jugador si es necesario
+        if (window.loadPlayerData) {
+            console.log('🔄 Recargando datos completos del jugador...');
+            window.loadPlayerData(playerId);
+        }
+    }
+
+    function updateTeamPage(data) {
+        console.log('🏟️ Actualizando página EQUIPO');
+        
+        // Actualizar standings si estamos en página de equipo
+        if (data.standings && document.getElementById('teamStandingsContainer')) {
+            updateStandingsTable(data.standings);
+        }
+    }
+
+    function updateAdminPage(data) {
+        console.log('⚙️ Actualizando página ADMIN');
+        
+        // Mostrar feedback de cambios en tiempo real
+        if (data.timestamp) {
+            showAdminFeedback('Datos sincronizados: ' + new Date(data.timestamp).toLocaleTimeString());
+        }
+    }
+
+    // ===============================================================
+    // ============= FUNCIONES DE ACTUALIZACIÓN ESPECÍFICAS ========
+    // ===============================================================
+
+    function updateStandingsTable(standings) {
+        const tbody = document.getElementById('standingsTableBody');
+        if (!tbody || !standings) return;
+
+        tbody.innerHTML = standings.map((team, index) => `
+            <tr class="${getTeamStatusClass(index)}">
+                <td>${index + 1}</td>
+                <td class="team-name">${team.nombre}</td>
+                <td>${team.victorias || 0}</td>
+                <td>${team.derrotas || 0}</td>
+                <td>${team.pct || '0.000'}</td>
+            </tr>
+        `).join('');
+
+        console.log('✅ Tabla de posiciones actualizada');
+    }
+
+    function updateUpcomingGames(games) {
+        const container = document.getElementById('proximosPartidosContainer');
+        if (!container || !games) return;
+
+        container.innerHTML = games.map(game => `
+            <div class="partido-card-enhanced">
+                <div class="partido-header">
+                    <span class="partido-fecha">${formatGameDate(game.fecha_partido)}</span>
+                    <span class="partido-hora">${game.hora || 'TBD'}</span>
+                </div>
+                <div class="equipos-vs">
+                    <div class="equipo-info">
+                        <span class="equipo-nombre">${game.equipo_visitante_nombre}</span>
+                    </div>
+                    <span class="vs-separator">VS</span>
+                    <div class="equipo-info">
+                        <span class="equipo-nombre">${game.equipo_local_nombre}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        console.log('✅ Próximos partidos actualizados');
+    }
+
+    function updatePlayerStats(playerData) {
+        // Actualizar estadísticas en la página del jugador
+        const avgEl = document.getElementById('playerAVG');
+        const hrEl = document.getElementById('playerHR');
+        const rbiEl = document.getElementById('playerRBI');
+        const soEl = document.querySelector('[data-stat="strikeouts"]');
+
+        if (avgEl) avgEl.textContent = playerData.avg || '---';
+        if (hrEl) hrEl.textContent = playerData.home_runs || '---';
+        if (rbiEl) rbiEl.textContent = playerData.rbi || '---';
+        if (soEl) soEl.textContent = playerData.strikeouts || '0';
+
+        console.log('✅ Estadísticas del jugador actualizadas');
+    }
+
+    // ===============================================================
+    // ================== FUNCIONES AUXILIARES =====================
+    // ===============================================================
+
+    function getCurrentPage() {
+        const path = window.location.pathname;
+        const url = window.location.href;
+        
+        if (path === '/' || path.includes('index.html')) return 'index';
+        if (path.includes('jugador.html') || url.includes('jugador.html')) return 'jugador';
+        if (path.includes('equipo.html') || url.includes('equipo.html')) return 'equipo';
+        if (path.includes('admin.html')) return 'admin';
+        
+        return 'unknown';
+    }
+
+    function getCurrentPlayerId() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return parseInt(urlParams.get('id')) || null;
+    }
+
+    function findPlayerInData(playerId, data) {
+        if (!data.lideresOfensivos) return null;
+        return data.lideresOfensivos.find(player => player.jugador_id === playerId);
+    }
+
+    function getTeamStatusClass(index) {
+        // Clasificación a playoffs (primeros 4)
+        if (index < 4) return 'estado-clasificado';
+        return '';
+    }
+
+    function formatGameDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', { 
+            weekday: 'long', 
+            day: 'numeric', 
+            month: 'long' 
+        });
+    }
+
+    // ===============================================================
+    // ============== NOTIFICACIONES Y UI FEEDBACK =================
+    // ===============================================================
+
+    function showUpdateNotification() {
+        // Crear o actualizar indicador de actualización
+        let indicator = document.getElementById('sse-update-indicator');
+        
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'sse-update-indicator';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(45deg, #4CAF50, #45a049);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                z-index: 10000;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+            `;
+            document.body.appendChild(indicator);
+        }
+
+        indicator.textContent = `📊 Actualizado ${new Date().toLocaleTimeString()}`;
+        indicator.style.opacity = '1';
+
+        setTimeout(() => {
+            indicator.style.opacity = '0';
+        }, 3000);
+    }
+
+    function showConnectionStatus(message, type) {
+        console.log(`🔗 SSE Status: ${message}`);
+        
+        // Aquí puedes agregar un indicador visual del estado de conexión
+        const statusColor = type === 'success' ? '#4CAF50' : '#f44336';
+        document.documentElement.style.setProperty('--sse-status-color', statusColor);
+    }
+
+    function showAdminFeedback(message) {
+        const adminContainer = document.querySelector('.admin-container');
+        if (!adminContainer) return;
+
+        let feedback = document.getElementById('sse-admin-feedback');
+        if (!feedback) {
+            feedback = document.createElement('div');
+            feedback.id = 'sse-admin-feedback';
+            feedback.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: rgba(76, 175, 80, 0.9);
+                color: white;
+                padding: 10px;
+                border-radius: 5px;
+                font-size: 12px;
+                z-index: 1000;
+            `;
+            document.body.appendChild(feedback);
+        }
+
+        feedback.textContent = message;
+        feedback.style.display = 'block';
+
+        setTimeout(() => {
+            feedback.style.display = 'none';
+        }, 5000);
+    }
+
+    // ===============================================================
+    // ================= MANEJO DE ERRORES SSE =====================
+    // ===============================================================
+
+    function handleSSEError() {
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            const delay = Math.pow(2, reconnectAttempts) * 1000; // Exponential backoff
+            
+            console.log(`🔄 Reintentando conexión SSE en ${delay/1000} segundos... (${reconnectAttempts}/${maxReconnectAttempts})`);
+            
+            setTimeout(() => {
+                if (eventSource) {
+                    eventSource.close();
+                }
+                initializeSSE();
+            }, delay);
+        } else {
+            console.error('❌ Máximo número de reintentos SSE alcanzado');
+            showConnectionStatus('Sin conexión automática', 'error');
+        }
+    }
+
+    function closeSSE() {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+            console.log('🔌 Conexión SSE cerrada');
+        }
+    }
+
+    // ===============================================================
+    // =================== INICIALIZACIÓN =========================
+    // ===============================================================
+
+    // Inicializar SSE cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeSSE);
+    } else {
+        initializeSSE();
+    }
+
+    // Cerrar SSE al cerrar/refrescar la página
+    window.addEventListener('beforeunload', closeSSE);
+
+    // Exponer funciones globalmente para debugging
+    window.SSE_Client = {
+        isConnected: () => isConnected,
+        reconnect: initializeSSE,
+        disconnect: closeSSE,
+        status: () => ({
+            connected: isConnected,
+            attempts: reconnectAttempts,
+            eventSource: eventSource
+        })
+    };
+
+    console.log('✅ SSE Client inicializado correctamente');
+
+})();
