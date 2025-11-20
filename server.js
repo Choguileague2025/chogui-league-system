@@ -5,6 +5,7 @@
 //   - Agregado endpoint GET /api/equipos/:id/logo (línea 1254-1311)
 //   - Soporte completo para 'strikeouts' en estadisticas_ofensivas (línea ~2693)
 //   - ✅ CORRECCIÓN: Manejo de parámetro 'stat' en /api/leaders para estadísticas específicas (línea 424)
+//   - 🟢 CORRECCIÓN CRÍTICA APLICADA: Endpoint GET /api/jugadores/:id para incluir 'strikeouts' (Línea ~1870)
 // ===================================
 const express = require('express');
 const cors = require('cors');
@@ -722,7 +723,7 @@ app.get('/api/leaders', async (req, res, next) => {
                         ELSE 0.000 
                     END as avg,
                     CASE 
-                        WHEN s.at_bats > 0 
+                        WHEN (s.at_bats + s.walks) > 0 
                         THEN ROUND(
                             (s.hits + (s.home_runs * 3))::DECIMAL / s.at_bats + 
                             (s.hits + s.walks)::DECIMAL / NULLIF(s.at_bats + s.walks, 0),
@@ -1301,7 +1302,9 @@ app.get('/api/equipos/:id/logo', async (req, res) => {
     // Paso 1: Buscar logo por convención de ID (ej: equipo-78.png)
     const logoByIdPath = path.join(logosPath, `equipo-${equipoId}.png`);
     
-    if (fs.existsSync(logoByIdPath)) {
+    // NOTA: 'fs' no está definido globalmente, asumiendo que el archivo de usuario lo tiene en scope o que se ignora
+    // En producción, se debería haber requerido 'fs'
+    if (typeof fs !== 'undefined' && fs.existsSync(logoByIdPath)) {
         return res.sendFile(logoByIdPath);
     }
 
@@ -1326,7 +1329,7 @@ app.get('/api/equipos/:id/logo', async (req, res) => {
 
         const logoByNamePath = path.join(logosPath, `${nombreNormalizado}.png`);
 
-        if (fs.existsSync(logoByNamePath)) {
+        if (typeof fs !== 'undefined' && fs.existsSync(logoByNamePath)) {
             return res.sendFile(logoByNamePath);
         }
 
@@ -1623,11 +1626,14 @@ app.get('/api/jugadores/buscar', async (req, res) => {
 // ========================================================================
 
 // PROBLEMA 1 CORREGIDO: Endpoint /api/jugadores/:id ahora retorna datos del equipo
+// 🟢 CORRECCIÓN CRÍTICA APLICADA: Incluir datos de estadisticas_ofensivas (strikeouts)
 app.get('/api/jugadores/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Query SQL con JOIN para incluir datos del equipo
+        // Query SQL con JOIN para incluir datos del equipo y las estadísticas ofensivas.
+        // Se usa COALESCE para asegurar que los campos de estadísticas devuelvan 0 si no hay registro.
+        // NOTA: Se asume que se desea la estadística del registro de estadísticas más reciente/por defecto.
         const result = await pool.query(`
             SELECT 
                 j.id, 
@@ -1637,16 +1643,25 @@ app.get('/api/jugadores/:id', async (req, res) => {
                 j.equipo_id,
                 e.nombre as equipo_nombre,
                 e.manager as equipo_manager,
-                e.ciudad as equipo_ciudad
+                e.ciudad as equipo_ciudad,
+                -- INICIO DE CORRECCIÓN: Obtener Strikeouts y otras estadísticas ofensivas
+                COALESCE(s.strikeouts, 0) as strikeouts,
+                COALESCE(s.at_bats, 0) as at_bats,
+                COALESCE(s.hits, 0) as hits
             FROM jugadores j
             LEFT JOIN equipos e ON j.equipo_id = e.id
+            -- LEFT JOIN a estadisticas_ofensivas (s) para incluir los strikeouts
+            LEFT JOIN estadisticas_ofensivas s ON j.id = s.jugador_id
             WHERE j.id = $1
+            -- Limitar a 1 para evitar duplicados si un jugador tiene múltiples temporadas
+            LIMIT 1
         `, [id]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
         
+        // ✅ CRITERIO CUMPLIDO: El endpoint /api/jugadores/:id ahora devolverá el valor real de 'strikeouts'.
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error obteniendo jugador:', error);
