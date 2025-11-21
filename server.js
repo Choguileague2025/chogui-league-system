@@ -7,6 +7,7 @@
 //   - ✅ CORRECCIÓN: Manejo de parámetro 'stat' en /api/leaders para estadísticas específicas (línea 424)
 //   - 🟢 CORRECCIÓN CRÍTICA APLICADA: Endpoint GET /api/jugadores/:id para incluir 'strikeouts' (Línea ~1870)
 //   - ⭐ INTEGRACIÓN SSE: Agregados endpoints /api/live-updates y /api/sse-test para tiempo real.
+//   - 🚨 INTEGRACIÓN CRÍTICA: Sistema de Recálculo Automático (Endpoint + Triggers)
 // ===================================
 const express = require('express');
 const cors = require('cors');
@@ -360,10 +361,7 @@ async function inicializarBaseDeDatos() {
 // ======================= RUTAS API ============================
 // ===============================================================
 
-// ... (TODAS TUS RUTAS API EXISTENTES, SIN CAMBIOS HASTA LÍNEA ~2693) ...
-// =================================================================================
-// ============== NUEVOS ENDPOINTS PARA EL LANDING PAGE (CORRECCIÓN) ===============
-// =================================================================================
+// ... (Resto de rutas API) ...
 
 /**
  * 1. GET /api/standings - Tabla de Posiciones
@@ -2171,7 +2169,10 @@ app.get('/api/partidos/:id', async (req, res) => {
     }
 });
 
-app.post('/api/partidos', async (req, res) => {
+// =========================================================================
+// 🚨 ENDPOINT CRÍTICO: POST /api/partidos - INTEGRACIÓN DE TRIGGER
+// =========================================================================
+app.post('/api/partidos', async (req, res, next) => {
     try {
         const { 
             equipo_local_id, 
@@ -2269,6 +2270,8 @@ app.post('/api/partidos', async (req, res) => {
         );
         
         res.status(201).json(result.rows[0]);
+        // Continuar al middleware/trigger
+        next(); 
     } catch (error) {
         console.error('Error creando partido:', error);
         res.status(500).json({ 
@@ -2276,10 +2279,12 @@ app.post('/api/partidos', async (req, res) => {
             detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
-});
+}, triggerRecalculation); // 🚨 Inyección del trigger
 
-
-app.put('/api/partidos/:id', async (req, res) => {
+// =========================================================================
+// 🚨 ENDPOINT CRÍTICO: PUT /api/partidos/:id - INTEGRACIÓN DE TRIGGER
+// =========================================================================
+app.put('/api/partidos/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
         const { 
@@ -2288,7 +2293,8 @@ app.put('/api/partidos/:id', async (req, res) => {
             carreras_local, 
             carreras_visitante, 
             innings_jugados, 
-            fecha_partido 
+            fecha_partido,
+            estado // Se permite la actualización de estado
         } = req.body;
         
         // Mismas validaciones que POST
@@ -2312,14 +2318,19 @@ app.put('/api/partidos/:id', async (req, res) => {
         if (equiposCheck.rows.length !== 2) {
             return res.status(400).json({ error: 'Uno o ambos equipos no existen' });
         }
+        
+        // Lógica de estado para asegurar el recálculo
+        const estadoFinal = estado && ['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'].includes(estado) 
+                            ? estado 
+                            : (carreras_local !== null && carreras_visitante !== null ? 'finalizado' : 'programado');
 
         const result = await pool.query(
             `UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2, 
                                  carreras_local = $3, carreras_visitante = $4, 
-                                 innings_jugados = $5, fecha_partido = $6 
+                                 innings_jugados = $5, fecha_partido = $6, estado = $8
              WHERE id = $7 RETURNING *`,
             [equipo_local_id, equipo_visitante_id, carreras_local || null, 
-             carreras_visitante || null, innings_jugados || 9, fecha_partido, id]
+             carreras_visitante || null, innings_jugados || 9, fecha_partido, id, estadoFinal]
         );
         
         if (result.rows.length === 0) {
@@ -2327,11 +2338,13 @@ app.put('/api/partidos/:id', async (req, res) => {
         }
         
         res.json(result.rows[0]);
+        // Continuar al middleware/trigger
+        next(); 
     } catch (error) {
         console.error('Error actualizando partido:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
-});
+}, triggerRecalculation); // 🚨 Inyección del trigger
 
 app.delete('/api/partidos/:id', async (req, res) => {
     try {
@@ -2851,7 +2864,7 @@ app.get('/api/lideres-pitcheo', async (req, res) => {
 // ============================================================
 // BUG #1 CORREGIDO: FUNCIÓN upsertEstadisticasOfensivas
 // ============================================================
-async function upsertEstadisticasOfensivas(req, res) {
+async function upsertEstadisticasOfensivas(req, res, next) {
     try {
         // MODIFICACIÓN #1: Agregar strikeouts a la desestructuración
         const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts, temporada } = req.body;
@@ -2880,9 +2893,9 @@ async function upsertEstadisticasOfensivas(req, res) {
         // MODIFICACIÓN #3: Actualizar consulta INSERT
         const result = await pool.query(`
             INSERT INTO estadisticas_ofensivas (
-                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts
+                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts, fecha_actualizacion
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
             ON CONFLICT (jugador_id, temporada) DO UPDATE SET
                 at_bats = EXCLUDED.at_bats,
                 hits = EXCLUDED.hits,
@@ -2891,23 +2904,30 @@ async function upsertEstadisticasOfensivas(req, res) {
                 runs = EXCLUDED.runs,
                 walks = EXCLUDED.walks,
                 stolen_bases = EXCLUDED.stolen_bases,
-                strikeouts = EXCLUDED.strikeouts 
+                strikeouts = EXCLUDED.strikeouts,
+                fecha_actualizacion = CURRENT_TIMESTAMP
             RETURNING *;
         `, [jugador_id, temp, ab, h, hr, rbiV, runsV, bb, sb, so]); // MODIFICACIÓN #5: Agregar 'so' a los parámetros
         
         console.log('✅ Estadísticas ofensivas actualizadas:', result.rows[0]);
         res.json(result.rows[0]);
+        // Continuar al middleware/trigger
+        next(); 
             } catch (error) {
         console.error('❌ Error al actualizar estadísticas ofensivas:', error);
         res.status(500).json({ error: 'Error interno del servidor al procesar estadísticas' });
     }
 }
 
-app.put('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
-app.post('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas);
+// =========================================================================
+// 🚨 ENDPOINT CRÍTICO: PUT/POST /api/estadisticas-ofensivas - INTEGRACIÓN DE TRIGGER
+// =========================================================================
+app.put('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas, triggerRecalculation); // 🚨 Inyección del trigger
+app.post('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas, triggerRecalculation); // 🚨 Inyección del trigger
+
 // Alias para compatibilidad con versión anterior (guión bajo)
-app.put('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
-app.post('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas);
+app.put('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas, triggerRecalculation); // 🚨 Inyección del trigger
+app.post('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas, triggerRecalculation); // 🚨 Inyección del trigger
 
 // ===============================================================
 // =================== RUTAS DE ARCHIVOS HTML =================
@@ -3218,6 +3238,222 @@ console.log('✅ Endpoints SSE configurados correctamente');
 app.use(errorHandler);
 
 // ===============================================================
+// =================== INICIO DEL RECÁLCULO AUTOMÁTICO ============
+// ===============================================================
+
+/**
+ * ENDPOINT PARA RECALCULAR TODAS LAS ESTADÍSTICAS
+ * Se debe ejecutar después de:
+ * - Registrar nuevos partidos
+ * - Editar estadísticas manualmente
+ * - Actualizar resultados de partidos
+ */
+app.post('/api/recalcular-estadisticas', async (req, res) => {
+    try {
+        console.log('🔄 Iniciando recálculo automático de estadísticas...');
+        
+        // 1. RECALCULAR ESTADÍSTICAS OFENSIVAS DESDE PARTIDOS (Jugados/Victorias/Derrotas)
+        const partidosFinalizados = await pool.query(`
+            SELECT 
+                j.id as jugador_id,
+                j.nombre,
+                p.id as partido_id,
+                p.fecha_partido,
+                CASE 
+                    WHEN j.equipo_id = p.equipo_local_id THEN p.carreras_local
+                    ELSE p.carreras_visitante 
+                END as carreras_equipo,
+                CASE 
+                    WHEN j.equipo_id = p.equipo_local_id THEN p.carreras_visitante
+                    ELSE p.carreras_local 
+                END as carreras_rival
+            FROM jugadores j
+            CROSS JOIN partidos p
+            WHERE p.estado = 'finalizado'
+            AND p.carreras_local IS NOT NULL
+            AND p.carreras_visitante IS NOT NULL
+            AND (j.equipo_id = p.equipo_local_id OR j.equipo_id = p.equipo_visitante_id)
+            ORDER BY j.id, p.fecha_partido
+        `);
+
+        // 2. CONSOLIDAR ESTADÍSTICAS POR JUGADOR (En el futuro, esto debería incluir AB, H, etc., si se registran por partido)
+        const jugadoresStats = {};
+        
+        partidosFinalizados.rows.forEach(row => {
+            if (!jugadoresStats[row.jugador_id]) {
+                jugadoresStats[row.jugador_id] = {
+                    jugador_id: row.jugador_id,
+                    partidos_jugados: 0,
+                    victorias: 0,
+                    derrotas: 0
+                };
+            }
+            
+            jugadoresStats[row.jugador_id].partidos_jugados++;
+            
+            // Lógica de Victoria/Derrota solo para el cálculo de PG/PP/PJ (aunque esto es más útil a nivel de equipo)
+            if (row.carreras_equipo > row.carreras_rival) {
+                jugadoresStats[row.jugador_id].victorias++;
+            } else {
+                jugadoresStats[row.jugador_id].derrotas++;
+            }
+        });
+
+        // 3. ACTUALIZAR ESTADÍSTICAS EXISTENTES CON DATOS CALCULADOS
+        for (const jugadorId in jugadoresStats) {
+            const stats = jugadoresStats[jugadorId];
+            
+            // Verificar si existe registro de estadísticas ofensivas
+            const existingStats = await pool.query(
+                'SELECT * FROM estadisticas_ofensivas WHERE jugador_id = $1',
+                [jugadorId]
+            );
+
+            if (existingStats.rows.length > 0) {
+                // Actualizar estadísticas existentes SIN TOCAR campos manuales (AB, H, HR, etc.)
+                await pool.query(`
+                    UPDATE estadisticas_ofensivas 
+                    SET 
+                        partidos_jugados = $1,
+                        fecha_actualizacion = CURRENT_TIMESTAMP
+                    WHERE jugador_id = $2
+                `, [stats.partidos_jugados, jugadorId]);
+            } else {
+                // Crear nuevo registro con valores por defecto
+                await pool.query(`
+                    INSERT INTO estadisticas_ofensivas 
+                    (jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, 
+                     walks, stolen_bases, strikeouts, partidos_jugados, fecha_registro, fecha_actualizacion)
+                    VALUES ($1, '2024', 0, 0, 0, 0, 0, 0, 0, 0, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                `, [jugadorId, stats.partidos_jugados]);
+            }
+        }
+
+        // 4. RECALCULAR POSICIONES DE EQUIPOS (Aunque ya se calcula on-the-fly en /api/standings, esto es un buen placeholder)
+        await pool.query(`
+            DROP TABLE IF EXISTS temp_standings;
+            CREATE TEMP TABLE temp_standings AS
+            SELECT 
+                e.id as equipo_id,
+                e.nombre as equipo_nombre,
+                COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local > p.carreras_visitante) OR 
+                                (p.equipo_visitante_id = e.id AND p.carreras_visitante > p.carreras_local) 
+                              THEN 1 END) as victorias,
+                COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local < p.carreras_visitante) OR 
+                                (p.equipo_visitante_id = e.id AND p.carreras_visitante < p.carreras_local) 
+                              THEN 1 END) as derrotas,
+                COUNT(p.id) as partidos_jugados
+            FROM equipos e
+            LEFT JOIN partidos p ON (e.id = p.equipo_local_id OR e.id = p.equipo_visitante_id) 
+                                 AND p.estado = 'finalizado'
+                                 AND p.carreras_local IS NOT NULL
+                                 AND p.carreras_visitante IS NOT NULL
+            GROUP BY e.id, e.nombre
+            ORDER BY 
+                CASE WHEN COUNT(p.id) > 0 THEN victorias::DECIMAL / COUNT(p.id) ELSE 0 END DESC,
+                victorias DESC;
+        `);
+        console.log('✅ Recálculo de standings de equipos completado en tabla temporal.');
+
+
+        // 5. LIMPIAR ESTADÍSTICAS HUÉRFANAS
+        await pool.query(`
+            DELETE FROM estadisticas_ofensivas 
+            WHERE jugador_id NOT IN (SELECT id FROM jugadores)
+        `);
+
+        await pool.query(`
+            DELETE FROM estadisticas_pitcheo 
+            WHERE jugador_id NOT IN (SELECT id FROM jugadores)
+        `);
+
+        await pool.query(`
+            DELETE FROM estadisticas_defensivas 
+            WHERE jugador_id NOT IN (SELECT id FROM jugadores)
+        `);
+        console.log('✅ Estadísticas huérfanas limpiadas.');
+
+
+        const totalJugadores = Object.keys(jugadoresStats).length;
+        
+        console.log(`✅ Recálculo completado: ${totalJugadores} jugadores procesados`);
+
+        res.json({
+            success: true,
+            message: 'Estadísticas recalculadas exitosamente',
+            jugadores_procesados: totalJugadores,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ Error recalculando estadísticas:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error recalculando estadísticas',
+            error: error.message
+        });
+    }
+});
+
+// ===============================================================
+// ============= FUNCIÓN AUXILIAR PARA TRIGGER AUTOMÁTICO ======
+// ===============================================================
+
+/**
+ * FUNCIÓN AUXILIAR PARA TRIGGER AUTOMÁTICO DE RECÁLCULO
+ */
+async function triggerRecalculation(req, res, next) {
+    // Ejecutar recálculo en background sin bloquear respuesta
+    setTimeout(async () => {
+        try {
+            console.log('🔄 Ejecutando recálculo automático en background...');
+            
+            // Determinar la URL base de forma segura
+            const baseUrl = process.env.NODE_ENV === 'production' 
+                ? 'https://chogui-league-system-production.up.railway.app' 
+                : `http://localhost:${PORT}`;
+
+            // Hacer llamada interna al endpoint de recálculo
+            // NOTA: Se debe asegurar que 'fetch' esté disponible (Node >= 18) o usar 'node-fetch'
+            const fetch = (await import('node-fetch')).default;
+
+            const response = await fetch(`${baseUrl}/api/recalcular-estadisticas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (response.ok) {
+                console.log('✅ Recálculo automático completado');
+            } else {
+                const errorBody = await response.json();
+                console.warn('⚠️ Recálculo automático falló:', response.status, errorBody.message);
+            }
+        } catch (error) {
+            console.error('❌ Error en recálculo automático:', error);
+        }
+    }, 2000); // Delay de 2 segundos para no interferir con la respuesta principal
+    
+    // Continuar con el flujo normal
+    // NOTE: next() ya fue llamado en el handler principal antes de este middleware,
+    // pero si se usara como un middleware real (no un callback de ruta como se hizo arriba),
+    // next() sería necesario. Aquí solo se usa como un simple callback final.
+    // Lo mantendremos aquí por si se ajusta la estructura de los handlers.
+    // En este caso, no es estrictamente necesario, pero es un buen patrón de middleware.
+    if (typeof next === 'function') {
+        // En los handlers que hemos modificado, next() ya se llama antes de este.
+        // Pero en la definición de la función, es mejor dejarlo.
+        // Lo removemos del flujo de ejecución aquí ya que está siendo inyectado al final
+        // del array de middlewares/handlers.
+    }
+}
+
+console.log('✅ Sistema de recálculo automático configurado');
+
+// ===============================================================
+// =================== FIN DEL RECÁLCULO AUTOMÁTICO ==============
+// ===============================================================
+
+// ===============================================================
 // =================== INICIAR SERVIDOR ========================
 // ===============================================================
 async function startServer() {
@@ -3259,19 +3495,19 @@ process.on('SIGTERM', () => {
 // 1) Rutas con ID en el path para estadísticas ofensivas (PUT/POST y con guión o guion_bajo)
 app.put('/api/estadisticas-ofensivas/:jugadorId', (req, res) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
-    return upsertEstadisticasOfensivas(req, res);
+    return upsertEstadisticasOfensivas(req, res, triggerRecalculation);
 });
 app.post('/api/estadisticas-ofensivas/:jugadorId', (req, res) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
-    return upsertEstadisticasOfensivas(req, res);
+    return upsertEstadisticasOfensivas(req, res, triggerRecalculation);
 });
 app.put('/api/estadisticas_ofensivas/:jugadorId', (req, res) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
-    return upsertEstadisticasOfensivas(req, res);
+    return upsertEstadisticasOfensivas(req, res, triggerRecalculation);
 });
 app.post('/api/estadisticas_ofensivas/:jugadorId', (req, res) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
-    return upsertEstadisticasOfensivas(req, res);
+    return upsertEstadisticasOfensivas(req, res, triggerRecalculation);
 });
 
 // 2) Alias para próximos partidos
@@ -3357,7 +3593,8 @@ app.all(/^\/api\/estadisticas[-_]ofensivas\/(\d+)$/i, (req, res, next) => {
       return res.status(400).json({ error: 'ID de jugador inválido' });
   }
   req.body = { ...req.body, jugador_id: jugadorId };
-  return upsertEstadisticasOfensivas(req, res);
+  // Pasa el trigger como último argumento a la función, ya que no se usa como middleware tradicional aquí
+  return upsertEstadisticasOfensivas(req, res, triggerRecalculation);
 });
 
 // Salud del API (útil para el index)
