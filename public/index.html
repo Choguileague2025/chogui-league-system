@@ -2856,7 +2856,7 @@
                      </table>
                  </div>
                  <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem;">
-    <strong>Leyenda:</strong> Pos=Posición, PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia, %=Porcentaje de Victorias
+    <strong>Leyenda:</strong> Pos=Posición, PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia de Carreras, %=Porcentaje de Victorias
 </p>
              </div>
         </div>
@@ -3132,14 +3132,42 @@
         // SECCIÓN DE POSICIONES, PARTIDOS (SIN CAMBIOS)
         // =================================================================================
         async function cargarTablaPosiciones() {
-            const tbodyEl = document.getElementById('tablaPosicionesBody');
+            const tbody = document.querySelector('#posicionesTable tbody');
             try {
                 setLoading('tablaPosiciones', true);
-                const standings = await fetchJSON('/api/standings');
-                renderTablaPosiciones(standings || [], tbodyEl);
-                setLoading('tablaPosiciones', false, (standings && standings.length) ? null : 'Sin datos de posiciones.');
-            } catch (e) {
-                setLoading('tablaPosiciones', false, 'No se pudo cargar la tabla.');
+
+                const response = await fetch('/api/standings');
+                if (!response.ok) throw new Error('Error cargando posiciones');
+
+                const equipos = await response.json();
+
+                if (!equipos || equipos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay datos de posiciones disponibles</td></tr>';
+                    setLoading('tablaPosiciones', false, 'Sin datos disponibles.');
+                    return;
+                }
+
+                tbody.innerHTML = equipos.map((equipo, index) => `
+                    <tr onclick="window.open('equipo.html?id=${equipo.id}', '_blank')" style="cursor: pointer;">
+                        <td><strong>${index + 1}</strong></td>
+                        <td><strong>${equipo.nombre}</strong></td>
+                        <td>${equipo.partidos_jugados || 0}</td>
+                        <td>${equipo.partidos_ganados || 0}</td>
+                        <td>${equipo.partidos_perdidos || 0}</td>
+                        <td>${equipo.carreras_favor || 0}</td>
+                        <td>${equipo.carreras_contra || 0}</td>
+                        <td style="color: ${(equipo.diferencia || 0) >= 0 ? '#4CAF50' : '#f44336'}">${(equipo.diferencia || 0) >= 0 ? '+' : ''}${equipo.diferencia || 0}</td>
+                        <td><strong>${equipo.porcentaje || '0.000'}</strong></td>
+                    </tr>
+                `).join('');
+
+                setLoading('tablaPosiciones', false);
+
+            } catch (error) {
+                console.error('Error cargando tabla de posiciones:', error);
+                document.querySelector('#posicionesTable tbody').innerHTML =
+                    '<tr><td colspan="9" class="error-state">Error cargando datos</td></tr>';
+                setLoading('tablaPosiciones', false, 'Error cargando datos.');
             }
         }
 
@@ -3769,7 +3797,7 @@
             }
         }
        
-        async function renderizarLideresPorCategoria(categoria) {
+        function renderizarLideresPorCategoria(categoria) {
             currentLeaderCategory = categoria; 
            
             const container = document.getElementById('lideresGrid');
@@ -4307,75 +4335,18 @@ function initBuscadorJugadores() {
             });
         }
        
-        async function cargarTablaPosiconesEquipos() {
+        async function cargarEstadisticasCompletas() {
     try {
-        const response = await fetch('/api/standings');
-        if (!response.ok) throw new Error('Error cargando posiciones');
+        const response = await fetch('/api/lideres?tipo=bateo&min_ab=1');
+        if (!response.ok) throw new Error('Error cargando datos');
 
-        let equipos = await response.json();
+        const jugadores = await response.json();
         const tbody = document.querySelector('#statsTable tbody');
 
-        if (!equipos || equipos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay datos disponibles</td></tr>';
+        if (jugadores.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="22" class="empty-state">No hay datos disponibles</td></tr>';
             return;
         }
-
-        // Ordenar por porcentaje (desc), y luego por diferencia (desc) como desempate
-        equipos = equipos.sort((a, b) => {
-            const pa = parseFloat(a.porcentaje) || 0;
-            const pb = parseFloat(b.porcentaje) || 0;
-            if (pb !== pa) return pb - pa;
-            const da = parseFloat(a.diferencia) || 0;
-            const db = parseFloat(b.diferencia) || 0;
-            return db - da;
-        });
-
-        tbody.innerHTML = equipos.map((equipo, index) => {
-            const dif = parseFloat(equipo.diferencia) || 0;
-            const badge = index < 4 ? ' <span title="Clasifica a playoffs">✅</span>' : '';
-            return `
-            <tr onclick="window.open('equipo.html?id=${equipo.id}', '_blank')" style="cursor: pointer;">
-                <td><strong>${index + 1}</strong></td>
-                <td><strong>${equipo.nombre}</strong>${badge}</td>
-                <td>${equipo.partidos_jugados}</td>
-                <td>${equipo.partidos_ganados}</td>
-                <td>${equipo.partidos_perdidos}</td>
-                <td>${equipo.carreras_favor}</td>
-                <td>${equipo.carreras_contra}</td>
-                <td style="color: ${dif >= 0 ? '#4CAF50' : '#f44336'}">${dif >= 0 ? '+' : ''}${dif}</td>
-                <td><strong>${equipo.porcentaje}</strong></td>
-            </tr>`;
-        }).join('');
-
-    } catch (error) {
-        console.error('Error cargando tabla de posiciones:', error);
-        const tbody = document.querySelector('#statsTable tbody');
-        if (tbody) {
-            tbody.innerHTML = '<tr><td colspan="9" class="error-state">Error cargando datos</td></tr>';
-        }
-    }
-}
-
-        tbody.innerHTML = equipos.map((equipo, index) => `
-            <tr onclick="window.open('equipo.html?id=${equipo.id}', '_blank')" style="cursor: pointer;">
-                <td><strong>${index + 1}</strong></td>
-                <td><strong>${equipo.nombre}</strong></td>
-                <td>${equipo.partidos_jugados}</td>
-                <td>${equipo.partidos_ganados}</td>
-                <td>${equipo.partidos_perdidos}</td>
-                <td>${equipo.carreras_favor}</td>
-                <td>${equipo.carreras_contra}</td>
-                <td style="color: ${equipo.diferencia >= 0 ? '#4CAF50' : '#f44336'}">${equipo.diferencia >= 0 ? '+' : ''}${equipo.diferencia}</td>
-                <td><strong>${equipo.porcentaje}</strong></td>
-            </tr>
-        `).join('');
-
-    } catch (error) {
-        console.error('Error cargando tabla de posiciones:', error);
-        document.querySelector('#statsTable tbody').innerHTML = 
-            '<tr><td colspan="9" class="error-state">Error cargando datos</td></tr>';
-    }
-}
 
         tbody.innerHTML = jugadores.map(j => `
             <tr onclick="window.open('jugador.html?id=${j.id}', '_blank')" style="cursor: pointer;">
@@ -4557,7 +4528,7 @@ function initBuscadorJugadores() {
             configurarTabsLideres();
            
             await cargarProximosPartidos(); 
-            await cargarTablaPosiconesEquipos();
+            await cargarEstadisticasCompletas();
             await cargarDatosParaBusqueda(); 
             
             // ✅ LLAMADA AÑADIDA: Cargar los líderes ofensivos
@@ -4892,5 +4863,6 @@ function initBuscadorJugadores() {
         </div>
       </div>
     </footer>
+    <script src="sse-client.js" defer></script>
 </body>
 </html>
