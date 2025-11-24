@@ -2834,7 +2834,7 @@
 
         <div id="posiciones" class="tab-content active">
              <div class="card" id="tablaPosiciones">
-                 <h3>🏆 Tabla de Posiciones</h3>
+                 <h3>📊 Estadísticas Individuales de Jugadores</h3>
                  <div data-loader>Cargando...</div>
                  <div data-empty></div>
                  <div class="table-container">
@@ -3148,10 +3148,49 @@
             const tbodyEl = document.getElementById('tablaPosicionesBody');
             try {
                 setLoading('tablaPosiciones', true);
-                const standings = await fetchJSON('/api/standings');
-                renderTablaPosiciones(standings || [], tbodyEl);
-                setLoading('tablaPosiciones', false, (standings && standings.length) ? null : 'Sin datos de posiciones.');
+                const response = await fetch('/api/lideres?tipo=bateo&min_ab=1');
+                if (!response.ok) throw new Error('Error cargando datos');
+                const jugadores = await response.json();
+
+                if (!jugadores || jugadores.length === 0) {
+                    tbodyEl.innerHTML = '<tr><td colspan="22" class="empty-state">No hay datos disponibles</td></tr>';
+                    setLoading('tablaPosiciones', false, 'Sin datos disponibles.');
+                    return;
+                }
+
+                tbodyEl.innerHTML = jugadores.map(jugador => `
+    <tr onclick="window.open('jugador.html?id=${jugador.jugador_id}', '_blank')" style="cursor: pointer;">
+        <td><strong>${jugador.nombre}</strong></td>
+        <td>${jugador.equipo}</td>
+        <td>${jugador.posicion}</td>
+        <td>${jugador.plate_appearances || 0}</td>
+        <td>${jugador.at_bats}</td>
+        <td>${jugador.hits}</td>
+        <td>${jugador.singles || 0}</td>
+        <td>${jugador.doubles || 0}</td>
+        <td>${jugador.triples || 0}</td>
+        <td>${jugador.home_runs}</td>
+        <td>${jugador.rbi}</td>
+        <td>${jugador.runs}</td>
+        <td>${jugador.walks}</td>
+        <td>${jugador.strikeouts}</td>
+        <td>${jugador.stolen_bases}</td>
+        <td>${jugador.caught_stealing || 0}</td>
+        <td><strong>${jugador.avg || '0.000'}</strong></td>
+        <td>${jugador.obp || '0.000'}</td>
+        <td>${jugador.slg || '0.000'}</td>
+        <td><strong>${jugador.ops || '0.000'}</strong></td>
+        <td>${jugador.iso || '0.000'}</td>
+        <td>${jugador.total_bases || 0}</td>
+    </tr>
+`).join('');
+
+                setLoading('tablaPosiciones', false);
             } catch (e) {
+                console.error('Error cargando estadísticas individuales:', e);
+                if (tbodyEl) {
+                    tbodyEl.innerHTML = '<tr><td colspan="22" class="error-state">Error cargando datos</td></tr>';
+                }
                 setLoading('tablaPosiciones', false, 'No se pudo cargar la tabla.');
             }
         }
@@ -3793,15 +3832,73 @@
                 btn.classList.toggle('active', btn.dataset.category === categoria);
             });
 
+            
             if (categoria === 'todos') {
                 if (container) container.style.display = 'none';
                 if (positionsContainer) positionsContainer.style.display = 'block';
                 if (searchContainer) searchContainer.style.display = 'block';
                 renderizarTodosPorPosicion();
-                setTimeout(() => {
-                    initBuscadorJugadores();
-                }, 100);
+                setTimeout(() => { initBuscadorJugadores(); }, 100);
                 return;
+            } else if (categoria === 'bateo') {
+                container.innerHTML = '';
+                positionsContainer.style.display='none';
+                searchContainer.style.display='none';
+                const r = await fetch('/api/lideres?tipo=bateo&min_ab=10');
+                const data = await r.json();
+                container.innerHTML = data.map((j,i)=>`
+                    <div class="lider-item" onclick="window.open('jugador.html?id=${j.id}','_blank')">
+                        <div class="lider-rank">#${i+1}</div>
+                        <div class="lider-info">
+                            <div class="lider-nombre">${j.nombre}</div>
+                            <div class="lider-equipo">${j.equipo}</div>
+                        </div>
+                        <div class="lider-stats">
+                            <div class="stat-primary">${j.avg||0}</div>
+                            <div class="stat-secondary">OPS: ${j.ops||'0.000'}</div>
+                        </div>
+                    </div>`).join('');
+                return;
+            } else if (categoria === 'pitcheo') {
+                container.innerHTML = '';
+                positionsContainer.style.display='none';
+                searchContainer.style.display='none';
+                const r = await fetch('/api/lideres?tipo=pitcheo');
+                const data = await r.json();
+                container.innerHTML = data.map((j,i)=>`
+                    <div class="lider-item">
+                        <div class="lider-rank">#${i+1}</div>
+                        <div class="lider-info">
+                            <div class="lider-nombre">${j.nombre}</div>
+                            <div class="lider-equipo">${j.equipo}</div>
+                        </div>
+                        <div class="lider-stats">
+                            <div class="stat-primary">${j.era||0}</div>
+                            <div class="stat-secondary">WHIP: ${j.whip||'0.00'}</div>
+                        </div>
+                    </div>`).join('');
+                return;
+            } else if (categoria === 'defensiva') {
+                container.innerHTML = '';
+                positionsContainer.style.display='none';
+                searchContainer.style.display='none';
+                const r = await fetch('/api/lideres?tipo=defensa');
+                const data = await r.json();
+                container.innerHTML = data.map((j,i)=>`
+                    <div class="lider-item">
+                        <div class="lider-rank">#${i+1}</div>
+                        <div class="lider-info">
+                            <div class="lider-nombre">${j.nombre}</div>
+                            <div class="lider-equipo">${j.equipo}</div>
+                        </div>
+                        <div class="lider-stats">
+                            <div class="stat-primary">${j.fielding_percentage||0}</div>
+                            <div class="stat-secondary">PO: ${j.putouts||0}</div>
+                        </div>
+                    </div>`).join('');
+                return;
+            }
+
             }
 
             if (container) container.style.display = 'grid';
