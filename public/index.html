@@ -4307,17 +4307,6 @@ function initBuscadorJugadores() {
         document.querySelector('#statsTable tbody').innerHTML = 
             '<tr><td colspan="22" class="error-state">Error cargando datos</td></tr>';
     }
-} else {
-                     estadisticasFiltradas = data || [];
-                 }
-                 estadisticas = estadisticasFiltradas;
-               
-                 const tbody = document.getElementById('statsTable').querySelector('tbody');
-                 if(tbody) {
-                     // ✅ MODIFICACIÓN APLICADA: AGREGAR EL DATO DE 'SO' (STRIKEOUTS)
-                      tbody.innerHTML = estadisticasFiltradas.slice(0, 10).map(s => `<tr><td>${s.jugador_nombre}</td><td>${s.equipo_nombre}</td><td>${s.posicion || '-'}</td><td>${s.at_bats}</td><td>${s.hits}</td><td>${s.avg}</td><td>${s.obp}</td><td>${s.ops}</td><td>${s.home_runs}</td><td>${s.rbi}</td><td>${s.strikeouts || 0}</td><td>-</td></tr>`).join('');
-                 }
-              } catch(e) { console.error('❌ Error cargando estadísticas completas:', e); }
 
              try {
                  const lideres = leadersData.defensiva || [];
@@ -4329,7 +4318,7 @@ function initBuscadorJugadores() {
                          lideres.forEach(l => {
                              const pos = l.posicion || 'UTIL';
                              const fldPct = parseFloat(l.fielding_percentage) || 0;
-                             if (!mejoresPorPosicion[pos] || fldPct > parseFloat(mejoresPorPosicion[pos].fielding_percentage || 0)) {
+                              if (!mejoresPorPosicion[pos] || fldPct > parseFloat(mejoresPorPosicion[pos].fielding_percentage || 0)) {
                                  mejoresPorPosicion[pos] = l;
                              }
                          });
