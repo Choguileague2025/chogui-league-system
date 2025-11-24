@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Chogui League - Sistema de Gestión Profesional</title>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin - Chogui League - Sistema de Gestión Profesional</title>
+<style>
         * {
             margin: 0;
             padding: 0;
@@ -1127,908 +1128,897 @@
     </style>
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
-    <div id="toast-container" class="toast-container"></div>
-    <div class="admin-controls">
-        <a href="/index.html" class="admin-btn">👁️ Vista Pública</a> <button onclick="logout()" class="admin-btn">🚪 Salir</button>
-    </div>
-    
-    <div id="main-content" class="container">
-        <div class="header">
-            <h1>🏆 CHOGUI LEAGUE - ADMIN</h1>
-            <p>Panel de Administración - Sistema de Gestión Profesional</p>
-            </div>
-
-        <div class="nav-tabs">
-            <button class="nav-tab active" data-tab="dashboard">📈 Dashboard</button>
-            <button class="nav-tab" data-tab="equipos">🏅 Equipos</button>
-            <button class="nav-tab" data-tab="partidos">🎯 Partidos</button>
-            <button class="nav-tab" data-tab="jugadores">👤 Jugadores</button>
-            <button class="nav-tab" data-tab="lideres">🏆 Líderes</button>
-            <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
-            <button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
-        </div>
-
-        <div id="dashboard" class="tab-content active">
-            <div class="card">
-                <h3>📊 Resumen Ejecutivo de la Liga</h3>
-                <div class="leaders-grid">
-                    <div class="leader-card">
-                        <h4>🏆 EQUIPOS TOTALES</h4>
-                        <div class="leader-item">
-                            <div class="leader-name">Equipos Registrados</div>
-                            <div class="leader-stat" id="total-equipos">0</div>
-                        </div>
-                        <div class="leader-item">
-                            <div class="leader-name">Con Partidos Jugados</div>
-                            <div class="leader-stat" id="equipos-activos">0</div>
-                        </div>
-                    </div>
-        
-                    <div class="leader-card">
-                        <h4>👥 JUGADORES TOTALES</h4>
-                        <div class="leader-item">
-                            <div class="leader-name">Jugadores Registrados</div>
-                            <div class="leader-stat" id="total-jugadores">0</div>
-                        </div>
-                        <div class="leader-item">
-                            <div class="leader-name">Con Estadísticas</div>
-                            <div class="leader-stat" id="jugadores-stats">0</div>
-                        </div>
-                    </div>
-        
-                    <div class="leader-card">
-                        <h4>🎯 PARTIDOS TOTALES</h4>
-                        <div class="leader-item">
-                            <div class="leader-name">Partidos Registrados</div>
-                            <div class="leader-stat" id="total-partidos">0</div>
-                        </div>
-                        <div class="leader-item">
-                            <div class="leader-name">Partidos Finalizados</div>
-                            <div class="leader-stat" id="partidos-finalizados">0</div>
-                        </div>
-                    </div>
-        
-                    <div class="leader-card">
-                        <h4>🗓️ TORNEO ACTUAL</h4>
-                        <div class="leader-item">
-                            <div class="leader-name" id="torneo-nombre">Sin Torneo Activo</div>
-                            <div class="leader-stat" id="torneo-status">❌</div>
-                        </div>
-                        <div class="leader-item">
-                            <div class="leader-name">Última Actualización</div>
-                            <div class="leader-stat" id="ultima-actualizacion">--</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            <div class="card">
-                <h3>📈 Estadísticas de Rendimiento</h3>
-                <div class="position-leaders-grid">
-                    <div class="position-card">
-                        <div class="position-title">⚾ PROMEDIO GENERAL DE BATEO</div>
-                        <div class="position-leader">
-                            <div class="leader-stat" style="font-size: 2rem; color: #ffd700;" id="avg-general">.000</div>
-                            <div class="leader-team">Liga completa</div>
-                        </div>
-                    </div>
-        
-                    <div class="position-card">
-                        <div class="position-title">🏃 CARRERAS POR PARTIDO</div>
-                        <div class="position-leader">
-                            <div class="leader-stat" style="font-size: 2rem; color: #ff8c00;" id="carreras-promedio">0.0</div>
-                            <div class="leader-team">Promedio por equipo</div>
-                        </div>
-                    </div>
-        
-                    <div class="position-card">
-                        <div class="position-title">🎯 PORCENTAJE DE FINALIZACIÓN</div>
-                        <div class="position-leader">
-                            <div class="leader-stat" style="font-size: 2rem; color: #4CAF50;" id="porcentaje-finalizacion">0%</div>
-                            <div class="leader-team">Partidos completados</div>
-                        </div>
-                    </div>
-        
-                    <div class="position-card">
-                        <div class="position-title">🏆 EQUIPO LÍDER</div>
-                        <div class="position-leader">
-                            <div class="leader-stat" style="font-size: 1.5rem; color: #ffd700;" id="equipo-lider">Sin datos</div>
-                            <div class="leader-team" id="record-lider">0-0</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-            <div class="card">
-                <h3>⚠️ Alertas y Estado del Sistema</h3>
-                <div id="alertas-container">
-                    <div class="leader-item">
-                        <div class="leader-name">Estado de la Base de Datos</div>
-                        <div class="leader-stat" style="color: #4CAF50;">✅ Operativa</div>
-                    </div>
-                </div>
-            </div>
-        
-            <div class="card">
-                <h3>📊 Comparativas Temporales</h3>
-                <div class="stats-form-container">
-                    <div class="form-group">
-                        <label>📅 Último Partido Registrado:</label>
-                        <div id="ultimo-partido" style="color: #ffd700; font-weight: bold;">Sin partidos</div>
-                    </div>
-                    <div class="form-group">
-                        <label>👤 Último Jugador Agregado:</label>
-                        <div id="ultimo-jugador" style="color: #ffd700; font-weight: bold;">Sin jugadores</div>
-                    </div>
-                    <div class="form-group">
-                        <label>🏆 Último Equipo Creado:</label>
-                        <div id="ultimo-equipo" style="color: #ffd700; font-weight: bold;">Sin equipos</div>
-                    </div>
-                    <div class="form-group">
-                        <label>📈 Actividad Reciente:</label>
-                        <div id="actividad-reciente" style="color: #ff8c00; font-weight: bold;">Sistema iniciado</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="equipos" class="tab-content">
-            <div class="card">
-                <h3>➕ Agregar Nuevo Equipo</h3>
-                <div class="form-container">
-                    <div>
-                        <div class="form-group">
-                            <label for="nombreEquipo">Nombre del Equipo:</label>
-                            <input type="text" id="nombreEquipo" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="managerEquipo">Manager:</label>
-                            <input type="text" id="managerEquipo" required>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="form-group">
-                            <label for="ciudadEquipo">Ciudad:</label>
-                            <input type="text" id="ciudadEquipo" required>
-                        </div>
-                        <div class="form-group">
-                            <button id="btn-agregar-equipo" class="btn-primary" onclick="agregarEquipo()">🏆 Agregar Equipo</button>
-                        </div>
-                    </div>
-                </div>
-                <div id="equipoMessage" class="success-message"></div>
-                <div id="equipoError" class="error-message"></div>
-            </div>
-
-            <div class="card" style="margin-bottom: 15px; padding: 15px;">
-                <h4 style="color: #ffd700; margin-bottom: 15px;">Filtros de Equipos</h4>
-                <div class="form-container">
-                    <div class="form-group">
-                        <label for="buscadorEquipos">🔍 Buscar Equipo:</label>
-                        <input type="text" id="buscadorEquipos" placeholder="Buscar por nombre, manager o ciudad..." style="border-radius: 20px;">
-                    </div>
-                     <div class="form-group" style="align-self: end;">
-                        <button class="btn-secondary" onclick="limpiarFiltrosEquipos()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <button class="btn-secondary" onclick="exportarTabla('equipos', 'csv')" style="background: #4CAF50;">📊 Exportar a CSV</button>
-                    <div style="margin-left: auto; color: #ffd700; font-size: 0.9rem; display: flex; align-items: center;">
-                        <span id="equipos-count">Total: 0 equipos</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>🏆 Equipos Registrados</h3>
-                <div class="table-container">
-                    <table id="equiposTable">
-                        <thead>
-                            <tr>
-                                <th class="sortable" onclick="ordenarTablaEquipos('id')" style="cursor: pointer;">
+<a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+<div class="toast-container" id="toast-container"></div>
+<div class="admin-controls">
+<a class="admin-btn" href="/index.html">👁️ Vista Pública</a> <button class="admin-btn" onclick="logout()">🚪 Salir</button>
+</div>
+<div class="container" id="main-content">
+<div class="header">
+<h1>🏆 CHOGUI LEAGUE - ADMIN</h1>
+<p>Panel de Administración - Sistema de Gestión Profesional</p>
+</div>
+<div class="nav-tabs">
+<button class="nav-tab active" data-tab="dashboard">📈 Dashboard</button>
+<button class="nav-tab" data-tab="equipos">🏅 Equipos</button>
+<button class="nav-tab" data-tab="partidos">🎯 Partidos</button>
+<button class="nav-tab" data-tab="jugadores">👤 Jugadores</button>
+<button class="nav-tab" data-tab="lideres">🏆 Líderes</button>
+<button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
+<button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
+</div>
+<div class="tab-content active" id="dashboard">
+<div class="card">
+<h3>📊 Resumen Ejecutivo de la Liga</h3>
+<div class="leaders-grid">
+<div class="leader-card">
+<h4>🏆 EQUIPOS TOTALES</h4>
+<div class="leader-item">
+<div class="leader-name">Equipos Registrados</div>
+<div class="leader-stat" id="total-equipos">0</div>
+</div>
+<div class="leader-item">
+<div class="leader-name">Con Partidos Jugados</div>
+<div class="leader-stat" id="equipos-activos">0</div>
+</div>
+</div>
+<div class="leader-card">
+<h4>👥 JUGADORES TOTALES</h4>
+<div class="leader-item">
+<div class="leader-name">Jugadores Registrados</div>
+<div class="leader-stat" id="total-jugadores">0</div>
+</div>
+<div class="leader-item">
+<div class="leader-name">Con Estadísticas</div>
+<div class="leader-stat" id="jugadores-stats">0</div>
+</div>
+</div>
+<div class="leader-card">
+<h4>🎯 PARTIDOS TOTALES</h4>
+<div class="leader-item">
+<div class="leader-name">Partidos Registrados</div>
+<div class="leader-stat" id="total-partidos">0</div>
+</div>
+<div class="leader-item">
+<div class="leader-name">Partidos Finalizados</div>
+<div class="leader-stat" id="partidos-finalizados">0</div>
+</div>
+</div>
+<div class="leader-card">
+<h4>🗓️ TORNEO ACTUAL</h4>
+<div class="leader-item">
+<div class="leader-name" id="torneo-nombre">Sin Torneo Activo</div>
+<div class="leader-stat" id="torneo-status">❌</div>
+</div>
+<div class="leader-item">
+<div class="leader-name">Última Actualización</div>
+<div class="leader-stat" id="ultima-actualizacion">--</div>
+</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>📈 Estadísticas de Rendimiento</h3>
+<div class="position-leaders-grid">
+<div class="position-card">
+<div class="position-title">⚾ PROMEDIO GENERAL DE BATEO</div>
+<div class="position-leader">
+<div class="leader-stat" id="avg-general" style="font-size: 2rem; color: #ffd700;">.000</div>
+<div class="leader-team">Liga completa</div>
+</div>
+</div>
+<div class="position-card">
+<div class="position-title">🏃 CARRERAS POR PARTIDO</div>
+<div class="position-leader">
+<div class="leader-stat" id="carreras-promedio" style="font-size: 2rem; color: #ff8c00;">0.0</div>
+<div class="leader-team">Promedio por equipo</div>
+</div>
+</div>
+<div class="position-card">
+<div class="position-title">🎯 PORCENTAJE DE FINALIZACIÓN</div>
+<div class="position-leader">
+<div class="leader-stat" id="porcentaje-finalizacion" style="font-size: 2rem; color: #4CAF50;">0%</div>
+<div class="leader-team">Partidos completados</div>
+</div>
+</div>
+<div class="position-card">
+<div class="position-title">🏆 EQUIPO LÍDER</div>
+<div class="position-leader">
+<div class="leader-stat" id="equipo-lider" style="font-size: 1.5rem; color: #ffd700;">Sin datos</div>
+<div class="leader-team" id="record-lider">0-0</div>
+</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>⚠️ Alertas y Estado del Sistema</h3>
+<div id="alertas-container">
+<div class="leader-item">
+<div class="leader-name">Estado de la Base de Datos</div>
+<div class="leader-stat" style="color: #4CAF50;">✅ Operativa</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>📊 Comparativas Temporales</h3>
+<div class="stats-form-container">
+<div class="form-group">
+<label>📅 Último Partido Registrado:</label>
+<div id="ultimo-partido" style="color: #ffd700; font-weight: bold;">Sin partidos</div>
+</div>
+<div class="form-group">
+<label>👤 Último Jugador Agregado:</label>
+<div id="ultimo-jugador" style="color: #ffd700; font-weight: bold;">Sin jugadores</div>
+</div>
+<div class="form-group">
+<label>🏆 Último Equipo Creado:</label>
+<div id="ultimo-equipo" style="color: #ffd700; font-weight: bold;">Sin equipos</div>
+</div>
+<div class="form-group">
+<label>📈 Actividad Reciente:</label>
+<div id="actividad-reciente" style="color: #ff8c00; font-weight: bold;">Sistema iniciado</div>
+</div>
+</div>
+</div>
+</div>
+<div class="tab-content" id="equipos">
+<div class="card">
+<h3>➕ Agregar Nuevo Equipo</h3>
+<div class="form-container">
+<div>
+<div class="form-group">
+<label for="nombreEquipo">Nombre del Equipo:</label>
+<input id="nombreEquipo" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="managerEquipo">Manager:</label>
+<input id="managerEquipo" required="" type="text"/>
+</div>
+</div>
+<div>
+<div class="form-group">
+<label for="ciudadEquipo">Ciudad:</label>
+<input id="ciudadEquipo" required="" type="text"/>
+</div>
+<div class="form-group">
+<button class="btn-primary" id="btn-agregar-equipo" onclick="agregarEquipo()">🏆 Agregar Equipo</button>
+</div>
+</div>
+</div>
+<div class="success-message" id="equipoMessage"></div>
+<div class="error-message" id="equipoError"></div>
+</div>
+<div class="card" style="margin-bottom: 15px; padding: 15px;">
+<h4 style="color: #ffd700; margin-bottom: 15px;">Filtros de Equipos</h4>
+<div class="form-container">
+<div class="form-group">
+<label for="buscadorEquipos">🔍 Buscar Equipo:</label>
+<input id="buscadorEquipos" placeholder="Buscar por nombre, manager o ciudad..." style="border-radius: 20px;" type="text"/>
+</div>
+<div class="form-group" style="align-self: end;">
+<button class="btn-secondary" onclick="limpiarFiltrosEquipos()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
+</div>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+<button class="btn-secondary" onclick="exportarTabla('equipos', 'csv')" style="background: #4CAF50;">📊 Exportar a CSV</button>
+<div style="margin-left: auto; color: #ffd700; font-size: 0.9rem; display: flex; align-items: center;">
+<span id="equipos-count">Total: 0 equipos</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>🏆 Equipos Registrados</h3>
+<div class="table-container">
+<table id="equiposTable">
+<thead>
+<tr>
+<th class="sortable" onclick="ordenarTablaEquipos('id')" style="cursor: pointer;">
                                     ID <span class="sort-indicator"></span>
-                                </th>
-                                <th class="sortable" onclick="ordenarTablaEquipos('nombre')" style="cursor: pointer;">
+</th>
+<th class="sortable" onclick="ordenarTablaEquipos('nombre')" style="cursor: pointer;">
                                     Equipo <span class="sort-indicator"></span>
-                                </th>
-                                <th class="sortable" onclick="ordenarTablaEquipos('manager')" style="cursor: pointer;">
+</th>
+<th class="sortable" onclick="ordenarTablaEquipos('manager')" style="cursor: pointer;">
                                     Manager <span class="sort-indicator"></span>
-                                </th>
-                                <th class="sortable" onclick="ordenarTablaEquipos('ciudad')" style="cursor: pointer;">
+</th>
+<th class="sortable" onclick="ordenarTablaEquipos('ciudad')" style="cursor: pointer;">
                                     Ciudad <span class="sort-indicator"></span>
-                                </th>
-                                <th class="sortable" onclick="ordenarTablaEquipos('fecha_creacion')" style="cursor: pointer;">
+</th>
+<th class="sortable" onclick="ordenarTablaEquipos('fecha_creacion')" style="cursor: pointer;">
                                     Fecha <span class="sort-indicator"></span>
-                                </th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="6" class="loading">Cargando equipos...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="partidos" class="tab-content">
-            <div class="card">
-                <h3>📅 PROGRAMAR PRÓXIMO PARTIDO</h3>
-                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">
+</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="loading" colspan="6">Cargando equipos...</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="tab-content" id="partidos">
+<div class="card">
+<h3>📅 PROGRAMAR PRÓXIMO PARTIDO</h3>
+<p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">
                     Para partidos que aún NO se han jugado. Los resultados se registrarán después.
                 </p>
-                <div class="form-container">
-                    <div>
-                        <div class="form-group">
-                            <label for="equipoLocalFuturo">Equipo Local:</label>
-                            <select id="equipoLocalFuturo" required>
-                                <option value="">Seleccionar equipo...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="equipoVisitanteFuturo">Equipo Visitante:</label>
-                            <select id="equipoVisitanteFuturo" required>
-                                <option value="">Seleccionar equipo...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaPartidoFuturo">📅 Fecha del Partido:</label>
-                            <input type="date" id="fechaPartidoFuturo" required>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="form-group">
-                            <label for="horaPartidoFuturo">⏰ Hora del Partido:</label>
-                            <input type="time" id="horaPartidoFuturo" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="lugarPartido">🏟️ Lugar/Estadio (Opcional):</label>
-                            <input type="text" id="lugarPartido" placeholder="Ej: Estadio Municipal">
-                        </div>
-                        <div class="form-group">
-                            <button class="btn-primary" onclick="programarPartido()">📅 Programar Partido</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>⚾ REGISTRAR RESULTADO DE PARTIDO</h3>
-                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">
+<div class="form-container">
+<div>
+<div class="form-group">
+<label for="equipoLocalFuturo">Equipo Local:</label>
+<select id="equipoLocalFuturo" required="">
+<option value="">Seleccionar equipo...</option>
+</select>
+</div>
+<div class="form-group">
+<label for="equipoVisitanteFuturo">Equipo Visitante:</label>
+<select id="equipoVisitanteFuturo" required="">
+<option value="">Seleccionar equipo...</option>
+</select>
+</div>
+<div class="form-group">
+<label for="fechaPartidoFuturo">📅 Fecha del Partido:</label>
+<input id="fechaPartidoFuturo" required="" type="date"/>
+</div>
+</div>
+<div>
+<div class="form-group">
+<label for="horaPartidoFuturo">⏰ Hora del Partido:</label>
+<input id="horaPartidoFuturo" required="" type="time"/>
+</div>
+<div class="form-group">
+<label for="lugarPartido">🏟️ Lugar/Estadio (Opcional):</label>
+<input id="lugarPartido" placeholder="Ej: Estadio Municipal" type="text"/>
+</div>
+<div class="form-group">
+<button class="btn-primary" onclick="programarPartido()">📅 Programar Partido</button>
+</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>⚾ REGISTRAR RESULTADO DE PARTIDO</h3>
+<p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">
                     Para partidos que YA se jugaron. Ingresa las carreras de cada equipo.
                 </p>
-                <div class="form-container">
-                    <div>
-                        <div class="form-group">
-                            <label for="equipoLocal">Equipo Local:</label>
-                            <select id="equipoLocal" required>
-                                <option value="">Seleccionar equipo...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="equipoVisitante">Equipo Visitante:</label>
-                            <select id="equipoVisitante" required>
-                                <option value="">Seleccionar equipo...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="carrerasLocal">Carreras Local:</label>
-                            <input type="number" id="carrerasLocal" min="0">
-                        </div>
-                    </div>
-                    <div>
-                        <div class="form-group">
-                            <label for="carrerasVisitante">Carreras Visitante:</label>
-                            <input type="number" id="carrerasVisitante" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="inningsJugados">Innings Jugados:</label>
-                            <input type="number" id="inningsJugados" min="1" max="15" value="9">
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaPartido">Fecha del Partido:</label>
-                            <input type="date" id="fechaPartido" required>
-                        </div>
-                    </div>
-                </div>
-                <button id="btn-registrar-partido" class="btn-primary" onclick="registrarPartido()">🎯 Registrar Partido</button>
-                <div id="partidoMessage" class="success-message"></div>
-                <div id="partidoError" class="error-message"></div>
-            </div>
-            
-            <div class="card" style="margin-bottom: 15px; padding: 15px;">
-                <h4 style="color: #ffd700; margin-bottom: 15px;">Filtros de Partidos</h4>
-                <div class="form-container">
-                    <div class="form-group">
-                        <label for="filtroEquipoPartidos">Filtrar por Equipo:</label>
-                        <select id="filtroEquipoPartidos" style="border-radius: 20px;">
-                            <option value="">-- Todos los Equipos --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="filtroEstadoPartidos">Estado del Partido:</label>
-                        <select id="filtroEstadoPartidos" style="border-radius: 20px;">
-                            <option value="">-- Todos --</option>
-                            <option value="programado">📅 Programados</option>
-                            <option value="finalizado">✅ Finalizados</option>
-                            <option value="cancelado">❌ Cancelados</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="filtroFechaPartidos">Filtrar por Fecha:</label>
-                        <input type="date" id="filtroFechaPartidos" style="border-radius: 20px;">
-                    </div>
-                    <div class="form-group" style="align-self: end;">
-                        <button class="btn-secondary" onclick="limpiarFiltrosPartidos()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <div style="margin-left: auto; color: #ffd700; font-size: 0.9rem; display: flex; align-items: center;">
-                        <span id="partidos-count">Total: 0 partidos</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>🎯 Partidos Registrados</h3>
-                <div class="table-container">
-                    <table id="partidosTable">
-                        <thead>
-                            <tr>
-                                <th>Local</th>
-                                <th>Visitante</th>
-                                <th>Resultado</th>
-                                <th>Fecha</th>
-                                <th>Hora</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="7" class="loading">Cargando partidos...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="jugadores" class="tab-content">
-            <div class="card">
-                <h3>👤 Agregar Nuevo Jugador</h3>
-                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px; opacity: 0.9;">
+<div class="form-container">
+<div>
+<div class="form-group">
+<label for="equipoLocal">Equipo Local:</label>
+<select id="equipoLocal" required="">
+<option value="">Seleccionar equipo...</option>
+</select>
+</div>
+<div class="form-group">
+<label for="equipoVisitante">Equipo Visitante:</label>
+<select id="equipoVisitante" required="">
+<option value="">Seleccionar equipo...</option>
+</select>
+</div>
+<div class="form-group">
+<label for="carrerasLocal">Carreras Local:</label>
+<input id="carrerasLocal" min="0" type="number"/>
+</div>
+</div>
+<div>
+<div class="form-group">
+<label for="carrerasVisitante">Carreras Visitante:</label>
+<input id="carrerasVisitante" min="0" type="number"/>
+</div>
+<div class="form-group">
+<label for="inningsJugados">Innings Jugados:</label>
+<input id="inningsJugados" max="15" min="1" type="number" value="9"/>
+</div>
+<div class="form-group">
+<label for="fechaPartido">Fecha del Partido:</label>
+<input id="fechaPartido" required="" type="date"/>
+</div>
+</div>
+</div>
+<button class="btn-primary" id="btn-registrar-partido" onclick="registrarPartido()">🎯 Registrar Partido</button>
+<div class="success-message" id="partidoMessage"></div>
+<div class="error-message" id="partidoError"></div>
+</div>
+<div class="card" style="margin-bottom: 15px; padding: 15px;">
+<h4 style="color: #ffd700; margin-bottom: 15px;">Filtros de Partidos</h4>
+<div class="form-container">
+<div class="form-group">
+<label for="filtroEquipoPartidos">Filtrar por Equipo:</label>
+<select id="filtroEquipoPartidos" style="border-radius: 20px;">
+<option value="">-- Todos los Equipos --</option>
+</select>
+</div>
+<div class="form-group">
+<label for="filtroEstadoPartidos">Estado del Partido:</label>
+<select id="filtroEstadoPartidos" style="border-radius: 20px;">
+<option value="">-- Todos --</option>
+<option value="programado">📅 Programados</option>
+<option value="finalizado">✅ Finalizados</option>
+<option value="cancelado">❌ Cancelados</option>
+</select>
+</div>
+<div class="form-group">
+<label for="filtroFechaPartidos">Filtrar por Fecha:</label>
+<input id="filtroFechaPartidos" style="border-radius: 20px;" type="date"/>
+</div>
+<div class="form-group" style="align-self: end;">
+<button class="btn-secondary" onclick="limpiarFiltrosPartidos()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
+</div>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+<div style="margin-left: auto; color: #ffd700; font-size: 0.9rem; display: flex; align-items: center;">
+<span id="partidos-count">Total: 0 partidos</span>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>🎯 Partidos Registrados</h3>
+<div class="table-container">
+<table id="partidosTable">
+<thead>
+<tr>
+<th>Local</th>
+<th>Visitante</th>
+<th>Resultado</th>
+<th>Fecha</th>
+<th>Hora</th>
+<th>Estado</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="loading" colspan="7">Cargando partidos...</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="tab-content" id="jugadores">
+<div class="card">
+<h3>👤 Agregar Nuevo Jugador</h3>
+<p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px; opacity: 0.9;">
                     💡 Solo el nombre es obligatorio. Equipo, posición y número son opcionales.
                 </p>
-                <form id="jugadorForm">
-                    <div class="form-container">
-                        <div>
-                            <div class="form-group">
-                                <label for="nombreJugador">👤 Nombre Completo del Jugador:</label>
-                                <input type="text" id="nombreJugador" required placeholder="Ejemplo: Miguel Calderón">
-                            </div>
-                            <div class="form-group">
-                                <label for="equipoJugador">🏅 Equipo (Opcional):</label>
-                                <select id="equipoJugador">
-                                    <option value="">Sin equipo asignado</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="form-group">
-                                <label for="posicionJugador">⚾ Posición (Opcional):</label>
-                                <select id="posicionJugador">
-                                    <option value="">-- Sin Posición --</option>
-                                    <option value="UTIL">UTIL (Utilidad)</option>
-                                    <option value="P">P (Pitcher)</option>
-                                    <option value="C">C (Catcher)</option>
-                                    <option value="1B">1B (Primera Base)</option>
-                                    <option value="2B">2B (Segunda Base)</option>
-                                    <option value="3B">3B (Tercera Base)</option>
-                                    <option value="SS">SS (Shortstop)</option>
-                                    <option value="LF">LF (Left Field)</option>
-                                    <option value="CF">CF (Center Field)</option>
-                                    <option value="RF">RF (Right Field)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="numeroJugador">🔢 Número (Opcional):</label>
-                                <input type="number" id="numeroJugador" min="0" max="99" placeholder="Ej: 24">
-                            </div>
-                        </div>
-                    </div>
-            
-                    <button type="button" id="btn-agregar-jugador" class="btn-primary" onclick="agregarJugador()">👤 Agregar Jugador</button>
-                </form>
-                <div id="jugadorMessage" class="success-message"></div>
-                <div id="jugadorError" class="error-message"></div>
-            </div>
-
-            <div class="card">
-                <h3>👥 Jugadores Registrados</h3>
-                <div class="card" style="margin-bottom: 15px; padding: 15px;">
-                    <h4 style="color: #ffd700; margin-bottom: 15px;">🔍 Filtros y Búsqueda Avanzada</h4>
-                    <div class="form-container">
-                        <div class="form-group">
-                            <label for="buscadorJugadores">🔍 Buscar por Nombre:</label>
-                            <input type="text" id="buscadorJugadores" placeholder="Buscar jugador..." style="border-radius: 20px;">
-                        </div>
-                        <div class="form-group">
-                            <label for="filtroRosterEquipo">🏅 Filtrar por Equipo:</label>
-                            <select id="filtroRosterEquipo" style="border-radius: 20px;">
-                                <option value="">-- Todos los Equipos --</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="filtroPosicion">⚾ Filtrar por Posición:</label>
-                            <select id="filtroPosicion" style="border-radius: 20px;">
-                                <option value="">-- Todas las Posiciones --</option>
-                                <option value="C">Catcher (C)</option>
-                                <option value="1B">Primera Base (1B)</option>
-                                <option value="2B">Segunda Base (2B)</option>
-                                <option value="3B">Tercera Base (3B)</option>
-                                <option value="SS">Shortstop (SS)</option>
-                                <option value="LF">Left Field (LF)</option>
-                                <option value="CF">Center Field (CF)</option>
-                                <option value="RF">Right Field (RF)</option>
-                                <option value="P">Pitcher (P)</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="align-self: end;">
-                            <button class="btn-secondary" onclick="limpiarFiltrosJugadores()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                        <button class="btn-secondary" onclick="exportarTabla('jugadores', 'csv')" style="background: #4CAF50;">📊 Exportar CSV</button>
-                        <div style="margin-left: auto; color: #ffd700; font-size: 0.9rem; display: flex; align-items: center;">
-                            <span id="jugadores-count">Total: 0 jugadores</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="jugadoresTable">
-                          <thead>
-                            <tr>
-                                <th class="sortable" onclick="ordenarTablaJugadores('numero')" style="cursor: pointer;">
+<form id="jugadorForm">
+<div class="form-container">
+<div>
+<div class="form-group">
+<label for="nombreJugador">👤 Nombre Completo del Jugador:</label>
+<input id="nombreJugador" placeholder="Ejemplo: Miguel Calderón" required="" type="text"/>
+</div>
+<div class="form-group">
+<label for="equipoJugador">🏅 Equipo (Opcional):</label>
+<select id="equipoJugador">
+<option value="">Sin equipo asignado</option>
+</select>
+</div>
+</div>
+<div>
+<div class="form-group">
+<label for="posicionJugador">⚾ Posición (Opcional):</label>
+<select id="posicionJugador">
+<option value="">-- Sin Posición --</option>
+<option value="UTIL">UTIL (Utilidad)</option>
+<option value="P">P (Pitcher)</option>
+<option value="C">C (Catcher)</option>
+<option value="1B">1B (Primera Base)</option>
+<option value="2B">2B (Segunda Base)</option>
+<option value="3B">3B (Tercera Base)</option>
+<option value="SS">SS (Shortstop)</option>
+<option value="LF">LF (Left Field)</option>
+<option value="CF">CF (Center Field)</option>
+<option value="RF">RF (Right Field)</option>
+</select>
+</div>
+<div class="form-group">
+<label for="numeroJugador">🔢 Número (Opcional):</label>
+<input id="numeroJugador" max="99" min="0" placeholder="Ej: 24" type="number"/>
+</div>
+</div>
+</div>
+<button class="btn-primary" id="btn-agregar-jugador" onclick="agregarJugador()" type="button">👤 Agregar Jugador</button>
+</form>
+<div class="success-message" id="jugadorMessage"></div>
+<div class="error-message" id="jugadorError"></div>
+</div>
+<div class="card">
+<h3>👥 Jugadores Registrados</h3>
+<div class="card" style="margin-bottom: 15px; padding: 15px;">
+<h4 style="color: #ffd700; margin-bottom: 15px;">🔍 Filtros y Búsqueda Avanzada</h4>
+<div class="form-container">
+<div class="form-group">
+<label for="buscadorJugadores">🔍 Buscar por Nombre:</label>
+<input id="buscadorJugadores" placeholder="Buscar jugador..." style="border-radius: 20px;" type="text"/>
+</div>
+<div class="form-group">
+<label for="filtroRosterEquipo">🏅 Filtrar por Equipo:</label>
+<select id="filtroRosterEquipo" style="border-radius: 20px;">
+<option value="">-- Todos los Equipos --</option>
+</select>
+</div>
+<div class="form-group">
+<label for="filtroPosicion">⚾ Filtrar por Posición:</label>
+<select id="filtroPosicion" style="border-radius: 20px;">
+<option value="">-- Todas las Posiciones --</option>
+<option value="C">Catcher (C)</option>
+<option value="1B">Primera Base (1B)</option>
+<option value="2B">Segunda Base (2B)</option>
+<option value="3B">Tercera Base (3B)</option>
+<option value="SS">Shortstop (SS)</option>
+<option value="LF">Left Field (LF)</option>
+<option value="CF">Center Field (CF)</option>
+<option value="RF">Right Field (RF)</option>
+<option value="P">Pitcher (P)</option>
+</select>
+</div>
+<div class="form-group" style="align-self: end;">
+<button class="btn-secondary" onclick="limpiarFiltrosJugadores()" style="background: #ff8c00; width: 100%; padding: 12px;">🗑️ Limpiar Filtros</button>
+</div>
+</div>
+<div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+<button class="btn-secondary" onclick="exportarTabla('jugadores', 'csv')" style="background: #4CAF50;">📊 Exportar CSV</button>
+<div style="margin-left: auto; color: #ffd700; font-size: 0.9rem; display: flex; align-items: center;">
+<span id="jugadores-count">Total: 0 jugadores</span>
+</div>
+</div>
+</div>
+<div class="table-container">
+<table id="jugadoresTable">
+<thead>
+<tr>
+<th class="sortable" onclick="ordenarTablaJugadores('numero')" style="cursor: pointer;">
                                     # <span class="sort-indicator"></span>
-                                </th>
-                                <th class="sortable" onclick="ordenarTablaJugadores('nombre')" style="cursor: pointer;">
+</th>
+<th class="sortable" onclick="ordenarTablaJugadores('nombre')" style="cursor: pointer;">
                                     Jugador <span class="sort-indicator"></span>
-                                </th>
-                                <th class="sortable" onclick="ordenarTablaJugadores('equipo_nombre')" style="cursor: pointer;">
+</th>
+<th class="sortable" onclick="ordenarTablaJugadores('equipo_nombre')" style="cursor: pointer;">
                                     Equipo <span class="sort-indicator"></span>
-                                </th>
-                                <th class="sortable" onclick="ordenarTablaJugadores('posicion')" style="cursor: pointer;">
+</th>
+<th class="sortable" onclick="ordenarTablaJugadores('posicion')" style="cursor: pointer;">
                                     Posición <span class="sort-indicator"></span>
-                                </th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="5" class="loading">Cargando jugadores...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="lideres" class="tab-content">
-            
-            <div class="card">
-                <h3>📝 Editar Estadísticas de Bateo</h3>
-                <div class="table-container">
-                    <table id="tablaEditarBateo">
-                        <thead>
-                            <tr>
-                                <th>Jugador</th>
-                                <th>Equipo</th>
-                                <th>AB</th>
-                                <th>H</th>
-                                <th>HR</th>
-                                <th>RBI</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="7" class="loading">Cargando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h3>📝 Editar Estadísticas de Pitcheo</h3>
-                <div class="table-container">
-                    <table id="tablaEditarPitcheo">
-                        <thead>
-                            <tr>
-                                <th>Jugador</th>
-                                <th>Equipo</th>
-                                <th>IP</th>
-                                <th>ER</th>
-                                <th>W</th>
-                                <th>L</th>
-                                <th>SV</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="8" class="loading">Cargando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>📝 Editar Estadísticas Defensivas</h3>
-                <div class="table-container">
-                    <table id="tablaEditarDefensa">
-                        <thead>
-                            <tr>
-                                <th>Jugador</th>
-                                <th>Equipo</th>
-                                <th>PO</th>
-                                <th>A</th>
-                                <th>E</th>
-                                <th>DP</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="7" class="loading">Cargando...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card">
-                <h3>📊 Registrar Estadísticas Avanzadas (BATEO)</h3>
-                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un jugador (ej. después de un partido).</p>
-                <div class="stats-form-container">
-                    <div class="form-group">
-                        <label for="jugadorStats">Jugador:</label>
-                        <select id="jugadorStats" required>
-                            <option value="">Seleccionar jugador...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="atBats">At Bats (AB):</label>
-                        <input type="number" id="atBats" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="hits">Hits (H):</label>
-                        <input type="number" id="hits" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="homeRuns">Home Runs (HR):</label>
-                        <input type="number" id="homeRuns" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="rbi">RBI:</label>
-                        <input type="number" id="rbi" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="runs">Carreras (R):</label>
-                        <input type="number" id="runs" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="walks">Bases por Bolas (BB):</label>
-                        <input type="number" id="walks" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="stolenBases">Bases Robadas (SB):</label>
-                        <input type="number" id="stolenBases" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="strikeouts">Ponches (SO):</label>
-                        <input type="number" id="strikeouts" min="0" value="0">
-                        <small style="color: #ffd700; font-size: 0.8rem;">Ponches recibidos por el bateador</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="errors" style="color: #ff8c00; opacity: 0.7;">Errores (E):</label>
-                        <input type="number" id="errors" min="0" value="0" disabled>
-                          <small style="color: #ff8c00; font-size: 0.8rem;">Los errores se registran en el form defensivo.</small>
-                    </div>
-                </div>
-                <button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
-                <div id="statsMessage" class="success-message"></div>
-                <div id="statsError" class="error-message"></div>
-                </div>
-
-            <div class="card">
-                <h3>⚾ Registrar Estadísticas de Pitcheo</h3>
-                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un pitcher.</p>
-                <div class="stats-form-container">
-                    <div class="form-group">
-                        <label for="jugadorPitcheo">Pitcher:</label>
-                        <select id="jugadorPitcheo" required>
-                            <option value="">Seleccionar jugador...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="inningsPitched">Innings Pitched (IP):</label>
-                        <input type="number" id="inningsPitched" step="0.1" min="0" value="0">
-                        <small style="color: #ffd700; font-size: 0.8rem;">Ej: 5.2 = 5 innings y 2 outs</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="hitsAllowed">Hits Permitidos:</label>
-                        <input type="number" id="hitsAllowed" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="earnedRuns">Carreras Limpias (ER):</label>
-                        <input type="number" id="earnedRuns" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="strikeoutsP">Ponches (SO):</label>
-                        <input type="number" id="strikeoutsP" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="walksAllowed">Bases por Bolas (BB):</label>
-                        <input type="number" id="walksAllowed" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="homeRunsAllowed">Home Runs Permitidos:</label>
-                        <input type="number" id="homeRunsAllowed" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="wins">Victorias (W):</label>
-                        <input type="number" id="wins" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="losses">Derrotas (L):</label>
-                        <input type="number" id="losses" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="saves">Salvamentos (SV):</label>
-                        <input type="number" id="saves" min="0" value="0">
-                    </div>
-                </div>
-                <button class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
-                <div id="pitcheoMessage" class="success-message"></div>
-                <div id="pitcheoError" class="error-message"></div>
-                </div>
-
-            <div class="card">
-                <h3>🛡 Registrar Estadísticas Defensivas</h3>
-                 <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un jugador.</p>
-                <div class="stats-form-container">
-                    <div class="form-group">
-                        <label for="jugadorDefensivo">Jugador:</label>
-                        <select id="jugadorDefensivo" required>
-                            <option value="">Seleccionar jugador...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="putouts">Eliminaciones (PO):</label>
-                        <input type="number" id="putouts" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="assists">Asistencias (A):</label>
-                        <input type="number" id="assists" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="defensiveErrors">Errores (E):</label>
-                        <input type="number" id="defensiveErrors" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="doublePlays">Jugadas Dobles (DP):</label>
-                        <input type="number" id="doublePlays" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="passedBalls">Pelotas Pasadas (PB):</label>
-                        <input type="number" id="passedBalls" min="0" value="0">
-                        <small style="color: #ffd700; font-size: 0.8rem;">Solo para catchers</small>
-                    </div>
-                </div>
-                <button class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
-                <div id="defensivaMessage" class="success-message"></div>
-                <div id="defensivaError" class="error-message"></div>
-                </div>
-
-            <div class="card">
-                <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
-                <div class="position-leaders-grid" id="positionLeadersGrid">
-                    <div class="loading">Cargando líderes defensivos...</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>🏆 Líderes Generales de la Liga - BATEO</h3>
-                <div class="leaders-grid">
-                    <div class="leader-card">
-                        <h4>🥇 MEJOR PROMEDIO (AVG)</h4>
-                        <div id="avgLeaders">
-                            <div class="leader-item">
-                                <div>
-                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
-                                    <div class="leader-team">-</div>
-                                </div>
-                                <div class="leader-stat">-.---</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="leader-card">
-                        <h4>⚾ LÍDERES EN HOME RUNS</h4>
-                        <div id="hrLeaders">
-                            <div class="leader-item">
-                                <div>
-                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
-                                    <div class="leader-team">-</div>
-                                </div>
-                                <div class="leader-stat">0</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="leader-card">
-                        <h4>🎯 LÍDERES EN RBI</h4>
-                        <div id="rbiLeaders">
-                            <div class="leader-item">
-                                <div>
-                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
-                                    <div class="leader-team">-</div>
-                                </div>
-                                <div class="leader-stat">0</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="leader-card">
-                        <h4>📈 LÍDERES EN OPS</h4>
-                        <div id="opsLeaders">
-                            <div class="leader-item">
-                                <div>
-                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
-                                    <div class="leader-team">-</div>
-                                </div>
-                                <div class="leader-stat">-.---</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="leader-card">
-                        <h4>⭐ MEJOR WAR TOTAL</h4>
-                        <div id="warLeaders">
-                            <div class="leader-item">
-                                <div>
-                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
-                                    <div class="leader-team">-</div>
-                                </div>
-                                <div class="leader-stat">-.--</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="leader-card">
-                        <h4>🏃 BASES ROBADAS</h4>
-                        <div id="sbLeaders">
-                            <div class="leader-item">
-                                <div>
-                                    <div class="leader-name gold-medal">🥇 Calculando...</div>
-                                    <div class="leader-team">-</div>
-                                </div>
-                                <div class="leader-stat">0</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>📈 Estadísticas Completas de Bateo</h3>
-                <div class="table-container">
-                    <table id="statsTable">
-                        <thead>
-                            <tr>
-                                <th>Jugador</th>
-                                <th>Equipo</th>
-                                <th>Pos</th>
-                                <th>AB</th>
-                                <th>H</th>
-                                <th>AVG</th>
-                                <th>OBP</th>
-                                <th>OPS</th>
-                                <th>HR</th>
-                                <th>RBI</th>
-                                <th>WAR</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="11" class="loading">Cargando estadísticas...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem;">
-                    <strong>Leyenda:</strong> AB=At Bats, H=Hits, AVG=Average, OBP=On-Base %, OPS=On-Base+Slugging, HR=Home Runs, RBI=Runs Batted In, WAR=Wins Above Replacement
+</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="loading" colspan="5">Cargando jugadores...</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="tab-content" id="lideres">
+<div class="card">
+<h3>📝 Editar Estadísticas de Bateo</h3>
+<div class="table-container">
+<table id="tablaEditarBateo">
+<thead>
+<tr>
+<th>Jugador</th>
+<th>Equipo</th>
+<th>AB</th>
+<th>H</th>
+<th>HR</th>
+<th>RBI</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr><td class="loading" colspan="7">Cargando...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="card">
+<h3>📝 Editar Estadísticas de Pitcheo</h3>
+<div class="table-container">
+<table id="tablaEditarPitcheo">
+<thead>
+<tr>
+<th>Jugador</th>
+<th>Equipo</th>
+<th>IP</th>
+<th>ER</th>
+<th>W</th>
+<th>L</th>
+<th>SV</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr><td class="loading" colspan="8">Cargando...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="card">
+<h3>📝 Editar Estadísticas Defensivas</h3>
+<div class="table-container">
+<table id="tablaEditarDefensa">
+<thead>
+<tr>
+<th>Jugador</th>
+<th>Equipo</th>
+<th>PO</th>
+<th>A</th>
+<th>E</th>
+<th>DP</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr><td class="loading" colspan="7">Cargando...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="card">
+<h3>📊 Registrar Estadísticas Avanzadas (BATEO)</h3>
+<p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un jugador (ej. después de un partido).</p>
+<div class="stats-form-container">
+<div class="form-group">
+<label for="jugadorStats">Jugador:</label>
+<select id="jugadorStats" required="">
+<option value="">Seleccionar jugador...</option>
+</select>
+</div>
+<div class="form-group">
+<label for="atBats">At Bats (AB):</label>
+<input id="atBats" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="hits">Hits (H):</label>
+<input id="hits" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="homeRuns">Home Runs (HR):</label>
+<input id="homeRuns" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="rbi">RBI:</label>
+<input id="rbi" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="runs">Carreras (R):</label>
+<input id="runs" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="walks">Bases por Bolas (BB):</label>
+<input id="walks" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="stolenBases">Bases Robadas (SB):</label>
+<input id="stolenBases" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="strikeouts">Ponches (SO):</label>
+<input id="strikeouts" min="0" type="number" value="0"/>
+<small style="color: #ffd700; font-size: 0.8rem;">Ponches recibidos por el bateador</small>
+</div>
+<div class="form-group">
+<label for="doubles">Dobles (2B):</label>
+<input id="doubles" min="0" type="number" value="0"/>
+<small>Hits de dos bases</small>
+</div>
+<div class="form-group">
+<label for="triples">Triples (3B):</label>
+<input id="triples" min="0" type="number" value="0"/>
+<small>Hits de tres bases</small>
+</div>
+<div class="form-group">
+<label for="caught_stealing">Eliminado Robando (CS):</label>
+<input id="caught_stealing" min="0" type="number" value="0"/>
+<small>Veces eliminado intentando robar base</small>
+</div>
+<div class="form-group">
+<label for="hit_by_pitch">Golpeado por Lanzamiento (HBP):</label>
+<input id="hit_by_pitch" min="0" type="number" value="0"/>
+<small>Veces golpeado por el pitcher</small>
+</div>
+<div class="form-group">
+<label for="sacrifice_flies">Elevados de Sacrificio (SF):</label>
+<input id="sacrifice_flies" min="0" type="number" value="0"/>
+<small>Elevados que impulsan carrera</small>
+</div>
+<div class="form-group">
+<label for="sacrifice_hits">Toques de Sacrificio (SH):</label>
+<input id="sacrifice_hits" min="0" type="number" value="0"/>
+<small>Toques que avanzan corredor</small>
+</div>
+<div class="form-group">
+<label for="errors" style="color: #ff8c00; opacity: 0.7;">Errores (E):</label>
+<input disabled="" id="errors" min="0" type="number" value="0"/>
+<small style="color: #ff8c00; font-size: 0.8rem;">Los errores se registran en el form defensivo.</small>
+</div>
+</div>
+<button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
+<div class="success-message" id="statsMessage"></div>
+<div class="error-message" id="statsError"></div>
+</div>
+<div class="card">
+<h3>⚾ Registrar Estadísticas de Pitcheo</h3>
+<p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un pitcher.</p>
+<div class="stats-form-container">
+<div class="form-group">
+<label for="jugadorPitcheo">Pitcher:</label>
+<select id="jugadorPitcheo" required="">
+<option value="">Seleccionar jugador...</option>
+</select>
+</div>
+<div class="form-group">
+<label for="inningsPitched">Innings Pitched (IP):</label>
+<input id="inningsPitched" min="0" step="0.1" type="number" value="0"/>
+<small style="color: #ffd700; font-size: 0.8rem;">Ej: 5.2 = 5 innings y 2 outs</small>
+</div>
+<div class="form-group">
+<label for="hitsAllowed">Hits Permitidos:</label>
+<input id="hitsAllowed" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="earnedRuns">Carreras Limpias (ER):</label>
+<input id="earnedRuns" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="strikeoutsP">Ponches (SO):</label>
+<input id="strikeoutsP" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="walksAllowed">Bases por Bolas (BB):</label>
+<input id="walksAllowed" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="homeRunsAllowed">Home Runs Permitidos:</label>
+<input id="homeRunsAllowed" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="wins">Victorias (W):</label>
+<input id="wins" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="losses">Derrotas (L):</label>
+<input id="losses" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="saves">Salvamentos (SV):</label>
+<input id="saves" min="0" type="number" value="0"/>
+</div>
+</div>
+<button class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
+<div class="success-message" id="pitcheoMessage"></div>
+<div class="error-message" id="pitcheoError"></div>
+</div>
+<div class="card">
+<h3>🛡 Registrar Estadísticas Defensivas</h3>
+<p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Use este formulario para **SUMAR** estadísticas a un jugador.</p>
+<div class="stats-form-container">
+<div class="form-group">
+<label for="jugadorDefensivo">Jugador:</label>
+<select id="jugadorDefensivo" required="">
+<option value="">Seleccionar jugador...</option>
+</select>
+</div>
+<div class="form-group">
+<label for="putouts">Eliminaciones (PO):</label>
+<input id="putouts" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="assists">Asistencias (A):</label>
+<input id="assists" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="defensiveErrors">Errores (E):</label>
+<input id="defensiveErrors" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="doublePlays">Jugadas Dobles (DP):</label>
+<input id="doublePlays" min="0" type="number" value="0"/>
+</div>
+<div class="form-group">
+<label for="passedBalls">Pelotas Pasadas (PB):</label>
+<input id="passedBalls" min="0" type="number" value="0"/>
+<small style="color: #ffd700; font-size: 0.8rem;">Solo para catchers</small>
+</div>
+</div>
+<button class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
+<div class="success-message" id="defensivaMessage"></div>
+<div class="error-message" id="defensivaError"></div>
+</div>
+<div class="card">
+<h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
+<div class="position-leaders-grid" id="positionLeadersGrid">
+<div class="loading">Cargando líderes defensivos...</div>
+</div>
+</div>
+<div class="card">
+<h3>🏆 Líderes Generales de la Liga - BATEO</h3>
+<div class="leaders-grid">
+<div class="leader-card">
+<h4>🥇 MEJOR PROMEDIO (AVG)</h4>
+<div id="avgLeaders">
+<div class="leader-item">
+<div>
+<div class="leader-name gold-medal">🥇 Calculando...</div>
+<div class="leader-team">-</div>
+</div>
+<div class="leader-stat">-.---</div>
+</div>
+</div>
+</div>
+<div class="leader-card">
+<h4>⚾ LÍDERES EN HOME RUNS</h4>
+<div id="hrLeaders">
+<div class="leader-item">
+<div>
+<div class="leader-name gold-medal">🥇 Calculando...</div>
+<div class="leader-team">-</div>
+</div>
+<div class="leader-stat">0</div>
+</div>
+</div>
+</div>
+<div class="leader-card">
+<h4>🎯 LÍDERES EN RBI</h4>
+<div id="rbiLeaders">
+<div class="leader-item">
+<div>
+<div class="leader-name gold-medal">🥇 Calculando...</div>
+<div class="leader-team">-</div>
+</div>
+<div class="leader-stat">0</div>
+</div>
+</div>
+</div>
+<div class="leader-card">
+<h4>📈 LÍDERES EN OPS</h4>
+<div id="opsLeaders">
+<div class="leader-item">
+<div>
+<div class="leader-name gold-medal">🥇 Calculando...</div>
+<div class="leader-team">-</div>
+</div>
+<div class="leader-stat">-.---</div>
+</div>
+</div>
+</div>
+<div class="leader-card">
+<h4>⭐ MEJOR WAR TOTAL</h4>
+<div id="warLeaders">
+<div class="leader-item">
+<div>
+<div class="leader-name gold-medal">🥇 Calculando...</div>
+<div class="leader-team">-</div>
+</div>
+<div class="leader-stat">-.--</div>
+</div>
+</div>
+</div>
+<div class="leader-card">
+<h4>🏃 BASES ROBADAS</h4>
+<div id="sbLeaders">
+<div class="leader-item">
+<div>
+<div class="leader-name gold-medal">🥇 Calculando...</div>
+<div class="leader-team">-</div>
+</div>
+<div class="leader-stat">0</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="card">
+<h3>📈 Estadísticas Completas de Bateo</h3>
+<div class="table-container">
+<table id="statsTable">
+<thead>
+<tr>
+<th>Jugador</th>
+<th>Equipo</th>
+<th>Pos</th>
+<th>AB</th>
+<th>H</th>
+<th>AVG</th>
+<th>OBP</th>
+<th>OPS</th>
+<th>HR</th>
+<th>RBI</th>
+<th>WAR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="loading" colspan="11">Cargando estadísticas...</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem;">
+<strong>Leyenda:</strong> AB=At Bats, H=Hits, AVG=Average, OBP=On-Base %, OPS=On-Base+Slugging, HR=Home Runs, RBI=Runs Batted In, WAR=Wins Above Replacement
                 </p>
-            </div>
-        </div>
-
-        <div id="posiciones" class="tab-content">
-            <div class="card">
-                <h3>🏆 Tabla de Posiciones en Tiempo Real</h3>
-                <div class="table-container">
-                    <table id="posicionesTable">
-                        <thead>
-                            <tr>
-                                <th>Pos</th>
-                                <th>Equipo</th>
-                                <th>PJ</th>
-                                <th>PG</th>
-                                <th>PP</th>
-                                <th>%</th>
-                                <th>CF</th>
-                                <th>CE</th>
-                                <th>DIF</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="10" class="loading">Calculando posiciones...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem;">
-                    <strong>Leyenda:</strong> PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, %=Porcentaje, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia
+</div>
+</div>
+<div class="tab-content" id="posiciones">
+<div class="card">
+<h3>🏆 Tabla de Posiciones en Tiempo Real</h3>
+<div class="table-container">
+<table id="posicionesTable">
+<thead>
+<tr>
+<th>Pos</th>
+<th>Equipo</th>
+<th>PJ</th>
+<th>PG</th>
+<th>PP</th>
+<th>%</th>
+<th>CF</th>
+<th>CE</th>
+<th>DIF</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="loading" colspan="10">Calculando posiciones...</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem;">
+<strong>Leyenda:</strong> PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, %=Porcentaje, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia
                 </p>
-            </div>
-        </div>
-        
-        <div id="torneos" class="tab-content">
-            <div class="card">
-                <h3>➕ Crear Nuevo Torneo</h3>
-                <div class="form-container">
-                    <div>
-                        <div class="form-group">
-                            <label for="nombreTorneo">Nombre del Torneo:</label>
-                            <input type="text" id="nombreTorneo" required placeholder="Ej: Torneo Verano 2026">
-                        </div>
-                        <div class="form-group">
-                            <button class="btn-primary" onclick="crearTorneo()">🗓️ Crear Torneo</button>
-                        </div>
-                    </div>
-                </div>
-                <div id="torneoMessage" class="success-message"></div>
-                <div id="torneoError" class="error-message"></div>
-            </div>
-
-            <div class="card">
-                <h3>🗓️ Torneos Existentes</h3>
-                <p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Selecciona el torneo que estará **activo**. Todas las nuevas estadísticas se guardarán en este torneo.</p>
-                <button class="btn-secondary" onclick="desactivarTodosLosTorneos()" style="background: #ff8c00; margin-bottom: 15px; font-weight: bold;">⚪ Desactivar Todos</button>
-                <div class="table-container">
-                    <table id="torneosTable">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre del Torneo</th>
-                                <th>Fecha de Creación</th>
-                                <th>Estado</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="5" class="loading">Cargando torneos...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
+</div>
+</div>
+<div class="tab-content" id="torneos">
+<div class="card">
+<h3>➕ Crear Nuevo Torneo</h3>
+<div class="form-container">
+<div>
+<div class="form-group">
+<label for="nombreTorneo">Nombre del Torneo:</label>
+<input id="nombreTorneo" placeholder="Ej: Torneo Verano 2026" required="" type="text"/>
+</div>
+<div class="form-group">
+<button class="btn-primary" onclick="crearTorneo()">🗓️ Crear Torneo</button>
+</div>
+</div>
+</div>
+<div class="success-message" id="torneoMessage"></div>
+<div class="error-message" id="torneoError"></div>
+</div>
+<div class="card">
+<h3>🗓️ Torneos Existentes</h3>
+<p style="font-size: 0.9rem; color: #ffd700; margin-bottom: 15px;">Selecciona el torneo que estará **activo**. Todas las nuevas estadísticas se guardarán en este torneo.</p>
+<button class="btn-secondary" onclick="desactivarTodosLosTorneos()" style="background: #ff8c00; margin-bottom: 15px; font-weight: bold;">⚪ Desactivar Todos</button>
+<div class="table-container">
+<table id="torneosTable">
+<thead>
+<tr>
+<th>ID</th>
+<th>Nombre del Torneo</th>
+<th>Fecha de Creación</th>
+<th>Estado</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="loading" colspan="5">Cargando torneos...</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<script>
         // ✅ INICIO CORRECCIÓN: Script de navegación para el Dashboard
         function irATab(tabName, panelId) {
             // Activa la pestaña correcta usando el atributo data-tab
@@ -3581,6 +3571,12 @@
                 runs: parseInt(document.getElementById('runs').value) || 0,
                 walks: parseInt(document.getElementById('walks').value) || 0,
                 stolen_bases: parseInt(document.getElementById('stolenBases').value) || 0,
+                                doubles: parseInt(document.getElementById('doubles').value) || 0,
+                triples: parseInt(document.getElementById('triples').value) || 0,
+                caught_stealing: parseInt(document.getElementById('caught_stealing').value) || 0,
+                hit_by_pitch: parseInt(document.getElementById('hit_by_pitch').value) || 0,
+                sacrifice_flies: parseInt(document.getElementById('sacrifice_flies').value) || 0,
+                sacrifice_hits: parseInt(document.getElementById('sacrifice_hits').value) || 0,
                 // MODIFICACIÓN #2: Agregar 'strikeouts' al objeto de datos
                 strikeouts: parseInt(document.getElementById('strikeouts').value) || 0 // <-- CAMBIO CRÍTICO
             };
@@ -3595,7 +3591,7 @@
                     toast.success('Estadísticas registradas exitosamente.');
                     await cargarEstadisticas();
                     // MODIFICACIÓN #3: Actualizar sistema de reset para incluir #strikeouts
-                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases, #strikeouts').forEach(el => el.value = 0); // <-- CAMBIO CRÍTICO
+                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases, #strikeouts, #doubles, #triples, #caught_stealing, #hit_by_pitch, #sacrifice_flies, #sacrifice_hits').forEach(el => el.value = 0); // <-- CAMBIO CRÍTICO
                 } else {
                     toast.error('Error al registrar estadísticas.');
                 }
@@ -4617,6 +4613,6 @@
             initializeUXSystems(); 
         }
     </script>
-    <script src="sse-client.js" defer></script>
+<script defer="" src="sse-client.js"></script>
 </body>
 </html>
