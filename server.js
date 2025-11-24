@@ -2860,64 +2860,187 @@ app.get('/api/lideres-pitcheo', async (req, res) => {
     }
 });
 
+// ============================================================
+// ENDPOINT PRINCIPAL PARA LÍDERES (REQUERIDO POR INDEX.HTML)
+// ============================================================
+app.get('/api/lideres', async (req, res) => {
+    try {
+        const { tipo = 'bateo', min_ab = 10 } = req.query;
+
+        if (tipo === 'bateo') {
+            const query = `
+                SELECT 
+                    j.id, j.nombre, j.posicion, e.nombre as equipo,
+                    eo.at_bats, eo.hits, eo.home_runs, eo.rbi, eo.runs,
+                    eo.walks, eo.stolen_bases, eo.strikeouts,
+                    COALESCE(eo.doubles, 0) as doubles, 
+                    COALESCE(eo.triples, 0) as triples, 
+                    COALESCE(eo.caught_stealing, 0) as caught_stealing,
+                    COALESCE(eo.hit_by_pitch, 0) as hit_by_pitch, 
+                    COALESCE(eo.sacrifice_flies, 0) as sacrifice_flies, 
+                    COALESCE(eo.sacrifice_hits, 0) as sacrifice_hits,
+
+                    -- Cálculos profesionales
+                    CASE WHEN eo.at_bats > 0 
+                        THEN ROUND(eo.hits::DECIMAL / eo.at_bats, 3) 
+                        ELSE 0.000 END as avg,
+
+                    CASE WHEN (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)) > 0
+                        THEN ROUND((eo.hits + eo.walks + COALESCE(eo.hit_by_pitch, 0))::DECIMAL / 
+                                 (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)), 3)
+                        ELSE 0.000 END as obp,
+
+                    CASE WHEN eo.at_bats > 0 
+                        THEN ROUND(((eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs) + 
+                                  COALESCE(eo.doubles, 0) * 2 + COALESCE(eo.triples, 0) * 3 + eo.home_runs * 4)::DECIMAL / eo.at_bats, 3)
+                        ELSE 0.000 END as slg,
+
+                    -- Singles calculados
+                    (eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs) as singles,
+
+                    -- Total Bases
+                    ((eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs) + 
+                     COALESCE(eo.doubles, 0) * 2 + COALESCE(eo.triples, 0) * 3 + eo.home_runs * 4) as total_bases,
+
+                    -- Plate Appearances
+                    (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0) + COALESCE(eo.sacrifice_hits, 0)) as plate_appearances
+
+                FROM estadisticas_ofensivas eo
+                JOIN jugadores j ON eo.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                WHERE eo.at_bats >= $1
+                ORDER BY avg DESC, eo.hits DESC
+                LIMIT 20`;
+
+            const result = await pool.query(query, [min_ab]);
+
+            // Calcular OPS y métricas adicionales
+            const lideres = result.rows.map(jugador => ({
+                ...jugador,
+                ops: parseFloat((parseFloat(jugador.obp) + parseFloat(jugador.slg)).toFixed(3)),
+                iso: parseFloat((parseFloat(jugador.slg) - parseFloat(jugador.avg)).toFixed(3))
+            }));
+
+            res.json(lideres);
+
+        } else if (tipo === 'pitcheo') {
+            // Redirigir a endpoint existente
+            const query = `
+                SELECT 
+                    j.id, j.nombre, j.posicion, e.nombre as equipo,
+                    ep.innings_pitched, ep.earned_runs, ep.strikeouts, ep.walks_allowed,
+                    ep.hits_allowed, ep.home_runs_allowed, ep.wins, ep.losses,
+                    CASE WHEN ep.innings_pitched > 0 
+                        THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2)
+                        ELSE 0.00 END as era,
+                    CASE WHEN ep.innings_pitched > 0 
+                        THEN ROUND((ep.hits_allowed + ep.walks_allowed) / ep.innings_pitched, 2)
+                        ELSE 0.00 END as whip
+                FROM estadisticas_pitcheo ep
+                JOIN jugadores j ON ep.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                WHERE ep.innings_pitched >= 5
+                ORDER BY era ASC
+                LIMIT 20`;
+
+            const result = await pool.query(query);
+            res.json(result.rows);
+
+        } else if (tipo === 'defensa') {
+            // Redirigir a endpoint existente
+            const query = `
+                SELECT 
+                    j.id, j.nombre, j.posicion, e.nombre as equipo,
+                    ed.putouts, ed.assists, ed.errors, ed.double_plays,
+                    CASE WHEN (ed.putouts + ed.assists + ed.errors) > 0 
+                        THEN ROUND((ed.putouts + ed.assists)::DECIMAL / (ed.putouts + ed.assists + ed.errors), 3)
+                        ELSE 1.000 END as fielding_percentage
+                FROM estadisticas_defensivas ed
+                JOIN jugadores j ON ed.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                ORDER BY fielding_percentage DESC, ed.putouts DESC
+                LIMIT 20`;
+
+            const result = await pool.query(query);
+            res.json(result.rows);
+        } else {
+            res.status(400).json({ error: 'Tipo no válido. Use: bateo, pitcheo, defensa' });
+        }
+
+    } catch (error) {
+        console.error('Error obteniendo líderes:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
+
 // ====================== ESTADÍSTICAS OFENSIVAS MEJORADAS =========================
 // ============================================================
 // BUG #1 CORREGIDO: FUNCIÓN upsertEstadisticasOfensivas
 // ============================================================
 async function upsertEstadisticasOfensivas(req, res, next) {
     try {
-        // MODIFICACIÓN #1: Agregar strikeouts a la desestructuración
-        const { jugador_id, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts, temporada } = req.body;
-        
-        if (!jugador_id) {
-            return res.status(400).json({ error: 'ID del jugador es requerido' });
+        const { 
+            jugador_id, temporada = '2024', at_bats = 0, hits = 0, 
+            home_runs = 0, rbi = 0, runs = 0, walks = 0, 
+            stolen_bases = 0, strikeouts = 0, doubles = 0, 
+            triples = 0, caught_stealing = 0, hit_by_pitch = 0,
+            sacrifice_flies = 0, sacrifice_hits = 0 
+        } = req.body;
+
+        // Validaciones
+        if (!jugador_id || isNaN(parseInt(jugador_id))) {
+            return res.status(400).json({ error: 'ID de jugador requerido y válido' });
         }
-        
-        const ab = parseInt(at_bats || 0, 10);
-        const h = parseInt(hits || 0, 10);
-        const hr = parseInt(home_runs || 0, 10);
-        const rbiV = parseInt(rbi || 0, 10);
-        const runsV = parseInt(runs || 0, 10);
-        const bb = parseInt(walks || 0, 10);
-        const sb = parseInt(stolen_bases || 0, 10);
-        
-        // MODIFICACIÓN #2: Agregar validación de strikeouts
-        const so = parseInt(strikeouts || 0, 10); 
-        
-        const temp = (temporada && String(temporada).trim()) ? String(temporada).trim() : '2025';
-        
-        if (h > ab) {
-            return res.status(400).json({ error: 'Los hits no pueden ser mayores que los at-bats' });
-        }
-        
-        // MODIFICACIÓN #3: Actualizar consulta INSERT
-        const result = await pool.query(`
+
+        const query = `
             INSERT INTO estadisticas_ofensivas (
-                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, walks, stolen_bases, strikeouts, fecha_actualizacion
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
-            ON CONFLICT (jugador_id, temporada) DO UPDATE SET
-                at_bats = EXCLUDED.at_bats,
-                hits = EXCLUDED.hits,
-                home_runs = EXCLUDED.home_runs,
-                rbi = EXCLUDED.rbi,
-                runs = EXCLUDED.runs,
-                walks = EXCLUDED.walks,
-                stolen_bases = EXCLUDED.stolen_bases,
-                strikeouts = EXCLUDED.strikeouts,
+                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, 
+                walks, stolen_bases, strikeouts, doubles, triples, 
+                caught_stealing, hit_by_pitch, sacrifice_flies, sacrifice_hits,
+                fecha_actualizacion
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP)
+            ON CONFLICT (jugador_id, temporada) 
+            DO UPDATE SET 
+                at_bats = estadisticas_ofensivas.at_bats + EXCLUDED.at_bats,
+                hits = estadisticas_ofensivas.hits + EXCLUDED.hits,
+                home_runs = estadisticas_ofensivas.home_runs + EXCLUDED.home_runs,
+                rbi = estadisticas_ofensivas.rbi + EXCLUDED.rbi,
+                runs = estadisticas_ofensivas.runs + EXCLUDED.runs,
+                walks = estadisticas_ofensivas.walks + EXCLUDED.walks,
+                stolen_bases = estadisticas_ofensivas.stolen_bases + EXCLUDED.stolen_bases,
+                strikeouts = estadisticas_ofensivas.strikeouts + EXCLUDED.strikeouts,
+                doubles = estadisticas_ofensivas.doubles + EXCLUDED.doubles,
+                triples = estadisticas_ofensivas.triples + EXCLUDED.triples,
+                caught_stealing = estadisticas_ofensivas.caught_stealing + EXCLUDED.caught_stealing,
+                hit_by_pitch = estadisticas_ofensivas.hit_by_pitch + EXCLUDED.hit_by_pitch,
+                sacrifice_flies = estadisticas_ofensivas.sacrifice_flies + EXCLUDED.sacrifice_flies,
+                sacrifice_hits = estadisticas_ofensivas.sacrifice_hits + EXCLUDED.sacrifice_hits,
                 fecha_actualizacion = CURRENT_TIMESTAMP
-            RETURNING *;
-        `, [jugador_id, temp, ab, h, hr, rbiV, runsV, bb, sb, so]); // MODIFICACIÓN #5: Agregar 'so' a los parámetros
-        
-        console.log('✅ Estadísticas ofensivas actualizadas:', result.rows[0]);
-        res.json(result.rows[0]);
-        // Continuar al middleware/trigger
-        next(); 
-            } catch (error) {
-        console.error('❌ Error al actualizar estadísticas ofensivas:', error);
-        res.status(500).json({ error: 'Error interno del servidor al procesar estadísticas' });
+            RETURNING *`;
+
+        const values = [
+            parseInt(jugador_id), temporada, parseInt(at_bats), parseInt(hits),
+            parseInt(home_runs), parseInt(rbi), parseInt(runs), parseInt(walks),
+            parseInt(stolen_bases), parseInt(strikeouts), parseInt(doubles), 
+            parseInt(triples), parseInt(caught_stealing), parseInt(hit_by_pitch),
+            parseInt(sacrifice_flies), parseInt(sacrifice_hits)
+        ];
+
+        const result = await pool.query(query, values);
+        res.json({ 
+            success: true, 
+            message: 'Estadísticas actualizadas correctamente',
+            data: result.rows[0] 
+        });
+
+        if (typeof next === 'function') next();
+
+    } catch (error) {
+        console.error('Error en upsertEstadisticasOfensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
     }
-}
+}        
 
 // =========================================================================
 // 🚨 ENDPOINT CRÍTICO: PUT/POST /api/estadisticas-ofensivas - INTEGRACIÓN DE TRIGGER
