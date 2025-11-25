@@ -2673,7 +2673,184 @@
                 font-size: 0.8rem;
             }
         }
-        </style>
+        
+        /* CARDS PROFESIONALES DE JUGADORES */
+        .professional-player-card {
+            background: linear-gradient(145deg, rgba(26, 26, 46, 0.95), rgba(30, 30, 50, 0.95));
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            min-height: 200px;
+        }
+
+        .professional-player-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 215, 0, 0.5);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+        }
+
+        .professional-player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 12px;
+        }
+
+        .player-rank {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .player-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .player-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-team-pos {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .team-name {
+            font-size: 12px;
+            color: #ffd700;
+            font-weight: 500;
+        }
+
+        .position-badge {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .primary-stat {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .player-metrics {
+            margin: 15px 0;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .metric-label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .metric-value {
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .metric-footer {
+            text-align: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .metric-footer span {
+            font-size: 11px;
+            color: rgba(255, 215, 0, 0.8);
+            font-weight: 500;
+        }
+
+        .card-footer {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .view-profile {
+            font-size: 12px;
+            color: #ffd700;
+            font-weight: 500;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .professional-player-card:hover .view-profile {
+            opacity: 1;
+        }
+
+        /* GRID RESPONSIVE PARA CARDS */
+        #lideresGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            #lideresGrid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .professional-player-card {
+                margin: 5px;
+                padding: 15px;
+            }
+        }
+</style>
 </head>
 <body>
     <a href="login.html" class="admin-link">🔐 Admin</a>
@@ -2890,14 +3067,14 @@
         <h3>🏆 Líderes de la Liga</h3>
         <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
     </div>
-
+    
     <div class="leaders-filters">
         <button class="leader-filter active" data-category="bateo">⚾ Bateo</button>
         <button class="leader-filter" data-category="pitcheo">🎯 Pitcheo</button>
         <button class="leader-filter" data-category="defensiva">🛡️ Defensiva</button>
         <button class="leader-filter" data-category="todos">📊 Todos</button>
     </div>
-
+    
     <!-- Buscadores por categoría -->
     <div class="search-container" id="searchContainerBateo" style="display: none; margin-bottom: 20px;">
         <input type="text" id="searchBateadores" placeholder="🔍 Buscar bateador..." 
@@ -2917,7 +3094,7 @@
         <div id="searchResultsDefensiva" style="margin-top: 10px; color: #ffd700; font-size: 0.9rem;"></div>
     </div>
 
-    <!-- Buscador existente para "Todos" -->
+    <!-- Buscador para "Todos" -->
     <div class="search-container" id="searchContainerTodos" style="display: none; margin-bottom: 30px;">
       <div style="max-width: 600px; margin: 0 auto;">
         <input 
@@ -2968,23 +3145,34 @@
                                 <th>Jugador</th>
                                 <th>Equipo</th>
                                 <th>Pos</th>
+                                <th>PA</th>
                                 <th>AB</th>
                                 <th>H</th>
-                                <th>AVG</th>
-                                <th>OBP</th>
-                                <th>OPS</th>
+                                <th>1B</th>
+                                <th>2B</th>
+                                <th>3B</th>
                                 <th>HR</th>
                                 <th>RBI</th>
-                                <th>SO</th> <th>WAR</th>
+                                <th>R</th>
+                                <th>BB</th>
+                                <th>SO</th>
+                                <th>SB</th>
+                                <th>CS</th>
+                                <th>AVG</th>
+                                <th>OBP</th>
+                                <th>SLG</th>
+                                <th>OPS</th>
+                                <th>ISO</th>
+                                <th>TB</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="12" class="loading">Cargando...</td></tr>
+                            <tr><td colspan="22" class="loading">Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem; position: relative; z-index: 2;">
-                    <strong>Leyenda:</strong> AB=At Bats, H=Hits, AVG=Average, OBP=On-Base %, OPS=On-Base+Slugging, HR=Home Runs, RBI=Runs Batted In, SO=Strikeouts, WAR=Wins Above Replacement
+                <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem;">
+                    <strong>Leyenda:</strong> PA=Plate Appearances, AB=At Bats, H=Hits, 1B=Singles, 2B=Doubles, 3B=Triples, HR=Home Runs, RBI=Runs Batted In, R=Runs, BB=Walks, SO=Strikeouts, SB=Stolen Bases, CS=Caught Stealing, AVG=Batting Average, OBP=On-Base Percentage, SLG=Slugging Percentage, OPS=On-Base Plus Slugging, ISO=Isolated Power, TB=Total Bases
                 </p>
             </div>
            
@@ -3706,7 +3894,6 @@
             defensiva: []
         };
         let currentLeaderCategory = 'bateo';
-
         // Datos completos para buscadores por categoría
         let bateadoresCompletos = [];
         let pitchersCompletos = [];
@@ -3794,66 +3981,153 @@
             const container = document.getElementById('lideresGrid');
             if (!container) return;
 
-            if (!jugadores || jugadores.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="display:block;">
-                        <h3>📊 Sin datos de ${categoria}</h3>
-                        <p>Los líderes aparecerán cuando haya estadísticas disponibles</p>
-                    </div>
-                `;
-                return;
-            }
-
             container.innerHTML = jugadores.map((jugador, index) => {
-                const id = jugador.jugador_id || jugador.id || '';
-                const nombre = jugador.nombre_jugador || jugador.nombre || jugador.jugador_nombre || 'Sin Nombre';
+                const nombre = jugador.nombre || jugador.jugador_nombre || jugador.nombre_jugador || 'Sin Nombre';
+                const id = jugador.id || jugador.jugador_id || null;
                 const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin Equipo';
+                const posicion = jugador.posicion || jugador.posicion_principal || 'UTIL';
+                
+                // Obtener métricas específicas por categoría
+                let metricas = '';
+                let ranking = '';
+                let badgeColor = '';
+                
+                if (categoria === 'bateo') {
+                    const avg = parseFloat(jugador.promedio_bateo || jugador.avg || 0) || 0;
+                    const ops = parseFloat(jugador.ops || 0) || 0;
+                    const hr = parseInt(jugador.home_runs || jugador.hr || 0) || 0;
+                    const rbi = parseInt(jugador.rbi || 0) || 0;
+                    const ab = parseInt(jugador.at_bats || jugador.ab || 0) || 0;
+                    
+                    ranking = avg.toFixed(3);
+                    badgeColor = avg >= 0.400 ? '#4CAF50' : avg >= 0.300 ? '#FF9800' : avg >= 0.250 ? '#2196F3' : '#9E9E9E';
+                    
+                    metricas = `
+                        <div class="player-metrics">
+                            <div class="metric-row">
+                                <div class="metric-item">
+                                    <span class="metric-label">AVG</span>
+                                    <span class="metric-value">${avg.toFixed(3)}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">OPS</span>
+                                    <span class="metric-value">${ops.toFixed(3)}</span>
+                                </div>
+                            </div>
+                            <div class="metric-row">
+                                <div class="metric-item">
+                                    <span class="metric-label">HR</span>
+                                    <span class="metric-value">${hr}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">RBI</span>
+                                    <span class="metric-value">${rbi}</span>
+                                </div>
+                            </div>
+                            <div class="metric-footer">
+                                <span class="at-bats">${ab} AB</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (categoria === 'pitcheo') {
+                    const era = parseFloat(jugador.era || 0) || 0;
+                    const whip = parseFloat(jugador.whip || 0) || 0;
+                    const so = parseInt(jugador.strikeouts || jugador.so || 0) || 0;
+                    const wins = parseInt(jugador.wins || jugador.w || 0) || 0;
+                    const ip = parseFloat(jugador.innings_pitched || jugador.ip || 0) || 0;
+                    
+                    ranking = era.toFixed(2);
+                    badgeColor = era <= 2.00 ? '#4CAF50' : era <= 3.50 ? '#FF9800' : era <= 5.00 ? '#2196F3' : '#9E9E9E';
+                    
+                    metricas = `
+                        <div class="player-metrics">
+                            <div class="metric-row">
+                                <div class="metric-item">
+                                    <span class="metric-label">ERA</span>
+                                    <span class="metric-value">${era.toFixed(2)}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">WHIP</span>
+                                    <span class="metric-value">${whip.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <div class="metric-row">
+                                <div class="metric-item">
+                                    <span class="metric-label">SO</span>
+                                    <span class="metric-value">${so}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">W</span>
+                                    <span class="metric-value">${wins}</span>
+                                </div>
+                            </div>
+                            <div class="metric-footer">
+                                <span class="innings">${ip} IP</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (categoria === 'defensiva') {
+                    const fld = parseFloat(jugador.fielding_percentage || jugador.fld_pct || 0) || 0;
+                    const po = parseInt(jugador.putouts || jugador.po || 0) || 0;
+                    const a = parseInt(jugador.assists || jugador.a || 0) || 0;
+                    const e = parseInt(jugador.errors || jugador.e || 0) || 0;
+                    
+                    ranking = fld.toFixed(3);
+                    badgeColor = fld >= 0.980 ? '#4CAF50' : fld >= 0.950 ? '#FF9800' : fld >= 0.900 ? '#2196F3' : '#9E9E9E';
+                    
+                    metricas = `
+                        <div class="player-metrics">
+                            <div class="metric-row">
+                                <div class="metric-item">
+                                    <span class="metric-label">FLD%</span>
+                                    <span class="metric-value">${fld.toFixed(3)}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">PO</span>
+                                    <span class="metric-value">${po}</span>
+                                </div>
+                            </div>
+                            <div class="metric-row">
+                                <div class="metric-item">
+                                    <span class="metric-label">A</span>
+                                    <span class="metric-value">${a}</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">E</span>
+                                    <span class="metric-value">${e}</span>
+                                </div>
+                            </div>
+                            <div class="metric-footer">
+                                <span class="total-chances">${po + a + e} TC</span>
+                            </div>
+                        </div>
+                    `;
+                }
 
                 return `
-                    <div class="lider-item" ${id ? `onclick="window.open('jugador.html?id=${id}','_blank')"` : ''}>
-                        <div class="lider-rank">#${index + 1}</div>
-                        <div class="lider-info">
-                            <div class="lider-nombre">${nombre}</div>
-                            <div class="lider-equipo">${equipo}</div>
+                    <div class="professional-player-card" ${id ? `onclick="window.open('jugador.html?id=${id}','_blank')"` : ''}>
+                        <div class="card-header">
+                            <div class="player-rank" style="background: ${badgeColor}">
+                                #${index + 1}
+                            </div>
+                            <div class="player-info">
+                                <div class="player-name">${nombre}</div>
+                                <div class="player-team-pos">
+                                    <span class="team-name">${equipo}</span>
+                                    <span class="position-badge">${posicion}</span>
+                                </div>
+                            </div>
+                            <div class="primary-stat" style="color: ${badgeColor}">
+                                ${ranking}
+                            </div>
                         </div>
-                        <div class="lider-stats">
-                            ${getStatsForCategory(jugador, categoria)}
+                        ${metricas}
+                        <div class="card-footer">
+                            <span class="view-profile">Ver Perfil →</span>
                         </div>
                     </div>
                 `;
             }).join('');
-        }
-
-        function getStatsForCategory(jugador, categoria) {
-            if (categoria === 'bateo') {
-                const avg = parseFloat(jugador.promedio_bateo || jugador.avg || 0) || 0;
-                const ops = parseFloat(jugador.ops || 0) || 0;
-                const hr = parseInt(jugador.home_runs || jugador.hr || 0) || 0;
-
-                return `
-                    <div class="stat-primary">${avg.toFixed(3)}</div>
-                    <div class="stat-secondary">OPS: ${ops.toFixed(3)} | HR: ${hr}</div>
-                `;
-            } else if (categoria === 'pitcheo') {
-                const era = parseFloat(jugador.era || 0) || 0;
-                const whip = parseFloat(jugador.whip || 0) || 0;
-                const so = parseInt(jugador.strikeouts || jugador.so || 0) || 0;
-
-                return `
-                    <div class="stat-primary">${era.toFixed(2)}</div>
-                    <div class="stat-secondary">WHIP: ${whip.toFixed(2)} | SO: ${so}</div>
-                `;
-            } else if (categoria === 'defensiva') {
-                const fld = parseFloat(jugador.fielding_percentage || jugador.fld_pct || 0) || 0;
-                const po = parseInt(jugador.putouts || jugador.po || 0) || 0;
-                const a = parseInt(jugador.assists || jugador.a || 0) || 0;
-
-                return `
-                    <div class="stat-primary">${fld.toFixed(3)}</div>
-                    <div class="stat-secondary">PO: ${po} | A: ${a}</div>
-                `;
-            }
-            return '';
         }
 
         function initBuscadorBateadores() {
@@ -3882,6 +4156,7 @@
                 cargarYMostrarDefensivos(value);
             };
         }
+
 
 
         // 🐛 PROBLEMA 4 CORREGIDO
@@ -3969,6 +4244,7 @@
             }
         }
 
+        // 🐛 PROBLEMA 2 CORREGIDO
         /**
          * ✅ Generar card de líder - VERSIÓN MEJORADA
          */
