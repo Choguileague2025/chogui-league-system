@@ -2852,7 +2852,47 @@
         }
 
         /* Card "Ver más" */
-        
+        .ver-mas-card {
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border: 2px dashed rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ver-mas-card:hover {
+            border-color: rgba(255, 215, 0, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .ver-mas-content h4 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .ver-mas-content p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .btn-ver-mas {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ver-mas:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
 </style>
 </head>
 <body>
@@ -2990,107 +3030,7 @@
                 flex-direction: column;
             }
         }
-        
-        .premium-view-more-card {
-            background: linear-gradient(145deg, rgba(26, 26, 46, 0.95), rgba(30, 30, 50, 0.95));
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 16px;
-            padding: 40px 20px;
-            margin: 10px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-
-        .premium-view-more-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
-            background-size: 200% 100%;
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0%, 100% { background-position: 200% 0; }
-            50% { background-position: -200% 0; }
-        }
-
-        .premium-view-more-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: rgba(255, 215, 0, 0.8);
-            box-shadow: 0 20px 40px rgba(255, 215, 0, 0.15), 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .view-more-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 20px;
-            background: rgba(255, 215, 0, 0.1);
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .premium-view-more-card:hover .view-more-icon {
-            transform: rotate(90deg) scale(1.1);
-            border-color: rgba(255, 215, 0, 0.6);
-        }
-
-        .view-more-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffffff;
-            margin-bottom: 8px;
-        }
-
-        .view-more-subtitle {
-            font-size: 14px;
-            color: rgba(255, 215, 0, 0.8);
-            margin-bottom: 20px;
-        }
-
-        .view-more-stats {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 25px;
-        }
-
-        .stat-bubble {
-            background: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 12px;
-            color: #ffd700;
-            font-weight: 600;
-        }
-
-        .cta-text {
-            color: #ffd700;
-            font-size: 16px;
-            font-weight: 600;
-            transition: transform 0.3s ease;
-        }
-
-        .premium-view-more-card:hover .cta-text {
-            transform: translateX(5px);
-        }
-
-</style>
+        </style>
 
         <nav class="nav-tabs" id="mobileNavigation">
             <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
@@ -4030,19 +3970,14 @@
 
                 if (filtrados.length > 7) {
                     container.innerHTML += `
-                        <div class="premium-view-more-card" onclick="mostrarTodosLosJugadores('bateo')">
-                            <div class="view-more-icon">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 5V19M5 12H19" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
+                        <div class="ver-mas-card">
+                            <div class="ver-mas-content">
+                                <h4>Ver más jugadores</h4>
+                                <p>${filtrados.length - 7} bateadores adicionales</p>
+                                <button class="btn-ver-mas" onclick="mostrarTodosLosJugadores('bateo')">
+                                    Ver todos los ${filtrados.length} bateadores &rarr;
+                                </button>
                             </div>
-                            <div class="view-more-title">Ver más bateadores</div>
-                            <div class="view-more-subtitle">${filtrados.length - 7} adicionales disponibles</div>
-                            <div class="view-more-stats">
-                                <span class="stat-bubble">Total: ${filtrados.length}</span>
-                                <span class="stat-bubble">Top: 7</span>
-                            </div>
-                            <div class="cta-text">Explorar todos →</div>
                         </div>
                     `;
                 }
@@ -4079,19 +4014,14 @@
 
                 if (filtrados.length > 7) {
                     container.innerHTML += `
-                        <div class="premium-view-more-card" onclick="mostrarTodosLosJugadores('pitcheo')">
-                            <div class="view-more-icon">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 5V19M5 12H19" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
+                        <div class="ver-mas-card">
+                            <div class="ver-mas-content">
+                                <h4>Ver más lanzadores</h4>
+                                <p>${filtrados.length - 7} pitchers adicionales</p>
+                                <button class="btn-ver-mas" onclick="mostrarTodosLosJugadores('pitcheo')">
+                                    Ver todos los ${filtrados.length} pitchers &rarr;
+                                </button>
                             </div>
-                            <div class="view-more-title">Ver más lanzadores</div>
-                            <div class="view-more-subtitle">${filtrados.length - 7} adicionales disponibles</div>
-                            <div class="view-more-stats">
-                                <span class="stat-bubble">Total: ${filtrados.length}</span>
-                                <span class="stat-bubble">Top: 7</span>
-                            </div>
-                            <div class="cta-text">Explorar todos →</div>
                         </div>
                     `;
                 }
@@ -4128,19 +4058,14 @@
 
                 if (filtrados.length > 7) {
                     container.innerHTML += `
-                        <div class="premium-view-more-card" onclick="mostrarTodosLosJugadores('defensiva')">
-                            <div class="view-more-icon">
-                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 5V19M5 12H19" stroke="#ffd700" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
+                        <div class="ver-mas-card">
+                            <div class="ver-mas-content">
+                                <h4>Ver más jugadores defensivos</h4>
+                                <p>${filtrados.length - 7} jugadores adicionales</p>
+                                <button class="btn-ver-mas" onclick="mostrarTodosLosJugadores('defensiva')">
+                                    Ver todos los ${filtrados.length} defensivos &rarr;
+                                </button>
                             </div>
-                            <div class="view-more-title">Ver más jugadores defensivos</div>
-                            <div class="view-more-subtitle">${filtrados.length - 7} adicionales disponibles</div>
-                            <div class="view-more-stats">
-                                <span class="stat-bubble">Total: ${filtrados.length}</span>
-                                <span class="stat-bubble">Top: 7</span>
-                            </div>
-                            <div class="cta-text">Explorar todos →</div>
                         </div>
                     `;
                 }
