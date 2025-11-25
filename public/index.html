@@ -2850,6 +2850,49 @@
                 padding: 15px;
             }
         }
+
+        /* Card "Ver más" */
+        .ver-mas-card {
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            border: 2px dashed rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ver-mas-card:hover {
+            border-color: rgba(255, 215, 0, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .ver-mas-content h4 {
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .ver-mas-content p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .btn-ver-mas {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ver-mas:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
 </style>
 </head>
 <body>
@@ -3914,12 +3957,30 @@
                         .toLowerCase().includes(termino)
                 );
                 
+                const jugadoresAMostrar = filtrados.slice(0, 10);
                 const resultsLabel = document.getElementById('searchResultsBateo');
                 if (resultsLabel) {
-                    resultsLabel.textContent = `${filtrados.length} bateador(es) encontrado(s)`;
+                    resultsLabel.textContent = `Mostrando ${jugadoresAMostrar.length} de ${filtrados.length} bateador(es)`;
                 }
                 
-                renderizarCards(filtrados, 'bateo');
+                const container = document.getElementById('lideresGrid');
+                if (!container) return;
+                
+                renderizarCards(jugadoresAMostrar, 'bateo');
+
+                if (filtrados.length > 10) {
+                    container.innerHTML += `
+                        <div class="ver-mas-card">
+                            <div class="ver-mas-content">
+                                <h4>Ver más jugadores</h4>
+                                <p>${filtrados.length - 10} bateadores adicionales</p>
+                                <button class="btn-ver-mas" onclick="mostrarTodosLosJugadores('bateo')">
+                                    Ver todos los ${filtrados.length} bateadores &rarr;
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
             } catch (error) {
                 console.error('Error cargando bateadores:', error);
             }
@@ -3940,12 +4001,30 @@
                         .toLowerCase().includes(termino)
                 );
                 
+                const jugadoresAMostrar = filtrados.slice(0, 10);
                 const resultsLabel = document.getElementById('searchResultsPitcheo');
                 if (resultsLabel) {
-                    resultsLabel.textContent = `${filtrados.length} pitcher(s) encontrado(s)`;
+                    resultsLabel.textContent = `Mostrando ${jugadoresAMostrar.length} de ${filtrados.length} pitcher(s)`;
                 }
                 
-                renderizarCards(filtrados, 'pitcheo');
+                const container = document.getElementById('lideresGrid');
+                if (!container) return;
+                
+                renderizarCards(jugadoresAMostrar, 'pitcheo');
+
+                if (filtrados.length > 10) {
+                    container.innerHTML += `
+                        <div class="ver-mas-card">
+                            <div class="ver-mas-content">
+                                <h4>Ver más lanzadores</h4>
+                                <p>${filtrados.length - 10} pitchers adicionales</p>
+                                <button class="btn-ver-mas" onclick="mostrarTodosLosJugadores('pitcheo')">
+                                    Ver todos los ${filtrados.length} pitchers &rarr;
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
             } catch (error) {
                 console.error('Error cargando pitchers:', error);
             }
@@ -3966,12 +4045,30 @@
                         .toLowerCase().includes(termino)
                 );
                 
+                const jugadoresAMostrar = filtrados.slice(0, 10);
                 const resultsLabel = document.getElementById('searchResultsDefensiva');
                 if (resultsLabel) {
-                    resultsLabel.textContent = `${filtrados.length} defensivo(s) encontrado(s)`;
+                    resultsLabel.textContent = `Mostrando ${jugadoresAMostrar.length} de ${filtrados.length} defensivo(s)`;
                 }
                 
-                renderizarCards(filtrados, 'defensiva');
+                const container = document.getElementById('lideresGrid');
+                if (!container) return;
+                
+                renderizarCards(jugadoresAMostrar, 'defensiva');
+
+                if (filtrados.length > 10) {
+                    container.innerHTML += `
+                        <div class="ver-mas-card">
+                            <div class="ver-mas-content">
+                                <h4>Ver más jugadores defensivos</h4>
+                                <p>${filtrados.length - 10} jugadores adicionales</p>
+                                <button class="btn-ver-mas" onclick="mostrarTodosLosJugadores('defensiva')">
+                                    Ver todos los ${filtrados.length} defensivos &rarr;
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
             } catch (error) {
                 console.error('Error cargando defensivos:', error);
             }
@@ -3980,6 +4077,16 @@
         function renderizarCards(jugadores, categoria) {
             const container = document.getElementById('lideresGrid');
             if (!container) return;
+
+            if (!jugadores || jugadores.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="display:block;">
+                        <h3>📊 Sin datos de ${categoria}</h3>
+                        <p>Los líderes aparecerán cuando haya estadísticas disponibles</p>
+                    </div>
+                `;
+                return;
+            }
 
             container.innerHTML = jugadores.map((jugador, index) => {
                 const nombre = jugador.nombre || jugador.jugador_nombre || jugador.nombre_jugador || 'Sin Nombre';
@@ -4123,7 +4230,7 @@
                         </div>
                         ${metricas}
                         <div class="card-footer">
-                            <span class="view-profile">Ver Perfil →</span>
+                            <span class="view-profile">Ver Perfil &rarr;</span>
                         </div>
                     </div>
                 `;
@@ -4155,6 +4262,22 @@
                 const value = (e.target.value || '').trim();
                 cargarYMostrarDefensivos(value);
             };
+        }
+
+        function mostrarTodosLosJugadores(categoria) {
+            if (categoria === 'bateo') {
+                renderizarCards(bateadoresCompletos, 'bateo');
+                const label = document.getElementById('searchResultsBateo');
+                if (label) label.textContent = `${bateadoresCompletos.length} bateador(es) encontrado(s)`;
+            } else if (categoria === 'pitcheo') {
+                renderizarCards(pitchersCompletos, 'pitcheo');
+                const label = document.getElementById('searchResultsPitcheo');
+                if (label) label.textContent = `${pitchersCompletos.length} pitcher(s) encontrado(s)`;
+            } else if (categoria === 'defensiva') {
+                renderizarCards(defensivosCompletos, 'defensiva');
+                const label = document.getElementById('searchResultsDefensiva');
+                if (label) label.textContent = `${defensivosCompletos.length} defensivo(s) encontrado(s)`;
+            }
         }
 
 
