@@ -2886,52 +2886,69 @@
 
         <div id="estadisticas" class="tab-content">
             <div class="card" id="lideresContainer">
-                <div class="leaders-section-header">
-                    <h3>🏆 Líderes de la Liga</h3>
-                    <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
-                </div>
-               
-                <div class="leaders-filters">
-                    <button class="leader-filter active" data-category="bateo">⚾ Bateo</button>
-                    <button class="leader-filter" data-category="pitcheo">🎯 Pitcheo</button>
-                    <button class="leader-filter" data-category="defensiva">🛡️ Defensiva</button>
-                    <button class="leader-filter" data-category="todos">📊 Todos</button>
-                </div>
-               
-                <div class="search-container" id="searchContainerTodos" style="display: none; margin-bottom: 30px;">
-                  <div style="max-width: 600px; margin: 0 auto;">
-                    <input 
-                      type="text" 
-                      id="searchPlayerInput" 
-                      placeholder="🔍 Buscar jugador por nombre..."
-                      style="
-                        width: 100%;
-                        padding: 15px 24px;
-                        border-radius: 30px;
-                        border: 2px solid rgba(255, 215, 0, 0.3);
-                        background: rgba(26, 26, 46, 0.8);
-                        color: #fff;
-                        font-size: 16px;
-                        transition: all 0.3s ease;
-                      "
-                    />
-                  </div>
-                  <div id="searchResultsCount" style="
-                    text-align: center;
-                    margin-top: 10px;
-                    color: rgba(255, 215, 0, 0.8);
-                    font-size: 0.9rem;
-                  "></div>
-                </div>
+    <div class="leaders-section-header">
+        <h3>🏆 Líderes de la Liga</h3>
+        <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
+    </div>
 
-                <div id="lideresGrid">
-                    </div>
+    <div class="leaders-filters">
+        <button class="leader-filter active" data-category="bateo">⚾ Bateo</button>
+        <button class="leader-filter" data-category="pitcheo">🎯 Pitcheo</button>
+        <button class="leader-filter" data-category="defensiva">🛡️ Defensiva</button>
+        <button class="leader-filter" data-category="todos">📊 Todos</button>
+    </div>
 
-                <div id="positionsContainer" class="positions-container" style="display: none;">
-                    </div>
+    <!-- Buscadores por categoría -->
+    <div class="search-container" id="searchContainerBateo" style="display: none; margin-bottom: 20px;">
+        <input type="text" id="searchBateadores" placeholder="🔍 Buscar bateador..." 
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffd700; background: rgba(26,26,46,0.8); color: #fff;">
+        <div id="searchResultsBateo" style="margin-top: 10px; color: #ffd700; font-size: 0.9rem;"></div>
+    </div>
 
-            </div>
-            
+    <div class="search-container" id="searchContainerPitcheo" style="display: none; margin-bottom: 20px;">
+        <input type="text" id="searchPitchers" placeholder="🔍 Buscar pitcher..." 
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffd700; background: rgba(26,26,46,0.8); color: #fff;">
+        <div id="searchResultsPitcheo" style="margin-top: 10px; color: #ffd700; font-size: 0.9rem;"></div>
+    </div>
+
+    <div class="search-container" id="searchContainerDefensiva" style="display: none; margin-bottom: 20px;">
+        <input type="text" id="searchDefensivos" placeholder="🔍 Buscar jugador defensivo..." 
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffd700; background: rgba(26,26,46,0.8); color: #fff;">
+        <div id="searchResultsDefensiva" style="margin-top: 10px; color: #ffd700; font-size: 0.9rem;"></div>
+    </div>
+
+    <!-- Buscador existente para "Todos" -->
+    <div class="search-container" id="searchContainerTodos" style="display: none; margin-bottom: 30px;">
+      <div style="max-width: 600px; margin: 0 auto;">
+        <input 
+          type="text" 
+          id="searchPlayerInput" 
+          placeholder="🔍 Buscar jugador por nombre..."
+          style="
+            width: 100%;
+            padding: 15px 24px;
+            border-radius: 30px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            background: rgba(26, 26, 46, 0.8);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+          "
+        />
+      </div>
+      <div id="searchResultsCount" style="
+        text-align: center;
+        margin-top: 10px;
+        color: rgba(255, 215, 0, 0.8);
+        font-size: 0.9rem;
+      "></div>
+    </div>
+
+    <div id="lideresGrid"></div>
+
+    <div id="positionsContainer" class="positions-container" style="display: none;"></div>
+</div>
+
             <div class="card">
                 <h3>⭐ Líderes Ofensivos Destacados</h3>
                 <div id="lideresOfensivosContainer" class="leaders-grid-enhanced">
@@ -3690,6 +3707,183 @@
         };
         let currentLeaderCategory = 'bateo';
 
+        // Datos completos para buscadores por categoría
+        let bateadoresCompletos = [];
+        let pitchersCompletos = [];
+        let defensivosCompletos = [];
+
+        async function cargarYMostrarBateadores(filtro = '') {
+            try {
+                if (bateadoresCompletos.length === 0) {
+                    const response = await fetch('/api/lideres?tipo=bateo&min_ab=1');
+                    bateadoresCompletos = await response.json();
+                }
+                
+                const termino = filtro.toLowerCase();
+                const filtrados = bateadoresCompletos.filter(jugador => 
+                    (jugador.nombre_jugador || jugador.nombre || jugador.jugador_nombre || '')
+                        .toLowerCase().includes(termino) ||
+                    (jugador.equipo_nombre || jugador.team_name || jugador.equipo || '')
+                        .toLowerCase().includes(termino)
+                );
+                
+                const resultsLabel = document.getElementById('searchResultsBateo');
+                if (resultsLabel) {
+                    resultsLabel.textContent = `${filtrados.length} bateador(es) encontrado(s)`;
+                }
+                
+                renderizarCards(filtrados, 'bateo');
+            } catch (error) {
+                console.error('Error cargando bateadores:', error);
+            }
+        }
+
+        async function cargarYMostrarPitchers(filtro = '') {
+            try {
+                if (pitchersCompletos.length === 0) {
+                    const response = await fetch('/api/lideres?tipo=pitcheo');
+                    pitchersCompletos = await response.json();
+                }
+                
+                const termino = filtro.toLowerCase();
+                const filtrados = pitchersCompletos.filter(jugador => 
+                    (jugador.nombre_jugador || jugador.nombre || jugador.jugador_nombre || '')
+                        .toLowerCase().includes(termino) ||
+                    (jugador.equipo_nombre || jugador.team_name || jugador.equipo || '')
+                        .toLowerCase().includes(termino)
+                );
+                
+                const resultsLabel = document.getElementById('searchResultsPitcheo');
+                if (resultsLabel) {
+                    resultsLabel.textContent = `${filtrados.length} pitcher(s) encontrado(s)`;
+                }
+                
+                renderizarCards(filtrados, 'pitcheo');
+            } catch (error) {
+                console.error('Error cargando pitchers:', error);
+            }
+        }
+
+        async function cargarYMostrarDefensivos(filtro = '') {
+            try {
+                if (defensivosCompletos.length === 0) {
+                    const response = await fetch('/api/lideres?tipo=defensa');
+                    defensivosCompletos = await response.json();
+                }
+                
+                const termino = filtro.toLowerCase();
+                const filtrados = defensivosCompletos.filter(jugador => 
+                    (jugador.nombre_jugador || jugador.nombre || jugador.jugador_nombre || '')
+                        .toLowerCase().includes(termino) ||
+                    (jugador.equipo_nombre || jugador.team_name || jugador.equipo || '')
+                        .toLowerCase().includes(termino)
+                );
+                
+                const resultsLabel = document.getElementById('searchResultsDefensiva');
+                if (resultsLabel) {
+                    resultsLabel.textContent = `${filtrados.length} defensivo(s) encontrado(s)`;
+                }
+                
+                renderizarCards(filtrados, 'defensiva');
+            } catch (error) {
+                console.error('Error cargando defensivos:', error);
+            }
+        }
+
+        function renderizarCards(jugadores, categoria) {
+            const container = document.getElementById('lideresGrid');
+            if (!container) return;
+
+            if (!jugadores || jugadores.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="display:block;">
+                        <h3>📊 Sin datos de ${categoria}</h3>
+                        <p>Los líderes aparecerán cuando haya estadísticas disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = jugadores.map((jugador, index) => {
+                const id = jugador.jugador_id || jugador.id || '';
+                const nombre = jugador.nombre_jugador || jugador.nombre || jugador.jugador_nombre || 'Sin Nombre';
+                const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin Equipo';
+
+                return `
+                    <div class="lider-item" ${id ? `onclick="window.open('jugador.html?id=${id}','_blank')"` : ''}>
+                        <div class="lider-rank">#${index + 1}</div>
+                        <div class="lider-info">
+                            <div class="lider-nombre">${nombre}</div>
+                            <div class="lider-equipo">${equipo}</div>
+                        </div>
+                        <div class="lider-stats">
+                            ${getStatsForCategory(jugador, categoria)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getStatsForCategory(jugador, categoria) {
+            if (categoria === 'bateo') {
+                const avg = parseFloat(jugador.promedio_bateo || jugador.avg || 0) || 0;
+                const ops = parseFloat(jugador.ops || 0) || 0;
+                const hr = parseInt(jugador.home_runs || jugador.hr || 0) || 0;
+
+                return `
+                    <div class="stat-primary">${avg.toFixed(3)}</div>
+                    <div class="stat-secondary">OPS: ${ops.toFixed(3)} | HR: ${hr}</div>
+                `;
+            } else if (categoria === 'pitcheo') {
+                const era = parseFloat(jugador.era || 0) || 0;
+                const whip = parseFloat(jugador.whip || 0) || 0;
+                const so = parseInt(jugador.strikeouts || jugador.so || 0) || 0;
+
+                return `
+                    <div class="stat-primary">${era.toFixed(2)}</div>
+                    <div class="stat-secondary">WHIP: ${whip.toFixed(2)} | SO: ${so}</div>
+                `;
+            } else if (categoria === 'defensiva') {
+                const fld = parseFloat(jugador.fielding_percentage || jugador.fld_pct || 0) || 0;
+                const po = parseInt(jugador.putouts || jugador.po || 0) || 0;
+                const a = parseInt(jugador.assists || jugador.a || 0) || 0;
+
+                return `
+                    <div class="stat-primary">${fld.toFixed(3)}</div>
+                    <div class="stat-secondary">PO: ${po} | A: ${a}</div>
+                `;
+            }
+            return '';
+        }
+
+        function initBuscadorBateadores() {
+            const input = document.getElementById('searchBateadores');
+            if (!input) return;
+            input.oninput = (e) => {
+                const value = (e.target.value || '').trim();
+                cargarYMostrarBateadores(value);
+            };
+        }
+
+        function initBuscadorPitchers() {
+            const input = document.getElementById('searchPitchers');
+            if (!input) return;
+            input.oninput = (e) => {
+                const value = (e.target.value || '').trim();
+                cargarYMostrarPitchers(value);
+            };
+        }
+
+        function initBuscadorDefensivos() {
+            const input = document.getElementById('searchDefensivos');
+            if (!input) return;
+            input.oninput = (e) => {
+                const value = (e.target.value || '').trim();
+                cargarYMostrarDefensivos(value);
+            };
+        }
+
+
         // 🐛 PROBLEMA 4 CORREGIDO
         async function cargarLideres() {
             try {
@@ -3725,55 +3919,56 @@
             }
         }
        
-        function renderizarLideresPorCategoria(categoria) {
-            currentLeaderCategory = categoria; 
-           
+        
+        async function renderizarLideresPorCategoria(categoria) {
+            currentLeaderCategory = categoria;
+            
             const container = document.getElementById('lideresGrid');
             const positionsContainer = document.getElementById('positionsContainer');
-            const searchContainer = document.getElementById('searchContainerTodos');
-
+            const searchContainerTodos = document.getElementById('searchContainerTodos');
+            const searchContainerBateo = document.getElementById('searchContainerBateo');
+            const searchContainerPitcheo = document.getElementById('searchContainerPitcheo');
+            const searchContainerDefensiva = document.getElementById('searchContainerDefensiva');
+            
+            // Ocultar todos los buscadores primero
+            [searchContainerTodos, searchContainerBateo, searchContainerPitcheo, searchContainerDefensiva].forEach(sc => {
+                if (sc) sc.style.display = 'none';
+            });
+            
             document.querySelectorAll('.leader-filter').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.category === categoria);
             });
 
             if (categoria === 'todos') {
+                // Mantener funcionalidad actual
                 if (container) container.style.display = 'none';
                 if (positionsContainer) positionsContainer.style.display = 'block';
-                if (searchContainer) searchContainer.style.display = 'block';
+                if (searchContainerTodos) searchContainerTodos.style.display = 'block';
                 renderizarTodosPorPosicion();
-                setTimeout(() => {
-                    initBuscadorJugadores();
-                }, 100);
+                setTimeout(() => { initBuscadorJugadores(); }, 100);
                 return;
             }
-
+            
+            // Mostrar container de líderes y ocultar posiciones
             if (container) container.style.display = 'grid';
             if (positionsContainer) positionsContainer.style.display = 'none';
-            if (searchContainer) searchContainer.style.display = 'none';
-
-            if (!container) {
-                console.error('❌ Contenedor lideresGrid no encontrado');
-                return;
+            
+            // Mostrar buscador específico según categoría
+            if (categoria === 'bateo') {
+                if (searchContainerBateo) searchContainerBateo.style.display = 'block';
+                await cargarYMostrarBateadores();
+                initBuscadorBateadores();
+            } else if (categoria === 'pitcheo') {
+                if (searchContainerPitcheo) searchContainerPitcheo.style.display = 'block';
+                await cargarYMostrarPitchers();
+                initBuscadorPitchers();
+            } else if (categoria === 'defensiva') {
+                if (searchContainerDefensiva) searchContainerDefensiva.style.display = 'block';
+                await cargarYMostrarDefensivos();
+                initBuscadorDefensivos();
             }
-
-            const datos = leadersData[categoria] || [];
-
-            if (datos.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="display:block;">
-                        <h3>📊 Sin datos de ${categoria}</h3>
-                        <p>Los líderes aparecerán cuando haya estadísticas disponibles</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const html = datos.map((lider, index) => generarCardLider(lider, index, categoria)).join('');
-            container.innerHTML = html;
-            console.log(`✅ Renderizados ${datos.length} líderes de ${categoria}`);
         }
-       
-        // 🐛 PROBLEMA 2 CORREGIDO
+
         /**
          * ✅ Generar card de líder - VERSIÓN MEJORADA
          */
