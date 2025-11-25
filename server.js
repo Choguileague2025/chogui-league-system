@@ -174,7 +174,13 @@ async function inicializarBaseDeDatos() {
                     rbi INTEGER DEFAULT 0, 
                     runs INTEGER DEFAULT 0, 
                     walks INTEGER DEFAULT 0, 
-                    stolen_bases INTEGER DEFAULT 0, 
+                    stolen_bases INTEGER DEFAULT 0,
+                    doubles INTEGER DEFAULT 0,
+                    triples INTEGER DEFAULT 0, 
+                    caught_stealing INTEGER DEFAULT 0,
+                    hit_by_pitch INTEGER DEFAULT 0,
+                    sacrifice_flies INTEGER DEFAULT 0,
+                    sacrifice_hits INTEGER DEFAULT 0, 
                     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
                     UNIQUE(jugador_id, temporada)
                 );`
@@ -322,6 +328,32 @@ async function inicializarBaseDeDatos() {
             console.log('✅ Columna strikeouts en estadisticas_ofensivas verificada/añadida');
         } catch (error) {
             console.warn('⚠️ Error en migración de strikeouts:', error.message);
+        }
+
+
+        // MIGRACIÓN CRÍTICA: Agregar las 6 columnas faltantes para estadísticas completas
+        try {
+            const columnasNuevas = [
+                'doubles', 'triples', 'caught_stealing', 
+                'hit_by_pitch', 'sacrifice_flies', 'sacrifice_hits'
+            ];
+
+            for (const columna of columnasNuevas) {
+                await pool.query(`
+                    DO $$ 
+                    BEGIN
+                        IF NOT EXISTS (
+                            SELECT 1 FROM information_schema.columns 
+                            WHERE table_name='estadisticas_ofensivas' AND column_name='${columna}'
+                        ) THEN
+                            ALTER TABLE estadisticas_ofensivas ADD COLUMN ${columna} INTEGER DEFAULT 0;
+                        END IF;
+                    END $$;
+                `);
+            }
+            console.log('✅ Las 6 columnas nuevas verificadas/añadidas: doubles, triples, caught_stealing, hit_by_pitch, sacrifice_flies, sacrifice_hits');
+        } catch (error) {
+            console.warn('⚠️ Error en migración de columnas nuevas:', error.message);
         }
 
         // Crear índices para optimización
