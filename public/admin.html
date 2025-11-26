@@ -3591,7 +3591,7 @@
                     toast.success('Estadísticas registradas exitosamente.');
                     await cargarEstadisticas();
                     // MODIFICACIÓN #3: Actualizar sistema de reset para incluir #strikeouts
-                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases, #strikeouts').forEach(el => el.value = 0); // <-- CAMBIO CRÍTICO
+                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases, #strikeouts, #doubles, #triples, #caught_stealing, #hit_by_pitch, #sacrifice_flies, #sacrifice_hits').forEach(el => el.value = 0); // <-- CAMBIO CRÍTICO
                 } else {
                     toast.error('Error al registrar estadísticas.');
                 }
