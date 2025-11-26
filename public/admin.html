@@ -3999,10 +3999,21 @@
                             <tr>
                                 <td>${s.nombre}</td>
                                 <td>${s.equipo_nombre || '-'}</td>
-                                <td><input type="number" id="ab-${s.jugador_id}" value="${s.at_bats || 0}" style="width:60px;"></td>
-                                <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:60px;"></td>
-                                <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:60px;"></td>
-                                <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="pa-${s.jugador_id}" value="${s.plate_appearances || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="ab-${s.jugador_id}" value="${s.at_bats || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="doubles-${s.jugador_id}" value="${s.doubles || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="triples-${s.jugador_id}" value="${s.triples || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="r-${s.jugador_id}" value="${s.runs || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="bb-${s.jugador_id}" value="${s.walks || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="so-${s.jugador_id}" value="${s.strikeouts || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="sb-${s.jugador_id}" value="${s.stolen_bases || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="cs-${s.jugador_id}" value="${s.caught_stealing || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="hbp-${s.jugador_id}" value="${s.hit_by_pitch || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="sf-${s.jugador_id}" value="${s.sacrifice_flies || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="sh-${s.jugador_id}" value="${s.sacrifice_hits || 0}" style="width:50px;"></td>
                                 <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">💾</button></td>
                             </tr>
                         `).join('');
@@ -4014,7 +4025,7 @@
                 };
                 paginationBateo.setData(enrichedStats);
             } catch(e) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="18" class="empty-state">Error al cargar.</td></tr>';
                 console.error(e);
             }
         }
@@ -4239,7 +4250,7 @@
                 };
                 paginationDefensa.setData(enrichedStats);
             } catch(e) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error al cargar.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="18" class="empty-state">Error al cargar.</td></tr>';
                 console.error(e);
             }
         }
@@ -4313,22 +4324,12 @@
                 switch (tipo) {
                     case 'bateo':
                         endpoint = `/api/estadisticas-ofensivas/edit`;
-                        // Capturar TODOS los 16 campos de estadísticas de bateo disponibles en la tabla
-                        payload.plate_appearances = parseInt(document.getElementById(`pa-${jugadorId}`).value) || 0;
                         payload.at_bats = parseInt(document.getElementById(`ab-${jugadorId}`).value) || 0;
                         payload.hits = parseInt(document.getElementById(`h-${jugadorId}`).value) || 0;
-                        payload.doubles = parseInt(document.getElementById(`doubles-${jugadorId}`).value) || 0;
-                        payload.triples = parseInt(document.getElementById(`triples-${jugadorId}`).value) || 0;
                         payload.home_runs = parseInt(document.getElementById(`hr-${jugadorId}`).value) || 0;
                         payload.rbi = parseInt(document.getElementById(`rbi-${jugadorId}`).value) || 0;
-                        payload.runs = parseInt(document.getElementById(`r-${jugadorId}`).value) || 0;
-                        payload.walks = parseInt(document.getElementById(`bb-${jugadorId}`).value) || 0;
-                        payload.strikeouts = parseInt(document.getElementById(`so-${jugadorId}`).value) || 0;
-                        payload.stolen_bases = parseInt(document.getElementById(`sb-${jugadorId}`).value) || 0;
-                        payload.caught_stealing = parseInt(document.getElementById(`cs-${jugadorId}`).value) || 0;
-                        payload.hit_by_pitch = parseInt(document.getElementById(`hbp-${jugadorId}`).value) || 0;
-                        payload.sacrifice_flies = parseInt(document.getElementById(`sf-${jugadorId}`).value) || 0;
-                        payload.sacrifice_hits = parseInt(document.getElementById(`sh-${jugadorId}`).value) || 0;
+                        // Nota: Se envían solo los campos editables en esta tabla.
+                        // El backend debe manejar los demás campos (runs, walks, etc.)
                         break;
                     
                     case 'pitcheo':
