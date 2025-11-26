@@ -3993,27 +3993,16 @@
                 paginationBateo.render = function() {
                     const data = this.getCurrentPageData();
                     if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="18" class="empty-state">No se encontraron jugadores con los filtros aplicados.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No se encontraron jugadores con los filtros aplicados.</td></tr>';
                     } else {
                         tbody.innerHTML = data.map(s => `
                             <tr>
                                 <td>${s.nombre}</td>
                                 <td>${s.equipo_nombre || '-'}</td>
-                                <td><input type="number" id="pa-${s.jugador_id}" value="${s.plate_appearances || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="ab-${s.jugador_id}" value="${s.at_bats || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="doubles-${s.jugador_id}" value="${s.doubles || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="triples-${s.jugador_id}" value="${s.triples || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="r-${s.jugador_id}" value="${s.runs || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="bb-${s.jugador_id}" value="${s.walks || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="so-${s.jugador_id}" value="${s.strikeouts || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="sb-${s.jugador_id}" value="${s.stolen_bases || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="cs-${s.jugador_id}" value="${s.caught_stealing || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="hbp-${s.jugador_id}" value="${s.hit_by_pitch || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="sf-${s.jugador_id}" value="${s.sacrifice_flies || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="sh-${s.jugador_id}" value="${s.sacrifice_hits || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="ab-${s.jugador_id}" value="${s.at_bats || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:60px;"></td>
                                 <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">💾</button></td>
                             </tr>
                         `).join('');
