@@ -3782,8 +3782,7 @@ async function triggerRecalculation(req, res, next) {
                 : `http://localhost:${PORT}`;
 
             // Hacer llamada interna al endpoint de recálculo
-            // NOTA: Se debe asegurar que 'fetch' esté disponible (Node >= 18) o usar 'node-fetch'
-            const fetch = (await import('node-fetch')).default;
+            // NOTA: Usando fetch nativo de Node.js 18+
 
             const response = await fetch(`${baseUrl}/api/recalcular-estadisticas`, {
                 method: 'POST',
