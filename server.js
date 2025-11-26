@@ -3080,6 +3080,77 @@ async function upsertEstadisticasOfensivas(req, res, next) {
 app.put('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas, triggerRecalculation); // 🚨 Inyección del trigger
 app.post('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas, triggerRecalculation); // 🚨 Inyección del trigger
 
+// =========================================================================
+// 🚨 NUEVO ENDPOINT PARA EDICIÓN (REEMPLAZAR VALORES)
+// =========================================================================
+async function editarEstadisticasOfensivas(req, res, next) {
+    try {
+        const { 
+            jugador_id, temporada = '2024', at_bats = 0, hits = 0, 
+            home_runs = 0, rbi = 0, runs = 0, walks = 0, 
+            stolen_bases = 0, strikeouts = 0, doubles = 0, 
+            triples = 0, caught_stealing = 0, hit_by_pitch = 0,
+            sacrifice_flies = 0, sacrifice_hits = 0, plate_appearances = 0
+        } = req.body;
+
+        // Validaciones
+        if (!jugador_id || isNaN(parseInt(jugador_id))) {
+            return res.status(400).json({ error: 'ID de jugador requerido y válido' });
+        }
+
+        const query = `
+            INSERT INTO estadisticas_ofensivas (
+                jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, 
+                walks, stolen_bases, strikeouts, doubles, triples, 
+                caught_stealing, hit_by_pitch, sacrifice_flies, sacrifice_hits,
+                fecha_actualizacion
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP)
+            ON CONFLICT (jugador_id, temporada) 
+            DO UPDATE SET 
+                at_bats = EXCLUDED.at_bats,
+                hits = EXCLUDED.hits,
+                home_runs = EXCLUDED.home_runs,
+                rbi = EXCLUDED.rbi,
+                runs = EXCLUDED.runs,
+                walks = EXCLUDED.walks,
+                stolen_bases = EXCLUDED.stolen_bases,
+                strikeouts = EXCLUDED.strikeouts,
+                doubles = EXCLUDED.doubles,
+                triples = EXCLUDED.triples,
+                caught_stealing = EXCLUDED.caught_stealing,
+                hit_by_pitch = EXCLUDED.hit_by_pitch,
+                sacrifice_flies = EXCLUDED.sacrifice_flies,
+                sacrifice_hits = EXCLUDED.sacrifice_hits,
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            RETURNING *`;
+
+        const values = [
+            parseInt(jugador_id), temporada, parseInt(at_bats), parseInt(hits),
+            parseInt(home_runs), parseInt(rbi), parseInt(runs), parseInt(walks),
+            parseInt(stolen_bases), parseInt(strikeouts), parseInt(doubles), 
+            parseInt(triples), parseInt(caught_stealing), parseInt(hit_by_pitch),
+            parseInt(sacrifice_flies), parseInt(sacrifice_hits)
+        ];
+
+        const result = await pool.query(query, values);
+        res.json({ 
+            success: true, 
+            message: 'Estadísticas editadas correctamente (valores reemplazados)',
+            data: result.rows[0] 
+        });
+
+        if (typeof next === 'function') next();
+
+    } catch (error) {
+        console.error('Error en editarEstadisticasOfensivas:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+}
+
+// ENDPOINT PARA EDICIÓN (REEMPLAZAR)
+app.put('/api/estadisticas-ofensivas/edit', editarEstadisticasOfensivas, triggerRecalculation);
+app.post('/api/estadisticas-ofensivas/edit', editarEstadisticasOfensivas, triggerRecalculation);
+
 // Alias para compatibilidad con versión anterior (guión bajo)
 app.put('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas, triggerRecalculation); // 🚨 Inyección del trigger
 app.post('/api/estadisticas_ofensivas', upsertEstadisticasOfensivas, triggerRecalculation); // 🚨 Inyección del trigger
