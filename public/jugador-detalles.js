@@ -5,6 +5,7 @@
 // Variables globales
 let currentPlayerId = null;
 let playerData = null;
+let currentSeason = null;
 
 // ===================================
 // INICIALIZACIÓN DEL DOM
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Implementación directa de getIdFromUrl para evitar dependencias
     const urlParams = new URLSearchParams(window.location.search);
     currentPlayerId = parseInt(urlParams.get('id'));
+    currentSeason = getCurrentSeason();
 
     if (!currentPlayerId || isNaN(currentPlayerId)) {
         // Mostrar error sin dependencia de utils.js
@@ -38,21 +40,29 @@ function showAppError(selector, message) {
     }
 }
 
+function getCurrentSeason() {
+    const temporadaParam = new URLSearchParams(window.location.search).get('temporada');
+    return temporadaParam && temporadaParam.trim() !== '' ? temporadaParam : null;
+}
+
 // ===================================
 // CARGA DE DATOS PRINCIPAL
 // ===================================
 async function loadPlayerData(id) {
     try {
         console.log('📡 Iniciando carga de datos del jugador...');
-        
-        const [player, statsOfensivas, statsPitcheo, statsDefensivas] = await Promise.all([
-            fetch(`/api/jugadores/${id}`).then(res => {
-                if (!res.ok) throw new Error(`Jugador no encontrado (status: ${res.status})`);
-                return res.json();
-            }),
-            fetch(`/api/estadisticas-ofensivas?jugador_id=${id}`).then(res => res.json()).catch(e => []),
-            fetch(`/api/estadisticas-pitcheo?jugador_id=${id}`).then(res => res.json()).catch(e => []),
-            fetch(`/api/estadisticas-defensivas?jugador_id=${id}`).then(res => res.json()).catch(e => [])
+
+        const playerResponse = await fetch(`/api/jugadores/${id}`);
+        if (!playerResponse.ok) {
+            throw new Error(`Jugador no encontrado (status: ${playerResponse.status})`);
+        }
+        const player = await playerResponse.json();
+
+        const statsQuery = buildStatsQuery(id, player.equipo_id, currentSeason);
+        const [statsOfensivas, statsPitcheo, statsDefensivas] = await Promise.all([
+            fetchJsonSafely(`/api/estadisticas-ofensivas${statsQuery}`),
+            fetchJsonSafely(`/api/estadisticas-pitcheo${statsQuery}`),
+            fetchJsonSafely(`/api/estadisticas-defensivas${statsQuery}`)
         ]);
 
         console.log('✅ Datos cargados:', { player, statsOfensivas, statsPitcheo, statsDefensivas });
@@ -63,15 +73,15 @@ async function loadPlayerData(id) {
         console.log('  🎯 STRIKEOUTS DEL PLAYER:', player.strikeouts);
         console.log('  📊 Estadísticas Ofensivas (API /estadisticas-ofensivas):', statsOfensivas);
         console.log('  ⚾ Estadísticas Pitcheo:', statsPitcheo);
-        
-        if (statsOfensivas && statsOfensivas.length > 0) {
-            console.log('  🎯 STRIKEOUTS DE STATS OFENSIVAS:', statsOfensivas[0].strikeouts);
-            console.log('  📋 TODOS LOS CAMPOS OFENSIVOS:', Object.keys(statsOfensivas[0]));
+        const offensiveSelected = selectStatRecord(statsOfensivas, { jugadorId: id, equipoId: player.equipo_id, temporada: currentSeason });
+        const pitchingSelected = selectStatRecord(statsPitcheo, { jugadorId: id, equipoId: player.equipo_id, temporada: currentSeason });
+        if (offensiveSelected) {
+            console.log('  🎯 STRIKEOUTS DE STATS OFENSIVAS:', offensiveSelected.strikeouts);
+            console.log('  📋 TODOS LOS CAMPOS OFENSIVOS:', Object.keys(offensiveSelected));
         }
-        
-        if (statsPitcheo && statsPitcheo.length > 0) {
-            console.log('  🥎 STRIKEOUTS DEL PITCHER:', statsPitcheo[0].strikeouts);
-            console.log('  📋 TODOS LOS CAMPOS PITCHEO:', Object.keys(statsPitcheo[0]));
+        if (pitchingSelected) {
+            console.log('  🥎 STRIKEOUTS DEL PITCHER:', pitchingSelected.strikeouts);
+            console.log('  📋 TODOS LOS CAMPOS PITCHEO:', Object.keys(pitchingSelected));
         }
 
         // Guardar datos globalmente
@@ -79,11 +89,11 @@ async function loadPlayerData(id) {
 
         // Renderizar información
         renderPlayerInfo(player);
-        // ✅ CORRECCIÓN CRÍTICA: Usar datos del player que incluyen strikeouts actualizados
-        renderStats([player], 'statsBateoContainer', 'bateo');
-        renderStats(statsPitcheo, 'statsPitcheoContainer', 'pitcheo');
-        renderStats(statsPitcheo, 'statsPitcheoDetailContainer', 'pitcheo-detail');
-        renderStats(statsDefensivas, 'statsDefensaContainer', 'defensa');
+        const statsContext = { jugadorId: id, equipoId: player.equipo_id, temporada: currentSeason };
+        renderStats(statsOfensivas, 'statsBateoContainer', 'bateo', statsContext);
+        renderStats(statsPitcheo, 'statsPitcheoContainer', 'pitcheo', statsContext);
+        renderStats(statsPitcheo, 'statsPitcheoDetailContainer', 'pitcheo-detail', statsContext);
+        renderStats(statsDefensivas, 'statsDefensaContainer', 'defensa', statsContext);
         
         // Configurar navegación
         configurarNavegacion(player);
@@ -166,7 +176,7 @@ function renderPlayerInfo(player) {
 // ===================================
 // RENDERIZADO DE ESTADÍSTICAS - VERSIÓN CORREGIDA
 // ===================================
-function renderStats(stats, containerId, type) {
+function renderStats(stats, containerId, type, context = {}) {
     const container = document.getElementById(containerId);
     if (!container) {
         console.warn(`⚠️ Contenedor ${containerId} no encontrado`);
@@ -175,10 +185,20 @@ function renderStats(stats, containerId, type) {
 
     if (!stats || stats.length === 0) {
         container.innerHTML = '<div class="empty-state">No hay estadísticas disponibles.</div>';
+        if (type === 'bateo') {
+            actualizarEstadisticasPrincipales({});
+        }
         return;
     }
 
-    const stat = stats[0]; // Asumimos que la API devuelve un array con un solo objeto
+    const stat = selectStatRecord(stats, context);
+    if (!stat) {
+        container.innerHTML = '<div class="empty-state">No hay estadísticas disponibles.</div>';
+        if (type === 'bateo') {
+            actualizarEstadisticasPrincipales({});
+        }
+        return;
+    }
     
     // 🔍 DEBUGGING: Ver qué datos llegan
     console.log('🔍 DEBUGGING - Datos de estadísticas:', stat);
@@ -187,38 +207,69 @@ function renderStats(stats, containerId, type) {
     
     let html = '';
 
+    const valueOrZero = toNumber;
+    const atBats = valueOrZero(stat.at_bats);
+    const hits = valueOrZero(stat.hits);
+    const homeRuns = valueOrZero(stat.home_runs);
+    const rbi = valueOrZero(stat.rbi);
+    const runs = valueOrZero(stat.runs);
+    const walks = valueOrZero(stat.walks);
+    const stolenBases = valueOrZero(stat.stolen_bases);
+    const strikeouts = valueOrZero(stat.strikeouts);
+    const doubles = valueOrZero(stat.doubles);
+    const triples = valueOrZero(stat.triples);
+    const caughtStealing = valueOrZero(stat.caught_stealing);
+    const hitByPitch = valueOrZero(stat.hit_by_pitch);
+    const sacrificeFlies = valueOrZero(stat.sacrifice_flies);
+    const sacrificeHits = valueOrZero(stat.sacrifice_hits);
+
+    const inningsPitched = valueOrZero(stat.innings_pitched);
+    const earnedRuns = valueOrZero(stat.earned_runs);
+    const wins = valueOrZero(stat.wins);
+    const losses = valueOrZero(stat.losses);
+    const saves = valueOrZero(stat.saves);
+    const hitsAllowed = valueOrZero(stat.hits_allowed);
+    const walksAllowed = valueOrZero(stat.walks_allowed);
+
+    const putouts = valueOrZero(stat.putouts);
+    const assists = valueOrZero(stat.assists);
+    const errors = valueOrZero(stat.errors);
+    const doublePlays = valueOrZero(stat.double_plays);
+    const passedBalls = valueOrZero(stat.passed_balls);
+    const chances = valueOrZero(stat.chances);
+
     const statMapping = {
         bateo: [
-            { label: 'AVG', value: (stat.at_bats > 0 ? (stat.hits / stat.at_bats) : 0).toFixed(3) },
-            { label: 'HR', value: stat.home_runs || 0 },
-            { label: 'RBI', value: stat.rbi || 0 },
-            { label: 'OPS', value: calcularOPS(stat).toFixed(3) },
-            { label: 'At-Bats (AB)', value: stat.at_bats || 0 },
-            { label: 'Hits (H)', value: stat.hits || 0 },
-            { label: 'Carreras (R)', value: stat.runs || 0 },
-            { label: 'Bases Robadas (SB)', value: stat.stolen_bases || 0 },
-            { label: 'Bases por Bolas (BB)', value: stat.walks || 0 },
-            { label: 'Ponches (SO)', value: stat.strikeouts || 0 }, // ✅ CORREGIDO: Agregado strikeouts
+            { label: 'AVG', value: (atBats > 0 ? (hits / atBats) : 0).toFixed(3) },
+            { label: 'HR', value: homeRuns },
+            { label: 'RBI', value: rbi },
+            { label: 'OPS', value: calcularOPS({ ...stat, at_bats: atBats, hits, walks, home_runs: homeRuns }).toFixed(3) },
+            { label: 'At-Bats (AB)', value: atBats },
+            { label: 'Hits (H)', value: hits },
+            { label: 'Carreras (R)', value: runs },
+            { label: 'Bases Robadas (SB)', value: stolenBases },
+            { label: 'Bases por Bolas (BB)', value: walks },
+            { label: 'Ponches (SO)', value: strikeouts }, // ✅ CORREGIDO: Agregado strikeouts
         ],
         pitcheo: [
-            { label: 'ERA', value: (stat.innings_pitched > 0 ? (stat.earned_runs * 9) / stat.innings_pitched : 0).toFixed(2) },
-            { label: 'Victorias (W)', value: stat.wins || 0 },
-            { label: 'Derrotas (L)', value: stat.losses || 0 },
-            { label: 'Ponches (SO)', value: stat.strikeouts || 0 },
+            { label: 'ERA', value: (inningsPitched > 0 ? (earnedRuns * 9) / inningsPitched : 0).toFixed(2) },
+            { label: 'Victorias (W)', value: wins },
+            { label: 'Derrotas (L)', value: losses },
+            { label: 'Ponches (SO)', value: strikeouts },
         ],
         'pitcheo-detail': [
-            { label: 'Innings (IP)', value: stat.innings_pitched || 0 },
-            { label: 'Salvados (SV)', value: stat.saves || 0 },
-            { label: 'Hits Permitidos (H)', value: stat.hits_allowed || 0 },
-            { label: 'BB Permitidas (BB)', value: stat.walks_allowed || 0 },
+            { label: 'Innings (IP)', value: inningsPitched },
+            { label: 'Salvados (SV)', value: saves },
+            { label: 'Hits Permitidos (H)', value: hitsAllowed },
+            { label: 'BB Permitidas (BB)', value: walksAllowed },
         ],
         defensa: [
-            { label: 'Fielding % (FLD)', value: calcularFieldingPercentage(stat).toFixed(3) },
-            { label: 'Putouts (PO)', value: stat.putouts || 0 },
-            { label: 'Asistencias (A)', value: stat.assists || 0 },
-            { label: 'Errores (E)', value: stat.errors || 0 },
-            { label: 'Double Plays (DP)', value: stat.double_plays || 0 },
-            { label: 'Passed Balls (PB)', value: stat.passed_balls || 0 },
+            { label: 'Fielding % (FLD)', value: calcularFieldingPercentage({ ...stat, putouts, assists, errors }).toFixed(3) },
+            { label: 'Putouts (PO)', value: putouts },
+            { label: 'Asistencias (A)', value: assists },
+            { label: 'Errores (E)', value: errors },
+            { label: 'Double Plays (DP)', value: doublePlays },
+            { label: 'Passed Balls (PB)', value: passedBalls },
         ]
     };
     
@@ -238,7 +289,15 @@ function renderStats(stats, containerId, type) {
 
         // Actualizar estadísticas principales si es bateo
         if (type === 'bateo') {
-            actualizarEstadisticasPrincipales(stat);
+            actualizarEstadisticasPrincipales({ 
+                ...stat, 
+                at_bats: atBats, 
+                hits, 
+                home_runs: homeRuns, 
+                rbi, 
+                runs, 
+                walks 
+            });
         }
     }
 
@@ -254,6 +313,42 @@ function renderStats(stats, containerId, type) {
 // ===================================
 // FUNCIONES AUXILIARES
 // ===================================
+function toNumber(value) {
+    return Number(value) || 0;
+}
+
+function buildStatsQuery(jugadorId, equipoId, temporada) {
+    const params = new URLSearchParams();
+    if (jugadorId) params.set('jugador_id', jugadorId);
+    if (equipoId) params.set('equipo_id', equipoId);
+    if (temporada) params.set('temporada', temporada);
+    const queryString = params.toString();
+    return queryString ? `?${queryString}` : '';
+}
+
+function selectStatRecord(stats, { jugadorId, equipoId, temporada }) {
+    if (!Array.isArray(stats) || stats.length === 0) return null;
+    const normalizedSeason = temporada ? `${temporada}` : null;
+    const match = stats.find(item => {
+        const matchesPlayer = jugadorId ? Number(item.jugador_id) === Number(jugadorId) : true;
+        const matchesTeam = equipoId ? Number(item.equipo_id || item.equipoId) === Number(equipoId) : true;
+        const matchesSeason = normalizedSeason ? `${item.temporada}` === normalizedSeason : true;
+        return matchesPlayer && matchesTeam && matchesSeason;
+    });
+    return match || stats[0] || null;
+}
+
+async function fetchJsonSafely(url) {
+    try {
+        const res = await fetch(url);
+        if (!res.ok) return [];
+        return await res.json();
+    } catch (error) {
+        console.error(`⚠️ Error obteniendo ${url}:`, error);
+        return [];
+    }
+}
+
 function formatearPosicion(posicion) {
     const posiciones = {
         'P': 'Pitcher',
@@ -271,15 +366,19 @@ function formatearPosicion(posicion) {
 }
 
 function calcularOPS(stat) {
-    const avg = stat.at_bats > 0 ? (stat.hits / stat.at_bats) : 0;
-    const obp = stat.at_bats > 0 ? ((stat.hits + (stat.walks || 0)) / (stat.at_bats + (stat.walks || 0))) : 0;
-    const slg = stat.at_bats > 0 ? ((stat.hits + (stat.home_runs || 0) * 3) / stat.at_bats) : 0;
+    const atBats = toNumber(stat.at_bats);
+    const hits = toNumber(stat.hits);
+    const walks = toNumber(stat.walks);
+    const homeRuns = toNumber(stat.home_runs);
+    const obpDenominator = atBats + walks;
+    const obp = obpDenominator > 0 ? ((hits + walks) / obpDenominator) : 0;
+    const slg = atBats > 0 ? ((hits + homeRuns * 3) / atBats) : 0;
     return obp + slg;
 }
 
 function calcularFieldingPercentage(stat) {
-    const total = (stat.putouts || 0) + (stat.assists || 0) + (stat.errors || 0);
-    return total > 0 ? ((stat.putouts || 0) + (stat.assists || 0)) / total : 0;
+    const total = toNumber(stat.putouts) + toNumber(stat.assists) + toNumber(stat.errors);
+    return total > 0 ? (toNumber(stat.putouts) + toNumber(stat.assists)) / total : 0;
 }
 
 function actualizarEstadisticasPrincipales(stat) {
@@ -289,9 +388,13 @@ function actualizarEstadisticasPrincipales(stat) {
     const rbiEl = document.getElementById('playerRBI');
     const opsEl = document.getElementById('playerOPS');
 
-    if (avgEl) avgEl.textContent = stat.at_bats > 0 ? (stat.hits / stat.at_bats).toFixed(3) : '---';
-    if (hrEl) hrEl.textContent = stat.home_runs || '---';
-    if (rbiEl) rbiEl.textContent = stat.rbi || '---';
+    const atBats = toNumber(stat.at_bats);
+    const hits = toNumber(stat.hits);
+    const homeRuns = toNumber(stat.home_runs);
+    const rbi = toNumber(stat.rbi);
+    if (avgEl) avgEl.textContent = atBats > 0 ? (hits / atBats).toFixed(3) : '---';
+    if (hrEl) hrEl.textContent = Number.isFinite(homeRuns) ? homeRuns : '---';
+    if (rbiEl) rbiEl.textContent = Number.isFinite(rbi) ? rbi : '---';
     if (opsEl) opsEl.textContent = calcularOPS(stat).toFixed(3);
 }
 

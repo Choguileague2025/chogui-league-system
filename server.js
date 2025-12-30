@@ -23,6 +23,23 @@ let sseClients = [];
 let sseClientIdCounter = 0;
 
 const PORT = process.env.PORT || 3000;
+const DEFAULT_SEASON = process.env.ACTIVE_SEASON || '2024';
+
+function resolveTemporada(value) {
+    if (value === undefined || value === null) return DEFAULT_SEASON;
+    const trimmed = `${value}`.trim();
+    return trimmed === '' ? DEFAULT_SEASON : trimmed;
+}
+
+function getSeasonFilter({ temporada, jugador_id, equipo_id }) {
+    if (temporada && `${temporada}`.trim() !== '') {
+        return `${temporada}`.trim();
+    }
+    if (jugador_id || equipo_id) {
+        return DEFAULT_SEASON;
+    }
+    return null;
+}
 
 // ===============================================================
 // =================== MIDDLEWARE DE LOGGING ===================
@@ -2527,10 +2544,11 @@ app.get('/api/proximos-partidos', async (req, res) => {
 
 app.get('/api/estadisticas-ofensivas', async (req, res) => {
     try {
-        const { temporada, equipo_id, min_at_bats = 0 } = req.query;
+        const { temporada, equipo_id, jugador_id, min_at_bats = 0 } = req.query;
+        const seasonFilter = getSeasonFilter({ temporada, jugador_id, equipo_id });
         
         let query = `
-            SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+            SELECT eo.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
                    CASE 
                        WHEN eo.at_bats > 0 THEN ROUND(eo.hits::DECIMAL / eo.at_bats, 3)
                        ELSE 0.000 
@@ -2551,9 +2569,15 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
         const params = [min_at_bats];
         let paramIndex = 2;
 
-        if (temporada) {
+        if (seasonFilter) {
             query += ` AND eo.temporada = $${paramIndex}`;
-            params.push(temporada);
+            params.push(seasonFilter);
+            paramIndex++;
+        }
+
+        if (jugador_id) {
+            query += ` AND eo.jugador_id = $${paramIndex}`;
+            params.push(jugador_id);
             paramIndex++;
         }
 
@@ -2636,8 +2660,13 @@ app.get('/api/dashboard/stats', async (req, res) => {
 // ====================== ESTADÍSTICAS PITCHEO =========================
 app.get('/api/estadisticas-pitcheo', async (req, res) => {
     try {
-        const result = await pool.query(`
-            SELECT ep.*, j.nombre as jugador_nombre, e.nombre as equipo_nombre,
+        const { temporada, equipo_id, jugador_id } = req.query;
+        const seasonFilter = getSeasonFilter({ temporada, jugador_id, equipo_id });
+        let paramIndex = 1;
+        const params = [];
+
+        let query = `
+            SELECT ep.*, j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre,
                    CASE 
                        WHEN ep.innings_pitched > 0 THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2)
                        ELSE 0.00 
@@ -2649,8 +2678,30 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
             FROM estadisticas_pitcheo ep
             JOIN jugadores j ON ep.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
-            ORDER BY era ASC
-        `);
+            WHERE 1=1
+        `;
+
+        if (seasonFilter) {
+            query += ` AND ep.temporada = $${paramIndex}`;
+            params.push(seasonFilter);
+            paramIndex++;
+        }
+
+        if (jugador_id) {
+            query += ` AND ep.jugador_id = $${paramIndex}`;
+            params.push(jugador_id);
+            paramIndex++;
+        }
+
+        if (equipo_id) {
+            query += ` AND j.equipo_id = $${paramIndex}`;
+            params.push(equipo_id);
+            paramIndex++;
+        }
+
+        query += ' ORDER BY era ASC';
+
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (error) {
         console.error('Error obteniendo estadísticas de pitcheo:', error);
@@ -2661,13 +2712,24 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
 app.get('/api/estadisticas-pitcheo/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query(`
-            SELECT ep.*, j.nombre as jugador_nombre, e.nombre as equipo_nombre
+        const { temporada } = req.query;
+        const seasonFilter = getSeasonFilter({ temporada, jugador_id: id });
+
+        let query = `
+            SELECT ep.*, j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre
             FROM estadisticas_pitcheo ep
             JOIN jugadores j ON ep.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
             WHERE ep.jugador_id = $1
-        `, [id]);
+        `;
+        const params = [id];
+
+        if (seasonFilter) {
+            query += ' AND ep.temporada = $2';
+            params.push(seasonFilter);
+        }
+        
+        const result = await pool.query(query, params);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
@@ -2691,6 +2753,7 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
             return res.status(400).json({ error: 'ID del jugador es requerido' });
         }
 
+        const temporadaNormalizada = resolveTemporada(temporada);
         const result = await pool.query(`
             INSERT INTO estadisticas_pitcheo (
                 jugador_id, temporada, innings_pitched, hits_allowed, earned_runs,
@@ -2708,9 +2771,16 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
                 losses = estadisticas_pitcheo.losses + EXCLUDED.losses,
                 saves = estadisticas_pitcheo.saves + EXCLUDED.saves
             RETURNING *
-        `, [jugador_id, temporada || 'Default', innings_pitched || 0, hits_allowed || 0, 
+        `, [jugador_id, temporadaNormalizada, innings_pitched || 0, hits_allowed || 0, 
             earned_runs || 0, strikeouts || 0, walks_allowed || 0, home_runs_allowed || 0,
             wins || 0, losses || 0, saves || 0]);
+        console.info('[stats-upsert]', {
+            tipo: 'pitcheo',
+            jugador_id: parseInt(jugador_id, 10),
+            equipo_id: req.body.equipo_id || null,
+            temporada: temporadaNormalizada,
+            rowsAffected: result.rowCount || 0
+        });
         
         // Notificación SSE: estadísticas de pitcheo actualizadas (POST)
         notifyAllClients('stats-updated', {
@@ -2737,6 +2807,7 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
             return res.status(400).json({ error: 'ID del jugador es requerido' });
         }
 
+        const temporadaNormalizada = resolveTemporada(temporada);
         const result = await pool.query(`
             UPDATE estadisticas_pitcheo SET 
                 innings_pitched = $1, hits_allowed = $2, earned_runs = $3,
@@ -2746,11 +2817,19 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
             RETURNING *
         `, [innings_pitched || 0, hits_allowed || 0, earned_runs || 0, strikeouts || 0,
             walks_allowed || 0, home_runs_allowed || 0, wins || 0, losses || 0, 
-            saves || 0, jugador_id, temporada || 'Default']);
+            saves || 0, jugador_id, temporadaNormalizada]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
         }
+
+        console.info('[stats-put]', {
+            tipo: 'pitcheo',
+            jugador_id: parseInt(jugador_id, 10),
+            equipo_id: req.body.equipo_id || null,
+            temporada: temporadaNormalizada,
+            rowsAffected: result.rowCount || 0
+        });
         
         // Notificación SSE: estadísticas de pitcheo actualizadas (PUT)
         notifyAllClients('stats-updated', {
@@ -2769,8 +2848,13 @@ app.put('/api/estadisticas-pitcheo', async (req, res) => {
 // ====================== ESTADÍSTICAS DEFENSIVAS =========================
 app.get('/api/estadisticas-defensivas', async (req, res) => {
     try {
-        const result = await pool.query(`
-            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
+        const { temporada, equipo_id, jugador_id } = req.query;
+        const seasonFilter = getSeasonFilter({ temporada, jugador_id, equipo_id });
+        let paramIndex = 1;
+        const params = [];
+
+        let query = `
+            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
                    CASE 
                        WHEN ed.chances > 0 THEN ROUND((ed.putouts + ed.assists)::DECIMAL / ed.chances, 3)
                        ELSE 0.000 
@@ -2778,8 +2862,29 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
             FROM estadisticas_defensivas ed
             JOIN jugadores j ON ed.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
-            ORDER BY fielding_percentage DESC
-        `);
+            WHERE 1=1
+        `;
+
+        if (seasonFilter) {
+            query += ` AND ed.temporada = $${paramIndex}`;
+            params.push(seasonFilter);
+            paramIndex++;
+        }
+
+        if (jugador_id) {
+            query += ` AND ed.jugador_id = $${paramIndex}`;
+            params.push(jugador_id);
+            paramIndex++;
+        }
+
+        if (equipo_id) {
+            query += ` AND j.equipo_id = $${paramIndex}`;
+            params.push(equipo_id);
+        }
+
+        query += ' ORDER BY fielding_percentage DESC';
+
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (error) {
         console.error('Error obteniendo estadísticas defensivas:', error);
@@ -2790,13 +2895,24 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
 app.get('/api/estadisticas-defensivas/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query(`
-            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre
+        const { temporada } = req.query;
+        const seasonFilter = getSeasonFilter({ temporada, jugador_id: id });
+
+        let query = `
+            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre
             FROM estadisticas_defensivas ed
             JOIN jugadores j ON ed.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
             WHERE ed.jugador_id = $1
-        `, [id]);
+        `;
+        const params = [id];
+
+        if (seasonFilter) {
+            query += ' AND ed.temporada = $2';
+            params.push(seasonFilter);
+        }
+        
+        const result = await pool.query(query, params);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
@@ -2820,6 +2936,7 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
             return res.status(400).json({ error: 'ID del jugador es requerido' });
         }
 
+        const temporadaNormalizada = resolveTemporada(temporada);
         const result = await pool.query(`
             INSERT INTO estadisticas_defensivas (
                 jugador_id, temporada, putouts, assists, errors, 
@@ -2834,8 +2951,15 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
                 passed_balls = estadisticas_defensivas.passed_balls + EXCLUDED.passed_balls,
                 chances = estadisticas_defensivas.chances + EXCLUDED.chances
             RETURNING *
-        `, [jugador_id, temporada || 'Default', putouts || 0, assists || 0, 
+        `, [jugador_id, temporadaNormalizada, putouts || 0, assists || 0, 
             errors || 0, double_plays || 0, passed_balls || 0, chances || 0]);
+        console.info('[stats-upsert]', {
+            tipo: 'defensiva',
+            jugador_id: parseInt(jugador_id, 10),
+            equipo_id: req.body.equipo_id || null,
+            temporada: temporadaNormalizada,
+            rowsAffected: result.rowCount || 0
+        });
         
         // Notificación SSE: estadísticas defensivas actualizadas (POST)
         notifyAllClients('stats-updated', {
@@ -2862,6 +2986,7 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
             return res.status(400).json({ error: 'ID del jugador es requerido' });
         }
 
+        const temporadaNormalizada = resolveTemporada(temporada);
         const result = await pool.query(`
             UPDATE estadisticas_defensivas SET 
                 putouts = $1, assists = $2, errors = $3, double_plays = $4,
@@ -2869,11 +2994,19 @@ app.put('/api/estadisticas-defensivas', async (req, res) => {
             WHERE jugador_id = $7 AND temporada = $8
             RETURNING *
         `, [putouts || 0, assists || 0, errors || 0, double_plays || 0,
-            passed_balls || 0, chances || 0, jugador_id, temporada || 'Default']);
+            passed_balls || 0, chances || 0, jugador_id, temporadaNormalizada]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
         }
+
+        console.info('[stats-put]', {
+            tipo: 'defensiva',
+            jugador_id: parseInt(jugador_id, 10),
+            equipo_id: req.body.equipo_id || null,
+            temporada: temporadaNormalizada,
+            rowsAffected: result.rowCount || 0
+        });
         
         // Notificación SSE: estadísticas defensivas actualizadas (PUT)
         notifyAllClients('stats-updated', {
@@ -3058,7 +3191,7 @@ app.get('/api/lideres', async (req, res) => {
 async function upsertEstadisticasOfensivas(req, res, next) {
     try {
         const { 
-            jugador_id, temporada = '2024', at_bats = 0, hits = 0, 
+            jugador_id, temporada, at_bats = 0, hits = 0, 
             home_runs = 0, rbi = 0, runs = 0, walks = 0, 
             stolen_bases = 0, strikeouts = 0, doubles = 0, 
             triples = 0, caught_stealing = 0, hit_by_pitch = 0,
@@ -3070,6 +3203,7 @@ async function upsertEstadisticasOfensivas(req, res, next) {
             return res.status(400).json({ error: 'ID de jugador requerido y válido' });
         }
 
+        const temporadaNormalizada = resolveTemporada(temporada);
         const query = `
             INSERT INTO estadisticas_ofensivas (
                 jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, 
@@ -3097,7 +3231,7 @@ async function upsertEstadisticasOfensivas(req, res, next) {
             RETURNING *`;
 
         const values = [
-            parseInt(jugador_id), temporada, parseInt(at_bats), parseInt(hits),
+            parseInt(jugador_id), temporadaNormalizada, parseInt(at_bats), parseInt(hits),
             parseInt(home_runs), parseInt(rbi), parseInt(runs), parseInt(walks),
             parseInt(stolen_bases), parseInt(strikeouts), parseInt(doubles), 
             parseInt(triples), parseInt(caught_stealing), parseInt(hit_by_pitch),
@@ -3105,6 +3239,13 @@ async function upsertEstadisticasOfensivas(req, res, next) {
         ];
 
         const result = await pool.query(query, values);
+        console.info('[stats-upsert]', {
+            tipo: 'ofensiva',
+            jugador_id: parseInt(jugador_id, 10),
+            equipo_id: req.body.equipo_id || null,
+            temporada: temporadaNormalizada,
+            rowsAffected: result.rowCount || 0
+        });
         // Notificación SSE: estadísticas ofensivas actualizadas
         notifyAllClients('stats-updated', {
             category: 'bateo',
@@ -3137,7 +3278,7 @@ app.post('/api/estadisticas-ofensivas', upsertEstadisticasOfensivas, triggerReca
 async function editarEstadisticasOfensivas(req, res, next) {
     try {
         const { 
-            jugador_id, temporada = '2024', at_bats = 0, hits = 0, 
+            jugador_id, temporada, at_bats = 0, hits = 0, 
             home_runs = 0, rbi = 0, runs = 0, walks = 0, 
             stolen_bases = 0, strikeouts = 0, doubles = 0, 
             triples = 0, caught_stealing = 0, hit_by_pitch = 0,
@@ -3149,6 +3290,7 @@ async function editarEstadisticasOfensivas(req, res, next) {
             return res.status(400).json({ error: 'ID de jugador requerido y válido' });
         }
 
+        const temporadaNormalizada = resolveTemporada(temporada);
         const query = `
             INSERT INTO estadisticas_ofensivas (
                 jugador_id, temporada, at_bats, hits, home_runs, rbi, runs, 
@@ -3176,7 +3318,7 @@ async function editarEstadisticasOfensivas(req, res, next) {
             RETURNING *`;
 
         const values = [
-            parseInt(jugador_id), temporada, parseInt(at_bats), parseInt(hits),
+            parseInt(jugador_id), temporadaNormalizada, parseInt(at_bats), parseInt(hits),
             parseInt(home_runs), parseInt(rbi), parseInt(runs), parseInt(walks),
             parseInt(stolen_bases), parseInt(strikeouts), parseInt(doubles), 
             parseInt(triples), parseInt(caught_stealing), parseInt(hit_by_pitch),
@@ -3184,6 +3326,13 @@ async function editarEstadisticasOfensivas(req, res, next) {
         ];
 
         const result = await pool.query(query, values);
+        console.info('[stats-upsert]', {
+            tipo: 'ofensiva-edit',
+            jugador_id: parseInt(jugador_id, 10),
+            equipo_id: req.body.equipo_id || null,
+            temporada: temporadaNormalizada,
+            rowsAffected: result.rowCount || 0
+        });
         // Notificación SSE: edición de estadísticas ofensivas
         notifyAllClients('stats-updated', {
             category: 'bateo',

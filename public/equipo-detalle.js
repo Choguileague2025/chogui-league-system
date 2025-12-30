@@ -15,6 +15,7 @@ let rosterData = [];
 let recentGames = [];
 let filteredRoster = [];
 let currentFilter = 'all';
+let currentSeason = null;
 
 // ===================================
 // FUNCIONES DE INICIALIZACIÓN
@@ -23,6 +24,11 @@ let currentFilter = 'all';
 function getTeamIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id');
+}
+
+function getCurrentSeason() {
+    const temporadaParam = new URLSearchParams(window.location.search).get('temporada');
+    return temporadaParam && temporadaParam.trim() !== '' ? temporadaParam : null;
 }
 
 function getApiUrl(endpoint) {
@@ -140,6 +146,7 @@ function formatearFecha(fechaString) {
 
 document.addEventListener('DOMContentLoaded', function() {
     currentTeamId = getTeamIdFromUrl();
+    currentSeason = getCurrentSeason();
     
     if (!currentTeamId) {
         mostrarErrorEquipo('No se especificó un equipo válido. Verifica la URL.');
@@ -247,7 +254,8 @@ async function cargarRosterEquipo() {
 async function cargarPartidosRecientes() {
     const container = document.getElementById('recentGamesContainer');
     try {
-        const response = await fetch(getApiUrl(`/api/partidos?equipo_id=${currentTeamId}&limit=10`));
+        const temporadaQuery = currentSeason ? `&temporada=${encodeURIComponent(currentSeason)}` : '';
+        const response = await fetch(getApiUrl(`/api/partidos?equipo_id=${currentTeamId}&limit=10${temporadaQuery}`));
         if (!response.ok) {
             throw new Error(`Error cargando partidos: ${response.status}`);
         }
