@@ -4318,12 +4318,9 @@
         // ==================================================================
         function getSeasonFromUrl() {
             const qsTemporada = new URLSearchParams(window.location.search).get('temporada');
-            return (qsTemporada && qsTemporada.trim() !== '') ? qsTemporada.trim() : null;
-        }
-
-        function obtenerTemporadaParaEnvio() {
-            const temporadaUrl = getSeasonFromUrl();
-            if (temporadaUrl) return temporadaUrl;
+            if (qsTemporada && qsTemporada.trim() !== '') {
+                return qsTemporada.trim();
+            }
             if (torneoActivo && typeof torneoActivo.temporada === 'string' && torneoActivo.temporada.trim() !== '') {
                 return torneoActivo.temporada.trim();
             }
@@ -4339,12 +4336,10 @@
             const saveButton = event.target;
             let endpoint = '';
             let payload = { jugador_id: jugadorId };
-            const temporada = obtenerTemporadaParaEnvio();
+            const temporada = getSeasonFromUrl();
             const equipoId = obtenerEquipoDelJugador(jugadorId);
-            if (temporada) {
-                payload.temporada = temporada;
-            }
-            payload.equipo_id = equipoId || null;
+            payload.temporada = temporada || null;
+            payload.equipo_id = equipoId !== undefined && equipoId !== null ? equipoId : null;
 
             try {
                 saveButton.disabled = true;

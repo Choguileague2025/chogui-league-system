@@ -42,7 +42,7 @@ function showAppError(selector, message) {
 
 function getCurrentSeason() {
     const temporadaParam = new URLSearchParams(window.location.search).get('temporada');
-    return temporadaParam && temporadaParam.trim() !== '' ? temporadaParam : null;
+    return temporadaParam && temporadaParam.trim() !== '' ? temporadaParam.trim() : null;
 }
 
 // ===================================
