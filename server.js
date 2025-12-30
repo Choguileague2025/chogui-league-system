@@ -2546,6 +2546,9 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const { temporada, equipo_id, jugador_id, min_at_bats = 0 } = req.query;
         const seasonFilter = getSeasonFilter({ temporada, jugador_id, equipo_id });
+        if (jugador_id || equipo_id || temporada) {
+            console.info('[stats-get][ofensiva]', { jugador_id, equipo_id, temporada: seasonFilter || temporada || 'all' });
+        }
         
         let query = `
             SELECT eo.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
@@ -2664,6 +2667,9 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
         const seasonFilter = getSeasonFilter({ temporada, jugador_id, equipo_id });
         let paramIndex = 1;
         const params = [];
+        if (jugador_id || equipo_id || temporada) {
+            console.info('[stats-get][pitcheo]', { jugador_id, equipo_id, temporada: seasonFilter || temporada || 'all' });
+        }
 
         let query = `
             SELECT ep.*, j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre,
@@ -2714,6 +2720,7 @@ app.get('/api/estadisticas-pitcheo/:id', async (req, res) => {
         const { id } = req.params;
         const { temporada } = req.query;
         const seasonFilter = getSeasonFilter({ temporada, jugador_id: id });
+        console.info('[stats-get][pitcheo-id]', { jugador_id: id, temporada: seasonFilter || temporada || 'all' });
 
         let query = `
             SELECT ep.*, j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre
@@ -2761,15 +2768,15 @@ app.post('/api/estadisticas-pitcheo', async (req, res) => {
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             ON CONFLICT (jugador_id, temporada) 
             DO UPDATE SET 
-                innings_pitched = estadisticas_pitcheo.innings_pitched + EXCLUDED.innings_pitched,
-                hits_allowed = estadisticas_pitcheo.hits_allowed + EXCLUDED.hits_allowed,
-                earned_runs = estadisticas_pitcheo.earned_runs + EXCLUDED.earned_runs,
-                strikeouts = estadisticas_pitcheo.strikeouts + EXCLUDED.strikeouts,
-                walks_allowed = estadisticas_pitcheo.walks_allowed + EXCLUDED.walks_allowed,
-                home_runs_allowed = estadisticas_pitcheo.home_runs_allowed + EXCLUDED.home_runs_allowed,
-                wins = estadisticas_pitcheo.wins + EXCLUDED.wins,
-                losses = estadisticas_pitcheo.losses + EXCLUDED.losses,
-                saves = estadisticas_pitcheo.saves + EXCLUDED.saves
+                innings_pitched = EXCLUDED.innings_pitched,
+                hits_allowed = EXCLUDED.hits_allowed,
+                earned_runs = EXCLUDED.earned_runs,
+                strikeouts = EXCLUDED.strikeouts,
+                walks_allowed = EXCLUDED.walks_allowed,
+                home_runs_allowed = EXCLUDED.home_runs_allowed,
+                wins = EXCLUDED.wins,
+                losses = EXCLUDED.losses,
+                saves = EXCLUDED.saves
             RETURNING *
         `, [jugador_id, temporadaNormalizada, innings_pitched || 0, hits_allowed || 0, 
             earned_runs || 0, strikeouts || 0, walks_allowed || 0, home_runs_allowed || 0,
@@ -2852,6 +2859,9 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
         const seasonFilter = getSeasonFilter({ temporada, jugador_id, equipo_id });
         let paramIndex = 1;
         const params = [];
+        if (jugador_id || equipo_id || temporada) {
+            console.info('[stats-get][defensiva]', { jugador_id, equipo_id, temporada: seasonFilter || temporada || 'all' });
+        }
 
         let query = `
             SELECT ed.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
@@ -2897,6 +2907,7 @@ app.get('/api/estadisticas-defensivas/:id', async (req, res) => {
         const { id } = req.params;
         const { temporada } = req.query;
         const seasonFilter = getSeasonFilter({ temporada, jugador_id: id });
+        console.info('[stats-get][defensiva-id]', { jugador_id: id, temporada: seasonFilter || temporada || 'all' });
 
         let query = `
             SELECT ed.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre
@@ -2944,12 +2955,12 @@ app.post('/api/estadisticas-defensivas', async (req, res) => {
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             ON CONFLICT (jugador_id, temporada) 
             DO UPDATE SET 
-                putouts = estadisticas_defensivas.putouts + EXCLUDED.putouts,
-                assists = estadisticas_defensivas.assists + EXCLUDED.assists,
-                errors = estadisticas_defensivas.errors + EXCLUDED.errors,
-                double_plays = estadisticas_defensivas.double_plays + EXCLUDED.double_plays,
-                passed_balls = estadisticas_defensivas.passed_balls + EXCLUDED.passed_balls,
-                chances = estadisticas_defensivas.chances + EXCLUDED.chances
+                putouts = EXCLUDED.putouts,
+                assists = EXCLUDED.assists,
+                errors = EXCLUDED.errors,
+                double_plays = EXCLUDED.double_plays,
+                passed_balls = EXCLUDED.passed_balls,
+                chances = EXCLUDED.chances
             RETURNING *
         `, [jugador_id, temporadaNormalizada, putouts || 0, assists || 0, 
             errors || 0, double_plays || 0, passed_balls || 0, chances || 0]);
@@ -3213,20 +3224,20 @@ async function upsertEstadisticasOfensivas(req, res, next) {
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP)
             ON CONFLICT (jugador_id, temporada) 
             DO UPDATE SET 
-                at_bats = estadisticas_ofensivas.at_bats + EXCLUDED.at_bats,
-                hits = estadisticas_ofensivas.hits + EXCLUDED.hits,
-                home_runs = estadisticas_ofensivas.home_runs + EXCLUDED.home_runs,
-                rbi = estadisticas_ofensivas.rbi + EXCLUDED.rbi,
-                runs = estadisticas_ofensivas.runs + EXCLUDED.runs,
-                walks = estadisticas_ofensivas.walks + EXCLUDED.walks,
-                stolen_bases = estadisticas_ofensivas.stolen_bases + EXCLUDED.stolen_bases,
-                strikeouts = estadisticas_ofensivas.strikeouts + EXCLUDED.strikeouts,
-                doubles = estadisticas_ofensivas.doubles + EXCLUDED.doubles,
-                triples = estadisticas_ofensivas.triples + EXCLUDED.triples,
-                caught_stealing = estadisticas_ofensivas.caught_stealing + EXCLUDED.caught_stealing,
-                hit_by_pitch = estadisticas_ofensivas.hit_by_pitch + EXCLUDED.hit_by_pitch,
-                sacrifice_flies = estadisticas_ofensivas.sacrifice_flies + EXCLUDED.sacrifice_flies,
-                sacrifice_hits = estadisticas_ofensivas.sacrifice_hits + EXCLUDED.sacrifice_hits,
+                at_bats = EXCLUDED.at_bats,
+                hits = EXCLUDED.hits,
+                home_runs = EXCLUDED.home_runs,
+                rbi = EXCLUDED.rbi,
+                runs = EXCLUDED.runs,
+                walks = EXCLUDED.walks,
+                stolen_bases = EXCLUDED.stolen_bases,
+                strikeouts = EXCLUDED.strikeouts,
+                doubles = EXCLUDED.doubles,
+                triples = EXCLUDED.triples,
+                caught_stealing = EXCLUDED.caught_stealing,
+                hit_by_pitch = EXCLUDED.hit_by_pitch,
+                sacrifice_flies = EXCLUDED.sacrifice_flies,
+                sacrifice_hits = EXCLUDED.sacrifice_hits,
                 fecha_actualizacion = CURRENT_TIMESTAMP
             RETURNING *`;
 

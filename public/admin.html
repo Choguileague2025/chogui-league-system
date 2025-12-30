@@ -4316,17 +4316,35 @@
         // usar UPSERT con REEMPLAZO (SET field = EXCLUDED.field) en lugar de
         // SUMA (SET field = table.field + EXCLUDED.field).
         // ==================================================================
+        function getSeasonFromUrl() {
+            const qsTemporada = new URLSearchParams(window.location.search).get('temporada');
+            return (qsTemporada && qsTemporada.trim() !== '') ? qsTemporada.trim() : null;
+        }
+
+        function obtenerTemporadaParaEnvio() {
+            const temporadaUrl = getSeasonFromUrl();
+            if (temporadaUrl) return temporadaUrl;
+            if (torneoActivo && typeof torneoActivo.temporada === 'string' && torneoActivo.temporada.trim() !== '') {
+                return torneoActivo.temporada.trim();
+            }
+            return null;
+        }
+
+        function obtenerEquipoDelJugador(jugadorId) {
+            const jugador = jugadores.find(j => Number(j.id) === Number(jugadorId));
+            return jugador && jugador.equipo_id ? jugador.equipo_id : null;
+        }
+
         async function actualizarEstadistica(tipo, jugadorId) {
             const saveButton = event.target;
             let endpoint = '';
             let payload = { jugador_id: jugadorId };
-            const temporada = torneoActivo ? torneoActivo.id : null; // Asumiendo que se usa el torneo activo.
-
-            if (!temporada) {
-                toast.error('No hay un torneo activo seleccionado. No se pueden guardar estadísticas.');
-                return;
+            const temporada = obtenerTemporadaParaEnvio();
+            const equipoId = obtenerEquipoDelJugador(jugadorId);
+            if (temporada) {
+                payload.temporada = temporada;
             }
-            payload.temporada = temporada;
+            payload.equipo_id = equipoId || null;
 
             try {
                 saveButton.disabled = true;
