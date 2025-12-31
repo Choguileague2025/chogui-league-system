@@ -23,15 +23,16 @@ let sseClients = [];
 let sseClientIdCounter = 0;
 
 const PORT = process.env.PORT || 3000;
-const ACTIVE_SEASON = process.env.ACTIVE_SEASON ? `${process.env.ACTIVE_SEASON}`.trim() : null;
-const DEFAULT_SEASON = process.env.DEFAULT_SEASON ? `${process.env.DEFAULT_SEASON}`.trim() : '2024';
 
-function resolveTemporada(value) {
-    if (value !== undefined && value !== null && `${value}`.trim() !== '') {
-        return `${value}`.trim();
-    }
-    if (ACTIVE_SEASON) return ACTIVE_SEASON;
-    return DEFAULT_SEASON;
+// Opción A: usar SIEMPRE la temporada activa (no aceptar overrides por URL/body).
+// - ACTIVE_SEASON: temporada "oficial" del deploy (Railway env)
+// - DEFAULT_SEASON: fallback si ACTIVE_SEASON no está seteada
+const ACTIVE_SEASON = process.env.ACTIVE_SEASON ? `${process.env.ACTIVE_SEASON}`.trim() : null;
+const DEFAULT_SEASON = ACTIVE_SEASON || (process.env.DEFAULT_SEASON ? `${process.env.DEFAULT_SEASON}`.trim() : '2024');
+
+function resolveTemporada(_value) {
+  // Ignoramos cualquier temporada que venga por query/body para evitar inconsistencias (ej: "49", "Default", etc.)
+  return DEFAULT_SEASON;
 }
 
 // ===============================================================
