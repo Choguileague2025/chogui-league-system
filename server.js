@@ -2551,7 +2551,10 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
         console.info('[stats-get][ofensiva]', { jugador_id, equipo_id, temporada: seasonFilter });
         
         let query = `
-            SELECT eo.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
+            SELECT 
+                   eo.*,
+                   COALESCE(eo.strikeouts, 0)::INT as strikeouts,
+                   j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
                    CASE 
                        WHEN eo.at_bats > 0 THEN ROUND(eo.hits::DECIMAL / eo.at_bats, 3)
                        ELSE 0.000 

@@ -204,7 +204,7 @@ function renderStats(stats, containerId, type, context = {}) {
     
     // 🔍 DEBUGGING: Ver qué datos llegan
     console.log('🔍 DEBUGGING - Datos de estadísticas:', stat);
-    console.log('🔍 DEBUGGING - Strikeouts value:', stat.strikeouts);
+    console.log('🔍 DEBUGGING - Strikeouts value:', stat?.strikeouts);
     console.log('🔍 DEBUGGING - Tipo de estadística:', type);
     
     let html = '';
@@ -217,7 +217,12 @@ function renderStats(stats, containerId, type, context = {}) {
     const runs = valueOrZero(stat.runs);
     const walks = valueOrZero(stat.walks);
     const stolenBases = valueOrZero(stat.stolen_bases);
-    const strikeouts = valueOrZero(stat.strikeouts);
+    // Separar ponches ofensivos de cualquier otro dataset para evitar mezclar pitcheo/defensa
+    const offensiveStrikeouts = valueOrZero(stat?.strikeouts ?? stat?.so ?? 0);
+    const pitchingStrikeouts = valueOrZero(stat?.strikeouts ?? stat?.so ?? 0);
+    if (type === 'bateo') {
+        console.log('🔍 DEBUGGING - Strikeouts ofensivos usados para render:', offensiveStrikeouts);
+    }
     const doubles = valueOrZero(stat.doubles);
     const triples = valueOrZero(stat.triples);
     const caughtStealing = valueOrZero(stat.caught_stealing);
@@ -251,13 +256,13 @@ function renderStats(stats, containerId, type, context = {}) {
             { label: 'Carreras (R)', value: runs },
             { label: 'Bases Robadas (SB)', value: stolenBases },
             { label: 'Bases por Bolas (BB)', value: walks },
-            { label: 'Ponches (SO)', value: strikeouts }, // ✅ CORREGIDO: Agregado strikeouts
+            { label: 'Ponches (SO)', value: offensiveStrikeouts }, // ✅ CORREGIDO: Agregado strikeouts
         ],
         pitcheo: [
             { label: 'ERA', value: (inningsPitched > 0 ? (earnedRuns * 9) / inningsPitched : 0).toFixed(2) },
             { label: 'Victorias (W)', value: wins },
             { label: 'Derrotas (L)', value: losses },
-            { label: 'Ponches (SO)', value: strikeouts },
+            { label: 'Ponches (SO)', value: pitchingStrikeouts },
         ],
         'pitcheo-detail': [
             { label: 'Innings (IP)', value: inningsPitched },
