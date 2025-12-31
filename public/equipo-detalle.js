@@ -16,6 +16,7 @@ let recentGames = [];
 let filteredRoster = [];
 let currentFilter = 'all';
 let currentSeason = null;
+let standingsData = [];
 
 // ===================================
 // FUNCIONES DE INICIALIZACIÓN
@@ -190,13 +191,15 @@ function precargarDatosCriticos() {
 
 async function cargarDatosEquipo() {
     try {
-        await Promise.all([
+        const [, , , standings] = await Promise.all([
             cargarInformacionEquipo(),
             cargarRosterEquipo(),
-            cargarPartidosRecientes()
+            cargarPartidosRecientes(),
+            cargarStandingsEquipo()
         ]);
-        calcularEstadisticas();
-        actualizarBreadcrumbConPosicion();
+        standingsData = Array.isArray(standings) ? standings : [];
+        calcularEstadisticas(obtenerStandingEquipo(standingsData));
+        actualizarBreadcrumbConPosicion(standingsData);
     } catch (error) {
         console.error('Error cargando datos del equipo:', error);
     }
@@ -224,6 +227,20 @@ async function cargarInformacionEquipo() {
         console.error('Error cargando información del equipo:', error);
         mostrarErrorEquipo(error.message);
         throw error;
+    }
+}
+
+async function cargarStandingsEquipo() {
+    try {
+        const response = await fetch(getApiUrl('/api/standings'));
+        if (!response.ok) {
+            console.warn('No se pudo obtener standings, respuesta no OK');
+            return [];
+        }
+        return await response.json();
+    } catch (error) {
+        console.warn('No se pudo obtener standings:', error);
+        return [];
     }
 }
 
@@ -398,7 +415,33 @@ function renderizarPartidosRecientes() {
 // CÁLCULOS Y ESTADÍSTICAS
 // ===================================
 
-function calcularEstadisticas() {
+function calcularEstadisticas(standingRow) {
+    if (standingRow) {
+        const pj = toNumber(standingRow.pj);
+        const pg = toNumber(standingRow.pg);
+        const pp = toNumber(standingRow.pp);
+        const cf = toNumber(standingRow.cf);
+        const ce = toNumber(standingRow.ce);
+        const porcentajeVal = Number(standingRow.porcentaje) || 0;
+        const porcentajeDisplay = porcentajeVal.toFixed(3);
+        const ranking = standingRow.ranking ? `#${standingRow.ranking}` : '--';
+        const racha = calcularRacha(recentGames);
+
+        setTextContent('teamRecord', `${pg}-${pp}${racha ? ` (${racha})` : ''}`);
+        document.querySelectorAll('#teamPosition').forEach(el => el.textContent = ranking);
+        setTextContent('teamAverage', porcentajeDisplay);
+        setTextContent('teamRuns', cf);
+
+        setTextContent('winPercentage', porcentajeDisplay);
+        setTextContent('gamesPlayed', pj);
+        setTextContent('wins', pg);
+        setTextContent('losses', pp);
+        setTextContent('runsScored', cf);
+        setTextContent('runsAllowed', ce);
+        return;
+    }
+
+    // Fallback si no hay standings disponibles: usar partidos recientes
     let victorias = 0, derrotas = 0, carrerasAnotadas = 0, carrerasPermitidas = 0;
     
     const partidosFinalizados = recentGames.filter(partido => partido.carreras_local !== null && partido.carreras_visitante !== null);
@@ -417,30 +460,30 @@ function calcularEstadisticas() {
     
     const partidosJugados = victorias + derrotas;
     const porcentajeVictorias = partidosJugados > 0 ? (victorias / partidosJugados) : 0;
+    const racha = calcularRacha(recentGames);
     
-    document.getElementById('teamRecord').textContent = `${victorias}-${derrotas}`;
-    document.getElementById('teamPosition').textContent = '--';
-    document.getElementById('teamAverage').textContent = porcentajeVictorias.toFixed(3);
-    document.getElementById('teamRuns').textContent = carrerasAnotadas;
+    setTextContent('teamRecord', `${victorias}-${derrotas}${racha ? ` (${racha})` : ''}`);
+    document.querySelectorAll('#teamPosition').forEach(el => el.textContent = '--');
+    setTextContent('teamAverage', porcentajeVictorias.toFixed(3));
+    setTextContent('teamRuns', carrerasAnotadas);
     
-    document.getElementById('winPercentage').textContent = porcentajeVictorias.toFixed(3);
-    document.getElementById('gamesPlayed').textContent = partidosJugados;
-    document.getElementById('wins').textContent = victorias;
-    document.getElementById('losses').textContent = derrotas;
-    document.getElementById('runsScored').textContent = carrerasAnotadas;
-    document.getElementById('runsAllowed').textContent = carrerasPermitidas;
+    setTextContent('winPercentage', porcentajeVictorias.toFixed(3));
+    setTextContent('gamesPlayed', partidosJugados);
+    setTextContent('wins', victorias);
+    setTextContent('losses', derrotas);
+    setTextContent('runsScored', carrerasAnotadas);
+    setTextContent('runsAllowed', carrerasPermitidas);
 }
 
-async function actualizarBreadcrumbConPosicion() {
+async function actualizarBreadcrumbConPosicion(standingsOverride) {
+    const standings = Array.isArray(standingsOverride) ? standingsOverride : standingsData;
     try {
-        const response = await fetch(getApiUrl('/api/posiciones'));
-        if (!response.ok) return;
-        
-        const standings = await response.json();
-        const posicion = standings.findIndex(e => e.id == currentTeamId) + 1;
-        
-        if (posicion > 0) {
-            document.getElementById('teamPosition').textContent = `#${posicion}`;
+        const entry = obtenerStandingEquipo(standings);
+        if (entry) {
+            document.querySelectorAll('#teamPosition').forEach(el => {
+                el.textContent = entry.ranking ? `#${entry.ranking}` : `#${(standings || []).indexOf(entry) + 1}`;
+            });
+            return;
         }
     } catch (error) {
         console.warn('No se pudo obtener la posición en la tabla');
@@ -477,6 +520,60 @@ function formatearPosicion(posicion) {
         'RF': 'Right Field' 
     };
     return posiciones[posicion] || posicion || 'N/A';
+}
+
+function obtenerStandingEquipo(standings = standingsData) {
+    if (!Array.isArray(standings)) return null;
+    return standings.find(e => Number(e.id || e.equipo_id) === Number(currentTeamId)) || null;
+}
+
+function calcularRacha(partidos = recentGames) {
+    const finalizados = Array.isArray(partidos)
+        ? partidos.filter(p => p.carreras_local !== null && p.carreras_visitante !== null)
+        : [];
+    if (finalizados.length === 0) return null;
+
+    // Ordenar por fecha descendente para tomar la racha más reciente
+    finalizados.sort((a, b) => {
+        const fechaA = new Date(`${a.fecha_partido}T00:00:00Z`).getTime();
+        const fechaB = new Date(`${b.fecha_partido}T00:00:00Z`).getTime();
+        return fechaB - fechaA;
+    });
+
+    const resultado = (partido) => {
+        const esLocal = partido.equipo_local_id == currentTeamId;
+        const carrerasEquipo = esLocal ? partido.carreras_local : partido.carreras_visitante;
+        const carrerasRival = esLocal ? partido.carreras_visitante : partido.carreras_local;
+        return carrerasEquipo > carrerasRival ? 'W' : 'L';
+    };
+
+    let racha = 0;
+    let signo = null;
+    for (const juego of finalizados) {
+        const res = resultado(juego);
+        if (!signo) {
+            signo = res;
+            racha = 1;
+            continue;
+        }
+        if (res === signo) {
+            racha += 1;
+        } else {
+            break;
+        }
+    }
+
+    return signo ? `${signo}${racha}` : null;
+}
+
+function toNumber(value) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+}
+
+function setTextContent(elementId, value) {
+    const el = document.getElementById(elementId);
+    if (el) el.textContent = value;
 }
 
 function obtenerResultadoPartido(partido, esLocal) {

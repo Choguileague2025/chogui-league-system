@@ -449,6 +449,13 @@ app.get('/api/standings', async (req, res, next) => {
                     WHEN COALESCE(SUM(1), 0) > 0 THEN ROUND(COALESCE(SUM(g.win), 0)::DECIMAL / COALESCE(SUM(1), 0), 3)
                     ELSE 0.000
                 END AS porcentaje,
+                ROW_NUMBER() OVER (ORDER BY 
+                    CASE 
+                        WHEN COALESCE(SUM(1), 0) > 0 THEN ROUND(COALESCE(SUM(g.win), 0)::DECIMAL / COALESCE(SUM(1), 0), 3)
+                        ELSE 0.000
+                    END DESC,
+                    (COALESCE(SUM(g.cf), 0) - COALESCE(SUM(g.ce), 0)) DESC
+                ) AS ranking,
                 e.estado
             FROM equipos e
             LEFT JOIN games g ON e.id = g.team_id
@@ -2540,6 +2547,7 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
     try {
         const { temporada, equipo_id, jugador_id, min_at_bats = 0 } = req.query;
         const seasonFilter = resolveTemporada(temporada);
+        const allowLegacySeason = seasonFilter === DEFAULT_SEASON;
         console.info('[stats-get][ofensiva]', { jugador_id, equipo_id, temporada: seasonFilter });
         
         let query = `
@@ -2564,7 +2572,11 @@ app.get('/api/estadisticas-ofensivas', async (req, res) => {
         const params = [min_at_bats];
         let paramIndex = 2;
 
-        query += ` AND eo.temporada = $${paramIndex}`;
+        if (allowLegacySeason) {
+            query += ` AND (eo.temporada = $${paramIndex} OR LOWER(eo.temporada) = 'default' OR eo.temporada IS NULL)`;
+        } else {
+            query += ` AND eo.temporada = $${paramIndex}`;
+        }
         params.push(seasonFilter);
         paramIndex++;
 
@@ -2655,6 +2667,7 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
     try {
         const { temporada, equipo_id, jugador_id } = req.query;
         const seasonFilter = resolveTemporada(temporada);
+        const allowLegacySeason = seasonFilter === DEFAULT_SEASON;
         let paramIndex = 1;
         const params = [];
         console.info('[stats-get][pitcheo]', { jugador_id, equipo_id, temporada: seasonFilter });
@@ -2675,7 +2688,11 @@ app.get('/api/estadisticas-pitcheo', async (req, res) => {
             WHERE 1=1
         `;
 
-        query += ` AND ep.temporada = $${paramIndex}`;
+        if (allowLegacySeason) {
+            query += ` AND (ep.temporada = $${paramIndex} OR LOWER(ep.temporada) = 'default' OR ep.temporada IS NULL)`;
+        } else {
+            query += ` AND ep.temporada = $${paramIndex}`;
+        }
         params.push(seasonFilter);
         paramIndex++;
 
@@ -2706,6 +2723,7 @@ app.get('/api/estadisticas-pitcheo/:id', async (req, res) => {
         const { id } = req.params;
         const { temporada } = req.query;
         const seasonFilter = resolveTemporada(temporada);
+        const allowLegacySeason = seasonFilter === DEFAULT_SEASON;
         console.info('[stats-get][pitcheo-id]', { jugador_id: id, temporada: seasonFilter });
 
         let query = `
@@ -2717,7 +2735,11 @@ app.get('/api/estadisticas-pitcheo/:id', async (req, res) => {
         `;
         const params = [id];
 
-        query += ' AND ep.temporada = $2';
+        if (allowLegacySeason) {
+            query += ' AND (ep.temporada = $2 OR LOWER(ep.temporada) = \'default\' OR ep.temporada IS NULL)';
+        } else {
+            query += ' AND ep.temporada = $2';
+        }
         params.push(seasonFilter);
         
         const result = await pool.query(query, params);
@@ -2839,6 +2861,7 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
     try {
         const { temporada, equipo_id, jugador_id } = req.query;
         const seasonFilter = resolveTemporada(temporada);
+        const allowLegacySeason = seasonFilter === DEFAULT_SEASON;
         let paramIndex = 1;
         const params = [];
         console.info('[stats-get][defensiva]', { jugador_id, equipo_id, temporada: seasonFilter });
@@ -2855,7 +2878,11 @@ app.get('/api/estadisticas-defensivas', async (req, res) => {
             WHERE 1=1
         `;
 
-        query += ` AND ed.temporada = $${paramIndex}`;
+        if (allowLegacySeason) {
+            query += ` AND (ed.temporada = $${paramIndex} OR LOWER(ed.temporada) = 'default' OR ed.temporada IS NULL)`;
+        } else {
+            query += ` AND ed.temporada = $${paramIndex}`;
+        }
         params.push(seasonFilter);
         paramIndex++;
 
@@ -2885,6 +2912,7 @@ app.get('/api/estadisticas-defensivas/:id', async (req, res) => {
         const { id } = req.params;
         const { temporada } = req.query;
         const seasonFilter = resolveTemporada(temporada);
+        const allowLegacySeason = seasonFilter === DEFAULT_SEASON;
         console.info('[stats-get][defensiva-id]', { jugador_id: id, temporada: seasonFilter });
 
         let query = `
@@ -2896,7 +2924,11 @@ app.get('/api/estadisticas-defensivas/:id', async (req, res) => {
         `;
         const params = [id];
 
-        query += ' AND ed.temporada = $2';
+        if (allowLegacySeason) {
+            query += ' AND (ed.temporada = $2 OR LOWER(ed.temporada) = \'default\' OR ed.temporada IS NULL)';
+        } else {
+            query += ' AND ed.temporada = $2';
+        }
         params.push(seasonFilter);
         
         const result = await pool.query(query, params);
@@ -3826,25 +3858,29 @@ app.post('/api/recalcular-estadisticas', async (req, res) => {
         await pool.query(`
             DROP TABLE IF EXISTS temp_standings;
             CREATE TEMP TABLE temp_standings AS
+            WITH raw AS (
+                SELECT 
+                    e.id as equipo_id,
+                    e.nombre as equipo_nombre,
+                    COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local > p.carreras_visitante) OR 
+                                    (p.equipo_visitante_id = e.id AND p.carreras_visitante > p.carreras_local) 
+                                THEN 1 END) as victorias,
+                    COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local < p.carreras_visitante) OR 
+                                    (p.equipo_visitante_id = e.id AND p.carreras_visitante < p.carreras_local) 
+                                THEN 1 END) as derrotas,
+                    COUNT(p.id) as partidos_jugados
+                FROM equipos e
+                LEFT JOIN partidos p ON (e.id = p.equipo_local_id OR e.id = p.equipo_visitante_id) 
+                                     AND p.estado = 'finalizado'
+                                     AND p.carreras_local IS NOT NULL
+                                     AND p.carreras_visitante IS NOT NULL
+                GROUP BY e.id, e.nombre
+            )
             SELECT 
-                e.id as equipo_id,
-                e.nombre as equipo_nombre,
-                COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local > p.carreras_visitante) OR 
-                                (p.equipo_visitante_id = e.id AND p.carreras_visitante > p.carreras_local) 
-                              THEN 1 END) as victorias,
-                COUNT(CASE WHEN (p.equipo_local_id = e.id AND p.carreras_local < p.carreras_visitante) OR 
-                                (p.equipo_visitante_id = e.id AND p.carreras_visitante < p.carreras_local) 
-                              THEN 1 END) as derrotas,
-                COUNT(p.id) as partidos_jugados
-            FROM equipos e
-            LEFT JOIN partidos p ON (e.id = p.equipo_local_id OR e.id = p.equipo_visitante_id) 
-                                 AND p.estado = 'finalizado'
-                                 AND p.carreras_local IS NOT NULL
-                                 AND p.carreras_visitante IS NOT NULL
-            GROUP BY e.id, e.nombre
-            ORDER BY 
-                CASE WHEN COUNT(p.id) > 0 THEN victorias::DECIMAL / COUNT(p.id) ELSE 0 END DESC,
-                victorias DESC;
+                raw.*,
+                CASE WHEN partidos_jugados > 0 THEN victorias::DECIMAL / partidos_jugados ELSE 0 END AS porcentaje
+            FROM raw
+            ORDER BY porcentaje DESC, victorias DESC;
         `);
         console.log('✅ Recálculo de standings de equipos completado en tabla temporal.');
 
@@ -4064,7 +4100,13 @@ app.get('/api/posiciones', async (req, res) => {
                    COALESCE(SUM(j.ce),0) AS ce,
                    COALESCE(SUM(j.cf),0) - COALESCE(SUM(j.ce),0) AS dif,
                    CASE WHEN COUNT(j.equipo_id) = 0 THEN 0 
-                        ELSE ROUND(COALESCE(SUM(j.gan),0)::numeric / COUNT(j.equipo_id) * 100, 2) END AS porcentaje
+                        ELSE ROUND(COALESCE(SUM(j.gan),0)::numeric / COUNT(j.equipo_id) * 100, 2) END AS porcentaje,
+                   ROW_NUMBER() OVER (ORDER BY 
+                        CASE WHEN COUNT(j.equipo_id) = 0 THEN 0 
+                        ELSE ROUND(COALESCE(SUM(j.gan),0)::numeric / COUNT(j.equipo_id) * 100, 2) END DESC,
+                        (COALESCE(SUM(j.cf),0) - COALESCE(SUM(j.ce),0)) DESC,
+                        e.nombre ASC
+                   ) AS ranking
             FROM equipos e
             LEFT JOIN juegos j ON j.equipo_id = e.id
             GROUP BY e.id, e.nombre

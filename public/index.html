@@ -3356,10 +3356,27 @@
 
         function renderTablaPosiciones(standings, tbodyEl) {
             if (!tbodyEl) return;
-            const rows = [...standings]
-                .sort((a, b) => (b.porcentaje ?? 0) - (a.porcentaje ?? 0))
+            const lista = Array.isArray(standings) ? standings : [];
+            const hasRanking = lista.some(t => t.ranking !== undefined && t.ranking !== null);
+            const toNum = (v) => Number(v) || 0;
+            const ordered = hasRanking 
+                ? [...lista].sort((a, b) => {
+                    const rankDiff = toNum(a.ranking) - toNum(b.ranking);
+                    if (rankDiff !== 0) return rankDiff;
+                    const diffDiff = (b.dif ?? 0) - (a.dif ?? 0);
+                    if (diffDiff !== 0) return diffDiff;
+                    return (a.equipo_nombre || '').localeCompare(b.equipo_nombre || '');
+                })
+                : [...lista].sort((a, b) => {
+                    const pctDiff = (b.porcentaje ?? 0) - (a.porcentaje ?? 0);
+                    if (pctDiff !== 0) return pctDiff;
+                    const diffDiff = (b.dif ?? 0) - (a.dif ?? 0);
+                    if (diffDiff !== 0) return diffDiff;
+                    return (a.equipo_nombre || '').localeCompare(b.equipo_nombre || '');
+                });
+            const rows = ordered
                 .map((t, i) => {
-                    const posicion = i + 1;
+                    const posicion = t.ranking || (i + 1);
                     const enPlayoffs = posicion <= 8;
                     let estadoHTML = enPlayoffs ? '<span class="playoff-indicator">Playoffs</span>' : 'En Lucha';
                     return `

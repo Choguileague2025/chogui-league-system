@@ -59,10 +59,11 @@ async function loadPlayerData(id) {
         const player = await playerResponse.json();
 
         const statsQuery = buildStatsQuery(id, player.equipo_id, currentSeason);
-        const [statsOfensivas, statsPitcheo, statsDefensivas] = await Promise.all([
+        const [statsOfensivas, statsPitcheo, statsDefensivas, posiciones] = await Promise.all([
             fetchJsonSafely(`/api/estadisticas-ofensivas${statsQuery}`),
             fetchJsonSafely(`/api/estadisticas-pitcheo${statsQuery}`),
-            fetchJsonSafely(`/api/estadisticas-defensivas${statsQuery}`)
+            fetchJsonSafely(`/api/estadisticas-defensivas${statsQuery}`),
+            fetchJsonSafely('/api/posiciones')
         ]);
 
         console.log('✅ Datos cargados:', { player, statsOfensivas, statsPitcheo, statsDefensivas });
@@ -94,6 +95,7 @@ async function loadPlayerData(id) {
         renderStats(statsPitcheo, 'statsPitcheoContainer', 'pitcheo', statsContext);
         renderStats(statsPitcheo, 'statsPitcheoDetailContainer', 'pitcheo-detail', statsContext);
         renderStats(statsDefensivas, 'statsDefensaContainer', 'defensa', statsContext);
+        renderResumenEquipo(player, posiciones);
         
         // Configurar navegación
         configurarNavegacion(player);
@@ -191,7 +193,7 @@ function renderStats(stats, containerId, type, context = {}) {
         return;
     }
 
-    const stat = selectStatRecord(stats, context);
+    const stat = selectStatRecord(stats, context) || stats[0];
     if (!stat) {
         container.innerHTML = '<div class="empty-state">No hay estadísticas disponibles.</div>';
         if (type === 'bateo') {
@@ -379,6 +381,61 @@ function calcularOPS(stat) {
 function calcularFieldingPercentage(stat) {
     const total = toNumber(stat.putouts) + toNumber(stat.assists) + toNumber(stat.errors);
     return total > 0 ? (toNumber(stat.putouts) + toNumber(stat.assists)) / total : 0;
+}
+
+function renderResumenEquipo(player, posiciones) {
+    const container = document.getElementById('statsPitcheoContainer');
+    if (!container) return;
+
+    // Limpiar estados previos que ensucian el resumen
+    container.querySelectorAll('[data-resumen-equipo]').forEach(el => el.remove());
+    const emptyState = container.querySelector('.empty-state');
+    if (emptyState) {
+        emptyState.remove();
+    }
+
+    const resumen = buildResumenData(posiciones, player?.equipo_id);
+    const resumenHtml = `
+        <div class="stat-row"><span class="stat-label">PJ</span><span class="stat-value">${resumen.pj}</span></div>
+        <div class="stat-row"><span class="stat-label">PG</span><span class="stat-value">${resumen.pg}</span></div>
+        <div class="stat-row"><span class="stat-label">PP</span><span class="stat-value">${resumen.pp}</span></div>
+        <div class="stat-row"><span class="stat-label">DIF</span><span class="stat-value">${resumen.dif}</span></div>
+        <div class="stat-row"><span class="stat-label">%</span><span class="stat-value">${resumen.porcentaje}%</span></div>
+        <div class="stat-row"><span class="stat-label">Ranking</span><span class="stat-value">${resumen.ranking}</span></div>
+    `;
+
+    const resumenBlock = document.createElement('div');
+    resumenBlock.setAttribute('data-resumen-equipo', 'true');
+    resumenBlock.innerHTML = resumenHtml.trim();
+    container.insertAdjacentElement('afterbegin', resumenBlock);
+}
+
+function buildResumenData(posiciones, equipoId) {
+    const baseResumen = { pj: 0, pg: 0, pp: 0, dif: 0, porcentaje: '0.00', ranking: '#0' };
+    if (!equipoId || !Array.isArray(posiciones)) {
+        return baseResumen;
+    }
+
+    const index = posiciones.findIndex(
+        (pos) => Number(pos.id || pos.equipo_id) === Number(equipoId)
+    );
+    if (index === -1) {
+        return baseResumen;
+    }
+
+    const posicion = posiciones[index];
+    const porcentaje = Number.isFinite(toNumber(posicion.porcentaje))
+        ? toNumber(posicion.porcentaje).toFixed(2)
+        : '0.00';
+
+    return {
+        pj: toNumber(posicion.pj),
+        pg: toNumber(posicion.pg),
+        pp: toNumber(posicion.pp),
+        dif: toNumber(posicion.dif),
+        porcentaje,
+        ranking: `#${index + 1}`
+    };
 }
 
 function actualizarEstadisticasPrincipales(stat) {
