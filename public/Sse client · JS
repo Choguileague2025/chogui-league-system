@@ -1,0 +1,430 @@
+// ===============================================================
+// =============== CHOGUI LEAGUE SSE CLIENT (FRONTEND) =========
+// ===============================================================
+// Maneja TODAS las actualizaciones automáticas vía Server-Sent Events
+// Páginas soportadas: index.html, jugador.html, equipo.html
+// Endpoint SSE backend: /api/sse/updates
+// ===============================================================
+
+let eventSource = null;
+let reconnectTimeout = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_DELAY = 30000; // 30s máx entre reintentos
+const BASE_RECONNECT_DELAY = 2000; // 2s base
+
+let updateIndicator = null;
+let activeUpdates = 0;
+
+// ===============================================================
+// 2. Función principal de inicialización
+// ===============================================================
+function initSSE() {
+    if (!('EventSource' in window)) {
+        console.warn('⚠️ Este navegador no soporta EventSource / SSE');
+        return;
+    }
+
+    // Si ya hay una conexión abierta, la cerramos primero
+    if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+    }
+
+    console.log('🔌 Iniciando conexión SSE con /api/sse/updates ...');
+    eventSource = new EventSource('/api/sse/updates');
+
+    // Evento de conexión abierta
+    eventSource.addEventListener('open', () => {
+        console.log('✅ Conexión SSE establecida');
+        reconnectAttempts = 0;
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+            reconnectTimeout = null;
+        }
+    });
+
+    // Evento genérico (por si el backend envía "message" o "ping")
+    eventSource.addEventListener('message', (event) => {
+        // Puedes usar esto para logs o heartbeats
+        try {
+            const data = JSON.parse(event.data);
+            if (data && data.type === 'connected') {
+                console.log('📡 SSE conectado:', data.message || '');
+            }
+        } catch (e) {
+            // No pasa nada si no es JSON
+        }
+    });
+
+    // Eventos específicos desde el backend
+    eventSource.addEventListener('stats-updated', (event) => {
+        const data = safeParseJSON(event.data);
+        console.log('📈 Evento SSE: stats-updated', data);
+        handleStatsUpdate(data);
+    });
+
+    eventSource.addEventListener('player-updated', (event) => {
+        const data = safeParseJSON(event.data);
+        console.log('👤 Evento SSE: player-updated', data);
+        handlePlayerUpdate(data);
+    });
+
+    eventSource.addEventListener('team-updated', (event) => {
+        const data = safeParseJSON(event.data);
+        console.log('🏟️ Evento SSE: team-updated', data);
+        handleTeamUpdate(data);
+    });
+
+    eventSource.addEventListener('leaders-changed', (event) => {
+        const data = safeParseJSON(event.data);
+        console.log('🏅 Evento SSE: leaders-changed', data);
+        handleLeadersChanged(data);
+    });
+
+    // Manejo de errores + reconexión automática
+    eventSource.addEventListener('error', (event) => {
+        console.error('❌ Error en conexión SSE', event);
+        scheduleReconnect();
+    });
+
+    // Cerrar SSE al salir de la página
+    window.addEventListener('beforeunload', () => {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+    });
+}
+
+// ===============================================================
+// 3. Event listeners para cada tipo de evento
+// ===============================================================
+function handleStatsUpdate(data) {
+    const page = detectCurrentPage();
+
+    // stats-updated es genérico: recargamos lo que corresponda según la página
+    if (page === 'index') {
+        reloadLideres();
+        reloadStandings();
+    } else if (page === 'jugador') {
+        const jugadorId = data?.jugadorId || data?.jugador_id || null;
+        reloadPlayerStats(jugadorId);
+    } else if (page === 'equipo') {
+        const equipoId = data?.equipoId || data?.equipo_id || null;
+        reloadTeamStats(equipoId);
+        reloadStandings();
+    } else {
+        // Páginas no principales: si tienen componentes reutilizables, los recargamos
+        if (document.querySelector('[data-lideres-container]')) {
+            reloadLideres();
+        }
+        if (document.querySelector('[data-standings-container]')) {
+            reloadStandings();
+        }
+    }
+}
+
+function handlePlayerUpdate(data) {
+    // Siempre intentamos recargar stats del jugador afectado
+    const jugadorId = data?.jugadorId || data?.jugador_id || null;
+    reloadPlayerStats(jugadorId);
+}
+
+function handleTeamUpdate(data) {
+    const equipoId = data?.equipoId || data?.equipo_id || null;
+    reloadTeamStats(equipoId);
+    reloadStandings();
+}
+
+function handleLeadersChanged(_data) {
+    // En cualquier página donde existan líderes, los recargamos
+    reloadLideres();
+}
+
+// ===============================================================
+// 4. Funciones de recarga específicas
+// ===============================================================
+function reloadLideres() {
+    const page = detectCurrentPage();
+
+    // Si no estamos en una página que use líderes, no hacemos nada
+    const hasLeadersUI =
+        document.getElementById('lideresOfensivosContainer') ||
+        document.getElementById('lideresPitcheoContainer') ||
+        document.getElementById('lideresDefensivosContainer') ||
+        document.querySelector('[data-lideres-container]');
+
+    if (!hasLeadersUI && page !== 'index') return;
+
+    showUpdateIndicator('Actualizando líderes...');
+
+    const tasks = [];
+
+    // Reutilizamos funciones existentes si están definidas
+    if (typeof window.cargarLideresOfensivos === 'function') {
+        tasks.push(Promise.resolve(window.cargarLideresOfensivos()));
+    }
+    if (typeof window.cargarLideresPitcheo === 'function') {
+        tasks.push(Promise.resolve(window.cargarLideresPitcheo()));
+    }
+    if (typeof window.cargarLideresDefensivos === 'function') {
+        tasks.push(Promise.resolve(window.cargarLideresDefensivos()));
+    }
+    if (tasks.length === 0 && typeof window.cargarLideres === 'function') {
+        tasks.push(Promise.resolve(window.cargarLideres()));
+    }
+
+    // Fallback mínimo si no hay funciones globales
+    if (tasks.length === 0) {
+        tasks.push(
+            fetch('/api/lideres')
+                .then((res) => res.json())
+                .then((json) => {
+                    console.log('🔄 Líderes recargados vía /api/lideres', json);
+                    // Aquí podrías actualizar manualmente el DOM si lo necesitás
+                })
+        );
+    }
+
+    Promise.all(tasks)
+        .catch((err) => {
+            console.error('❌ Error recargando líderes:', err);
+        })
+        .finally(() => {
+            hideUpdateIndicator();
+        });
+}
+
+function reloadPlayerStats(jugadorId) {
+    const page = detectCurrentPage();
+    if (page !== 'jugador') return;
+
+    const idFromUrl = getJugadorIdFromUrl();
+    const finalId = jugadorId || idFromUrl;
+
+    if (!finalId) {
+        console.warn('⚠️ No se pudo determinar jugadorId para recargar stats');
+        return;
+    }
+
+    showUpdateIndicator('Actualizando estadísticas del jugador...');
+
+    // Preferimos una función global existente
+    if (typeof window.loadPlayerData === 'function') {
+        Promise.resolve(window.loadPlayerData(finalId))
+            .catch((err) => {
+                console.error('❌ Error recargando datos del jugador:', err);
+            })
+            .finally(() => {
+                hideUpdateIndicator();
+            });
+        return;
+    }
+
+    // Fallback: simple fetch de jugador + stats ofensivas
+    Promise.all([
+        fetch(`/api/jugadores/${finalId}`).then((res) => res.json()),
+        fetch(`/api/estadisticas-ofensivas?jugador_id=${finalId}`).then((res) =>
+            res.json()
+        ),
+    ])
+        .then(([jugador, stats]) => {
+            console.log('🔄 Datos jugador actualizados', { jugador, stats });
+            // Aquí podrías hacer render manual si hace falta
+        })
+        .catch((err) => {
+            console.error('❌ Error recargando stats del jugador:', err);
+        })
+        .finally(() => {
+            hideUpdateIndicator();
+        });
+}
+
+function reloadTeamStats(equipoId) {
+    const page = detectCurrentPage();
+    if (page !== 'equipo') return;
+
+    const idFromUrl = getEquipoIdFromUrl();
+    const finalId = equipoId || idFromUrl;
+
+    if (!finalId) {
+        console.warn('⚠️ No se pudo determinar equipoId para recargar stats de equipo');
+        return;
+    }
+
+    showUpdateIndicator('Actualizando estadísticas del equipo...');
+
+    if (typeof window.loadTeamData === 'function') {
+        Promise.resolve(window.loadTeamData(finalId))
+            .catch((err) => {
+                console.error('❌ Error recargando datos del equipo:', err);
+            })
+            .finally(() => {
+                hideUpdateIndicator();
+            });
+        return;
+    }
+
+    // Fallback: simple fetch de equipo y stats
+    Promise.all([
+        fetch(`/api/equipos/${finalId}`).then((res) => res.json()),
+        fetch(`/api/estadisticas-equipos?equipo_id=${finalId}`).then((res) =>
+            res.json()
+        ),
+    ])
+        .then(([equipo, stats]) => {
+            console.log('🔄 Datos equipo actualizados', { equipo, stats });
+        })
+        .catch((err) => {
+            console.error('❌ Error recargando stats del equipo:', err);
+        })
+        .finally(() => {
+            hideUpdateIndicator();
+        });
+}
+
+function reloadStandings() {
+    const hasStandingsUI =
+        document.getElementById('standingsTableBody') ||
+        document.querySelector('[data-standings-container]');
+    if (!hasStandingsUI) return;
+
+    showUpdateIndicator('Actualizando tabla de posiciones...');
+
+    if (typeof window.cargarTablaPosiciones === 'function') {
+        Promise.resolve(window.cargarTablaPosiciones())
+            .catch((err) => {
+                console.error('❌ Error recargando tabla de posiciones:', err);
+            })
+            .finally(() => {
+                hideUpdateIndicator();
+            });
+        return;
+    }
+
+    // Fallback: pedir standings al backend
+    fetch('/api/standings')
+        .then((res) => res.json())
+        .then((standings) => {
+            console.log('🔄 Standings recargados', standings);
+            // Aquí podrías actualizar manualmente la tabla si lo necesitás
+        })
+        .catch((err) => {
+            console.error('❌ Error recargando standings:', err);
+        })
+        .finally(() => {
+            hideUpdateIndicator();
+        });
+}
+
+// ===============================================================
+// 5. Utilidades
+// ===============================================================
+function showUpdateIndicator(message) {
+    if (!updateIndicator) {
+        updateIndicator = document.createElement('div');
+        updateIndicator.id = 'sse-update-indicator';
+        updateIndicator.style.position = 'fixed';
+        updateIndicator.style.top = '20px';
+        updateIndicator.style.right = '20px';
+        updateIndicator.style.padding = '8px 14px';
+        updateIndicator.style.borderRadius = '999px';
+        updateIndicator.style.fontSize = '12px';
+        updateIndicator.style.fontWeight = '500';
+        updateIndicator.style.background = 'rgba(0, 0, 0, 0.75)';
+        updateIndicator.style.color = '#fff';
+        updateIndicator.style.zIndex = '9999';
+        updateIndicator.style.boxShadow = '0 4px 12px rgba(0,0,0,0.35)';
+        updateIndicator.style.opacity = '0';
+        updateIndicator.style.transform = 'translateY(-10px)';
+        updateIndicator.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+        document.body.appendChild(updateIndicator);
+    }
+
+    activeUpdates += 1;
+    updateIndicator.textContent = message || 'Actualizando datos...';
+    updateIndicator.style.opacity = '1';
+    updateIndicator.style.transform = 'translateY(0)';
+}
+
+function hideUpdateIndicator() {
+    if (!updateIndicator) return;
+    if (activeUpdates > 0) activeUpdates -= 1;
+    if (activeUpdates > 0) return;
+
+    updateIndicator.textContent = 'Datos actualizados';
+    setTimeout(() => {
+        if (activeUpdates === 0 && updateIndicator) {
+            updateIndicator.style.opacity = '0';
+            updateIndicator.style.transform = 'translateY(-10px)';
+        }
+    }, 800);
+}
+
+function detectCurrentPage() {
+    const path = window.location.pathname;
+    const href = window.location.href;
+
+    if (path === '/' || path.includes('index.html')) return 'index';
+    if (path.includes('jugador.html') || href.includes('jugador.html')) return 'jugador';
+    if (path.includes('equipo.html') || href.includes('equipo.html')) return 'equipo';
+
+    return 'other';
+}
+
+function getJugadorIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id') || params.get('jugador_id');
+    return id ? Number(id) || id : null;
+}
+
+function getEquipoIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id') || params.get('equipo_id');
+    return id ? Number(id) || id : null;
+}
+
+function scheduleReconnect() {
+    if (reconnectTimeout) return;
+
+    reconnectAttempts += 1;
+    const delay = Math.min(
+        MAX_RECONNECT_DELAY,
+        BASE_RECONNECT_DELAY * Math.pow(1.5, reconnectAttempts)
+    );
+
+    console.log(
+        `🔄 Reintentando conexión SSE en ${Math.round(delay / 1000)}s (intento ${reconnectAttempts})`
+    );
+
+    reconnectTimeout = setTimeout(() => {
+        reconnectTimeout = null;
+        initSSE();
+    }, delay);
+}
+
+function safeParseJSON(str) {
+    try {
+        return JSON.parse(str);
+    } catch {
+        return null;
+    }
+}
+
+// ===============================================================
+// 6. Auto-inicialización
+// ===============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    initSSE();
+    console.log('✅ sse-client.js inicializado');
+});
+
+// Helpers de depuración opcionales (no obligatorios)
+window.SSEClient = {
+    init: initSSE,
+    getStatus: () => ({
+        hasEventSource: !!eventSource,
+        readyState: eventSource ? eventSource.readyState : null,
+        reconnectAttempts,
+    }),
+};

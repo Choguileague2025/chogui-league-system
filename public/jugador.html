@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil del Jugador - Chogui League</title>
+    <meta name="description" content="Estadísticas y perfil completo del jugador en la Chogui League.">
+    <link rel="stylesheet" href="equipo.css">
+</head>
+<body>
+    <a href="login.html" class="admin-link">🔒 Admin</a>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <div class="logo-chogui"></div>
+                </div>
+                <h1>🏆 CHOGUI LEAGUE</h1>
+                <p>Sistema de Gestión Profesional de Softbol</p>
+            </div>
+        </div>
+
+        <div class="breadcrumb">
+            <a href="index.html">🏠 Inicio</a>
+            <span>></span>
+            <span id="teamBreadcrumbLink">Cargando...</span>
+            <span>></span>
+            <strong id="playerBreadcrumb" style="color: #ffd700;">Cargando...</strong>
+        </div>
+
+        <div class="team-main-card">
+            <div class="team-header">
+                <div class="team-logo" id="teamLogo"></div>
+                <div class="team-info">
+                    <h2 id="playerName">Cargando Jugador...</h2>
+                    <p class="team-subtitle">
+                        <span id="playerNumber">#--</span> • 
+                        <span id="playerPosition">--</span> • 
+                        <span id="playerTeamNameHeader" style="color: #ff8c00;">--</span>
+                    </p>
+                    <div class="team-stats-row">
+                        <div class="stat-item">
+                            <span class="stat-value" id="playerAVG">---</span>
+                            <span class="stat-label">AVG</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="playerHR">---</span>
+                            <span class="stat-label">HR</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="playerRBI">---</span>
+                            <span class="stat-label">RBI</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="playerOPS">---</span>
+                            <span class="stat-label">OPS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="roster-section">
+                <h3 class="section-title">⚾ Estadísticas de Bateo</h3>
+                <div id="statsBateoContainer" class="stats-container">
+                    <div class="loading">Cargando estadísticas...</div>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <h3 class="section-title">📊 Resumen</h3>
+                <div class="record-display">
+                    <div class="record-number" id="playerTeamName">--</div>
+                    <div class="record-label">Equipo Actual</div>
+                </div>
+                <div id="statsPitcheoContainer" class="stats-container">
+                    <div class="loading">Cargando pitcheo...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="roster-section">
+            <h3 class="section-title">🛡️ Estadísticas Defensivas</h3>
+            <div id="statsDefensaContainer" class="stats-container">
+                <div class="loading">Cargando estadísticas...</div>
+            </div>
+        </div>
+
+        <div class="recent-games">
+            <h3 class="section-title">🎯 Estadísticas de Pitcheo</h3>
+            <div id="statsPitcheoDetailContainer" class="stats-container">
+                <div class="loading">Cargando estadísticas...</div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="index.html" class="btn-primary">🏠 Volver al Inicio</a>
+            <a href="#" id="backToTeamButton" class="btn-secondary">🏅 Volver al Equipo</a>
+        </div>
+    </div>
+    
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <div class="logo-chogui"></div>
+                    <span class="footer-brand">CHOGUI LEAGUE</span>
+                </div>
+                <p class="footer-description">Sistema de Gestión Profesional de Softball</p>
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces Rápidos</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">Inicio</a></li>
+                    <li><a href="index.html#partidos">Partidos</a></li>
+                    <li><a href="index.html#estadisticas">Líderes</a></li>
+                    <li><a href="admin.html">Administración</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Información</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Contacto</a></li>
+                    <li><a href="#">Soporte</a></li>
+                    <li><a href="#">Privacidad</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-credits">
+                <span>English (US)</span>
+                <span class="separator">|</span>
+                <span>Copyright ©2025 ATRAELAB / All rights reserved</span>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="jugador-detalles.js" defer></script>
+</body>
+</html>
