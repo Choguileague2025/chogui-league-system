@@ -2,10 +2,11 @@
   "name": "chogui-league-system",
   "version": "1.0.0",
   "description": "Sistema de Gestión Profesional de Softball",
-  "main": "server.js",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "start:legacy": "node server.js"
   },
   "engines": {
     "node": "18.x"
