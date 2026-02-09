@@ -1,6 +1,7 @@
 const pool = require('../config/database');
 const path = require('path');
 const fs = require('fs');
+const { validarCrearEquipo, validarActualizarEquipo } = require('../validators/equipos.validator');
 
 // GET /api/equipos
 async function obtenerTodos(req, res, next) {
@@ -150,23 +151,16 @@ async function obtenerLogo(req, res, next) {
 // POST /api/equipos
 async function crear(req, res, next) {
     try {
-        const { nombre, manager, ciudad } = req.body;
-
-        if (!nombre || !manager || !ciudad) {
-            return res.status(400).json({
-                error: 'Nombre, manager y ciudad son requeridos'
-            });
+        const validation = validarCrearEquipo(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({ error: validation.errors[0] });
         }
 
-        if (nombre.length < 2 || manager.length < 2 || ciudad.length < 2) {
-            return res.status(400).json({
-                error: 'Todos los campos deben tener al menos 2 caracteres'
-            });
-        }
+        const { nombre, manager, ciudad } = validation.sanitized;
 
         const result = await pool.query(
             'INSERT INTO equipos (nombre, manager, ciudad) VALUES ($1, $2, $3) RETURNING *',
-            [nombre.trim(), manager.trim(), ciudad.trim()]
+            [nombre, manager, ciudad]
         );
 
         res.status(201).json(result.rows[0]);
@@ -183,29 +177,17 @@ async function crear(req, res, next) {
 async function actualizar(req, res, next) {
     try {
         const { id } = req.params;
-        const { nombre, manager, ciudad } = req.body;
 
-        if (!nombre || !manager || !ciudad) {
-            return res.status(400).json({
-                error: 'Nombre, manager y ciudad son requeridos'
-            });
+        const validation = validarActualizarEquipo(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({ error: validation.errors[0] });
         }
 
-        if (nombre.length < 2 || nombre.length > 100) {
-            return res.status(400).json({
-                error: 'El nombre debe tener entre 2 y 100 caracteres'
-            });
-        }
-
-        if (nombre.length > 100 || manager.length > 100 || ciudad.length > 100) {
-            return res.status(400).json({
-                error: 'Los campos no pueden exceder 100 caracteres'
-            });
-        }
+        const { nombre, manager, ciudad } = validation.sanitized;
 
         const result = await pool.query(
             'UPDATE equipos SET nombre = $1, manager = $2, ciudad = $3 WHERE id = $4 RETURNING *',
-            [nombre.trim(), manager.trim(), ciudad.trim(), id]
+            [nombre, manager, ciudad, id]
         );
 
         if (result.rows.length === 0) {

@@ -1,4 +1,6 @@
 const pool = require('../config/database');
+const { validarCrearTorneo, validarActualizarTorneo } = require('../validators/torneos.validator');
+const torneosService = require('../services/torneos.service');
 
 // GET /api/torneos
 async function obtenerTodos(req, res, next) {
@@ -14,11 +16,11 @@ async function obtenerTodos(req, res, next) {
 // GET /api/torneos/activo
 async function obtenerActivo(req, res, next) {
     try {
-        const result = await pool.query('SELECT * FROM torneos WHERE activo = true LIMIT 1');
-        if (result.rows.length === 0) {
+        const torneo = await torneosService.obtenerTorneoActivo();
+        if (!torneo) {
             return res.status(404).json({ message: 'No hay torneo activo' });
         }
-        res.json(result.rows[0]);
+        res.json(torneo);
     } catch (error) {
         console.error('Error obteniendo torneo activo:', error);
         next(error);
@@ -28,27 +30,16 @@ async function obtenerActivo(req, res, next) {
 // POST /api/torneos
 async function crear(req, res, next) {
     try {
-        const { nombre, total_juegos, cupos_playoffs } = req.body;
-
-        if (!nombre || nombre.trim().length < 3) {
-            return res.status(400).json({
-                error: 'El nombre del torneo debe tener al menos 3 caracteres'
-            });
+        const validation = validarCrearTorneo(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({ error: validation.errors[0] });
         }
 
-        const totalJuegosFinal = total_juegos ? parseInt(total_juegos, 10) : 22;
-        const cuposPlayoffsFinal = cupos_playoffs ? parseInt(cupos_playoffs, 10) : 6;
-
-        if (isNaN(totalJuegosFinal) || totalJuegosFinal <= 0) {
-            return res.status(400).json({ error: 'El total de juegos debe ser un número positivo.' });
-        }
-        if (isNaN(cuposPlayoffsFinal) || cuposPlayoffsFinal <= 0) {
-            return res.status(400).json({ error: 'Los cupos de playoffs deben ser un número positivo.' });
-        }
+        const { nombre, total_juegos, cupos_playoffs } = validation.sanitized;
 
         const result = await pool.query(
             'INSERT INTO torneos (nombre, total_juegos, cupos_playoffs) VALUES ($1, $2, $3) RETURNING *',
-            [nombre.trim(), totalJuegosFinal, cuposPlayoffsFinal]
+            [nombre, total_juegos, cupos_playoffs]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -64,15 +55,13 @@ async function crear(req, res, next) {
 async function activar(req, res, next) {
     try {
         const { id } = req.params;
-        await pool.query('UPDATE torneos SET activo = false');
-        const result = await pool.query(
-            'UPDATE torneos SET activo = true WHERE id = $1 RETURNING *',
-            [id]
-        );
-        if (result.rows.length === 0) {
+        const torneo = await torneosService.activarTorneo(id);
+
+        if (!torneo) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
-        res.json(result.rows[0]);
+
+        res.json(torneo);
     } catch (error) {
         console.error('Error activando torneo:', error);
         next(error);
@@ -94,41 +83,17 @@ async function desactivarTodos(req, res, next) {
 async function actualizar(req, res, next) {
     try {
         const { id } = req.params;
-        const { nombre, total_juegos, cupos_playoffs } = req.body;
+        const validation = validarActualizarTorneo(req.body);
 
-        const fields = [];
-        const values = [];
-        let paramIndex = 1;
-
-        if (nombre) {
-            if (nombre.trim().length < 3) {
-                return res.status(400).json({ error: 'El nombre debe tener al menos 3 caracteres.' });
-            }
-            fields.push(`nombre = $${paramIndex++}`);
-            values.push(nombre.trim());
-        }
-        if (total_juegos) {
-            const totalJuegosNum = parseInt(total_juegos, 10);
-            if (isNaN(totalJuegosNum) || totalJuegosNum <= 0) {
-                return res.status(400).json({ error: 'Total de juegos debe ser un número positivo.' });
-            }
-            fields.push(`total_juegos = $${paramIndex++}`);
-            values.push(totalJuegosNum);
-        }
-        if (cupos_playoffs) {
-            const cuposPlayoffsNum = parseInt(cupos_playoffs, 10);
-            if (isNaN(cuposPlayoffsNum) || cuposPlayoffsNum <= 0) {
-                return res.status(400).json({ error: 'Cupos de playoffs debe ser un número positivo.' });
-            }
-            fields.push(`cupos_playoffs = $${paramIndex++}`);
-            values.push(cuposPlayoffsNum);
+        if (!validation.isValid) {
+            return res.status(400).json({ error: validation.errors[0] });
         }
 
-        if (fields.length === 0) {
-            return res.status(400).json({ error: 'No se proporcionaron campos para actualizar.' });
-        }
+        const { fields, values } = validation;
 
-        const query = `UPDATE torneos SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`;
+        // Construir query dinámico
+        const setClauses = fields.map((field, idx) => `${field} = $${idx + 1}`);
+        const query = `UPDATE torneos SET ${setClauses.join(', ')} WHERE id = $${fields.length + 1} RETURNING *`;
         values.push(id);
 
         const result = await pool.query(query, values);
@@ -153,18 +118,10 @@ async function eliminar(req, res, next) {
     try {
         const { id } = req.params;
 
-        // Verificar si hay estadisticas asociadas via torneo_id (FK)
-        const statsCheck = await pool.query(`
-            SELECT COUNT(*) as count FROM (
-                SELECT 1 FROM estadisticas_ofensivas WHERE torneo_id = $1
-                UNION ALL
-                SELECT 1 FROM estadisticas_pitcheo WHERE torneo_id = $1
-                UNION ALL
-                SELECT 1 FROM estadisticas_defensivas WHERE torneo_id = $1
-            ) as stats
-        `, [id]);
+        // Verificar estadísticas asociadas usando el service
+        const statsCount = await torneosService.contarEstadisticasAsociadas(id);
 
-        if (parseInt(statsCheck.rows[0].count) > 0) {
+        if (statsCount > 0) {
             return res.status(400).json({
                 error: 'No se puede eliminar el torneo porque tiene estadísticas asociadas'
             });

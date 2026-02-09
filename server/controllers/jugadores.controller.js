@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { validarCrearJugador, validarActualizarJugador } = require('../validators/jugadores.validator');
 
 // GET /api/jugadores
 async function obtenerTodos(req, res, next) {
@@ -318,53 +319,35 @@ async function obtenerCompaneros(req, res, next) {
 // POST /api/jugadores
 async function crear(req, res, next) {
     try {
-        const { nombre, equipo_id, posicion, numero } = req.body;
-
-        if (!nombre || nombre.trim().length < 2 || nombre.trim().length > 100) {
-            return res.status(400).json({ error: 'El nombre debe tener entre 2 y 100 caracteres' });
+        const validation = validarCrearJugador(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({ error: validation.errors[0] });
         }
 
-        let equipoIdFinal = null;
-        if (equipo_id !== undefined && equipo_id !== null && `${equipo_id}` !== '') {
-            equipoIdFinal = parseInt(equipo_id, 10);
-            if (Number.isNaN(equipoIdFinal)) {
-                return res.status(400).json({ error: 'Equipo inválido' });
-            }
-            const eq = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipoIdFinal]);
+        const { nombre, equipo_id, posicion, numero } = validation.sanitized;
+
+        // Verificar que el equipo existe (si se proporcionó)
+        if (equipo_id !== null) {
+            const eq = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipo_id]);
             if (eq.rows.length === 0) {
                 return res.status(400).json({ error: 'El equipo seleccionado no existe' });
             }
         }
 
-        const posicionesValidas = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P', 'UTIL', 'DH'];
-        let posicionFinal = null;
-        if (posicion !== undefined && posicion !== null && `${posicion}`.trim() !== '') {
-            if (!posicionesValidas.includes(posicion)) {
-                return res.status(400).json({ error: 'Posición inválida' });
-            }
-            posicionFinal = posicion;
-        }
-
-        let numeroFinal = null;
-        if (numero !== undefined && numero !== null && `${numero}` !== '') {
-            numeroFinal = parseInt(numero, 10);
-            if (Number.isNaN(numeroFinal) || numeroFinal < 0) {
-                return res.status(400).json({ error: 'Número inválido' });
-            }
-            if (equipoIdFinal !== null) {
-                const numeroExists = await pool.query(
-                    'SELECT 1 FROM jugadores WHERE equipo_id=$1 AND numero=$2',
-                    [equipoIdFinal, numeroFinal]
-                );
-                if (numeroExists.rows.length > 0) {
-                    return res.status(409).json({ error: 'Ya existe un jugador con ese número en el equipo' });
-                }
+        // Verificar número duplicado en equipo
+        if (numero !== null && equipo_id !== null) {
+            const numeroExists = await pool.query(
+                'SELECT 1 FROM jugadores WHERE equipo_id=$1 AND numero=$2',
+                [equipo_id, numero]
+            );
+            if (numeroExists.rows.length > 0) {
+                return res.status(409).json({ error: 'Ya existe un jugador con ese número en el equipo' });
             }
         }
 
         const result = await pool.query(
             'INSERT INTO jugadores (nombre, equipo_id, posicion, numero) VALUES ($1,$2,$3,$4) RETURNING *',
-            [nombre.trim(), equipoIdFinal, posicionFinal, numeroFinal]
+            [nombre, equipo_id, posicion, numero]
         );
 
         res.status(201).json(result.rows[0]);
@@ -378,32 +361,21 @@ async function crear(req, res, next) {
 async function actualizar(req, res, next) {
     try {
         const { id } = req.params;
-        const { nombre, equipo_id, posicion, numero } = req.body;
 
-        if (!nombre || !equipo_id) {
-            return res.status(400).json({
-                error: 'Nombre y equipo son requeridos'
-            });
+        const validation = validarActualizarJugador(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({ error: validation.errors[0] });
         }
 
-        if (nombre.length < 2 || nombre.length > 100) {
-            return res.status(400).json({
-                error: 'El nombre debe tener entre 2 y 100 caracteres'
-            });
-        }
+        const { nombre, equipo_id, posicion, numero } = validation.sanitized;
 
+        // Verificar que el equipo existe
         const equipoExists = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipo_id]);
         if (equipoExists.rows.length === 0) {
             return res.status(400).json({ error: 'El equipo especificado no existe' });
         }
 
-        const posicionesValidas = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P'];
-        if (posicion && !posicionesValidas.includes(posicion)) {
-            return res.status(400).json({
-                error: 'Posición inválida. Debe ser una de: ' + posicionesValidas.join(', ')
-            });
-        }
-
+        // Verificar número duplicado
         if (numero) {
             const numeroExists = await pool.query(
                 'SELECT id FROM jugadores WHERE equipo_id = $1 AND numero = $2 AND id != $3',
@@ -418,7 +390,7 @@ async function actualizar(req, res, next) {
 
         const result = await pool.query(
             'UPDATE jugadores SET nombre = $1, equipo_id = $2, posicion = $3, numero = $4 WHERE id = $5 RETURNING *',
-            [nombre.trim(), equipo_id, posicion || null, numero || null, id]
+            [nombre, equipo_id, posicion, numero, id]
         );
 
         if (result.rows.length === 0) {

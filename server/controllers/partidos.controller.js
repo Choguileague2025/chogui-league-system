@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { validarCrearPartido, validarActualizarPartido } = require('../validators/partidos.validator');
 
 // GET /api/partidos
 async function obtenerTodos(req, res, next) {
@@ -212,23 +213,18 @@ async function obtenerPorId(req, res, next) {
 // POST /api/partidos
 async function crear(req, res, next) {
     try {
+        const validation = validarCrearPartido(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({ error: validation.errors[0] });
+        }
+
         const {
             equipo_local_id, equipo_visitante_id,
             carreras_local, carreras_visitante,
             innings_jugados, fecha_partido, hora, estado
-        } = req.body;
+        } = validation.sanitized;
 
-        if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
-            return res.status(400).json({
-                error: 'Equipo local, equipo visitante y fecha son requeridos'
-            });
-        }
-        if (equipo_local_id === equipo_visitante_id) {
-            return res.status(400).json({
-                error: 'El equipo local y visitante deben ser diferentes'
-            });
-        }
-
+        // Verificar que ambos equipos existen
         const equiposCheck = await pool.query(
             'SELECT id FROM equipos WHERE id IN ($1, $2)',
             [equipo_local_id, equipo_visitante_id]
@@ -237,55 +233,13 @@ async function crear(req, res, next) {
             return res.status(400).json({ error: 'Uno o ambos equipos no existen' });
         }
 
-        let carrerasLocalFinal = null;
-        let carrerasVisitanteFinal = null;
-        if (carreras_local !== null && carreras_local !== undefined && carreras_local !== '') {
-            carrerasLocalFinal = parseInt(carreras_local);
-            if (isNaN(carrerasLocalFinal) || carrerasLocalFinal < 0) {
-                return res.status(400).json({ error: 'Las carreras locales deben ser un número positivo' });
-            }
-        }
-        if (carreras_visitante !== null && carreras_visitante !== undefined && carreras_visitante !== '') {
-            carrerasVisitanteFinal = parseInt(carreras_visitante);
-            if (isNaN(carrerasVisitanteFinal) || carrerasVisitanteFinal < 0) {
-                return res.status(400).json({ error: 'Las carreras visitantes deben ser un número positivo' });
-            }
-        }
-
-        const inningsJugadosFinal = innings_jugados ? parseInt(innings_jugados) : 9;
-        if (inningsJugadosFinal < 1 || inningsJugadosFinal > 20) {
-            return res.status(400).json({ error: 'Los innings jugados deben estar entre 1 y 20' });
-        }
-
-        const fechaPartidoDate = new Date(fecha_partido);
-        const fechaMinima = new Date('2020-01-01');
-        const fechaLimite = new Date();
-        fechaLimite.setFullYear(fechaLimite.getFullYear() + 2);
-
-        if (fechaPartidoDate < fechaMinima || fechaPartidoDate > fechaLimite) {
-            return res.status(400).json({
-                error: 'La fecha del partido debe estar entre 2020 y 2 años en el futuro'
-            });
-        }
-
-        let estadoFinal;
-        if (estado && ['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'].includes(estado)) {
-            estadoFinal = estado;
-        } else {
-            if (carrerasLocalFinal !== null && carrerasVisitanteFinal !== null) {
-                estadoFinal = 'finalizado';
-            } else {
-                estadoFinal = 'programado';
-            }
-        }
-
         const result = await pool.query(
             `INSERT INTO partidos (equipo_local_id, equipo_visitante_id, carreras_local,
                                    carreras_visitante, innings_jugados, fecha_partido, hora, estado)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-            [equipo_local_id, equipo_visitante_id, carrerasLocalFinal,
-             carrerasVisitanteFinal, inningsJugadosFinal, fecha_partido,
-             hora || null, estadoFinal]
+            [equipo_local_id, equipo_visitante_id, carreras_local,
+             carreras_visitante, innings_jugados, fecha_partido,
+             hora, estado]
         );
 
         res.status(201).json(result.rows[0]);
@@ -299,23 +253,19 @@ async function crear(req, res, next) {
 async function actualizar(req, res, next) {
     try {
         const { id } = req.params;
+
+        const validation = validarActualizarPartido(req.body);
+        if (!validation.isValid) {
+            return res.status(400).json({ error: validation.errors[0] });
+        }
+
         const {
             equipo_local_id, equipo_visitante_id,
             carreras_local, carreras_visitante,
             innings_jugados, fecha_partido, estado
-        } = req.body;
+        } = validation.sanitized;
 
-        if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
-            return res.status(400).json({
-                error: 'Equipo local, equipo visitante y fecha son requeridos'
-            });
-        }
-        if (equipo_local_id === equipo_visitante_id) {
-            return res.status(400).json({
-                error: 'El equipo local y visitante deben ser diferentes'
-            });
-        }
-
+        // Verificar que ambos equipos existen
         const equiposCheck = await pool.query(
             'SELECT id FROM equipos WHERE id IN ($1, $2)',
             [equipo_local_id, equipo_visitante_id]
@@ -324,17 +274,13 @@ async function actualizar(req, res, next) {
             return res.status(400).json({ error: 'Uno o ambos equipos no existen' });
         }
 
-        const estadoFinal = estado && ['programado', 'en_curso', 'finalizado', 'cancelado', 'pospuesto'].includes(estado)
-            ? estado
-            : (carreras_local !== null && carreras_visitante !== null ? 'finalizado' : 'programado');
-
         const result = await pool.query(
             `UPDATE partidos SET equipo_local_id = $1, equipo_visitante_id = $2,
                                  carreras_local = $3, carreras_visitante = $4,
                                  innings_jugados = $5, fecha_partido = $6, estado = $8
              WHERE id = $7 RETURNING *`,
-            [equipo_local_id, equipo_visitante_id, carreras_local || null,
-             carreras_visitante || null, innings_jugados || 9, fecha_partido, id, estadoFinal]
+            [equipo_local_id, equipo_visitante_id, carreras_local,
+             carreras_visitante, innings_jugados, fecha_partido, id, estado]
         );
 
         if (result.rows.length === 0) {

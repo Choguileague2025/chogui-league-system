@@ -89,6 +89,7 @@ app.post('/api/estadisticas-defensivas', estadisticasController.crearDefensivas)
 app.put('/api/estadisticas-defensivas', estadisticasController.actualizarDefensivas);
 
 // Aliases: guion bajo (legacy)
+app.get('/api/estadisticas_ofensivas', estadisticasController.obtenerOfensivas);
 app.put('/api/estadisticas_ofensivas', estadisticasController.upsertOfensivas);
 app.post('/api/estadisticas_ofensivas', estadisticasController.upsertOfensivas);
 
