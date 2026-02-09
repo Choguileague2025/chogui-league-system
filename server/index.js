@@ -8,6 +8,15 @@ const pool = require('./config/database');
 const logger = require('./middleware/logger');
 const errorHandler = require('./middleware/errorHandler');
 
+// Importar rutas
+const authRoutes = require('./routes/auth.routes');
+const torneosRoutes = require('./routes/torneos.routes');
+const equiposRoutes = require('./routes/equipos.routes');
+const jugadoresRoutes = require('./routes/jugadores.routes');
+const partidosRoutes = require('./routes/partidos.routes');
+const estadisticasRoutes = require('./routes/estadisticas.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
+
 const app = express();
 
 // Middlewares
@@ -38,15 +47,75 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// Rutas API (se agregaran en Parte 2/3)
-// TODO: require('./routes/torneos.routes')
-// TODO: require('./routes/equipos.routes')
-// TODO: require('./routes/jugadores.routes')
-// TODO: require('./routes/partidos.routes')
-// TODO: require('./routes/estadisticas.routes')
-// TODO: require('./routes/dashboard.routes')
+// ==================== RUTAS API ====================
+app.use('/api', authRoutes);
+app.use('/api/torneos', torneosRoutes);
+app.use('/api/equipos', equiposRoutes);
+app.use('/api/jugadores', jugadoresRoutes);
+app.use('/api/partidos', partidosRoutes);
+app.use('/api/estadisticas', estadisticasRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
-// Ruta raiz - servir frontend
+// ==================== ALIASES DE COMPATIBILIDAD ====================
+// El frontend usa estas rutas directamente; redirigimos al controller correcto
+const dashboardController = require('./controllers/dashboard.controller');
+const partidosController = require('./controllers/partidos.controller');
+const estadisticasController = require('./controllers/estadisticas.controller');
+
+// Aliases: rutas legacy del frontend -> nuevos controllers
+app.get('/api/posiciones', dashboardController.obtenerPosiciones);
+app.get('/api/lideres', dashboardController.obtenerLideres);
+app.get('/api/lideres-ofensivos', dashboardController.obtenerLideresOfensivos);
+app.get('/api/lideres-pitcheo', dashboardController.obtenerLideresPitcheo);
+app.get('/api/lideres-defensivos', dashboardController.obtenerLideresDefensivos);
+app.get('/api/buscar', dashboardController.buscarUniversal);
+app.get('/api/proximos-partidos', partidosController.obtenerProximos);
+
+// Aliases: rutas legacy estadisticas con guion (frontend usa /api/estadisticas-ofensivas)
+app.get('/api/estadisticas-ofensivas', estadisticasController.obtenerOfensivas);
+app.post('/api/estadisticas-ofensivas', estadisticasController.upsertOfensivas);
+app.put('/api/estadisticas-ofensivas', estadisticasController.upsertOfensivas);
+app.post('/api/estadisticas-ofensivas/edit', estadisticasController.upsertOfensivas);
+app.put('/api/estadisticas-ofensivas/edit', estadisticasController.upsertOfensivas);
+
+app.get('/api/estadisticas-pitcheo', estadisticasController.obtenerPitcheo);
+app.get('/api/estadisticas-pitcheo/:id', estadisticasController.obtenerPitcheoPorJugador);
+app.post('/api/estadisticas-pitcheo', estadisticasController.crearPitcheo);
+app.put('/api/estadisticas-pitcheo', estadisticasController.actualizarPitcheo);
+
+app.get('/api/estadisticas-defensivas', estadisticasController.obtenerDefensivas);
+app.get('/api/estadisticas-defensivas/:id', estadisticasController.obtenerDefensivasPorJugador);
+app.post('/api/estadisticas-defensivas', estadisticasController.crearDefensivas);
+app.put('/api/estadisticas-defensivas', estadisticasController.actualizarDefensivas);
+
+// Aliases: guion bajo (legacy)
+app.put('/api/estadisticas_ofensivas', estadisticasController.upsertOfensivas);
+app.post('/api/estadisticas_ofensivas', estadisticasController.upsertOfensivas);
+
+// Aliases: con jugadorId en path
+app.put('/api/estadisticas-ofensivas/:jugadorId', (req, res, next) => {
+    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
+    return estadisticasController.upsertOfensivas(req, res, next);
+});
+app.post('/api/estadisticas-ofensivas/:jugadorId', (req, res, next) => {
+    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
+    return estadisticasController.upsertOfensivas(req, res, next);
+});
+app.put('/api/estadisticas_ofensivas/:jugadorId', (req, res, next) => {
+    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
+    return estadisticasController.upsertOfensivas(req, res, next);
+});
+app.post('/api/estadisticas_ofensivas/:jugadorId', (req, res, next) => {
+    req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
+    return estadisticasController.upsertOfensivas(req, res, next);
+});
+
+// ==================== RUTAS HTML ====================
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, '../public/login.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '../public/admin.html')));
+app.get('/equipo.html', (req, res) => res.sendFile(path.join(__dirname, '../public/equipo.html')));
+
+// Ruta raiz
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
@@ -59,6 +128,7 @@ const PORT = config.port;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
     console.log(`📦 Entorno: ${config.nodeEnv}`);
+    console.log(`📊 Rutas: auth, torneos, equipos, jugadores, partidos, estadisticas, dashboard`);
 });
 
 module.exports = app;
