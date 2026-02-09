@@ -5,8 +5,8 @@ const torneosService = require('../services/torneos.service');
 // GET /api/torneos
 async function obtenerTodos(req, res, next) {
     try {
-        const result = await pool.query('SELECT * FROM torneos ORDER BY fecha_inicio DESC');
-        res.json(result.rows);
+        const torneos = await torneosService.obtenerTodos();
+        res.json(torneos);
     } catch (error) {
         console.error('Error obteniendo torneos:', error);
         next(error);
@@ -27,6 +27,23 @@ async function obtenerActivo(req, res, next) {
     }
 }
 
+// GET /api/torneos/:id
+async function obtenerPorId(req, res, next) {
+    try {
+        const { id } = req.params;
+        const torneo = await torneosService.obtenerPorId(parseInt(id));
+
+        if (!torneo) {
+            return res.status(404).json({ error: 'Torneo no encontrado' });
+        }
+
+        res.json(torneo);
+    } catch (error) {
+        console.error('Error obteniendo torneo:', error);
+        next(error);
+    }
+}
+
 // POST /api/torneos
 async function crear(req, res, next) {
     try {
@@ -37,11 +54,13 @@ async function crear(req, res, next) {
 
         const { nombre, total_juegos, cupos_playoffs } = validation.sanitized;
 
-        const result = await pool.query(
-            'INSERT INTO torneos (nombre, total_juegos, cupos_playoffs) VALUES ($1, $2, $3) RETURNING *',
-            [nombre, total_juegos, cupos_playoffs]
-        );
-        res.status(201).json(result.rows[0]);
+        const torneo = await torneosService.crear(nombre, {
+            fecha_inicio: req.body.fecha_inicio || new Date(),
+            total_juegos,
+            cupos_playoffs
+        });
+
+        res.status(201).json(torneo);
     } catch (error) {
         if (error.code === '23505') {
             return res.status(409).json({ error: 'Ya existe un torneo con ese nombre' });
@@ -55,13 +74,17 @@ async function crear(req, res, next) {
 async function activar(req, res, next) {
     try {
         const { id } = req.params;
-        const torneo = await torneosService.activarTorneo(id);
+        const torneo = await torneosService.activarTorneo(parseInt(id));
 
         if (!torneo) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
 
-        res.json(torneo);
+        res.json({
+            success: true,
+            message: `Torneo "${torneo.nombre}" activado. Estadísticas inicializadas.`,
+            torneo
+        });
     } catch (error) {
         console.error('Error activando torneo:', error);
         next(error);
@@ -113,29 +136,44 @@ async function actualizar(req, res, next) {
 }
 
 // DELETE /api/torneos/:id
-// MIGRADO: Antes usaba "temporada IN (SELECT nombre...)", ahora usa torneo_id directamente
 async function eliminar(req, res, next) {
     try {
         const { id } = req.params;
-
-        // Verificar estadísticas asociadas usando el service
-        const statsCount = await torneosService.contarEstadisticasAsociadas(id);
-
-        if (statsCount > 0) {
-            return res.status(400).json({
-                error: 'No se puede eliminar el torneo porque tiene estadísticas asociadas'
-            });
+        await torneosService.eliminar(parseInt(id));
+        res.json({ success: true, message: 'Torneo eliminado correctamente' });
+    } catch (error) {
+        if (error.message.includes('no encontrado')) {
+            return res.status(404).json({ error: error.message });
         }
+        if (error.message.includes('No se puede eliminar')) {
+            return res.status(400).json({ error: error.message });
+        }
+        console.error('Error eliminando torneo:', error);
+        next(error);
+    }
+}
 
-        const result = await pool.query('DELETE FROM torneos WHERE id = $1 RETURNING *', [id]);
+// GET /api/torneos/:id/estadisticas
+async function obtenerEstadisticas(req, res, next) {
+    try {
+        const { id } = req.params;
+        const torneo = await torneosService.obtenerPorId(parseInt(id));
 
-        if (result.rows.length === 0) {
+        if (!torneo) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
 
-        res.json({ message: 'Torneo eliminado correctamente' });
+        const stats = await torneosService.contarEstadisticas(parseInt(id));
+        res.json({
+            torneo: {
+                id: torneo.id,
+                nombre: torneo.nombre,
+                activo: torneo.activo
+            },
+            estadisticas: stats
+        });
     } catch (error) {
-        console.error('Error eliminando torneo:', error);
+        console.error('Error obteniendo estadísticas del torneo:', error);
         next(error);
     }
 }
@@ -143,9 +181,11 @@ async function eliminar(req, res, next) {
 module.exports = {
     obtenerTodos,
     obtenerActivo,
+    obtenerPorId,
     crear,
     activar,
     desactivarTodos,
     actualizar,
-    eliminar
+    eliminar,
+    obtenerEstadisticas
 };

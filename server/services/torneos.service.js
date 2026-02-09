@@ -1,8 +1,13 @@
 /**
  * Service de Torneos
- * Lógica de negocio para gestión de torneos
+ * Lógica de negocio para gestión completa de torneos
+ * con aislamiento de estadísticas por torneo
  */
 const pool = require('../config/database');
+
+// ============================================================
+// RESOLVER TORNEO
+// ============================================================
 
 /**
  * Resolver torneo_id: busca el torneo activo o fallback al más reciente
@@ -31,6 +36,10 @@ async function resolveTorneoId(torneo_id) {
     return fallback.rows.length > 0 ? fallback.rows[0].id : null;
 }
 
+// ============================================================
+// CRUD DE TORNEOS
+// ============================================================
+
 /**
  * Obtener torneo activo con datos completos
  * @returns {object|null}
@@ -43,7 +52,58 @@ async function obtenerTorneoActivo() {
 }
 
 /**
- * Activar un torneo (desactiva todos los demás en transacción)
+ * Obtiene todos los torneos ordenados por fecha
+ * @returns {Array}
+ */
+async function obtenerTodos() {
+    const result = await pool.query(
+        'SELECT * FROM torneos ORDER BY fecha_inicio DESC'
+    );
+    return result.rows;
+}
+
+/**
+ * Obtiene un torneo por ID
+ * @param {number} torneoId
+ * @returns {object|null}
+ */
+async function obtenerPorId(torneoId) {
+    const result = await pool.query(
+        'SELECT * FROM torneos WHERE id = $1',
+        [torneoId]
+    );
+    return result.rows[0] || null;
+}
+
+/**
+ * Crea un nuevo torneo
+ * @param {string} nombre
+ * @param {object} opciones - { fecha_inicio, total_juegos, cupos_playoffs }
+ * @returns {object} - Torneo creado
+ */
+async function crear(nombre, opciones = {}) {
+    const {
+        fecha_inicio = new Date(),
+        total_juegos = 22,
+        cupos_playoffs = 6
+    } = opciones;
+
+    const result = await pool.query(
+        `INSERT INTO torneos (nombre, fecha_inicio, activo, total_juegos, cupos_playoffs)
+         VALUES ($1, $2, false, $3, $4)
+         RETURNING *`,
+        [nombre, fecha_inicio, total_juegos, cupos_playoffs]
+    );
+    return result.rows[0];
+}
+
+// ============================================================
+// ACTIVACIÓN CON INICIALIZACIÓN DE ESTADÍSTICAS
+// ============================================================
+
+/**
+ * Activa un torneo (desactiva todos los demás) e inicializa
+ * estadísticas en 0 para todos los jugadores con equipo
  * @param {number} torneoId
  * @returns {object} - Torneo activado
  */
@@ -67,6 +127,9 @@ async function activarTorneo(torneoId) {
             return null;
         }
 
+        // Inicializar estadísticas para todos los jugadores con equipo
+        await inicializarEstadisticas(client, torneoId);
+
         await client.query('COMMIT');
         return result.rows[0];
 
@@ -79,27 +142,129 @@ async function activarTorneo(torneoId) {
 }
 
 /**
- * Verificar si un torneo tiene estadísticas asociadas
+ * Inicializa estadísticas en 0 para todos los jugadores con equipo asignado.
+ * Usa ON CONFLICT DO NOTHING para no sobreescribir stats existentes.
+ * Nota: jugadores no tiene columna 'activo', usamos equipo_id IS NOT NULL
+ * @param {object} client - PostgreSQL client (dentro de transacción)
  * @param {number} torneoId
- * @returns {number} - Cantidad de registros asociados
+ */
+async function inicializarEstadisticas(client, torneoId) {
+    // Obtener todos los jugadores que tienen equipo (considerados "activos")
+    const jugadores = await client.query(
+        'SELECT id FROM jugadores WHERE equipo_id IS NOT NULL'
+    );
+
+    if (jugadores.rows.length === 0) {
+        return;
+    }
+
+    for (const jugador of jugadores.rows) {
+        const jugadorId = jugador.id;
+
+        // Insertar stats ofensivas en 0 (si no existen)
+        await client.query(
+            `INSERT INTO estadisticas_ofensivas (
+                jugador_id, torneo_id, at_bats, hits, doubles, triples,
+                home_runs, rbi, runs, walks, strikeouts, stolen_bases,
+                caught_stealing, hit_by_pitch, sacrifice_flies, sacrifice_hits
+            ) VALUES ($1, $2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            ON CONFLICT (jugador_id, torneo_id) DO NOTHING`,
+            [jugadorId, torneoId]
+        );
+
+        // Insertar stats pitcheo en 0 (si no existen)
+        await client.query(
+            `INSERT INTO estadisticas_pitcheo (
+                jugador_id, torneo_id, innings_pitched, hits_allowed,
+                earned_runs, strikeouts, walks_allowed, home_runs_allowed,
+                wins, losses, saves
+            ) VALUES ($1, $2, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            ON CONFLICT (jugador_id, torneo_id) DO NOTHING`,
+            [jugadorId, torneoId]
+        );
+
+        // Insertar stats defensivas en 0 (si no existen)
+        await client.query(
+            `INSERT INTO estadisticas_defensivas (
+                jugador_id, torneo_id, putouts, assists, errors,
+                double_plays, passed_balls, chances
+            ) VALUES ($1, $2, 0, 0, 0, 0, 0, 0)
+            ON CONFLICT (jugador_id, torneo_id) DO NOTHING`,
+            [jugadorId, torneoId]
+        );
+    }
+}
+
+// ============================================================
+// ELIMINACIÓN
+// ============================================================
+
+/**
+ * Elimina un torneo (solo si NO está activo)
+ * Las estadísticas se eliminan automáticamente por ON DELETE CASCADE
+ * @param {number} torneoId
+ */
+async function eliminar(torneoId) {
+    const torneo = await obtenerPorId(torneoId);
+
+    if (!torneo) {
+        throw new Error(`Torneo ${torneoId} no encontrado`);
+    }
+
+    if (torneo.activo) {
+        throw new Error('No se puede eliminar el torneo activo');
+    }
+
+    await pool.query('DELETE FROM torneos WHERE id = $1', [torneoId]);
+}
+
+// ============================================================
+// ESTADÍSTICAS POR TORNEO
+// ============================================================
+
+/**
+ * Cuenta estadísticas asociadas a un torneo (desglosado por tipo)
+ * @param {number} torneoId
+ * @returns {object} - { ofensivas, pitcheo, defensivas, total }
+ */
+async function contarEstadisticas(torneoId) {
+    const result = await pool.query(
+        `SELECT
+            (SELECT COUNT(*) FROM estadisticas_ofensivas WHERE torneo_id = $1)::int as ofensivas,
+            (SELECT COUNT(*) FROM estadisticas_pitcheo WHERE torneo_id = $1)::int as pitcheo,
+            (SELECT COUNT(*) FROM estadisticas_defensivas WHERE torneo_id = $1)::int as defensivas
+        `,
+        [torneoId]
+    );
+
+    const row = result.rows[0];
+    return {
+        ofensivas: row.ofensivas,
+        pitcheo: row.pitcheo,
+        defensivas: row.defensivas,
+        total: row.ofensivas + row.pitcheo + row.defensivas
+    };
+}
+
+/**
+ * Verifica si un torneo tiene estadísticas (mantener compatibilidad)
+ * @param {number} torneoId
+ * @returns {number}
  */
 async function contarEstadisticasAsociadas(torneoId) {
-    const result = await pool.query(`
-        SELECT COUNT(*) as count FROM (
-            SELECT 1 FROM estadisticas_ofensivas WHERE torneo_id = $1
-            UNION ALL
-            SELECT 1 FROM estadisticas_pitcheo WHERE torneo_id = $1
-            UNION ALL
-            SELECT 1 FROM estadisticas_defensivas WHERE torneo_id = $1
-        ) as stats
-    `, [torneoId]);
-
-    return parseInt(result.rows[0].count);
+    const stats = await contarEstadisticas(torneoId);
+    return stats.total;
 }
 
 module.exports = {
     resolveTorneoId,
     obtenerTorneoActivo,
+    obtenerTodos,
+    obtenerPorId,
+    crear,
     activarTorneo,
+    inicializarEstadisticas,
+    eliminar,
+    contarEstadisticas,
     contarEstadisticasAsociadas
 };

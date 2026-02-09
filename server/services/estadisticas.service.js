@@ -18,6 +18,96 @@ const { resolveTorneoId } = require('./torneos.service');
 async function obtenerOfensivas(filtros = {}) {
     const { torneo_id, equipo_id, jugador_id, min_at_bats = 0 } = filtros;
 
+    // Modo "todos": sumar estadísticas de todos los torneos por jugador
+    if (torneo_id === 'todos') {
+        let query = `
+            SELECT
+                eo.jugador_id,
+                j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
+                SUM(eo.at_bats)::INT as at_bats,
+                SUM(eo.hits)::INT as hits,
+                SUM(eo.doubles)::INT as doubles,
+                SUM(eo.triples)::INT as triples,
+                SUM(eo.home_runs)::INT as home_runs,
+                SUM(eo.rbi)::INT as rbi,
+                SUM(eo.runs)::INT as runs,
+                SUM(eo.walks)::INT as walks,
+                SUM(COALESCE(eo.strikeouts, 0))::INT as strikeouts,
+                SUM(eo.stolen_bases)::INT as stolen_bases,
+                SUM(eo.caught_stealing)::INT as caught_stealing,
+                SUM(eo.hit_by_pitch)::INT as hit_by_pitch,
+                SUM(eo.sacrifice_flies)::INT as sacrifice_flies,
+                CASE
+                    WHEN SUM(eo.at_bats) > 0 THEN ROUND(SUM(eo.hits)::DECIMAL / SUM(eo.at_bats), 3)
+                    ELSE 0.000
+                END as avg,
+                CASE
+                    WHEN SUM(eo.at_bats) > 0 THEN ROUND((SUM(eo.hits) + SUM(eo.walks))::DECIMAL / (SUM(eo.at_bats) + SUM(eo.walks)), 3)
+                    ELSE 0.000
+                END as obp,
+                CASE
+                    WHEN SUM(eo.at_bats) > 0 THEN ROUND((SUM(eo.hits) + SUM(eo.home_runs) * 3)::DECIMAL / SUM(eo.at_bats), 3)
+                    ELSE 0.000
+                END as slg
+            FROM estadisticas_ofensivas eo
+            JOIN jugadores j ON eo.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            WHERE SUM(eo.at_bats) >= 0
+            GROUP BY eo.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
+        `;
+        // WHERE con HAVING para min_at_bats en GROUP BY
+        query = `
+            SELECT * FROM (
+                SELECT
+                    eo.jugador_id,
+                    j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
+                    SUM(eo.at_bats)::INT as at_bats,
+                    SUM(eo.hits)::INT as hits,
+                    SUM(eo.doubles)::INT as doubles,
+                    SUM(eo.triples)::INT as triples,
+                    SUM(eo.home_runs)::INT as home_runs,
+                    SUM(eo.rbi)::INT as rbi,
+                    SUM(eo.runs)::INT as runs,
+                    SUM(eo.walks)::INT as walks,
+                    SUM(COALESCE(eo.strikeouts, 0))::INT as strikeouts,
+                    SUM(eo.stolen_bases)::INT as stolen_bases,
+                    SUM(eo.caught_stealing)::INT as caught_stealing,
+                    SUM(eo.hit_by_pitch)::INT as hit_by_pitch,
+                    SUM(eo.sacrifice_flies)::INT as sacrifice_flies,
+                    CASE
+                        WHEN SUM(eo.at_bats) > 0 THEN ROUND(SUM(eo.hits)::DECIMAL / SUM(eo.at_bats), 3)
+                        ELSE 0.000
+                    END as avg,
+                    CASE
+                        WHEN SUM(eo.at_bats) > 0 THEN ROUND((SUM(eo.hits) + SUM(eo.walks))::DECIMAL / (SUM(eo.at_bats) + SUM(eo.walks)), 3)
+                        ELSE 0.000
+                    END as obp,
+                    CASE
+                        WHEN SUM(eo.at_bats) > 0 THEN ROUND((SUM(eo.hits) + SUM(eo.home_runs) * 3)::DECIMAL / SUM(eo.at_bats), 3)
+                        ELSE 0.000
+                    END as slg
+                FROM estadisticas_ofensivas eo
+                JOIN jugadores j ON eo.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                GROUP BY eo.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
+            ) sub
+            WHERE at_bats >= $1
+            ORDER BY avg DESC, hits DESC
+        `;
+
+        const params = [min_at_bats];
+        let paramIndex = 2;
+
+        // Filtros adicionales no aplican en la subquery, se pueden agregar al WHERE externo si es necesario
+
+        const result = await pool.query(query, params);
+        return result.rows.map(jugador => ({
+            ...jugador,
+            ops: parseFloat((parseFloat(jugador.obp) + parseFloat(jugador.slg)).toFixed(3))
+        }));
+    }
+
+    // Modo normal: filtrar por torneo específico o activo
     const torneoIdResolved = torneo_id || await resolveTorneoId(null);
 
     let query = `
@@ -137,6 +227,41 @@ async function upsertOfensivas(jugadorId, torneoId, stats) {
  */
 async function obtenerPitcheo(filtros = {}) {
     const { torneo_id, equipo_id, jugador_id } = filtros;
+
+    // Modo "todos": sumar estadísticas de todos los torneos por jugador
+    if (torneo_id === 'todos') {
+        const query = `
+            SELECT
+                ep.jugador_id,
+                j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre,
+                SUM(ep.innings_pitched)::NUMERIC as innings_pitched,
+                SUM(ep.hits_allowed)::INT as hits_allowed,
+                SUM(ep.earned_runs)::INT as earned_runs,
+                SUM(ep.strikeouts)::INT as strikeouts,
+                SUM(ep.walks_allowed)::INT as walks_allowed,
+                SUM(ep.home_runs_allowed)::INT as home_runs_allowed,
+                SUM(ep.wins)::INT as wins,
+                SUM(ep.losses)::INT as losses,
+                SUM(ep.saves)::INT as saves,
+                CASE
+                    WHEN SUM(ep.innings_pitched) > 0 THEN ROUND((SUM(ep.earned_runs) * 9.0) / SUM(ep.innings_pitched), 2)
+                    ELSE 0.00
+                END as era,
+                CASE
+                    WHEN SUM(ep.innings_pitched) > 0 THEN ROUND((SUM(ep.hits_allowed) + SUM(ep.walks_allowed)) / SUM(ep.innings_pitched), 2)
+                    ELSE 0.00
+                END as whip
+            FROM estadisticas_pitcheo ep
+            JOIN jugadores j ON ep.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            GROUP BY ep.jugador_id, j.nombre, j.equipo_id, e.nombre
+            ORDER BY era ASC
+        `;
+        const result = await pool.query(query);
+        return result.rows;
+    }
+
+    // Modo normal
     const torneoIdResolved = torneo_id || await resolveTorneoId(null);
     let paramIndex = 1;
     const params = [];
@@ -284,6 +409,34 @@ async function actualizarPitcheo(jugadorId, torneoId, stats) {
  */
 async function obtenerDefensivas(filtros = {}) {
     const { torneo_id, equipo_id, jugador_id } = filtros;
+
+    // Modo "todos": sumar estadísticas de todos los torneos por jugador
+    if (torneo_id === 'todos') {
+        const query = `
+            SELECT
+                ed.jugador_id,
+                j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
+                SUM(ed.putouts)::INT as putouts,
+                SUM(ed.assists)::INT as assists,
+                SUM(ed.errors)::INT as errors,
+                SUM(ed.double_plays)::INT as double_plays,
+                SUM(ed.passed_balls)::INT as passed_balls,
+                SUM(ed.chances)::INT as chances,
+                CASE
+                    WHEN SUM(ed.chances) > 0 THEN ROUND((SUM(ed.putouts) + SUM(ed.assists))::DECIMAL / SUM(ed.chances), 3)
+                    ELSE 0.000
+                END as fielding_percentage
+            FROM estadisticas_defensivas ed
+            JOIN jugadores j ON ed.jugador_id = j.id
+            JOIN equipos e ON j.equipo_id = e.id
+            GROUP BY ed.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
+            ORDER BY fielding_percentage DESC
+        `;
+        const result = await pool.query(query);
+        return result.rows;
+    }
+
+    // Modo normal
     const torneoIdResolved = torneo_id || await resolveTorneoId(null);
     let paramIndex = 1;
     const params = [];
