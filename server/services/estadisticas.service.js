@@ -164,7 +164,7 @@ async function obtenerOfensivas(filtros = {}) {
 }
 
 /**
- * Upsert estadísticas ofensivas de un jugador
+ * Upsert estadísticas ofensivas de un jugador (modo replace)
  * @param {number} jugadorId
  * @param {number} torneoId
  * @param {object} stats - datos crudos de estadísticas
@@ -214,6 +214,98 @@ async function upsertOfensivas(jugadorId, torneoId, stats) {
 
     const result = await pool.query(query, values);
     return result.rows[0];
+}
+
+/**
+ * Actualizar estadísticas ofensivas con modo sum o replace
+ * @param {number} jugadorId
+ * @param {number} torneoId
+ * @param {object} stats - datos de estadísticas a sumar o reemplazar
+ * @param {string} mode - 'sum' para sumar a existentes, 'replace' para sobreescribir
+ * @returns {object} - { data, mode, previous }
+ */
+async function actualizarOfensivas(jugadorId, torneoId, stats, mode = 'sum') {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        // Leer valores existentes
+        const existing = await client.query(
+            'SELECT * FROM estadisticas_ofensivas WHERE jugador_id = $1 AND torneo_id = $2',
+            [jugadorId, torneoId]
+        );
+
+        const prev = existing.rows[0] || null;
+
+        const campos = [
+            'at_bats', 'hits', 'doubles', 'triples', 'home_runs', 'rbi', 'runs',
+            'walks', 'strikeouts', 'stolen_bases', 'caught_stealing',
+            'hit_by_pitch', 'sacrifice_flies', 'sacrifice_hits'
+        ];
+
+        const finalStats = {};
+
+        if (mode === 'sum' && prev) {
+            // Sumar nuevos valores a los existentes
+            for (const campo of campos) {
+                finalStats[campo] = (parseInt(prev[campo]) || 0) + (parseInt(stats[campo]) || 0);
+            }
+        } else {
+            // Replace: usar valores enviados directamente
+            for (const campo of campos) {
+                finalStats[campo] = parseInt(stats[campo]) || 0;
+            }
+        }
+
+        // Upsert con valores finales
+        const result = await client.query(`
+            INSERT INTO estadisticas_ofensivas (
+                jugador_id, torneo_id, at_bats, hits, doubles, triples, home_runs, rbi, runs,
+                walks, strikeouts, stolen_bases, caught_stealing,
+                hit_by_pitch, sacrifice_flies, sacrifice_hits, fecha_actualizacion
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP)
+            ON CONFLICT (jugador_id, torneo_id)
+            DO UPDATE SET
+                at_bats = EXCLUDED.at_bats,
+                hits = EXCLUDED.hits,
+                doubles = EXCLUDED.doubles,
+                triples = EXCLUDED.triples,
+                home_runs = EXCLUDED.home_runs,
+                rbi = EXCLUDED.rbi,
+                runs = EXCLUDED.runs,
+                walks = EXCLUDED.walks,
+                strikeouts = EXCLUDED.strikeouts,
+                stolen_bases = EXCLUDED.stolen_bases,
+                caught_stealing = EXCLUDED.caught_stealing,
+                hit_by_pitch = EXCLUDED.hit_by_pitch,
+                sacrifice_flies = EXCLUDED.sacrifice_flies,
+                sacrifice_hits = EXCLUDED.sacrifice_hits,
+                fecha_actualizacion = CURRENT_TIMESTAMP
+            RETURNING *
+        `, [
+            jugadorId, torneoId,
+            finalStats.at_bats, finalStats.hits, finalStats.doubles, finalStats.triples,
+            finalStats.home_runs, finalStats.rbi, finalStats.runs, finalStats.walks,
+            finalStats.strikeouts, finalStats.stolen_bases, finalStats.caught_stealing,
+            finalStats.hit_by_pitch, finalStats.sacrifice_flies, finalStats.sacrifice_hits
+        ]);
+
+        await client.query('COMMIT');
+
+        return {
+            data: result.rows[0],
+            mode,
+            previous: prev ? {
+                at_bats: prev.at_bats, hits: prev.hits, home_runs: prev.home_runs,
+                rbi: prev.rbi, runs: prev.runs, walks: prev.walks
+            } : null
+        };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
 }
 
 // ============================================================
@@ -333,7 +425,7 @@ async function obtenerPitcheoPorJugador(jugadorId, torneoId) {
 }
 
 /**
- * Crear/actualizar estadísticas de pitcheo (upsert)
+ * Crear/actualizar estadísticas de pitcheo (upsert - modo replace)
  * @param {number} jugadorId
  * @param {number} torneoId
  * @param {object} stats
@@ -371,31 +463,87 @@ async function upsertPitcheo(jugadorId, torneoId, stats) {
 }
 
 /**
- * Actualizar estadísticas de pitcheo (solo UPDATE, no INSERT)
+ * Actualizar estadísticas de pitcheo con modo sum o replace
  * @param {number} jugadorId
  * @param {number} torneoId
  * @param {object} stats
- * @returns {object|null}
+ * @param {string} mode - 'sum' para sumar a existentes, 'replace' para sobreescribir
+ * @returns {object} - { data, mode, previous }
  */
-async function actualizarPitcheo(jugadorId, torneoId, stats) {
-    const {
-        innings_pitched = 0, hits_allowed = 0, earned_runs = 0,
-        strikeouts = 0, walks_allowed = 0, home_runs_allowed = 0,
-        wins = 0, losses = 0, saves = 0
-    } = stats;
+async function actualizarPitcheo(jugadorId, torneoId, stats, mode = 'sum') {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
 
-    const result = await pool.query(`
-        UPDATE estadisticas_pitcheo SET
-            innings_pitched = $1, hits_allowed = $2, earned_runs = $3,
-            strikeouts = $4, walks_allowed = $5, home_runs_allowed = $6,
-            wins = $7, losses = $8, saves = $9
-        WHERE jugador_id = $10 AND torneo_id = $11
-        RETURNING *
-    `, [innings_pitched || 0, hits_allowed || 0, earned_runs || 0, strikeouts || 0,
-        walks_allowed || 0, home_runs_allowed || 0, wins || 0, losses || 0,
-        saves || 0, jugadorId, torneoId]);
+        // Leer valores existentes
+        const existing = await client.query(
+            'SELECT * FROM estadisticas_pitcheo WHERE jugador_id = $1 AND torneo_id = $2',
+            [jugadorId, torneoId]
+        );
 
-    return result.rows[0] || null;
+        const prev = existing.rows[0] || null;
+
+        const camposInt = [
+            'hits_allowed', 'earned_runs', 'strikeouts', 'walks_allowed',
+            'home_runs_allowed', 'wins', 'losses', 'saves'
+        ];
+
+        const finalStats = {};
+
+        if (mode === 'sum' && prev) {
+            // innings_pitched es NUMERIC, usar parseFloat
+            finalStats.innings_pitched = (parseFloat(prev.innings_pitched) || 0) + (parseFloat(stats.innings_pitched) || 0);
+            for (const campo of camposInt) {
+                finalStats[campo] = (parseInt(prev[campo]) || 0) + (parseInt(stats[campo]) || 0);
+            }
+        } else {
+            finalStats.innings_pitched = parseFloat(stats.innings_pitched) || 0;
+            for (const campo of camposInt) {
+                finalStats[campo] = parseInt(stats[campo]) || 0;
+            }
+        }
+
+        // Upsert con valores finales
+        const result = await client.query(`
+            INSERT INTO estadisticas_pitcheo (
+                jugador_id, torneo_id, innings_pitched, hits_allowed, earned_runs,
+                strikeouts, walks_allowed, home_runs_allowed, wins, losses, saves
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (jugador_id, torneo_id)
+            DO UPDATE SET
+                innings_pitched = EXCLUDED.innings_pitched,
+                hits_allowed = EXCLUDED.hits_allowed,
+                earned_runs = EXCLUDED.earned_runs,
+                strikeouts = EXCLUDED.strikeouts,
+                walks_allowed = EXCLUDED.walks_allowed,
+                home_runs_allowed = EXCLUDED.home_runs_allowed,
+                wins = EXCLUDED.wins,
+                losses = EXCLUDED.losses,
+                saves = EXCLUDED.saves
+            RETURNING *
+        `, [
+            jugadorId, torneoId,
+            finalStats.innings_pitched, finalStats.hits_allowed, finalStats.earned_runs,
+            finalStats.strikeouts, finalStats.walks_allowed, finalStats.home_runs_allowed,
+            finalStats.wins, finalStats.losses, finalStats.saves
+        ]);
+
+        await client.query('COMMIT');
+
+        return {
+            data: result.rows[0],
+            mode,
+            previous: prev ? {
+                innings_pitched: prev.innings_pitched, earned_runs: prev.earned_runs,
+                strikeouts: prev.strikeouts, wins: prev.wins, losses: prev.losses
+            } : null
+        };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
 }
 
 // ============================================================
@@ -501,7 +649,7 @@ async function obtenerDefensivasPorJugador(jugadorId, torneoId) {
 }
 
 /**
- * Crear/actualizar estadísticas defensivas (upsert)
+ * Crear/actualizar estadísticas defensivas (upsert - modo replace)
  */
 async function upsertDefensivas(jugadorId, torneoId, stats) {
     const {
@@ -530,30 +678,84 @@ async function upsertDefensivas(jugadorId, torneoId, stats) {
 }
 
 /**
- * Actualizar estadísticas defensivas (solo UPDATE)
+ * Actualizar estadísticas defensivas con modo sum o replace
+ * @param {number} jugadorId
+ * @param {number} torneoId
+ * @param {object} stats
+ * @param {string} mode - 'sum' para sumar a existentes, 'replace' para sobreescribir
+ * @returns {object} - { data, mode, previous }
  */
-async function actualizarDefensivas(jugadorId, torneoId, stats) {
-    const {
-        putouts = 0, assists = 0, errors = 0,
-        double_plays = 0, passed_balls = 0, chances = 0
-    } = stats;
+async function actualizarDefensivas(jugadorId, torneoId, stats, mode = 'sum') {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
 
-    const result = await pool.query(`
-        UPDATE estadisticas_defensivas SET
-            putouts = $1, assists = $2, errors = $3, double_plays = $4,
-            passed_balls = $5, chances = $6
-        WHERE jugador_id = $7 AND torneo_id = $8
-        RETURNING *
-    `, [putouts || 0, assists || 0, errors || 0, double_plays || 0,
-        passed_balls || 0, chances || 0, jugadorId, torneoId]);
+        // Leer valores existentes
+        const existing = await client.query(
+            'SELECT * FROM estadisticas_defensivas WHERE jugador_id = $1 AND torneo_id = $2',
+            [jugadorId, torneoId]
+        );
 
-    return result.rows[0] || null;
+        const prev = existing.rows[0] || null;
+
+        const campos = ['putouts', 'assists', 'errors', 'double_plays', 'passed_balls', 'chances'];
+
+        const finalStats = {};
+
+        if (mode === 'sum' && prev) {
+            for (const campo of campos) {
+                finalStats[campo] = (parseInt(prev[campo]) || 0) + (parseInt(stats[campo]) || 0);
+            }
+        } else {
+            for (const campo of campos) {
+                finalStats[campo] = parseInt(stats[campo]) || 0;
+            }
+        }
+
+        // Upsert con valores finales
+        const result = await client.query(`
+            INSERT INTO estadisticas_defensivas (
+                jugador_id, torneo_id, putouts, assists, errors,
+                double_plays, passed_balls, chances
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (jugador_id, torneo_id)
+            DO UPDATE SET
+                putouts = EXCLUDED.putouts,
+                assists = EXCLUDED.assists,
+                errors = EXCLUDED.errors,
+                double_plays = EXCLUDED.double_plays,
+                passed_balls = EXCLUDED.passed_balls,
+                chances = EXCLUDED.chances
+            RETURNING *
+        `, [
+            jugadorId, torneoId,
+            finalStats.putouts, finalStats.assists, finalStats.errors,
+            finalStats.double_plays, finalStats.passed_balls, finalStats.chances
+        ]);
+
+        await client.query('COMMIT');
+
+        return {
+            data: result.rows[0],
+            mode,
+            previous: prev ? {
+                putouts: prev.putouts, assists: prev.assists, errors: prev.errors,
+                chances: prev.chances
+            } : null
+        };
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
 }
 
 module.exports = {
     // Ofensivas
     obtenerOfensivas,
     upsertOfensivas,
+    actualizarOfensivas,
 
     // Pitcheo
     obtenerPitcheo,

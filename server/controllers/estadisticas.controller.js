@@ -25,7 +25,7 @@ async function obtenerOfensivas(req, res, next) {
     }
 }
 
-// POST/PUT /api/estadisticas-ofensivas (upsert)
+// POST/PUT /api/estadisticas-ofensivas (upsert con modo sum/replace)
 async function upsertOfensivas(req, res, next) {
     try {
         const validation = validarStatsOfensivas(req.body);
@@ -34,6 +34,12 @@ async function upsertOfensivas(req, res, next) {
         }
 
         const { jugador_id, torneo_id, ...stats } = validation.sanitized;
+        const mode = (req.body.mode || 'sum').toLowerCase();
+
+        // Validar modo
+        if (!['sum', 'replace'].includes(mode)) {
+            return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
+        }
 
         // Resolver torneo_id: directo, o desde torneo activo
         const torneoIdFinal = torneo_id || await resolveTorneoId(null);
@@ -42,12 +48,14 @@ async function upsertOfensivas(req, res, next) {
             return res.status(400).json({ error: 'No se pudo determinar el torneo. Envie torneo_id o active un torneo.' });
         }
 
-        const result = await estadisticasService.upsertOfensivas(jugador_id, torneoIdFinal, stats);
+        const result = await estadisticasService.actualizarOfensivas(jugador_id, torneoIdFinal, stats, mode);
 
         res.json({
             success: true,
-            message: 'Estadísticas actualizadas correctamente',
-            data: result
+            message: `Estadísticas ofensivas ${mode === 'sum' ? 'sumadas' : 'reemplazadas'} correctamente`,
+            mode: result.mode,
+            data: result.data,
+            previous: result.previous
         });
     } catch (error) {
         console.error('Error en upsertEstadisticasOfensivas:', error);
@@ -96,7 +104,7 @@ async function obtenerPitcheoPorJugador(req, res, next) {
     }
 }
 
-// POST /api/estadisticas-pitcheo
+// POST /api/estadisticas-pitcheo (upsert con modo sum/replace)
 async function crearPitcheo(req, res, next) {
     try {
         const validation = validarStatsPitcheo(req.body);
@@ -105,21 +113,34 @@ async function crearPitcheo(req, res, next) {
         }
 
         const { jugador_id, torneo_id, ...stats } = validation.sanitized;
+        const mode = (req.body.mode || 'sum').toLowerCase();
+
+        if (!['sum', 'replace'].includes(mode)) {
+            return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
+        }
+
         const torneoIdFinal = torneo_id || await resolveTorneoId(null);
 
         if (!torneoIdFinal) {
             return res.status(400).json({ error: 'No se pudo determinar el torneo.' });
         }
 
-        const result = await estadisticasService.upsertPitcheo(jugador_id, torneoIdFinal, stats);
-        res.status(201).json(result);
+        const result = await estadisticasService.actualizarPitcheo(jugador_id, torneoIdFinal, stats, mode);
+
+        res.status(201).json({
+            success: true,
+            message: `Estadísticas de pitcheo ${mode === 'sum' ? 'sumadas' : 'reemplazadas'} correctamente`,
+            mode: result.mode,
+            data: result.data,
+            previous: result.previous
+        });
     } catch (error) {
         console.error('Error creando estadísticas de pitcheo:', error);
         next(error);
     }
 }
 
-// PUT /api/estadisticas-pitcheo
+// PUT /api/estadisticas-pitcheo (con modo sum/replace)
 async function actualizarPitcheo(req, res, next) {
     try {
         const validation = validarStatsPitcheo(req.body);
@@ -128,15 +149,23 @@ async function actualizarPitcheo(req, res, next) {
         }
 
         const { jugador_id, torneo_id, ...stats } = validation.sanitized;
-        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+        const mode = (req.body.mode || 'sum').toLowerCase();
 
-        const result = await estadisticasService.actualizarPitcheo(jugador_id, torneoIdFinal, stats);
-
-        if (!result) {
-            return res.status(404).json({ error: 'Estadísticas de pitcheo no encontradas' });
+        if (!['sum', 'replace'].includes(mode)) {
+            return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
         }
 
-        res.json(result);
+        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+
+        const result = await estadisticasService.actualizarPitcheo(jugador_id, torneoIdFinal, stats, mode);
+
+        res.json({
+            success: true,
+            message: `Estadísticas de pitcheo ${mode === 'sum' ? 'sumadas' : 'reemplazadas'} correctamente`,
+            mode: result.mode,
+            data: result.data,
+            previous: result.previous
+        });
     } catch (error) {
         console.error('Error actualizando estadísticas de pitcheo:', error);
         next(error);
@@ -184,7 +213,7 @@ async function obtenerDefensivasPorJugador(req, res, next) {
     }
 }
 
-// POST /api/estadisticas-defensivas
+// POST /api/estadisticas-defensivas (upsert con modo sum/replace)
 async function crearDefensivas(req, res, next) {
     try {
         const validation = validarStatsDefensivas(req.body);
@@ -193,21 +222,34 @@ async function crearDefensivas(req, res, next) {
         }
 
         const { jugador_id, torneo_id, ...stats } = validation.sanitized;
+        const mode = (req.body.mode || 'sum').toLowerCase();
+
+        if (!['sum', 'replace'].includes(mode)) {
+            return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
+        }
+
         const torneoIdFinal = torneo_id || await resolveTorneoId(null);
 
         if (!torneoIdFinal) {
             return res.status(400).json({ error: 'No se pudo determinar el torneo.' });
         }
 
-        const result = await estadisticasService.upsertDefensivas(jugador_id, torneoIdFinal, stats);
-        res.status(201).json(result);
+        const result = await estadisticasService.actualizarDefensivas(jugador_id, torneoIdFinal, stats, mode);
+
+        res.status(201).json({
+            success: true,
+            message: `Estadísticas defensivas ${mode === 'sum' ? 'sumadas' : 'reemplazadas'} correctamente`,
+            mode: result.mode,
+            data: result.data,
+            previous: result.previous
+        });
     } catch (error) {
         console.error('Error creando estadísticas defensivas:', error);
         next(error);
     }
 }
 
-// PUT /api/estadisticas-defensivas
+// PUT /api/estadisticas-defensivas (con modo sum/replace)
 async function actualizarDefensivas(req, res, next) {
     try {
         const validation = validarStatsDefensivas(req.body);
@@ -216,15 +258,23 @@ async function actualizarDefensivas(req, res, next) {
         }
 
         const { jugador_id, torneo_id, ...stats } = validation.sanitized;
-        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+        const mode = (req.body.mode || 'sum').toLowerCase();
 
-        const result = await estadisticasService.actualizarDefensivas(jugador_id, torneoIdFinal, stats);
-
-        if (!result) {
-            return res.status(404).json({ error: 'Estadísticas defensivas no encontradas' });
+        if (!['sum', 'replace'].includes(mode)) {
+            return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
         }
 
-        res.json(result);
+        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+
+        const result = await estadisticasService.actualizarDefensivas(jugador_id, torneoIdFinal, stats, mode);
+
+        res.json({
+            success: true,
+            message: `Estadísticas defensivas ${mode === 'sum' ? 'sumadas' : 'reemplazadas'} correctamente`,
+            mode: result.mode,
+            data: result.data,
+            previous: result.previous
+        });
     } catch (error) {
         console.error('Error actualizando estadísticas defensivas:', error);
         next(error);
