@@ -16,6 +16,7 @@ const jugadoresRoutes = require('./routes/jugadores.routes');
 const partidosRoutes = require('./routes/partidos.routes');
 const estadisticasRoutes = require('./routes/estadisticas.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const sseRoutes = require('./routes/sse.routes');
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use('/api/jugadores', jugadoresRoutes);
 app.use('/api/partidos', partidosRoutes);
 app.use('/api/estadisticas', estadisticasRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/sse', sseRoutes);
 
 // ==================== ALIASES DE COMPATIBILIDAD ====================
 // El frontend usa estas rutas directamente; redirigimos al controller correcto
@@ -129,7 +131,8 @@ const PORT = config.port;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
     console.log(`📦 Entorno: ${config.nodeEnv}`);
-    console.log(`📊 Rutas: auth, torneos, equipos, jugadores, partidos, estadisticas, dashboard`);
+    console.log(`📊 Rutas: auth, torneos, equipos, jugadores, partidos, estadisticas, dashboard, sse`);
+    console.log(`📡 SSE activo en /api/sse/updates`);
 });
 
 module.exports = app;

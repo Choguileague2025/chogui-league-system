@@ -1,6 +1,7 @@
 const pool = require('../config/database');
 const { validarCrearTorneo, validarActualizarTorneo } = require('../validators/torneos.validator');
 const torneosService = require('../services/torneos.service');
+const sseService = require('../services/sse.service');
 
 // GET /api/torneos
 async function obtenerTodos(req, res, next) {
@@ -79,6 +80,9 @@ async function activar(req, res, next) {
         if (!torneo) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
+
+        // Notificar cambio de torneo via SSE
+        sseService.notifyTournamentChange(torneo);
 
         res.json({
             success: true,

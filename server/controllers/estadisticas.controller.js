@@ -1,6 +1,7 @@
 const { resolveTorneoId } = require('../services/torneos.service');
 const estadisticasService = require('../services/estadisticas.service');
 const { validarStatsOfensivas, validarStatsPitcheo, validarStatsDefensivas } = require('../validators/estadisticas.validator');
+const sseService = require('../services/sse.service');
 
 // ============================================================
 // ESTADISTICAS OFENSIVAS
@@ -49,6 +50,9 @@ async function upsertOfensivas(req, res, next) {
         }
 
         const result = await estadisticasService.actualizarOfensivas(jugador_id, torneoIdFinal, stats, mode);
+
+        // Notificar via SSE
+        sseService.notifyStatsUpdate('ofensivas', { jugador_id, torneo_id: torneoIdFinal });
 
         res.json({
             success: true,
@@ -127,6 +131,9 @@ async function crearPitcheo(req, res, next) {
 
         const result = await estadisticasService.actualizarPitcheo(jugador_id, torneoIdFinal, stats, mode);
 
+        // Notificar via SSE
+        sseService.notifyStatsUpdate('pitcheo', { jugador_id, torneo_id: torneoIdFinal });
+
         res.status(201).json({
             success: true,
             message: `Estadísticas de pitcheo ${mode === 'sum' ? 'sumadas' : 'reemplazadas'} correctamente`,
@@ -158,6 +165,9 @@ async function actualizarPitcheo(req, res, next) {
         const torneoIdFinal = torneo_id || await resolveTorneoId(null);
 
         const result = await estadisticasService.actualizarPitcheo(jugador_id, torneoIdFinal, stats, mode);
+
+        // Notificar via SSE
+        sseService.notifyStatsUpdate('pitcheo', { jugador_id, torneo_id: torneoIdFinal });
 
         res.json({
             success: true,
@@ -236,6 +246,9 @@ async function crearDefensivas(req, res, next) {
 
         const result = await estadisticasService.actualizarDefensivas(jugador_id, torneoIdFinal, stats, mode);
 
+        // Notificar via SSE
+        sseService.notifyStatsUpdate('defensivas', { jugador_id, torneo_id: torneoIdFinal });
+
         res.status(201).json({
             success: true,
             message: `Estadísticas defensivas ${mode === 'sum' ? 'sumadas' : 'reemplazadas'} correctamente`,
@@ -267,6 +280,9 @@ async function actualizarDefensivas(req, res, next) {
         const torneoIdFinal = torneo_id || await resolveTorneoId(null);
 
         const result = await estadisticasService.actualizarDefensivas(jugador_id, torneoIdFinal, stats, mode);
+
+        // Notificar via SSE
+        sseService.notifyStatsUpdate('defensivas', { jugador_id, torneo_id: torneoIdFinal });
 
         res.json({
             success: true,
