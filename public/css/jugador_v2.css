@@ -1,0 +1,324 @@
+/* ===================================
+   JUGADOR V2 - CSS MODERNO
+   Tema oscuro coherente con equipo.css
+   =================================== */
+
+/* TOURNAMENT SELECTOR */
+.tournament-selector {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+}
+
+.tournament-selector label {
+    font-size: 0.85rem;
+    color: rgba(255, 215, 0, 0.8);
+    font-weight: 500;
+}
+
+.tournament-selector select {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    background: rgba(26, 26, 46, 0.9);
+    color: #ffd700;
+    cursor: pointer;
+    min-width: 180px;
+    transition: border-color 0.3s;
+}
+
+.tournament-selector select:hover,
+.tournament-selector select:focus {
+    border-color: #ffd700;
+    outline: none;
+}
+
+/* TABS */
+.player-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    border-radius: 12px;
+    padding: 0.4rem;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.player-tab {
+    flex: 1;
+    padding: 0.9rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.player-tab:hover {
+    color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.player-tab.active {
+    color: #1a1a2e;
+    background: linear-gradient(45deg, #ffd700, #ff8c00);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+/* TAB PANELS */
+.player-tab-panel {
+    display: none;
+}
+
+.player-tab-panel.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* STAT CARDS GRID */
+.stats-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card-v2 {
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    padding: 1.5rem;
+    border-radius: 14px;
+    text-align: center;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.stat-card-v2:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+}
+
+.stat-card-title {
+    font-size: 0.85rem;
+    color: #ff8c00;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-card-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #ffd700;
+    text-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.stat-card-desc {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* CHART CONTAINER */
+.chart-container {
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    padding: 1.5rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    margin-bottom: 2rem;
+}
+
+.chart-container canvas {
+    max-height: 300px;
+}
+
+/* DETAILED TABLE */
+.detailed-table-section {
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    padding: 1.5rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    margin-bottom: 2rem;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.stats-table-v2 {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+}
+
+.stats-table-v2 th {
+    background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.2));
+    color: #ffd700;
+    padding: 0.8rem 0.6rem;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.stats-table-v2 td {
+    padding: 0.8rem 0.6rem;
+    text-align: center;
+    color: #e0e0e0;
+    font-size: 1rem;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stats-table-v2 td.loading {
+    color: rgba(255, 255, 255, 0.4);
+    padding: 2rem;
+    font-style: italic;
+}
+
+/* COMPARISON */
+.comparison-grid {
+    display: grid;
+    gap: 1.2rem;
+}
+
+.comparison-card {
+    background: linear-gradient(145deg, #16213e, #1a1a2e);
+    padding: 1.5rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 215, 0, 0.15);
+}
+
+.comparison-card h4 {
+    margin: 0 0 0.8rem 0;
+    color: #ff8c00;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.comparison-bar-bg {
+    height: 28px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 0.8rem 0;
+    position: relative;
+}
+
+.comparison-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700, #ff8c00);
+    border-radius: 14px;
+    transition: width 0.8s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    min-width: 40px;
+}
+
+.comparison-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.comparison-labels .player-value {
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.comparison-labels .leader-value {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* SECTION TITLE override for v2 */
+.player-tab-panel .section-title {
+    color: #ffd700;
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+/* EMPTY STATE */
+.empty-state-v2 {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 1rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .tournament-selector {
+        margin-left: 0;
+        margin-top: 1rem;
+        align-items: center;
+    }
+
+    .tournament-selector select {
+        min-width: 160px;
+    }
+
+    .player-tabs {
+        flex-wrap: wrap;
+    }
+
+    .player-tab {
+        flex: 1 1 40%;
+        font-size: 0.85rem;
+        padding: 0.7rem 0.5rem;
+    }
+
+    .stats-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-card-value {
+        font-size: 1.8rem;
+    }
+
+    .stats-table-v2 {
+        min-width: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-cards-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+    }
+
+    .stat-card-v2 {
+        padding: 1rem;
+    }
+
+    .stat-card-value {
+        font-size: 1.5rem;
+    }
+
+    .player-tab {
+        font-size: 0.78rem;
+    }
+}

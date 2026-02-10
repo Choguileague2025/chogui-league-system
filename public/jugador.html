@@ -6,11 +6,14 @@
     <title>Perfil del Jugador - Chogui League</title>
     <meta name="description" content="Estadísticas y perfil completo del jugador en la Chogui League.">
     <link rel="stylesheet" href="equipo.css">
+    <link rel="stylesheet" href="css/jugador_v2.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <a href="login.html" class="admin-link">🔒 Admin</a>
-    
+
     <div class="container">
+        <!-- HEADER -->
         <div class="header">
             <div class="header-content">
                 <div class="logo-container">
@@ -21,86 +24,223 @@
             </div>
         </div>
 
+        <!-- BREADCRUMB -->
         <div class="breadcrumb">
             <a href="index.html">🏠 Inicio</a>
             <span>></span>
             <span id="teamBreadcrumbLink">Cargando...</span>
             <span>></span>
-            <strong id="playerBreadcrumb" style="color: #ffd700;">Cargando...</strong>
+            <strong id="playerBreadcrumb">Cargando...</strong>
         </div>
 
+        <!-- PLAYER CARD HEADER -->
         <div class="team-main-card">
             <div class="team-header">
                 <div class="team-logo" id="teamLogo"></div>
                 <div class="team-info">
                     <h2 id="playerName">Cargando Jugador...</h2>
                     <p class="team-subtitle">
-                        <span id="playerNumber">#--</span> • 
-                        <span id="playerPosition">--</span> • 
-                        <span id="playerTeamNameHeader" style="color: #ff8c00;">--</span>
+                        <span id="playerNumber">#--</span> •
+                        <span id="playerPosition">--</span> •
+                        <span id="playerTeamName" style="color: #ff8c00;">--</span>
                     </p>
                     <div class="team-stats-row">
                         <div class="stat-item">
-                            <span class="stat-value" id="playerAVG">---</span>
+                            <span class="stat-value" id="headerAVG">---</span>
                             <span class="stat-label">AVG</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value" id="playerHR">---</span>
+                            <span class="stat-value" id="headerHR">---</span>
                             <span class="stat-label">HR</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value" id="playerRBI">---</span>
+                            <span class="stat-value" id="headerRBI">---</span>
                             <span class="stat-label">RBI</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-value" id="playerOPS">---</span>
+                            <span class="stat-value" id="headerOPS">---</span>
                             <span class="stat-label">OPS</span>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="content-grid">
-            <div class="roster-section">
-                <h3 class="section-title">⚾ Estadísticas de Bateo</h3>
-                <div id="statsBateoContainer" class="stats-container">
-                    <div class="loading">Cargando estadísticas...</div>
-                </div>
-            </div>
-
-            <div class="stats-section">
-                <h3 class="section-title">📊 Resumen</h3>
-                <div class="record-display">
-                    <div class="record-number" id="playerTeamName">--</div>
-                    <div class="record-label">Equipo Actual</div>
-                </div>
-                <div id="statsPitcheoContainer" class="stats-container">
-                    <div class="loading">Cargando pitcheo...</div>
+                <!-- TOURNAMENT SELECTOR -->
+                <div class="tournament-selector">
+                    <label for="tournamentSelect">🏆 Torneo:</label>
+                    <select id="tournamentSelect">
+                        <option value="">Cargando...</option>
+                    </select>
                 </div>
             </div>
         </div>
 
-        <div class="roster-section">
-            <h3 class="section-title">🛡️ Estadísticas Defensivas</h3>
-            <div id="statsDefensaContainer" class="stats-container">
-                <div class="loading">Cargando estadísticas...</div>
-            </div>
-        </div>
+        <!-- TABS NAVIGATION -->
+        <nav class="player-tabs">
+            <button class="player-tab active" data-tab="ofensivas">⚾ Ofensivas</button>
+            <button class="player-tab" data-tab="pitcheo">🥎 Pitcheo</button>
+            <button class="player-tab" data-tab="defensivas">🛡️ Defensivas</button>
+            <button class="player-tab" data-tab="comparacion">📊 Comparación</button>
+        </nav>
 
-        <div class="recent-games">
-            <h3 class="section-title">🎯 Estadísticas de Pitcheo</h3>
-            <div id="statsPitcheoDetailContainer" class="stats-container">
-                <div class="loading">Cargando estadísticas...</div>
-            </div>
-        </div>
+        <!-- TAB PANELS -->
+        <main class="player-tab-content">
 
+            <!-- OFENSIVAS TAB -->
+            <div id="tab-ofensivas" class="player-tab-panel active">
+                <div class="stats-cards-grid">
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">AVG</span>
+                        <span class="stat-card-value" id="statAVG">.000</span>
+                        <span class="stat-card-desc">Promedio de bateo</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">OBP</span>
+                        <span class="stat-card-value" id="statOBP">.000</span>
+                        <span class="stat-card-desc">On-Base %</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">SLG</span>
+                        <span class="stat-card-value" id="statSLG">.000</span>
+                        <span class="stat-card-desc">Slugging</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">OPS</span>
+                        <span class="stat-card-value" id="statOPS">.000</span>
+                        <span class="stat-card-desc">OBP + SLG</span>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="section-title">📈 Resumen Visual</h3>
+                    <canvas id="offensiveChart"></canvas>
+                </div>
+
+                <div class="detailed-table-section">
+                    <h3 class="section-title">📋 Estadísticas Detalladas</h3>
+                    <div class="table-responsive">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th>
+                                    <th>RBI</th><th>R</th><th>BB</th><th>SO</th><th>SB</th>
+                                    <th>HBP</th><th>SF</th>
+                                </tr>
+                            </thead>
+                            <tbody id="offensiveTableBody">
+                                <tr><td colspan="12" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PITCHEO TAB -->
+            <div id="tab-pitcheo" class="player-tab-panel">
+                <div class="stats-cards-grid">
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">ERA</span>
+                        <span class="stat-card-value" id="statERA">0.00</span>
+                        <span class="stat-card-desc">Efectividad</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">W-L</span>
+                        <span class="stat-card-value" id="statWL">0-0</span>
+                        <span class="stat-card-desc">Victorias-Derrotas</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">SO</span>
+                        <span class="stat-card-value" id="statPitchSO">0</span>
+                        <span class="stat-card-desc">Ponches</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">WHIP</span>
+                        <span class="stat-card-value" id="statWHIP">0.00</span>
+                        <span class="stat-card-desc">Bases por entrada</span>
+                    </div>
+                </div>
+
+                <div class="detailed-table-section">
+                    <h3 class="section-title">📋 Estadísticas Detalladas</h3>
+                    <div class="table-responsive">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>IP</th><th>H</th><th>ER</th><th>BB</th>
+                                    <th>SO</th><th>HR</th><th>W</th><th>L</th>
+                                    <th>SV</th><th>ERA</th><th>WHIP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pitchingTableBody">
+                                <tr><td colspan="11" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DEFENSIVAS TAB -->
+            <div id="tab-defensivas" class="player-tab-panel">
+                <div class="stats-cards-grid">
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">FPCT</span>
+                        <span class="stat-card-value" id="statFPCT">.000</span>
+                        <span class="stat-card-desc">Porcentaje de fildeo</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">PO</span>
+                        <span class="stat-card-value" id="statPO">0</span>
+                        <span class="stat-card-desc">Putouts</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">A</span>
+                        <span class="stat-card-value" id="statA">0</span>
+                        <span class="stat-card-desc">Asistencias</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">E</span>
+                        <span class="stat-card-value" id="statE">0</span>
+                        <span class="stat-card-desc">Errores</span>
+                    </div>
+                </div>
+
+                <div class="detailed-table-section">
+                    <h3 class="section-title">📋 Estadísticas Detalladas</h3>
+                    <div class="table-responsive">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>PO</th><th>A</th><th>E</th><th>DP</th>
+                                    <th>PB</th><th>CH</th><th>FPCT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="defensiveTableBody">
+                                <tr><td colspan="7" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPARACION TAB -->
+            <div id="tab-comparacion" class="player-tab-panel">
+                <h3 class="section-title">📊 Comparación con Líderes de Liga</h3>
+                <div id="comparisonContainer" class="comparison-grid">
+                    <div class="loading">Cargando comparaciones...</div>
+                </div>
+
+                <div class="chart-container" style="margin-top: 2rem;">
+                    <h3 class="section-title">🎯 Radar de Habilidades</h3>
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+        </main>
+
+        <!-- ACTION BUTTONS -->
         <div class="action-buttons">
             <a href="index.html" class="btn-primary">🏠 Volver al Inicio</a>
             <a href="#" id="backToTeamButton" class="btn-secondary">🏅 Volver al Equipo</a>
         </div>
     </div>
-    
+
     <footer class="main-footer">
         <div class="footer-content">
             <div class="footer-section">
@@ -119,24 +259,14 @@
                     <li><a href="admin.html">Administración</a></li>
                 </ul>
             </div>
-            <div class="footer-section">
-                <h4>Información</h4>
-                <ul class="footer-links">
-                    <li><a href="#">Contacto</a></li>
-                    <li><a href="#">Soporte</a></li>
-                    <li><a href="#">Privacidad</a></li>
-                </ul>
-            </div>
         </div>
         <div class="footer-bottom">
             <div class="footer-credits">
-                <span>English (US)</span>
-                <span class="separator">|</span>
                 <span>Copyright ©2025 ATRAELAB / All rights reserved</span>
             </div>
         </div>
     </footer>
-    
-    <script src="jugador-detalles.js" defer></script>
+
+    <script src="js/jugador_v2.js" defer></script>
 </body>
 </html>
