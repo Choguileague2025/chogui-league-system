@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipo - Chogui League System</title>
+    <meta name="description" content="Detalles del equipo, roster y estadísticas en Chogui League.">
+    <link rel="stylesheet" href="equipo.css">
+    
+    <style>
+        /* Footer profesional */
+        .main-footer {
+          background: linear-gradient(145deg, #0f1419, #1a1a2e);
+          border-top: 2px solid rgba(255, 215, 0, 0.3);
+          margin-top: 60px;
+          padding: 40px 0 20px;
+        }
+
+        .footer-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 20px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 30px;
+        }
+
+        .footer-section h4 {
+          color: #ffd700;
+          font-size: 1.1rem;
+          margin-bottom: 15px;
+          font-weight: bold;
+        }
+
+        .footer-logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 15px;
+        }
+
+        .footer-logo .logo-chogui {
+          width: 40px;
+          height: 40px;
+          background: url('/public/images/logos/chogui-league.png') center/contain no-repeat;
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          border-radius: 50%;
+        }
+
+        .footer-brand {
+          color: #ffd700;
+          font-size: 1.2rem;
+          font-weight: bold;
+        }
+
+        .footer-description {
+          color: #ffffff;
+          opacity: 0.8;
+          font-size: 0.9rem;
+        }
+
+        .footer-links {
+          list-style: none;
+          padding: 0;
+        }
+
+        .footer-links li {
+          margin-bottom: 8px;
+        }
+
+        .footer-links a {
+          color: #ffffff;
+          text-decoration: none;
+          opacity: 0.7;
+          transition: color 0.3s ease;
+          font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+          color: #ffd700;
+          opacity: 1;
+        }
+
+        .footer-bottom {
+          border-top: 1px solid rgba(255, 215, 0, 0.2);
+          margin-top: 30px;
+          padding-top: 20px;
+          text-align: center;
+        }
+
+        .footer-credits {
+          color: #ffffff;
+          opacity: 0.6;
+          font-size: 0.8rem;
+        }
+
+        .separator {
+          margin: 0 10px;
+        }
+
+        @media (max-width: 768px) {
+          .footer-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+          }
+          
+          .footer-logo {
+            justify-content: center;
+          }
+        }
+    </style>
+    </head>
+<body>
+    <a href="login.html" class="admin-link">🔑 Admin</a>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <div class="logo-chogui"></div>
+                </div>
+                <h1>🏆 CHOGUI LEAGUE</h1>
+                <p>Sistema de Gestión Profesional de Softbol</p>
+                </div>
+        </div>
+
+        <div class="breadcrumb">
+            <a href="index.html" onclick="irAInicio()">🏠 Inicio</a>
+            <span>></span>
+            <a href="index.html#posiciones" onclick="irAPosiciones()">📊 Posiciones</a>
+            <span>></span>
+            <span id="teamBreadcrumb">Cargando...</span>
+            <span id="teamPosition" style="margin-left: 10px; color: #ff8c00; font-size: 0.8rem;"></span>
+        </div>
+
+        <script>
+        function irAInicio() {
+            window.location.href = 'index.html';
+        }
+
+        function irAPosiciones() {
+            window.location.href = 'index.html#posiciones';
+        }
+
+        // Actualizar breadcrumb con posición del equipo
+        function actualizarBreadcrumbConPosicion() {
+            if (!teamData) return;
+            
+            // Si tenemos cache de equipos, calcular posición
+            if (window.equiposCache && recentGames.length > 0) {
+                // Lógica simplificada de posición
+                const posicionElement = document.getElementById('teamPosition');
+                posicionElement.textContent = '(Calculando posición...)';
+                
+                // Aquí se podría hacer una llamada para obtener la posición exacta
+                setTimeout(() => {
+                    posicionElement.textContent = '(Ver posición en tabla)';
+                }, 2000);
+            }
+        }
+        </script>
+
+        <div class="team-main-card">
+            <div class="team-header">
+                <div class="team-logo"></div> <div class="team-info">
+                    <h2 id="teamName">Cargando equipo...</h2>
+                    <div class="team-subtitle" id="teamLocation">-</div>
+                    <div style="color: #fff; margin-top: 10px;">
+                        <strong>Manager:</strong> <span id="teamManager">-</span>
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">
+                        <strong>Fundado:</strong> <span id="teamFounded">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="team-stats-row" id="teamStats">
+                <div class="stat-item">
+                    <span class="stat-value" id="teamRecord">-</span>
+                    <span class="stat-label">Record (G-P)</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="teamPosition">-</span>
+                    <span class="stat-label">Posición</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="teamAverage">-.---</span>
+                    <span class="stat-label">Promedio</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="teamRuns">-</span>
+                    <span class="stat-label">Carreras</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="roster-section">
+                <h3 class="section-title">👥 Roster del Equipo</h3>
+                
+                <div class="roster-filters">
+                    <button class="filter-btn active" data-position="all">Todos</button>
+                    <button class="filter-btn" data-position="P">Pitchers</button>
+                    <button class="filter-btn" data-position="C">Catchers</button>
+                    <button class="filter-btn" data-position="IF">Infield</button>
+                    <button class="filter-btn" data-position="OF">Outfield</button>
+                </div>
+                
+                <div id="rosterContainer">
+                    <div class="loading">Cargando roster...</div>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <h3 class="section-title">📊 Estadísticas</h3>
+                
+                <div class="record-display">
+                    <div class="record-number" id="winPercentage">-.---</div>
+                    <div class="record-label">Porcentaje de Victorias</div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                        <span>Partidos Jugados:</span>
+                        <strong id="gamesPlayed">-</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                        <span>Victorias:</span>
+                        <strong id="wins" style="color: #4CAF50;">-</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                        <span>Derrotas:</span>
+                        <strong id="losses" style="color: #dc143c;">-</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                        <span>Carreras Anotadas:</span>
+                        <strong id="runsScored" style="color: #ffd700;">-</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                        <span>Carreras Permitidas:</span>
+                        <strong id="runsAllowed" style="color: #ff8c00;">-</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="recent-games">
+            <h3 class="section-title">🎯 Últimos Partidos</h3>
+            <div id="recentGamesContainer">
+                <div class="loading">Cargando partidos recientes...</div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="index.html" class="btn-primary">🏠 Volver al Inicio</a>
+            <a href="index.html#posiciones" class="btn-secondary">📊 Ver Posiciones</a>
+            <a href="login.html" class="btn-secondary">⚙️ Panel Admin</a>
+        </div>
+    </div>
+
+    <script src="equipo-detalle.js"></script>
+
+    <footer class="main-footer">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-logo">
+            <div class="logo-chogui"></div>
+            <span class="footer-brand">CHOGUI LEAGUE</span>
+          </div>
+          <p class="footer-description">Sistema de Gestión Profesional de Softball</p>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Enlaces Rápidos</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="index.html#partidos">Partidos</a></li>
+            <li><a href="index.html#estadisticas">Líderes</a></li>
+            <li><a href="admin.html">Administración</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Información</h4>
+          <ul class="footer-links">
+            <li><a href="#">Contacto</a></li>
+            <li><a href="#">Soporte</a></li>
+            <li><a href="#">Privacidad</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <div class="footer-credits">
+          <span>English (US)</span>
+          <span class="separator">|</span>
+          <span>Copyright ©2025 ATRAELAB / All rights reserved</span>
+        </div>
+      </div>
+    </footer>
+    <script src="sse-client.js" defer></script>
+</body>
+</html>
