@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Chogui League - Sistema de Gestión Profesional</title>
+    <link rel="stylesheet" href="css/optimizations.css">
     <style>
         * {
             margin: 0;
@@ -1138,6 +1139,18 @@
             <h1>🏆 CHOGUI LEAGUE - ADMIN</h1>
             <p>Panel de Administración - Sistema de Gestión Profesional</p>
             </div>
+
+        <!-- Admin Tournament Bar -->
+        <div class="admin-tournament-bar">
+            <label>🏆 Torneo activo:</label>
+            <select id="adminTournamentDisplay">
+                <option value="">Cargando...</option>
+            </select>
+            <div class="tournament-status" id="adminTournamentStatus">
+                <div class="sse-dot" id="adminSseDot"></div>
+                SSE Activo
+            </div>
+        </div>
 
         <div class="nav-tabs">
             <button class="nav-tab active" data-tab="dashboard">📈 Dashboard</button>
@@ -4653,6 +4666,6 @@
         }
     </script>
     
-    <script src="sse-client.js" defer></script>
+    <script src="js/admin_modules.js" defer></script>
 </body>
 </html>

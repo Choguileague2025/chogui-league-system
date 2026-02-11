@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chogui League - Sistema de Gestión Profesional</title>
+    <link rel="stylesheet" href="css/optimizations.css">
     <style>
         * {
             margin: 0;
@@ -3032,6 +3033,18 @@
         }
         </style>
 
+        <!-- Tournament Selector -->
+        <div class="tournament-selector-index">
+            <label for="indexTournamentSelect">🏆 Ver torneo:</label>
+            <select id="indexTournamentSelect">
+                <option value="todos">Cargando...</option>
+            </select>
+            <div class="sse-status">
+                <div class="sse-dot" id="sseDot"></div>
+                <span>En vivo</span>
+            </div>
+        </div>
+
         <nav class="nav-tabs" id="mobileNavigation">
             <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
             <a href="#partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
@@ -3181,6 +3194,9 @@
 
             <div class="card">
                 <h3>📊 Estadísticas Completas de Bateo</h3>
+                <div class="search-box-leaders">
+                    <input type="text" id="searchStatsTable" placeholder="🔍 Buscar jugador en tabla...">
+                </div>
                 <div class="table-container">
                     <table id="statsTable">
                         <thead>
@@ -3213,6 +3229,11 @@
                             <tr><td colspan="22" class="loading">Cargando...</td></tr>
                         </tbody>
                     </table>
+                </div>
+                <div class="pagination-controls" id="statsPagination">
+                    <button class="pagination-btn" id="prevPageStats">← Anterior</button>
+                    <span class="pagination-info">Página <span id="currentPageStats">1</span> de <span id="totalPagesStats">1</span></span>
+                    <button class="pagination-btn" id="nextPageStats">Siguiente →</button>
                 </div>
                 <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem;">
                     <strong>Leyenda:</strong> PA=Plate Appearances, AB=At Bats, H=Hits, 1B=Singles, 2B=Doubles, 3B=Triples, HR=Home Runs, RBI=Runs Batted In, R=Runs, BB=Walks, SO=Strikeouts, SB=Stolen Bases, CS=Caught Stealing, AVG=Batting Average, OBP=On-Base Percentage, SLG=Slugging Percentage, OPS=On-Base Plus Slugging, ISO=Isolated Power, TB=Total Bases
@@ -3330,13 +3351,13 @@
     </div>
 
     <script>
-        // Configuración de API - URL de Railway
-        const API_BASE_URL = 'https://chogui-league-system-production.up.railway.app';
+        // Configuración de API - Rutas relativas
+        const API_BASE_URL = '';
         let estadisticas = []; // Variable global para estadísticas de bateo
-       
+
         function getApiUrl(endpoint) {
             if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
-            return `${API_BASE_URL}${endpoint}`;
+            return endpoint;
         }
        
         // =================================================================================
@@ -5311,6 +5332,6 @@
     </footer>
     
     
-    <script src="sse-client.js" defer></script>
+    <script src="js/index_modules.js" defer></script>
 </body>
 </html>
