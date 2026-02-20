@@ -4,12 +4,18 @@
 
 // Almacena todas las conexiones SSE activas
 const clients = new Set();
+const MAX_CLIENTS = 100;
 
 /**
  * Agrega un nuevo cliente SSE
  * @param {Response} res - Objeto response de Express
  */
 function addClient(res) {
+    if (clients.size >= MAX_CLIENTS) {
+        res.status(503).json({ error: 'Too many SSE connections' });
+        return;
+    }
+
     // Configurar headers SSE
     res.writeHead(200, {
         'Content-Type': 'text/event-stream',
@@ -32,6 +38,17 @@ function addClient(res) {
         console.log(`[SSE] Cliente desconectado. Total: ${clients.size}`);
     });
 }
+
+// Limpiar conexiones muertas cada 30s
+setInterval(() => {
+    clients.forEach(client => {
+        try {
+            client.write(':ping\n\n');
+        } catch (error) {
+            clients.delete(client);
+        }
+    });
+}, 30000);
 
 /**
  * Notifica a todos los clientes conectados

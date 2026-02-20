@@ -1,8 +1,13 @@
 const pool = require('../config/database');
+const cache = require('../utils/cache');
 
 // GET /api/dashboard/stats
 async function obtenerStats(req, res, next) {
     try {
+        const cacheKey = 'dashboard_stats';
+        const cached = cache.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const stats = await Promise.all([
             pool.query('SELECT COUNT(*) as total FROM equipos'),
             pool.query('SELECT COUNT(*) as total FROM jugadores'),
@@ -10,12 +15,15 @@ async function obtenerStats(req, res, next) {
             pool.query('SELECT COUNT(*) as total FROM estadisticas_ofensivas WHERE at_bats > 0'),
         ]);
 
-        res.json({
+        const result = {
             equipos: parseInt(stats[0].rows[0].total),
             jugadores: parseInt(stats[1].rows[0].total),
             partidos: parseInt(stats[2].rows[0].total),
             jugadores_con_stats: parseInt(stats[3].rows[0].total)
-        });
+        };
+
+        cache.set(cacheKey, result);
+        res.json(result);
     } catch (error) {
         console.error('Error obteniendo estadísticas del dashboard:', error);
         next(error);
@@ -25,6 +33,10 @@ async function obtenerStats(req, res, next) {
 // GET /api/posiciones
 async function obtenerPosiciones(req, res, next) {
     try {
+        const cacheKey = 'posiciones';
+        const cached = cache.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const result = await pool.query(`
             WITH finalizados AS (
                 SELECT id, equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante
@@ -63,6 +75,8 @@ async function obtenerPosiciones(req, res, next) {
             GROUP BY e.id, e.nombre
             ORDER BY porcentaje DESC, dif DESC, e.nombre ASC;
         `);
+
+        cache.set(cacheKey, result.rows);
         res.json(result.rows);
     } catch (error) {
         console.error('Error calculando posiciones:', error);
@@ -74,6 +88,9 @@ async function obtenerPosiciones(req, res, next) {
 async function obtenerLideres(req, res, next) {
     try {
         const { tipo = 'bateo', min_ab = 10 } = req.query;
+        const cacheKey = `lideres_${tipo}_${min_ab}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return res.json(cached);
 
         if (tipo === 'bateo') {
             const query = `
@@ -117,6 +134,7 @@ async function obtenerLideres(req, res, next) {
                 iso: parseFloat((parseFloat(jugador.slg) - parseFloat(jugador.avg)).toFixed(3))
             }));
 
+            cache.set(cacheKey, lideres);
             res.json(lideres);
 
         } else if (tipo === 'pitcheo') {
@@ -139,6 +157,7 @@ async function obtenerLideres(req, res, next) {
                 LIMIT 20`;
 
             const result = await pool.query(query);
+            cache.set(cacheKey, result.rows);
             res.json(result.rows);
 
         } else if (tipo === 'defensa') {
@@ -156,6 +175,7 @@ async function obtenerLideres(req, res, next) {
                 LIMIT 20`;
 
             const result = await pool.query(query);
+            cache.set(cacheKey, result.rows);
             res.json(result.rows);
         } else {
             res.status(400).json({ error: 'Tipo no válido. Use: bateo, pitcheo, defensa' });
@@ -170,6 +190,9 @@ async function obtenerLideres(req, res, next) {
 async function obtenerLideresOfensivos(req, res, next) {
     try {
         const { min_at_bats = 10 } = req.query;
+        const cacheKey = `lideres_ofensivos_${min_at_bats}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return res.json(cached);
 
         const result = await pool.query(`
             SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
@@ -188,6 +211,7 @@ async function obtenerLideresOfensivos(req, res, next) {
             ops: parseFloat((parseFloat(jugador.obp) + parseFloat(jugador.slg)).toFixed(3))
         }));
 
+        cache.set(cacheKey, jugadoresConOPS);
         res.json(jugadoresConOPS);
     } catch (error) {
         console.error('Error obteniendo líderes ofensivos:', error);
@@ -198,6 +222,10 @@ async function obtenerLideresOfensivos(req, res, next) {
 // GET /api/lideres-pitcheo
 async function obtenerLideresPitcheo(req, res, next) {
     try {
+        const cacheKey = 'lideres_pitcheo';
+        const cached = cache.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const result = await pool.query(`
             SELECT ep.*, j.nombre as jugador_nombre, e.nombre as equipo_nombre,
                    CASE
@@ -214,6 +242,7 @@ async function obtenerLideresPitcheo(req, res, next) {
             WHERE ep.innings_pitched >= 5
             ORDER BY era ASC
         `);
+        cache.set(cacheKey, result.rows);
         res.json(result.rows);
     } catch (error) {
         console.error('Error obteniendo líderes de pitcheo:', error);
@@ -224,6 +253,10 @@ async function obtenerLideresPitcheo(req, res, next) {
 // GET /api/lideres-defensivos
 async function obtenerLideresDefensivos(req, res, next) {
     try {
+        const cacheKey = 'lideres_defensivos';
+        const cached = cache.get(cacheKey);
+        if (cached) return res.json(cached);
+
         const result = await pool.query(`
             SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
                    CASE
@@ -237,6 +270,7 @@ async function obtenerLideresDefensivos(req, res, next) {
             WHERE ed.chances >= 5
             ORDER BY fielding_percentage DESC, ed.chances DESC
         `);
+        cache.set(cacheKey, result.rows);
         res.json(result.rows);
     } catch (error) {
         console.error('Error obteniendo líderes defensivos:', error);

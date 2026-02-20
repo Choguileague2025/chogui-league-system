@@ -9,6 +9,28 @@ let currentTournamentId = null;
 let playerData = null;
 let offensiveChart = null;
 let radarChart = null;
+let chartJsLoaded = false;
+
+async function loadChartJs() {
+    if (chartJsLoaded || typeof Chart !== 'undefined') {
+        chartJsLoaded = true;
+        return;
+    }
+
+    return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+        script.onload = () => {
+            chartJsLoaded = true;
+            resolve();
+        };
+        script.onerror = () => {
+            console.warn('Failed to load Chart.js');
+            resolve();
+        };
+        document.head.appendChild(script);
+    });
+}
 
 // ===================================
 // INICIALIZACIÓN
@@ -425,9 +447,12 @@ async function loadComparison(torneoParam) {
 // ===================================
 // GRÁFICOS
 // ===================================
-function createOffensiveChart(stats) {
+async function createOffensiveChart(stats) {
     const ctx = document.getElementById('offensiveChart');
     if (!ctx) return;
+
+    await loadChartJs();
+    if (typeof Chart === 'undefined') return;
 
     if (offensiveChart) offensiveChart.destroy();
 
@@ -473,9 +498,12 @@ function createOffensiveChart(stats) {
     });
 }
 
-function createRadarChart(playerStats, allStats) {
+async function createRadarChart(playerStats, allStats) {
     const ctx = document.getElementById('radarChart');
     if (!ctx) return;
+
+    await loadChartJs();
+    if (typeof Chart === 'undefined') return;
 
     if (radarChart) radarChart.destroy();
 

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 
 const config = require('./config/environment');
@@ -21,6 +22,7 @@ const sseRoutes = require('./routes/sse.routes');
 const app = express();
 
 // Middlewares
+app.use(compression());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
