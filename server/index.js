@@ -167,6 +167,112 @@ app.get('/api/lideres-defensivos', dashboardController.obtenerLideresDefensivos)
 app.get('/api/buscar', dashboardController.buscarUniversal);
 app.get('/api/proximos-partidos', partidosController.obtenerProximos);
 
+// Legacy /api/standings (used by index.html inline JS for tabla de posiciones)
+app.get('/api/standings', dashboardController.obtenerPosiciones);
+
+// Legacy /api/playoffs-clasificacion (used by index.html inline JS for playoffs view)
+app.get('/api/playoffs-clasificacion', async (req, res, next) => {
+    try {
+        // 1. Get active tournament config
+        const torneoResult = await pool.query(
+            'SELECT id, nombre, total_juegos, cupos_playoffs FROM torneos WHERE activo = true LIMIT 1'
+        );
+        if (torneoResult.rows.length === 0) {
+            return res.json({ configuracion: { cupos_playoffs: 6, total_juegos: 22 }, equipos: [] });
+        }
+        const torneo = torneoResult.rows[0];
+        const totalJuegos = parseInt(torneo.total_juegos) || 22;
+        const cuposPlayoffs = parseInt(torneo.cupos_playoffs) || 6;
+
+        // 2. Get standings (same query as obtenerPosiciones)
+        const standingsResult = await pool.query(`
+            SELECT
+                e.id, e.nombre as equipo_nombre,
+                COUNT(p.id) as pj,
+                SUM(CASE
+                    WHEN (p.equipo_local_id = e.id AND p.carreras_local > p.carreras_visitante)
+                      OR (p.equipo_visitante_id = e.id AND p.carreras_visitante > p.carreras_local) THEN 1
+                    ELSE 0 END) as pg,
+                SUM(CASE
+                    WHEN (p.equipo_local_id = e.id AND p.carreras_local < p.carreras_visitante)
+                      OR (p.equipo_visitante_id = e.id AND p.carreras_visitante < p.carreras_local) THEN 1
+                    ELSE 0 END) as pp,
+                SUM(CASE WHEN p.equipo_local_id = e.id THEN COALESCE(p.carreras_local, 0)
+                         WHEN p.equipo_visitante_id = e.id THEN COALESCE(p.carreras_visitante, 0)
+                         ELSE 0 END) as cf,
+                SUM(CASE WHEN p.equipo_local_id = e.id THEN COALESCE(p.carreras_visitante, 0)
+                         WHEN p.equipo_visitante_id = e.id THEN COALESCE(p.carreras_local, 0)
+                         ELSE 0 END) as ce
+            FROM equipos e
+            LEFT JOIN partidos p ON (p.equipo_local_id = e.id OR p.equipo_visitante_id = e.id)
+                AND p.estado = 'finalizado'
+            GROUP BY e.id, e.nombre
+            HAVING COUNT(p.id) > 0
+            ORDER BY pg DESC, (SUM(CASE
+                    WHEN (p.equipo_local_id = e.id AND p.carreras_local > p.carreras_visitante)
+                      OR (p.equipo_visitante_id = e.id AND p.carreras_visitante > p.carreras_local) THEN 1
+                    ELSE 0 END)::DECIMAL / NULLIF(COUNT(p.id), 0)) DESC
+        `);
+
+        // 3. Calculate playoff classification for each team
+        const equipos = standingsResult.rows.map((team, index) => {
+            const pj = parseInt(team.pj) || 0;
+            const pg = parseInt(team.pg) || 0;
+            const pp = parseInt(team.pp) || 0;
+            const cf = parseInt(team.cf) || 0;
+            const ce = parseInt(team.ce) || 0;
+            const restantes = Math.max(0, totalJuegos - pj);
+            const maxVictorias = pg + restantes;
+            const porcentaje = pj > 0 ? pg / pj : 0;
+
+            return {
+                posicion: index + 1,
+                equipo_nombre: team.equipo_nombre,
+                equipo_id: team.id,
+                pj, pg, pp,
+                porcentaje,
+                cf, ce,
+                dif: cf - ce,
+                restantes,
+                max_victorias: maxVictorias,
+                estado: 'contención' // will be updated below
+            };
+        });
+
+        // 4. Determine classification status
+        // The team at cupos_playoffs position sets the threshold
+        const cutoffWins = equipos.length >= cuposPlayoffs
+            ? parseInt(equipos[cuposPlayoffs - 1]?.pg) || 0
+            : 0;
+
+        equipos.forEach((team, i) => {
+            if (i < cuposPlayoffs && team.pg >= cutoffWins && team.pj > 0) {
+                // Check if mathematically clinched
+                const canBePassed = equipos.slice(cuposPlayoffs).some(
+                    other => other.max_victorias >= team.pg
+                );
+                team.estado = canBePassed ? 'contención' : 'clasificado';
+            } else if (team.max_victorias < cutoffWins) {
+                team.estado = 'eliminado';
+            } else {
+                team.estado = 'contención';
+            }
+        });
+
+        res.json({
+            configuracion: {
+                cupos_playoffs: cuposPlayoffs,
+                total_juegos: totalJuegos,
+                torneo_nombre: torneo.nombre
+            },
+            equipos
+        });
+    } catch (error) {
+        console.error('Error en /api/playoffs-clasificacion:', error);
+        next(error);
+    }
+});
+
 // Aliases: rutas legacy estadisticas con guion (frontend usa /api/estadisticas-ofensivas)
 app.get('/api/estadisticas-ofensivas', estadisticasController.obtenerOfensivas);
 app.post('/api/estadisticas-ofensivas', estadisticasController.upsertOfensivas);
