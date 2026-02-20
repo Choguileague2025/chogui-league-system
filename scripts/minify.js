@@ -57,6 +57,7 @@ async function main() {
   await minifyJS('public/js/equipo_v2.js', 'public/js/equipo_v2.min.js');
 
   // Minify CSS files
+  minifyCSS('public/equipo.css', 'public/equipo.min.css');
   minifyCSS('public/css/optimizations.css', 'public/css/optimizations.min.css');
   minifyCSS('public/css/jugador_v2.css', 'public/css/jugador_v2.min.css');
   minifyCSS('public/css/equipo_v2.css', 'public/css/equipo_v2.min.css');
