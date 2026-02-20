@@ -1,5 +1,17 @@
 # Deployment Guide - Chogui League System
 
+## Produccion
+
+| Dato | Valor |
+|---|---|
+| **URL** | https://chogui-league-system-production.up.railway.app |
+| **Version** | 2.0.0 |
+| **Fecha deploy** | 2026-02-20 |
+| **Branch** | main |
+| **Plataforma** | Railway |
+
+---
+
 ## Despliegue en Railway
 
 ### Prerequisitos
