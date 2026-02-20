@@ -4,3 +4,5 @@ env_file.txt
 .DS_Store
 backups/*.sql
 *.log
+coverage/
+.claude/
