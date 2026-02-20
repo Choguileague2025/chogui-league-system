@@ -69,6 +69,98 @@ const estadisticasController = require('./controllers/estadisticas.controller');
 // Aliases: rutas legacy del frontend -> nuevos controllers
 app.get('/api/posiciones', dashboardController.obtenerPosiciones);
 app.get('/api/lideres', dashboardController.obtenerLideres);
+// Legacy /api/leaders (English, used by index.html inline JS)
+// Supports ?tipo=bateo&stat=avg&limit=10 and returns jugador_nombre/equipo_nombre
+app.get('/api/leaders', async (req, res, next) => {
+    try {
+        const { tipo = 'bateo', stat, limit: lim, min_ab = 1 } = req.query;
+
+        if (tipo === 'bateo') {
+            const validStats = {
+                'avg': 'avg DESC',
+                'home_runs': 'eo.home_runs DESC',
+                'rbi': 'eo.rbi DESC',
+                'hits': 'eo.hits DESC',
+                'stolen_bases': 'eo.stolen_bases DESC',
+                'strikeouts': 'eo.strikeouts DESC'
+            };
+            const orderBy = validStats[stat] || 'avg DESC';
+
+            const result = await pool.query(`
+                SELECT
+                    j.id as jugador_id, j.nombre as jugador_nombre, j.posicion,
+                    e.nombre as equipo_nombre,
+                    eo.at_bats, eo.hits, eo.home_runs, eo.rbi, eo.runs,
+                    eo.walks, eo.stolen_bases, eo.strikeouts,
+                    COALESCE(eo.doubles, 0) as doubles,
+                    COALESCE(eo.triples, 0) as triples,
+                    CASE WHEN eo.at_bats > 0
+                        THEN ROUND(eo.hits::DECIMAL / eo.at_bats, 3)
+                        ELSE 0.000 END as avg,
+                    CASE WHEN (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)) > 0
+                        THEN ROUND((eo.hits + eo.walks + COALESCE(eo.hit_by_pitch, 0))::DECIMAL /
+                                 (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)), 3)
+                        ELSE 0.000 END as obp,
+                    CASE WHEN eo.at_bats > 0
+                        THEN ROUND(((eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs) +
+                                  COALESCE(eo.doubles, 0) * 2 + COALESCE(eo.triples, 0) * 3 + eo.home_runs * 4)::DECIMAL / eo.at_bats, 3)
+                        ELSE 0.000 END as slg
+                FROM estadisticas_ofensivas eo
+                JOIN jugadores j ON eo.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                WHERE eo.at_bats >= $1
+                ORDER BY ${orderBy}
+                LIMIT $2
+            `, [parseInt(min_ab), parseInt(lim) || 20]);
+            res.json(result.rows);
+
+        } else if (tipo === 'pitcheo') {
+            const result = await pool.query(`
+                SELECT
+                    j.id as jugador_id, j.nombre as jugador_nombre,
+                    e.nombre as equipo_nombre,
+                    ep.innings_pitched, ep.earned_runs, ep.strikeouts, ep.walks_allowed,
+                    ep.hits_allowed, ep.wins, ep.losses,
+                    CASE WHEN ep.innings_pitched > 0
+                        THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2)
+                        ELSE 0.00 END as era,
+                    CASE WHEN ep.innings_pitched > 0
+                        THEN ROUND((ep.hits_allowed + ep.walks_allowed) / ep.innings_pitched, 2)
+                        ELSE 0.00 END as whip
+                FROM estadisticas_pitcheo ep
+                JOIN jugadores j ON ep.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                WHERE ep.innings_pitched >= 3
+                ORDER BY era ASC
+                LIMIT $1
+            `, [parseInt(lim) || 20]);
+            res.json(result.rows);
+
+        } else if (tipo === 'defensiva' || tipo === 'defensa') {
+            const result = await pool.query(`
+                SELECT
+                    j.id as jugador_id, j.nombre as jugador_nombre, j.posicion,
+                    e.nombre as equipo_nombre,
+                    ed.putouts, ed.assists, ed.errors,
+                    CASE WHEN (ed.putouts + ed.assists + ed.errors) > 0
+                        THEN ROUND((ed.putouts + ed.assists)::DECIMAL / (ed.putouts + ed.assists + ed.errors), 3)
+                        ELSE 1.000 END as fielding_percentage
+                FROM estadisticas_defensivas ed
+                JOIN jugadores j ON ed.jugador_id = j.id
+                JOIN equipos e ON j.equipo_id = e.id
+                ORDER BY fielding_percentage DESC
+                LIMIT $1
+            `, [parseInt(lim) || 20]);
+            res.json(result.rows);
+        } else {
+            res.status(400).json({ error: 'Tipo no válido' });
+        }
+    } catch (error) {
+        console.error('Error en /api/leaders:', error);
+        next(error);
+    }
+});
+
 app.get('/api/lideres-ofensivos', dashboardController.obtenerLideresOfensivos);
 app.get('/api/lideres-pitcheo', dashboardController.obtenerLideresPitcheo);
 app.get('/api/lideres-defensivos', dashboardController.obtenerLideresDefensivos);
