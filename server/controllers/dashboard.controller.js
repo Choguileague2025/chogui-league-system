@@ -55,7 +55,7 @@ async function obtenerPosiciones(req, res, next) {
                        CASE WHEN carreras_visitante < carreras_local THEN 1 ELSE 0 END AS per
                 FROM finalizados
             )
-            SELECT e.id, e.nombre,
+            SELECT e.id AS equipo_id, e.nombre AS equipo_nombre,
                    COUNT(j.equipo_id) AS pj,
                    COALESCE(SUM(j.gan),0) AS pg,
                    COALESCE(SUM(j.per),0) AS pp,
