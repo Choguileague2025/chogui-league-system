@@ -317,43 +317,34 @@ function calcularEstadisticasEquipo(standingRow) {
 
 async function cargarEstadisticasColectivas() {
     try {
-        // Fetch offensive stats for all team players
+        // Single API call with equipo_id instead of N individual calls
         const torneoQuery = currentTorneoId ? `&torneo_id=${currentTorneoId}` : '';
-        const jugadoresIds = rosterData.map(j => j.id);
 
-        if (jugadoresIds.length === 0) {
+        if (rosterData.length === 0) {
             resetCollectiveStats();
             return;
         }
 
-        // Fetch all offensive stats for team players
-        const statsPromises = jugadoresIds.map(id =>
-            fetch(`/api/estadisticas-ofensivas?jugador_id=${id}${torneoQuery}`)
-                .then(r => r.ok ? r.json() : [])
-                .catch(() => [])
-        );
-
-        const allStats = await Promise.all(statsPromises);
+        const response = await fetch(`/api/estadisticas-ofensivas?equipo_id=${currentTeamId}${torneoQuery}`);
+        const allPlayerStats = response.ok ? await response.json() : [];
 
         // Aggregate
         let totalAB = 0, totalH = 0, totalHR = 0, totalRBI = 0;
         let totalBB = 0, totalHBP = 0, totalSF = 0, totalSB = 0;
         let total2B = 0, total3B = 0;
 
-        allStats.forEach(playerStats => {
-            const stats = Array.isArray(playerStats) ? playerStats : [];
-            stats.forEach(s => {
-                totalAB += toNumber(s.at_bats);
-                totalH += toNumber(s.hits);
-                total2B += toNumber(s.doubles);
-                total3B += toNumber(s.triples);
-                totalHR += toNumber(s.home_runs);
-                totalRBI += toNumber(s.rbi);
-                totalBB += toNumber(s.walks);
-                totalHBP += toNumber(s.hit_by_pitch);
-                totalSF += toNumber(s.sacrifice_flies);
-                totalSB += toNumber(s.stolen_bases);
-            });
+        const stats = Array.isArray(allPlayerStats) ? allPlayerStats : [];
+        stats.forEach(s => {
+            totalAB += toNumber(s.at_bats);
+            totalH += toNumber(s.hits);
+            total2B += toNumber(s.doubles);
+            total3B += toNumber(s.triples);
+            totalHR += toNumber(s.home_runs);
+            totalRBI += toNumber(s.rbi);
+            totalBB += toNumber(s.walks);
+            totalHBP += toNumber(s.hit_by_pitch);
+            totalSF += toNumber(s.sacrifice_flies);
+            totalSB += toNumber(s.stolen_bases);
         });
 
         const avg = totalAB > 0 ? (totalH / totalAB) : 0;
@@ -394,43 +385,31 @@ async function cargarTopBateadores() {
     const tbody = document.getElementById('topBattersBody');
     try {
         const torneoQuery = currentTorneoId ? `&torneo_id=${currentTorneoId}` : '';
-        const jugadoresIds = rosterData.map(j => j.id);
 
-        if (jugadoresIds.length === 0) {
+        if (rosterData.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">No hay jugadores</td></tr>';
             return;
         }
 
-        const statsPromises = jugadoresIds.map(id =>
-            fetch(`/api/estadisticas-ofensivas?jugador_id=${id}${torneoQuery}`)
-                .then(r => r.ok ? r.json() : [])
-                .catch(() => [])
-        );
+        // Single API call with equipo_id
+        const response = await fetch(`/api/estadisticas-ofensivas?equipo_id=${currentTeamId}${torneoQuery}`);
+        const allPlayerStats = response.ok ? await response.json() : [];
+        const stats = Array.isArray(allPlayerStats) ? allPlayerStats : [];
 
-        const allStats = await Promise.all(statsPromises);
-
-        // Aggregate per player
+        // Each row is already per-player (the API returns one row per jugador)
         const playerAggs = [];
-        jugadoresIds.forEach((id, idx) => {
-            const stats = Array.isArray(allStats[idx]) ? allStats[idx] : [];
-            const jugador = rosterData.find(j => j.id === id);
-            if (!jugador || stats.length === 0) return;
-
-            let ab = 0, h = 0, hr = 0, rbi = 0, bb = 0, hbp = 0, sf = 0;
-            let d2 = 0, d3 = 0;
-            stats.forEach(s => {
-                ab += toNumber(s.at_bats);
-                h += toNumber(s.hits);
-                d2 += toNumber(s.doubles);
-                d3 += toNumber(s.triples);
-                hr += toNumber(s.home_runs);
-                rbi += toNumber(s.rbi);
-                bb += toNumber(s.walks);
-                hbp += toNumber(s.hit_by_pitch);
-                sf += toNumber(s.sacrifice_flies);
-            });
-
+        stats.forEach(s => {
+            const ab = toNumber(s.at_bats);
             if (ab === 0) return;
+
+            const h = toNumber(s.hits);
+            const d2 = toNumber(s.doubles);
+            const d3 = toNumber(s.triples);
+            const hr = toNumber(s.home_runs);
+            const rbi = toNumber(s.rbi);
+            const bb = toNumber(s.walks);
+            const hbp = toNumber(s.hit_by_pitch);
+            const sf = toNumber(s.sacrifice_flies);
 
             const avg = h / ab;
             const obp = (ab + bb + hbp + sf) > 0
@@ -440,8 +419,8 @@ async function cargarTopBateadores() {
             const ops = obp + slg;
 
             playerAggs.push({
-                id: jugador.id,
-                nombre: jugador.nombre,
+                id: s.jugador_id || s.id,
+                nombre: s.jugador_nombre || 'N/A',
                 avg, hr, rbi, h, ops
             });
         });
@@ -481,46 +460,35 @@ async function cargarTopLanzadores() {
     const tbody = document.getElementById('topPitchersBody');
     try {
         const torneoQuery = currentTorneoId ? `&torneo_id=${currentTorneoId}` : '';
-        const jugadoresIds = rosterData.map(j => j.id);
 
-        if (jugadoresIds.length === 0) {
+        if (rosterData.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">No hay jugadores</td></tr>';
             return;
         }
 
-        const statsPromises = jugadoresIds.map(id =>
-            fetch(`/api/estadisticas-pitcheo?jugador_id=${id}${torneoQuery}`)
-                .then(r => r.ok ? r.json() : [])
-                .catch(() => [])
-        );
-
-        const allStats = await Promise.all(statsPromises);
+        // Single API call with equipo_id
+        const response = await fetch(`/api/estadisticas-pitcheo?equipo_id=${currentTeamId}${torneoQuery}`);
+        const allPlayerStats = response.ok ? await response.json() : [];
+        const stats = Array.isArray(allPlayerStats) ? allPlayerStats : [];
 
         const playerAggs = [];
-        jugadoresIds.forEach((id, idx) => {
-            const stats = Array.isArray(allStats[idx]) ? allStats[idx] : [];
-            const jugador = rosterData.find(j => j.id === id);
-            if (!jugador || stats.length === 0) return;
-
-            let ip = 0, er = 0, ha = 0, so = 0, wa = 0, w = 0, l = 0;
-            stats.forEach(s => {
-                ip += parseFloat(s.innings_pitched) || 0;
-                er += toNumber(s.earned_runs);
-                ha += toNumber(s.hits_allowed);
-                so += toNumber(s.strikeouts);
-                wa += toNumber(s.walks_allowed);
-                w += toNumber(s.wins);
-                l += toNumber(s.losses);
-            });
-
+        stats.forEach(s => {
+            const ip = parseFloat(s.innings_pitched) || 0;
             if (ip === 0) return;
+
+            const er = toNumber(s.earned_runs);
+            const ha = toNumber(s.hits_allowed);
+            const so = toNumber(s.strikeouts);
+            const wa = toNumber(s.walks_allowed);
+            const w = toNumber(s.wins);
+            const l = toNumber(s.losses);
 
             const era = (er / ip) * 9;
             const whip = (wa + ha) / ip;
 
             playerAggs.push({
-                id: jugador.id,
-                nombre: jugador.nombre,
+                id: s.jugador_id || s.id,
+                nombre: s.jugador_nombre || 'N/A',
                 era, wl: `${w}-${l}`, so, ip: ip.toFixed(1), whip
             });
         });
@@ -606,7 +574,7 @@ function renderizarRoster() {
 
         return `
             <div class="roster-player-card"${claseExtra} onclick="verJugador(${jugador.id})">
-                <div class="roster-player-number">${jugador.numero || '--'}</div>
+                <div class="roster-player-number"${!jugador.numero && jugador.numero !== 0 ? ' style="opacity:0.5"' : ''}>#${jugador.numero ?? '0'}</div>
                 <div class="roster-player-info">
                     <div class="roster-player-name">${jugador.nombre}</div>
                     <div class="roster-player-pos">${formatearPosicion(jugador.posicion)}</div>
