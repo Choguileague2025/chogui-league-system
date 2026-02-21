@@ -1720,12 +1720,25 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="plateAppearances">Apariciones (PA):</label>
+                        <input type="number" id="plateAppearances" min="0" value="0">
+                        <small style="color: #ffd700; font-size: 0.8rem;">PA = AB + BB + HBP + SF + SH</small>
+                    </div>
+                    <div class="form-group">
                         <label for="atBats">At Bats (AB):</label>
                         <input type="number" id="atBats" min="0" value="0">
                     </div>
                     <div class="form-group">
                         <label for="hits">Hits (H):</label>
                         <input type="number" id="hits" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="doubles">Dobles (2B):</label>
+                        <input type="number" id="doubles" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="triples">Triples (3B):</label>
+                        <input type="number" id="triples" min="0" value="0">
                     </div>
                     <div class="form-group">
                         <label for="homeRuns">Home Runs (HR):</label>
@@ -1744,18 +1757,28 @@
                         <input type="number" id="walks" min="0" value="0">
                     </div>
                     <div class="form-group">
+                        <label for="strikeouts">Ponches (SO):</label>
+                        <input type="number" id="strikeouts" min="0" value="0">
+                    </div>
+                    <div class="form-group">
                         <label for="stolenBases">Bases Robadas (SB):</label>
                         <input type="number" id="stolenBases" min="0" value="0">
                     </div>
                     <div class="form-group">
-                        <label for="strikeouts">Ponches (SO):</label>
-                        <input type="number" id="strikeouts" min="0" value="0">
-                        <small style="color: #ffd700; font-size: 0.8rem;">Ponches recibidos por el bateador</small>
+                        <label for="caughtStealing">Atrapado Robando (CS):</label>
+                        <input type="number" id="caughtStealing" min="0" value="0">
                     </div>
                     <div class="form-group">
-                        <label for="errors" style="color: #ff8c00; opacity: 0.7;">Errores (E):</label>
-                        <input type="number" id="errors" min="0" value="0" disabled>
-                          <small style="color: #ff8c00; font-size: 0.8rem;">Los errores se registran en el form defensivo.</small>
+                        <label for="hitByPitch">Golpeado (HBP):</label>
+                        <input type="number" id="hitByPitch" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="sacrificeFlies">Sacrificio Fly (SF):</label>
+                        <input type="number" id="sacrificeFlies" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="sacrificeHits">Sacrificio Hit (SH):</label>
+                        <input type="number" id="sacrificeHits" min="0" value="0">
                     </div>
                 </div>
                 <button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
@@ -3600,13 +3623,18 @@
                 jugador_id: parseInt(jugador_id),
                 at_bats: parseInt(document.getElementById('atBats').value) || 0,
                 hits: parseInt(document.getElementById('hits').value) || 0,
+                doubles: parseInt(document.getElementById('doubles').value) || 0,
+                triples: parseInt(document.getElementById('triples').value) || 0,
                 home_runs: parseInt(document.getElementById('homeRuns').value) || 0,
                 rbi: parseInt(document.getElementById('rbi').value) || 0,
                 runs: parseInt(document.getElementById('runs').value) || 0,
                 walks: parseInt(document.getElementById('walks').value) || 0,
+                strikeouts: parseInt(document.getElementById('strikeouts').value) || 0,
                 stolen_bases: parseInt(document.getElementById('stolenBases').value) || 0,
-                // MODIFICACIÓN #2: Agregar 'strikeouts' al objeto de datos
-                strikeouts: parseInt(document.getElementById('strikeouts').value) || 0 // <-- CAMBIO CRÍTICO
+                caught_stealing: parseInt(document.getElementById('caughtStealing').value) || 0,
+                hit_by_pitch: parseInt(document.getElementById('hitByPitch').value) || 0,
+                sacrifice_flies: parseInt(document.getElementById('sacrificeFlies').value) || 0,
+                sacrifice_hits: parseInt(document.getElementById('sacrificeHits').value) || 0
             };
             
             try {
@@ -3618,8 +3646,7 @@
                 if (res.ok) {
                     toast.success('Estadísticas registradas exitosamente.');
                     await cargarEstadisticas();
-                    // MODIFICACIÓN #3: Actualizar sistema de reset para incluir #strikeouts
-                    document.querySelectorAll('#atBats, #hits, #homeRuns, #rbi, #runs, #walks, #stolenBases, #strikeouts').forEach(el => el.value = 0); // <-- CAMBIO CRÍTICO
+                    document.querySelectorAll('#plateAppearances, #atBats, #hits, #doubles, #triples, #homeRuns, #rbi, #runs, #walks, #strikeouts, #stolenBases, #caughtStealing, #hitByPitch, #sacrificeFlies, #sacrificeHits').forEach(el => el.value = 0);
                 } else {
                     toast.error('Error al registrar estadísticas.');
                 }
