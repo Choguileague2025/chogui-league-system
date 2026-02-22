@@ -58,10 +58,10 @@ function showError(message) {
     const container = document.querySelector('.container');
     if (container) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 50px; color: #ff8c00;">
+            <div style="text-align: center; padding: 50px; color: #ff9800;">
                 <h2>⚠️ Error</h2>
                 <p>${message}</p>
-                <a href="index.html" style="color: #ffd700;">Volver al Inicio</a>
+                <a href="index.html" style="color: #ffc107;">Volver al Inicio</a>
             </div>
         `;
     }
@@ -88,7 +88,7 @@ function formatPos(pos) {
 }
 
 function getTeamLogo(teamName) {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=ffd700&color=1a1a2e&size=120`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=ffc107&color=0d1117&size=120`;
 }
 
 function getInitials(name) {
@@ -189,13 +189,14 @@ async function loadPlayerInfo() {
                 logoEl.innerHTML = '';
             };
             img.onerror = () => {
-                logoEl.style.backgroundImage = 'linear-gradient(45deg, #ffd700, #ff8c00)';
+                logoEl.style.backgroundImage = 'none';
+                logoEl.style.backgroundColor = '#ffc107';
                 logoEl.style.display = 'flex';
                 logoEl.style.alignItems = 'center';
                 logoEl.style.justifyContent = 'center';
                 logoEl.style.fontSize = '1.4rem';
                 logoEl.style.fontWeight = 'bold';
-                logoEl.style.color = '#1a1a2e';
+                logoEl.style.color = '#0d1117';
                 logoEl.innerHTML = getInitials(player.nombre);
             };
             img.src = getTeamLogo(player.equipo_nombre);
@@ -464,15 +465,15 @@ async function createOffensiveChart(stats) {
                 label: 'Estadísticas',
                 data: [stats.h, stats.d, stats.t, stats.hr, stats.bb, stats.so, stats.sb],
                 backgroundColor: [
-                    'rgba(255, 215, 0, 0.8)',
-                    'rgba(255, 140, 0, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(255, 152, 0, 0.8)',
                     'rgba(255, 107, 53, 0.8)',
-                    'rgba(220, 20, 60, 0.8)',
+                    'rgba(244, 67, 54, 0.8)',
                     'rgba(102, 126, 234, 0.8)',
                     'rgba(255, 99, 132, 0.5)',
                     'rgba(75, 192, 192, 0.8)'
                 ],
-                borderColor: 'rgba(255, 215, 0, 0.3)',
+                borderColor: 'rgba(255, 193, 7, 0.3)',
                 borderWidth: 1,
                 borderRadius: 6
             }]
@@ -490,7 +491,7 @@ async function createOffensiveChart(stats) {
                     grid: { color: 'rgba(255, 255, 255, 0.05)' }
                 },
                 x: {
-                    ticks: { color: '#ffd700', font: { weight: 'bold' } },
+                    ticks: { color: '#ffc107', font: { weight: 'bold' } },
                     grid: { display: false }
                 }
             }
@@ -527,11 +528,11 @@ async function createRadarChart(playerStats, allStats) {
             datasets: [{
                 label: playerStats.jugador_nombre || 'Jugador',
                 data: playerVals,
-                backgroundColor: 'rgba(255, 215, 0, 0.2)',
-                borderColor: '#ffd700',
+                backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                borderColor: '#ffc107',
                 borderWidth: 2,
-                pointBackgroundColor: '#ffd700',
-                pointBorderColor: '#ff8c00',
+                pointBackgroundColor: '#ffc107',
+                pointBorderColor: '#ff9800',
                 pointRadius: 4
             }]
         },
@@ -540,7 +541,7 @@ async function createRadarChart(playerStats, allStats) {
             maintainAspectRatio: true,
             plugins: {
                 legend: {
-                    labels: { color: '#ffd700' }
+                    labels: { color: '#ffc107' }
                 }
             },
             scales: {
@@ -551,10 +552,10 @@ async function createRadarChart(playerStats, allStats) {
                         color: 'rgba(255, 255, 255, 0.4)',
                         backdropColor: 'transparent'
                     },
-                    grid: { color: 'rgba(255, 215, 0, 0.15)' },
-                    angleLines: { color: 'rgba(255, 215, 0, 0.15)' },
+                    grid: { color: 'rgba(255, 193, 7, 0.15)' },
+                    angleLines: { color: 'rgba(255, 193, 7, 0.15)' },
                     pointLabels: {
-                        color: '#ff8c00',
+                        color: '#ff9800',
                         font: { size: 12, weight: 'bold' }
                     }
                 }

@@ -14,27 +14,16 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: #0d1117;
             color: #ffffff;
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
         }
 
-        /* Efectos de fondo con fuego */
+        /* Fondo limpio */
         body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(ellipse at 20% 50%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
-                radial-gradient(ellipse at 40% 80%, rgba(220, 20, 60, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
+            display: none;
         }
 
         .container {
@@ -52,9 +41,8 @@
             text-align: center;
             margin-bottom: 40px;
             padding: 30px 20px;
-            background: linear-gradient(45deg, #ffd700, #ff8c00, #ff6b35);
+            background: #161b22; border: 1px solid rgba(255,193,7,0.2);
             border-radius: 20px;
-            animation: float 6s ease-in-out infinite;
             position: sticky; /* ✅ NUEVO */
             top: 0; /* ✅ NUEVO */
             z-index: 1000; /* ✅ NUEVO: Asegurar que esté sobre otros elementos */
@@ -92,24 +80,7 @@
 
 
         .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shine 3s infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-10px) rotate(1deg); }
-        }
-
-        @keyframes shine {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            display: none;
         }
 
         .header-content {
@@ -135,7 +106,7 @@
             background-repeat: no-repeat;
             background-position: center;
             border-radius: 50%;
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
             animation: rotate 20s linear infinite;
             transition: width 0.3s ease, height 0.3s ease; /* ✅ NUEVO: Transición suave para el tamaño */
         }
@@ -150,17 +121,18 @@
             font-weight: bold;
             text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #1a1a2e, #16213e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #ffc107;
+            background: none;
+            -webkit-background-clip: unset;
+            -webkit-text-fill-color: unset;
+            background-clip: unset;
             transition: font-size 0.3s ease, margin 0.3s ease; /* ✅ NUEVO: Transición suave */
         }
 
         .header p {
             font-size: clamp(0.9rem, 2vw, 1.1rem);
-            opacity: 0.9;
-            color: #1a1a2e;
+            opacity: 0.7;
+            color: #ffffff;
             font-weight: 600;
             transition: font-size 0.3s ease, margin 0.3s ease; /* ✅ NUEVO: Transición suave */
         }
@@ -174,8 +146,8 @@
         }
 
         .nav-tab {
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
-            color: #ffd700;
+            background: #161b22;
+            color: #ffc107;
             border: none;
             padding: 12px 20px;
             border-radius: 15px;
@@ -186,22 +158,22 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.4);
             min-width: 120px;
             text-align: center;
-            border: 2px solid rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.2);
             text-decoration: none; /* ✅ NUEVO: Asegura que <a> no tenga subrayado */
         }
 
         .nav-tab:hover {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 10px 25px rgba(255, 193, 7, 0.4);
         }
 
         .nav-tab.active {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.5);
         }
 
         .tab-content {
@@ -219,40 +191,29 @@
         }
 
         .card {
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            background: #161b22;
             border-radius: 20px;
             padding: 25px;
             margin-bottom: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            border: 2px solid rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.2);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
 
         .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .card:hover::before {
-            left: 100%;
+            display: none;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.3);
-            border-color: rgba(255, 215, 0, 0.4);
+            box-shadow: 0 15px 40px rgba(255, 193, 7, 0.3);
+            border-color: rgba(255, 193, 7, 0.4);
         }
 
         .card h3 {
-            color: #ffd700;
+            color: #ffc107;
             margin-bottom: 20px;
             font-size: 1.4rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
@@ -266,7 +227,7 @@
             box-shadow: inset 0 4px 15px rgba(0,0,0,0.4);
             max-height: 500px;
             overflow-y: auto;
-            border: 2px solid rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.2);
             position: relative;
             z-index: 2;
         }
@@ -274,20 +235,20 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            background: #161b22;
             min-width: 600px;
         }
 
         th, td {
             padding: 12px 8px;
             text-align: left;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 193, 7, 0.2);
             font-size: 0.9rem;
         }
 
         th {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             position: sticky;
@@ -296,14 +257,14 @@
         }
 
         tr:hover {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 193, 7, 0.1);
             transition: all 0.3s ease;
         }
 
         .position-number {
             display: inline-block;
-            background: linear-gradient(45deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             width: 25px;
             height: 25px;
             border-radius: 50%;
@@ -312,7 +273,7 @@
             font-weight: bold;
             margin-right: 8px;
             font-size: 0.8rem;
-            box-shadow: 0 2px 5px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 2px 5px rgba(255, 193, 7, 0.4);
         }
 
         .playoff-indicator {
@@ -327,20 +288,20 @@
         }
        
         .playoffs-list [data-list] { display: flex; flex-direction: column; gap: 10px; }
-        .seed-row { display: flex; align-items: center; background: rgba(255, 215, 0, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #ffd700; }
-        .seed-num { font-weight: bold; color: #ffd700; margin-right: 15px; font-size: 1.2em; }
+        .seed-row { display: flex; align-items: center; background: rgba(255, 193, 7, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #ffc107; }
+        .seed-num { font-weight: bold; color: #ffc107; margin-right: 15px; font-size: 1.2em; }
         .seed-team { flex-grow: 1; font-size: 1.1em; }
         .seed-record { font-style: italic; color: #ccc; }
 
 
         .eliminated {
-            color: #dc143c;
+            color: #f44336;
             font-size: 0.8rem;
             font-weight: bold;
         }
 
         .warning {
-            color: #ff8c00;
+            color: #ff9800;
             font-size: 0.8rem;
             font-weight: bold;
         }
@@ -348,7 +309,7 @@
         .empty-state, [data-empty] {
             text-align: center;
             padding: 40px 20px;
-            color: #ffd700;
+            color: #ffc107;
             font-style: italic;
             display: none;
         }
@@ -356,7 +317,7 @@
         .loading, [data-loader] {
             text-align: center;
             padding: 40px 20px;
-            color: #ffd700;
+            color: #ffc107;
             font-weight: bold;
         }
        
@@ -371,7 +332,7 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            background: #ffc107;
             border-radius: 50%;
             margin-left: 10px;
             animation: pulse 1.5s ease-in-out infinite;
@@ -386,14 +347,14 @@
             position: fixed;
             top: 15px;
             right: 15px;
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             padding: 8px 16px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
             font-size: 0.9rem;
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
             transition: all 0.3s ease;
             z-index: 1001; /* ✅ MODIFICADO: Aumentado para estar sobre el header */
             border: 2px solid rgba(255, 255, 255, 0.2);
@@ -403,8 +364,8 @@
 
         .admin-link:hover {
             transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.6);
-            color: #1a1a2e;
+            box-shadow: 0 10px 25px rgba(255, 193, 7, 0.6);
+            color: #0d1117;
             text-decoration: none;
         }
 
@@ -420,12 +381,12 @@
 
         .error-message {
             background: rgba(220, 20, 60, 0.2);
-            color: #dc143c;
+            color: #f44336;
             padding: 10px 15px;
             border-radius: 8px;
             margin-bottom: 15px;
             font-weight: bold;
-            border: 1px solid #dc143c;
+            border: 1px solid #f44336;
         }
        
         .position-leaders-grid {
@@ -436,21 +397,21 @@
         }
 
         .position-card {
-            background: linear-gradient(135deg, #16213e, #1a1a2e);
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            background: #161b22;
+            border: 2px solid rgba(255, 193, 7, 0.3);
             border-radius: 12px;
             padding: 15px;
             transition: all 0.3s ease;
         }
 
         .position-card:hover {
-            border-color: #ffd700;
+            border-color: #ffc107;
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
         }
 
         .position-title {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 1rem;
             font-weight: bold;
             text-align: center;
@@ -464,7 +425,7 @@
         }
         .position-leader-item {
             padding: 10px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 193, 7, 0.1);
         }
         .position-leader-item:last-child {
             border-bottom: none;
@@ -480,21 +441,21 @@
             font-size: 0.9rem;
         }
         .position-team {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 0.7rem;
             opacity: 0.8;
         }
         .position-rating {
-            color: #ff8c00;
+            color: #ff9800;
             font-weight: bold;
             font-size: 1.1rem;
         }
         .war-stats {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
+            background: rgba(255, 193, 7, 0.1);
             border-radius: 10px;
             padding: 15px;
             margin: 15px 0;
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 193, 7, 0.3);
         }
         .war-breakdown {
             display: grid;
@@ -505,11 +466,11 @@
         .war-component {
             text-align: center;
             padding: 8px;
-            background: rgba(26, 26, 46, 0.5);
+            background: #161b22;
             border-radius: 6px;
         }
         .war-component-title {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 0.7rem;
             margin-bottom: 3px;
         }
@@ -558,7 +519,7 @@
 
         .section-header h2 {
             font-size: 2.5rem;
-            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            background: #ffc107;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
@@ -566,7 +527,7 @@
         }
 
         .section-subtitle {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 1.1rem;
             opacity: 0.9;
             font-style: italic;
@@ -580,11 +541,11 @@
         }
 
         .partido-card-enhanced {
-            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: #161b22;
             border-radius: 20px;
             padding: 25px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            border: 2px solid rgba(255, 193, 7, 0.3);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
@@ -598,7 +559,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.1), transparent);
             transition: left 0.6s ease;
         }
 
@@ -608,8 +569,8 @@
 
         .partido-card-enhanced:hover {
             transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(255, 215, 0, 0.4);
-            border-color: #ffd700;
+            box-shadow: 0 25px 50px rgba(255, 193, 7, 0.4);
+            border-color: #ffc107;
         }
 
         .partido-header {
@@ -621,13 +582,13 @@
 
         /* ESTE BLOQUE NO SE MODIFICA PORQUE PERTENECE A OTRA CARD */
         .partido-fecha {
-            background: linear-gradient(45deg, #ff8c00, #ffd700);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             padding: 8px 15px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 0.9rem;
-            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
         }
 
         .partido-estado {
@@ -661,7 +622,7 @@
         .equipo-nombre {
             font-size: 1.3rem;
             font-weight: bold;
-            color: #ffd700;
+            color: #ffc107;
             margin-bottom: 8px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             cursor: pointer;
@@ -669,7 +630,7 @@
         }
 
         .equipo-nombre:hover {
-            color: #ff8c00;
+            color: #ff9800;
         }
 
         .equipo-record {
@@ -681,7 +642,7 @@
         .vs-separator {
             font-size: 1.8rem;
             font-weight: bold;
-            color: #ff8c00;
+            color: #ff9800;
             margin: 0 20px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
             animation: pulse-vs 2s infinite;
@@ -693,11 +654,11 @@
         }
 
         .partido-info {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 193, 7, 0.1);
             border-radius: 15px;
             padding: 15px;
             margin-top: 20px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 193, 7, 0.3);
         }
 
         .info-row {
@@ -708,7 +669,7 @@
         }
 
         .info-label {
-            color: #ffd700;
+            color: #ffc107;
             font-weight: bold;
         }
 
@@ -719,14 +680,14 @@
         .countdown-timer {
             text-align: center;
             margin: 15px 0;
-            background: linear-gradient(45deg, #16213e, #1a1a2e);
+            background: #161b22;
             border-radius: 12px;
             padding: 15px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 193, 7, 0.3);
         }
 
         .countdown-label {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 0.8rem;
             margin-bottom: 8px;
             text-transform: uppercase;
@@ -736,7 +697,7 @@
         .countdown-value {
             font-size: 1.4rem;
             font-weight: bold;
-            color: #ff8c00;
+            color: #ff9800;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
 
@@ -761,40 +722,40 @@
         }
 
         .btn-primary {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+            background: #ffc107;
+            color: #0d1117;
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
         }
 
         .btn-primary:hover {
             transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.6);
+            box-shadow: 0 10px 30px rgba(255, 193, 7, 0.6);
         }
 
         .btn-secondary {
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
-            color: #ffd700;
-            border: 2px solid rgba(255, 215, 0, 0.5);
+            background: #161b22;
+            color: #ffc107;
+            border: 2px solid rgba(255, 193, 7, 0.5);
             box-shadow: 0 6px 20px rgba(0,0,0,0.4);
         }
 
         .btn-secondary:hover {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             transform: translateY(-3px) scale(1.05);
         }
 
         .loading-state {
             text-align: center;
             padding: 60px 20px;
-            color: #ffd700;
+            color: #ffc107;
         }
 
         .loading-spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid rgba(255, 215, 0, 0.3);
-            border-top: 4px solid #ffd700;
+            border: 4px solid rgba(255, 193, 7, 0.3);
+            border-top: 4px solid #ffc107;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -822,7 +783,7 @@
 
         .leaders-section-header h3 {
             font-size: 2rem;
-            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            background: #ffc107;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 15px;
@@ -835,16 +796,16 @@
             gap: 15px;
             margin-bottom: 30px;
             padding: 20px;
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            background: #161b22;
             border-radius: 15px;
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            border: 2px solid rgba(255, 193, 7, 0.3);
         }
 
         .leader-filter {
             padding: 10px 20px;
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
-            color: #ffd700;
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            background: #161b22;
+            color: #ffc107;
+            border: 2px solid rgba(255, 193, 7, 0.3);
             border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
@@ -861,7 +822,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.1), transparent);
             transition: left 0.6s ease;
         }
 
@@ -870,17 +831,17 @@
         }
 
         .leader-filter:hover {
-            border-color: #ffd700;
+            border-color: #ffc107;
             transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
         }
 
         .leader-filter.active {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
-            border-color: #ff8c00;
+            background: #ffc107;
+            color: #0d1117;
+            border-color: #ff9800;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5);
         }
        
         /* ✅ INICIO: ESTILOS MODIFICADOS PARA NUEVAS TARJETAS DE LÍDERES */
@@ -891,8 +852,8 @@
         }
 
         .leader-card {
-            background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(15, 15, 30, 0.9));
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            background: #161b22;
+            border: 1px solid rgba(255, 193, 7, 0.2);
             border-radius: 15px;
             padding: 15px;
             display: flex;
@@ -903,14 +864,14 @@
 
         .leader-card:hover {
             transform: translateY(-3px);
-            border-color: rgba(255, 215, 0, 0.5);
-            box-shadow: 0 6px 18px rgba(255, 215, 0, 0.25);
+            border-color: rgba(255, 193, 7, 0.5);
+            box-shadow: 0 6px 18px rgba(255, 193, 7, 0.25);
         }
 
         .leader-rank {
             min-width: 40px;
             height: 40px;
-            color: #1a1a2e;
+            color: #0d1117;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -932,7 +893,7 @@
 
         .leader-info .team-name {
             font-size: 0.85rem;
-            color: rgba(255, 215, 0, 0.8);
+            color: rgba(255, 193, 7, 0.8);
             margin: 0;
         }
 
@@ -951,12 +912,12 @@
             display: block;
             font-size: 1.2rem;
             font-weight: bold;
-            color: #ff8c00;
+            color: #ff9800;
         }
 
         .stat-label {
             font-size: 0.75rem;
-            color: #ffd700;
+            color: #ffc107;
             opacity: 0.8;
         }
         /* ✅ FIN: ESTILOS MODIFICADOS PARA NUEVAS TARJETAS DE LÍDERES */
@@ -983,23 +944,23 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            background: #161b22;
             border-radius: 20px;
             padding: 30px;
             max-width: 800px;
             width: 90%;
             max-height: 80%;
             overflow-y: auto;
-            border: 2px solid #ffd700;
-            box-shadow: 0 20px 50px rgba(255, 215, 0, 0.4);
+            border: 2px solid #ffc107;
+            box-shadow: 0 20px 50px rgba(255, 193, 7, 0.4);
         }
 
         .comparison-header {
             text-align: center;
             margin-bottom: 25px;
-            color: #ffd700;
+            color: #ffc107;
             font-size: 1.5rem;
-            border-bottom: 2px solid #ffd700;
+            border-bottom: 2px solid #ffc107;
             padding-bottom: 15px;
         }
 
@@ -1011,16 +972,16 @@
         }
 
         .player-comparison {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 193, 7, 0.1);
             border-radius: 15px;
             padding: 20px;
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 193, 7, 0.3);
         }
 
         .player-name-comparison {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #ffd700;
+            color: #ffc107;
             margin-bottom: 15px;
             text-align: center;
         }
@@ -1035,7 +996,7 @@
         }
 
         .stat-comparison-row:hover {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 193, 7, 0.1);
         }
 
         .stat-label-comparison {
@@ -1044,7 +1005,7 @@
         }
 
         .stat-value-comparison {
-            color: #ff8c00;
+            color: #ff9800;
             font-weight: bold;
         }
 
@@ -1054,19 +1015,19 @@
             right: 20px;
             background: none;
             border: none;
-            color: #ffd700;
+            color: #ffc107;
             font-size: 2rem;
             cursor: pointer;
             transition: color 0.3s ease;
         }
 
         .close-comparison:hover {
-            color: #ff8c00;
+            color: #ff9800;
         }
 
         .compare-btn {
-            background: linear-gradient(145deg, #ff8c00, #ffd700);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             border: none;
             padding: 8px 15px;
             border-radius: 15px;
@@ -1079,7 +1040,7 @@
 
         .compare-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
         }
 
         .fade-in-up {
@@ -1118,8 +1079,8 @@
             }
            
             .nav-tab {
-                background: linear-gradient(145deg, #16213e, #1a1a2e);
-                color: #ffd700;
+                background: #161b22;
+                color: #ffc107;
                 border: none;
                 padding: 12px 20px;
                 border-radius: 15px;
@@ -1130,7 +1091,7 @@
                 box-shadow: 0 6px 20px rgba(0,0,0,0.4);
                 min-width: 120px;
                 text-align: center;
-                border: 2px solid rgba(255, 215, 0, 0.2);
+                border: 2px solid rgba(255, 193, 7, 0.2);
                 flex: none;
             }
            
@@ -1157,7 +1118,7 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background: linear-gradient(180deg, rgba(26, 26, 46, 0.95), rgba(26, 26, 46, 1));
+                background: rgba(13, 17, 23, 0.95);
                 padding: 12px 0;
                 border-top: none;
                 box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
@@ -1196,13 +1157,13 @@
             /* ✅ Efecto táctil al tocar */
             .nav-tab:active {
               transform: scale(0.95);
-              background: rgba(255, 215, 0, 0.1);
+              background: rgba(255, 193, 7, 0.1);
             }
 
             /* ✅ Estado activo */
             .nav-tab.active {
-              color: #ffd700;
-              background: rgba(255, 215, 0, 0.15);
+              color: #ffc107;
+              background: rgba(255, 193, 7, 0.15);
             }
 
             .nav-tab.active::before {
@@ -1225,22 +1186,22 @@
                 position: fixed;
                 top: 15px;
                 left: 15px;
-                background: linear-gradient(145deg, #ffd700, #ff8c00);
-                color: #1a1a2e;
+                background: #ffc107;
+                color: #0d1117;
                 border: none;
                 width: 45px;
                 height: 45px;
                 border-radius: 50%;
                 font-size: 1.2rem;
                 cursor: pointer;
-                box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+                box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
                 z-index: 1001;
                 transition: all 0.3s ease;
             }
 
             .mobile-menu-toggle:hover {
                 transform: scale(1.1);
-                box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+                box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
             }
 
             .mobile-menu {
@@ -1249,12 +1210,12 @@
                 left: -300px;
                 width: 280px;
                 height: 100vh;
-                background: linear-gradient(145deg, #1a1a2e, #16213e);
+                background: #161b22;
                 box-shadow: 5px 0 20px rgba(0,0,0,0.5);
                 z-index: 999;
                 transition: left 0.3s ease;
                 padding: 80px 20px 20px;
-                border-right: 2px solid rgba(255, 215, 0, 0.3);
+                border-right: 2px solid rgba(255, 193, 7, 0.3);
             }
 
             .mobile-menu.active {
@@ -1281,16 +1242,16 @@
 
             .mobile-menu-item {
                 display: block;
-                color: #ffd700;
+                color: #ffc107;
                 text-decoration: none;
                 padding: 15px 10px;
-                border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+                border-bottom: 1px solid rgba(255, 193, 7, 0.2);
                 font-weight: bold;
                 transition: all 0.3s ease;
             }
 
             .mobile-menu-item:hover {
-                background: rgba(255, 215, 0, 0.1);
+                background: rgba(255, 193, 7, 0.1);
                 transform: translateX(10px);
             }
         }
@@ -1424,7 +1385,7 @@
             bottom: 70px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(255, 215, 0, 0.6);
+            color: rgba(255, 193, 7, 0.6);
             font-size: 0.8rem;
             text-align: center;
             z-index: 999;
@@ -1523,13 +1484,13 @@
 
         @media (prefers-color-scheme: dark) {
             body {
-                background: linear-gradient(135deg, #0a0a1a 0%, #0c1428 50%, #061e3c 100%);
+                background: #0d1117;
             }
         }
        
         .main-footer {
-          background: linear-gradient(145deg, #0f1419, #1a1a2e);
-          border-top: 2px solid rgba(255, 215, 0, 0.3);
+          background: #0d1117;
+          border-top: 2px solid rgba(255, 193, 7, 0.3);
           margin-top: 60px;
           padding: 40px 0 20px;
         }
@@ -1544,7 +1505,7 @@
         }
 
         .footer-section h4 {
-          color: #ffd700;
+          color: #ffc107;
           font-size: 1.1rem;
           margin-bottom: 15px;
           font-weight: bold;
@@ -1568,7 +1529,7 @@
         }
 
         .footer-brand {
-          color: #ffd700;
+          color: #ffc107;
           font-size: 1.2rem;
           font-weight: bold;
         }
@@ -1597,12 +1558,12 @@
         }
 
         .footer-links a:hover {
-          color: #ffd700;
+          color: #ffc107;
           opacity: 1;
         }
 
         .footer-bottom {
-          border-top: 1px solid rgba(255, 215, 0, 0.2);
+          border-top: 1px solid rgba(255, 193, 7, 0.2);
           margin-top: 30px;
           padding-top: 20px;
           text-align: center;
@@ -1631,17 +1592,17 @@
        
         /* ============= PLAYOFFS ============= */
         .playoffs-container {
-            background: linear-gradient(145deg, rgba(26, 26, 46, 0.9), rgba(15, 15, 30, 0.95));
+            background: #161b22;
             border-radius: 15px;
             padding: 1.5rem;
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.2);
         }
         .playoffs-config {
             display: flex;
             justify-content: space-around;
             margin-bottom: 1.5rem;
             padding: 1rem;
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 193, 7, 0.1);
             border-radius: 10px;
             gap: 1rem;
             flex-wrap: wrap;
@@ -1651,7 +1612,7 @@
             color: #fff;
         }
         .playoffs-config strong {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 1.1rem;
         }
         .table-container {
@@ -1664,8 +1625,8 @@
             font-size: 0.9rem;
         }
         .tabla-playoffs th {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             padding: 0.75rem 0.5rem;
             text-align: center;
             font-weight: bold;
@@ -1678,14 +1639,14 @@
         .tabla-playoffs td {
             padding: 0.75rem 0.5rem;
             text-align: center;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 193, 7, 0.1);
             white-space: nowrap;
         }
         .tabla-playoffs tbody tr {
             transition: background 0.3s ease;
         }
         .tabla-playoffs tbody tr:hover {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 193, 7, 0.1);
         }
         /* Estados de clasificación */
         .tabla-playoffs .estado-clasificado {
@@ -1698,7 +1659,7 @@
         /* Columnas especiales */
         .pos-col {
             font-weight: bold;
-            color: #ffd700;
+            color: #ffc107;
         }
         .equipo-col {
             text-align: left !important;
@@ -1729,7 +1690,7 @@
         }
         .badge.contención {
             background: linear-gradient(145deg, #c68a00, #eab308);
-            color: #1a1a2e;
+            color: #0d1117;
             box-shadow: 0 2px 4px rgba(198, 138, 0, 0.3);
         }
         .badge.eliminado {
@@ -1740,12 +1701,12 @@
         /* Leyenda */
         .playoffs-leyenda {
             padding: 1rem;
-            background: rgba(26, 26, 46, 0.5);
+            background: #161b22;
             border-radius: 10px;
-            border: 1px solid rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.1);
         }
         .playoffs-leyenda h4 {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 0.95rem;
             margin-bottom: 0.75rem;
         }
@@ -1806,13 +1767,13 @@
             gap: 15px;
             margin: 30px 0;
             padding: 20px;
-            background: rgba(26, 26, 46, 0.5);
+            background: #161b22;
             border-radius: 15px;
         }
         .toggle-btn {
             padding: 12px 30px;
-            background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid rgba(255, 193, 7, 0.3);
             border-radius: 12px;
             color: #fff;
             font-size: 1rem;
@@ -1821,23 +1782,23 @@
             transition: all 0.3s ease;
         }
         .toggle-btn:hover {
-            border-color: #ffd700;
-            background: linear-gradient(145deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.2));
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.2);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
         }
         .toggle-btn.active {
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
-            border-color: #ff8c00;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            background: #ffc107;
+            color: #0d1117;
+            border-color: #ff9800;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
         }
         /* Contenedor principal de barras */
         .playoffs-barras-container {
-            background: linear-gradient(145deg, rgba(26, 26, 46, 0.9), rgba(15, 15, 30, 0.95));
+            background: #161b22;
             border-radius: 20px;
             padding: 30px;
-            border: 2px solid rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.2);
         }
         .barras-header {
             text-align: center;
@@ -1845,9 +1806,9 @@
         }
         .barras-header h3 {
             font-size: 2rem;
-            color: #ffd700;
+            color: #ffc107;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            text-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
         }
         .barras-subtitle {
             color: rgba(255, 255, 255, 0.7);
@@ -1862,7 +1823,7 @@
         }
         /* Card de equipo individual */
         .equipo-barra-card {
-            background: linear-gradient(145deg, rgba(30, 30, 50, 0.8), rgba(20, 20, 40, 0.9));
+            background: #161b22;
             border-radius: 15px;
             padding: 20px;
             border: 2px solid transparent;
@@ -1877,7 +1838,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.1), transparent);
             transition: left 0.6s ease;
         }
         .equipo-barra-card:hover::before {
@@ -1885,7 +1846,7 @@
         }
         .equipo-barra-card:hover {
             transform: translateX(8px);
-            box-shadow: -5px 5px 20px rgba(255, 215, 0, 0.3);
+            box-shadow: -5px 5px 20px rgba(255, 193, 7, 0.3);
         }
         /* Bordes según zona */
         .clasificado-zona {
@@ -1914,14 +1875,14 @@
             text-align: center;
         }
         .linea-corte span {
-            background: #1a1a2e;
+            background: #0d1117;
             padding: 5px 20px;
-            color: #ffd700;
+            color: #ffc107;
             font-size: 0.85rem;
             font-weight: bold;
             border-radius: 20px;
-            border: 2px solid #ffd700;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            border: 2px solid #ffc107;
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
         }
         /* Info del equipo */
         .equipo-info-bar {
@@ -1933,13 +1894,13 @@
         .equipo-ranking {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #ffd700;
+            color: #ffc107;
             min-width: 45px;
             text-align: center;
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 193, 7, 0.1);
             padding: 8px;
             border-radius: 10px;
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            border: 2px solid rgba(255, 193, 7, 0.3);
         }
         .equipo-detalles {
             flex: 1;
@@ -1958,8 +1919,8 @@
         .equipo-probabilidad {
             font-size: 2rem;
             font-weight: bold;
-            color: #ffd700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            color: #ffc107;
+            text-shadow: 0 0 15px rgba(255, 193, 7, 0.6);
             min-width: 80px;
             text-align: right;
         }
@@ -2027,7 +1988,7 @@
         }
         .contencion-badge {
             background: linear-gradient(145deg, #ca8a04, #eab308);
-            color: #1a1a2e;
+            color: #0d1117;
             box-shadow: 0 2px 8px rgba(234, 179, 8, 0.4);
         }
         .peligro-badge {
@@ -2042,13 +2003,13 @@
         }
         /* Leyenda */
         .barras-leyenda {
-            background: rgba(26, 26, 46, 0.6);
+            background: #161b22;
             border-radius: 15px;
             padding: 20px;
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.2);
         }
         .barras-leyenda h4 {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 1.1rem;
             margin-bottom: 15px;
         }
@@ -2147,18 +2108,18 @@
             gap: 2rem;
         }
         .pos-section {
-            background: rgba(26, 26, 46, 0.3);
+            background: rgba(13, 17, 23, 0.3);
             border-radius: 12px;
             padding: 1.5rem;
-            border: 1px solid rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.15);
         }
         .pos-header {
-            color: #ffd700;
+            color: #ffc107;
             font-size: 1.2rem;
             font-weight: bold;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 193, 7, 0.3);
         }
         .pos-cards {
             display: grid;
@@ -2166,8 +2127,8 @@
             gap: 1rem;
         }
         .leader-card-mini {
-            background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(15, 15, 30, 0.9));
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            background: #161b22;
+            border: 1px solid rgba(255, 193, 7, 0.2);
             border-radius: 10px;
             padding: 1rem;
             display: flex;
@@ -2177,14 +2138,14 @@
         }
         .leader-card-mini:hover {
             transform: translateY(-2px);
-            border-color: rgba(255, 215, 0, 0.5);
-            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 193, 7, 0.5);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
         }
         .rank-badge {
             min-width: 2.5rem;
             height: 2.5rem;
-            background: linear-gradient(145deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -2202,7 +2163,7 @@
             margin-bottom: 0.25rem;
         }
         .player-team {
-            color: rgba(255, 215, 0, 0.7);
+            color: rgba(255, 193, 7, 0.7);
             font-size: 0.8rem;
         }
         .player-stats {
@@ -2212,8 +2173,8 @@
             align-items: center;
         }
         .stat-primary {
-            background: rgba(255, 215, 0, 0.15);
-            color: #ffd700;
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
             padding: 0.25rem 0.5rem;
             border-radius: 6px;
             font-weight: bold;
@@ -2248,10 +2209,10 @@
 
         /* Sección de cada posición */
         .position-section {
-            background: linear-gradient(145deg, #1e1e3f, #1a1a2e);
+            background: #161b22;
             border-radius: 24px;
             padding: 30px;
-            border: 2px solid rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.2);
             position: relative;
             overflow: hidden;
         }
@@ -2264,7 +2225,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255, 215, 0, 0.05) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 193, 7, 0.05) 0%, transparent 70%);
             opacity: 0;
             transition: opacity 0.4s ease;
         }
@@ -2277,17 +2238,17 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            color: #ffd700;
+            color: #ffc107;
             font-size: 1.6rem;
             font-weight: bold;
             margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 193, 7, 0.3);
         }
 
         .position-icon {
             font-size: 2.2rem;
-            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+            filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.5));
         }
 
         /* Grid de cards */
@@ -2300,13 +2261,13 @@
         /* ✅ CARD DE JUGADOR PREMIUM */
         .player-card {
             position: relative;
-            background: linear-gradient(145deg, #252542, #1a1a2e);
+            background: #161b22;
             border-radius: 18px;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            border: 2px solid rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.2);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             overflow: hidden;
             cursor: pointer;
@@ -2320,7 +2281,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.15), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.15), transparent);
             transition: left 0.6s ease;
         }
         .player-card:hover::before {
@@ -2330,24 +2291,24 @@
         /* Hover effect */
         .player-card:hover {
             transform: translateY(-12px) scale(1.02);
-            border-color: #ffd700;
-            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.4);
+            border-color: #ffc107;
+            box-shadow: 0 12px 40px rgba(255, 193, 7, 0.4);
         }
 
         /* Efecto highlight en búsqueda */
         .player-card.highlight {
-            border-color: #ff8c00;
-            box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
+            border-color: #ff9800;
+            box-shadow: 0 0 30px rgba(255, 152, 0, 0.6);
             animation: pulse-highlight 1.5s infinite;
         }
         @keyframes pulse-highlight {
             0%, 100% { 
                 transform: scale(1); 
-                box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
+                box-shadow: 0 0 30px rgba(255, 152, 0, 0.6);
             }
             50% { 
                 transform: scale(1.03); 
-                box-shadow: 0 0 40px rgba(255, 140, 0, 0.8);
+                box-shadow: 0 0 40px rgba(255, 152, 0, 0.8);
             }
         }
 
@@ -2380,10 +2341,10 @@
             height: 90px;
             border-radius: 50%;
             overflow: hidden;
-            border: 4px solid #ffd700;
+            border: 4px solid #ffc107;
             margin: 10px auto 0;
-            background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            background: #161b22;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
             transition: all 0.3s ease;
 
  /* Información del jugador */
@@ -2399,7 +2360,7 @@
         .player-name {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #ffd700;
+            color: #ffc107;
             margin-bottom: 5px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
@@ -2416,7 +2377,7 @@
             gap: 12px;
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 1px solid rgba(255, 215, 0, 0.2);
+            border-top: 1px solid rgba(255, 193, 7, 0.2);
             justify-content: center;
         }
         .player-card .player-stats .stat { /* Especificidad aumentada */
@@ -2428,8 +2389,8 @@
         .player-card .player-stats .stat-value { /* Especificidad aumentada */
             font-size: 1.4rem;
             font-weight: bold;
-            color: #ffd700;
-            text-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+            color: #ffc107;
+            text-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
         }
         .player-card .player-stats .stat-label { /* Especificidad aumentada */
             font-size: 0.7rem;
@@ -2466,17 +2427,17 @@
             padding: 50px 20px;
             color: rgba(255, 255, 255, 0.5);
             font-style: italic;
-            background: rgba(255, 215, 0, 0.05);
+            background: rgba(255, 193, 7, 0.05);
             border-radius: 12px;
-            border: 2px dashed rgba(255, 215, 0, 0.2);
+            border: 2px dashed rgba(255, 193, 7, 0.2);
         }
 
         /* Estilos del buscador */
         #searchPlayerInput:focus {
             outline: none;
-            border-color: #ffd700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-            background: rgba(26, 26, 46, 0.95);
+            border-color: #ffc107;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+            background: rgba(13, 17, 23, 0.95);
         }
         #searchPlayerInput::placeholder {
             color: rgba(255, 255, 255, 0.5);
@@ -2540,10 +2501,10 @@
         /* ✅ INICIO BLOQUE 1 MODIFICADO */
         /* ============================ */
         .proximo-partido-card {
-            background: linear-gradient(145deg, rgba(26, 26, 46, 0.95), rgba(15, 52, 96, 0.85));
+            background: #161b22;
             border-radius: 12px;
             padding: 16px;
-            border: 2px solid rgba(255, 215, 0, 0.15);
+            border: 2px solid rgba(255, 193, 7, 0.15);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -2563,7 +2524,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            background: #ffc107;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -2572,8 +2533,8 @@
         }
         .proximo-partido-card:hover {
             transform: translateY(-3px);
-            border-color: rgba(255, 215, 0, 0.4);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+            border-color: rgba(255, 193, 7, 0.4);
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.15);
         }
         .partido-header {
             display: flex;
@@ -2586,8 +2547,8 @@
         /* ✅ INICIO BLOQUE 4 MODIFICADO */
         /* ============================ */
         .partido-fecha {
-            background: linear-gradient(45deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.75rem;
@@ -2628,13 +2589,13 @@
         .equipo-logo {
             width: 50px;
             height: 50px;
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 193, 7, 0.1);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
-            border: 2px solid rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 193, 7, 0.2);
         }
         /* ========================== */
         /* ✅ FIN BLOQUE 2 MODIFICADO */
@@ -2657,8 +2618,8 @@
         .vs-separator {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #ff8c00;
-            text-shadow: 0 0 10px rgba(255, 140, 0, 0.5);
+            color: #ff9800;
+            text-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
         }
         @media (max-width: 768px) {
             .proximos-partidos-container {
@@ -2677,8 +2638,8 @@
         
         /* CARDS PROFESIONALES DE JUGADORES */
         .professional-player-card {
-            background: linear-gradient(145deg, rgba(26, 26, 46, 0.95), rgba(30, 30, 50, 0.95));
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            background: #161b22;
+            border: 1px solid rgba(255, 193, 7, 0.2);
             border-radius: 12px;
             padding: 20px;
             margin: 10px;
@@ -2692,8 +2653,8 @@
 
         .professional-player-card:hover {
             transform: translateY(-5px);
-            border-color: rgba(255, 215, 0, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 193, 7, 0.5);
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
         }
 
         .professional-player-card::before {
@@ -2703,7 +2664,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            background: #ffc107;
         }
 
         .card-header {
@@ -2750,18 +2711,18 @@
 
         .team-name {
             font-size: 12px;
-            color: #ffd700;
+            color: #ffc107;
             font-weight: 500;
         }
 
         .position-badge {
-            background: rgba(255, 215, 0, 0.2);
-            color: #ffd700;
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 10px;
             font-weight: bold;
-            border: 1px solid rgba(255, 215, 0, 0.3);
+            border: 1px solid rgba(255, 193, 7, 0.3);
         }
 
         .primary-stat {
@@ -2804,12 +2765,12 @@
             text-align: center;
             margin-top: 10px;
             padding-top: 10px;
-            border-top: 1px solid rgba(255, 215, 0, 0.1);
+            border-top: 1px solid rgba(255, 193, 7, 0.1);
         }
 
         .metric-footer span {
             font-size: 11px;
-            color: rgba(255, 215, 0, 0.8);
+            color: rgba(255, 193, 7, 0.8);
             font-weight: 500;
         }
 
@@ -2817,12 +2778,12 @@
             text-align: center;
             margin-top: 15px;
             padding-top: 10px;
-            border-top: 1px solid rgba(255, 215, 0, 0.1);
+            border-top: 1px solid rgba(255, 193, 7, 0.1);
         }
 
         .view-profile {
             font-size: 12px;
-            color: #ffd700;
+            color: #ffc107;
             font-weight: 500;
             opacity: 0.8;
             transition: opacity 0.3s ease;
@@ -2854,8 +2815,8 @@
 
         /* Card "Ver más" */
         .ver-mas-card {
-            background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 140, 0, 0.1));
-            border: 2px dashed rgba(255, 215, 0, 0.3);
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px dashed rgba(255, 193, 7, 0.3);
             border-radius: 12px;
             padding: 30px;
             text-align: center;
@@ -2864,12 +2825,12 @@
         }
 
         .ver-mas-card:hover {
-            border-color: rgba(255, 215, 0, 0.6);
+            border-color: rgba(255, 193, 7, 0.6);
             transform: translateY(-2px);
         }
 
         .ver-mas-content h4 {
-            color: #ffd700;
+            color: #ffc107;
             margin-bottom: 10px;
             font-size: 18px;
         }
@@ -2880,8 +2841,8 @@
         }
 
         .btn-ver-mas {
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
-            color: #1a1a2e;
+            background: #ffc107;
+            color: #0d1117;
             border: none;
             padding: 12px 24px;
             border-radius: 25px;
@@ -2892,7 +2853,7 @@
 
         .btn-ver-mas:hover {
             transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
         }
 </style>
 </head>
@@ -2902,12 +2863,12 @@
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
     <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
     <div class="mobile-menu">
-        <h3 style="color: #ffd700; margin-bottom: 20px; text-align: center;">📱 CHOGUI LEAGUE</h3>
+        <h3 style="color: #ffc107; margin-bottom: 20px; text-align: center;">📱 CHOGUI LEAGUE</h3>
         <a href="#posiciones" class="mobile-menu-item" onclick="mostrarPestana('posiciones'); closeMobileMenu();">🏆 Posiciones</a>
         <a href="#partidos" class="mobile-menu-item" onclick="mostrarPestana('partidos'); closeMobileMenu();">🎯 Partidos</a>
         <a href="#estadisticas" class="mobile-menu-item" onclick="mostrarPestana('estadisticas'); closeMobileMenu();">📊 Líderes</a>
         <a href="#playoffs" class="mobile-menu-item" onclick="mostrarPestana('playoffs'); closeMobileMenu();">🔥 Playoffs</a>
-        <div style="border-top: 1px solid rgba(255, 215, 0, 0.3); margin: 20px 0; padding-top: 20px;">
+        <div style="border-top: 1px solid rgba(255, 193, 7, 0.3); margin: 20px 0; padding-top: 20px;">
             <a href="login.html" class="mobile-menu-item">⚙️ Panel Admin</a>
             <a href="https://wa.me/5491126880792" class="mobile-menu-item" target="_blank">💬 Soporte</a>
         </div>
@@ -2951,9 +2912,9 @@
         #searchInput { /* ID actualizado */
             flex: 1;
             padding: 15px 20px;
-            border: 2px solid rgba(255, 215, 0, 0.3);
+            border: 2px solid rgba(255, 193, 7, 0.3);
             border-radius: 25px;
-            background: linear-gradient(145deg, #16213e, #1a1a2e);
+            background: #161b22;
             color: #fff;
             font-size: 1rem;
             outline: none;
@@ -2961,8 +2922,8 @@
         }
 
         #searchInput:focus { /* ID actualizado */
-            border-color: #ffd700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            border-color: #ffc107;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
         }
 
         #searchInput::placeholder { /* ID actualizado */
@@ -2977,8 +2938,8 @@
             transform: translateX(-50%);
             width: 100%;
             max-width: 600px;
-            background: linear-gradient(145deg, #1a1a2e, #16213e);
-            border: 1px solid #ffd700;
+            background: #161b22;
+            border: 1px solid #ffc107;
             border-radius: 15px;
             margin-top: 8px;
             z-index: 1001;
@@ -2992,7 +2953,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 18px;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 193, 7, 0.1);
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
@@ -3000,12 +2961,12 @@
             border-bottom: none;
         }
         .search-result-item:hover {
-            background-color: rgba(255, 215, 0, 0.1);
+            background-color: rgba(255, 193, 7, 0.1);
         }
-        .player-info strong { color: #ffd700; }
+        .player-info strong { color: #ffc107; }
         .player-info .team-badge { 
-            background: rgba(255, 215, 0, 0.2); 
-            color: #ffd700; 
+            background: rgba(255, 193, 7, 0.2); 
+            color: #ffc107; 
             font-size: 0.75rem; 
             padding: 3px 8px;
             border-radius: 10px;
@@ -3013,16 +2974,16 @@
         }
         .player-stats { font-size: 0.85rem; color: #ccc; }
         .player-stats span { margin-left: 10px; }
-        .no-results, .error-message { padding: 20px; text-align: center; color: #ffd700; }
+        .no-results, .error-message { padding: 20px; text-align: center; color: #ffc107; }
 
         /* ✅ INICIO: CSS AÑADIDO */
         .search-category {
             padding: 10px 18px;
-            background: rgba(255, 215, 0, 0.2);
-            color: #ffd700;
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
             font-weight: bold;
             font-size: 0.85rem;
-            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 193, 7, 0.3);
         }
         /* ✅ FIN: CSS AÑADIDO */
 
@@ -3089,7 +3050,7 @@
                          <tbody id="tablaPosicionesBody"></tbody>
                      </table>
                  </div>
-                 <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem; position: relative; z-index: 2;">
+                 <p style="margin-top: 15px; color: #ffc107; font-size: 0.8rem; position: relative; z-index: 2;">
                      <strong>Leyenda:</strong> PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, %=Porcentaje, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia
                  </p>
              </div>
@@ -3121,7 +3082,7 @@
             <div class="card" id="lideresContainer">
     <div class="leaders-section-header">
         <h3>🏆 Líderes de la Liga</h3>
-        <p style="color: #ffd700; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
+        <p style="color: #ffc107; opacity: 0.9;">Descubre quiénes dominan cada categoría estadística</p>
     </div>
     
     <div class="leaders-filters">
@@ -3134,20 +3095,20 @@
     <!-- Buscadores por categoría -->
     <div class="search-container" id="searchContainerBateo" style="display: none; margin-bottom: 20px;">
         <input type="text" id="searchBateadores" placeholder="🔍 Buscar bateador..." 
-               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffd700; background: rgba(26,26,46,0.8); color: #fff;">
-        <div id="searchResultsBateo" style="margin-top: 10px; color: #ffd700; font-size: 0.9rem;"></div>
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffc107; background: rgba(26,26,46,0.8); color: #fff;">
+        <div id="searchResultsBateo" style="margin-top: 10px; color: #ffc107; font-size: 0.9rem;"></div>
     </div>
 
     <div class="search-container" id="searchContainerPitcheo" style="display: none; margin-bottom: 20px;">
         <input type="text" id="searchPitchers" placeholder="🔍 Buscar pitcher..." 
-               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffd700; background: rgba(26,26,46,0.8); color: #fff;">
-        <div id="searchResultsPitcheo" style="margin-top: 10px; color: #ffd700; font-size: 0.9rem;"></div>
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffc107; background: rgba(26,26,46,0.8); color: #fff;">
+        <div id="searchResultsPitcheo" style="margin-top: 10px; color: #ffc107; font-size: 0.9rem;"></div>
     </div>
 
     <div class="search-container" id="searchContainerDefensiva" style="display: none; margin-bottom: 20px;">
         <input type="text" id="searchDefensivos" placeholder="🔍 Buscar jugador defensivo..." 
-               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffd700; background: rgba(26,26,46,0.8); color: #fff;">
-        <div id="searchResultsDefensiva" style="margin-top: 10px; color: #ffd700; font-size: 0.9rem;"></div>
+               style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ffc107; background: rgba(26,26,46,0.8); color: #fff;">
+        <div id="searchResultsDefensiva" style="margin-top: 10px; color: #ffc107; font-size: 0.9rem;"></div>
     </div>
 
     <!-- Buscador para "Todos" -->
@@ -3161,8 +3122,8 @@
             width: 100%;
             padding: 15px 24px;
             border-radius: 30px;
-            border: 2px solid rgba(255, 215, 0, 0.3);
-            background: rgba(26, 26, 46, 0.8);
+            border: 2px solid rgba(255, 193, 7, 0.3);
+            background: #21262d;
             color: #fff;
             font-size: 16px;
             transition: all 0.3s ease;
@@ -3172,7 +3133,7 @@
       <div id="searchResultsCount" style="
         text-align: center;
         margin-top: 10px;
-        color: rgba(255, 215, 0, 0.8);
+        color: rgba(255, 193, 7, 0.8);
         font-size: 0.9rem;
       "></div>
     </div>
@@ -3235,7 +3196,7 @@
                     <span class="pagination-info">Página <span id="currentPageStats">1</span> de <span id="totalPagesStats">1</span></span>
                     <button class="pagination-btn" id="nextPageStats">Siguiente →</button>
                 </div>
-                <p style="margin-top: 15px; color: #ffd700; font-size: 0.8rem;">
+                <p style="margin-top: 15px; color: #ffc107; font-size: 0.8rem;">
                     <strong>Leyenda:</strong> PA=Plate Appearances, AB=At Bats, H=Hits, 1B=Singles, 2B=Doubles, 3B=Triples, HR=Home Runs, RBI=Runs Batted In, R=Runs, BB=Walks, SO=Strikeouts, SB=Stolen Bases, CS=Caught Stealing, AVG=Batting Average, OBP=On-Base Percentage, SLG=Slugging Percentage, OPS=On-Base Plus Slugging, ISO=Isolated Power, TB=Total Bases
                 </p>
             </div>
@@ -3403,12 +3364,12 @@
                     return `
                     <tr data-equipo-id="${t.equipo_id}">
                         <td><span class="position-number">${posicion}</span></td>
-                        <td><strong style="color: #ffd700;">${t.equipo_nombre ?? ''}</strong></td>
+                        <td><strong style="color: #ffc107;">${t.equipo_nombre ?? ''}</strong></td>
                         <td>${t.pj ?? 0}</td><td style="color: #4CAF50;">${t.pg ?? 0}</td>
-                        <td style="color: #dc143c;">${t.pp ?? 0}</td>
+                        <td style="color: #f44336;">${t.pp ?? 0}</td>
                         <td><strong>${(t.porcentaje != null) ? Number(t.porcentaje).toFixed(3) : '0.000'}</strong></td>
                         <td>${t.cf ?? 0}</td><td>${t.ce ?? 0}</td>
-                        <td style="color: ${t.dif >= 0 ? '#4CAF50' : '#dc143c'};">${t.dif >= 0 ? '+' : ''}${t.dif ?? 0}</td>
+                        <td style="color: ${t.dif >= 0 ? '#4CAF50' : '#f44336'};">${t.dif >= 0 ? '+' : ''}${t.dif ?? 0}</td>
                         <td>${t.estado ?? estadoHTML}</td>
                     </tr>`;
                 }).join('');
@@ -3885,21 +3846,21 @@
                 const style = document.createElement('style');
                 style.innerHTML = `
                     .lideres-categoria { 
-                        background: rgba(255, 215, 0, 0.05); 
+                        background: rgba(255, 193, 7, 0.05); 
                         border-radius: 12px; 
                         padding: 15px; 
-                        border: 1px solid rgba(255, 215, 0, 0.15);
+                        border: 1px solid rgba(255, 193, 7, 0.15);
                         transition: all 0.3s ease;
                     }
                     .lideres-categoria:hover {
-                        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1);
+                        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.1);
                     }
                     .lideres-categoria h3 { 
-                        color: #ffd700; 
+                        color: #ffc107; 
                         font-size: 1.1rem; 
                         margin-bottom: 15px; 
                         padding-bottom: 8px; 
-                        border-bottom: 1px solid rgba(255, 215, 0, 0.2); 
+                        border-bottom: 1px solid rgba(255, 193, 7, 0.2); 
                     }
                     .lideres-lista { 
                         display: flex; 
@@ -3917,12 +3878,12 @@
                         transition: all 0.3s ease;
                     }
                     .lider-item:hover { 
-                        background: rgba(255, 215, 0, 0.1); 
+                        background: rgba(255, 193, 7, 0.1); 
                         transform: translateX(5px);
                     }
                     .lider-posicion { 
                         font-weight: bold; 
-                        color: #ff8c00; 
+                        color: #ff9800; 
                         min-width: 25px; 
                     }
                     .lider-info { 
@@ -3936,7 +3897,7 @@
                     }
                     .lider-valor { 
                         font-weight: bold; 
-                        color: #ffd700; 
+                        color: #ffc107; 
                         font-size: 1.1rem;
                     }
                     @media (max-width: 600px) {
@@ -4502,7 +4463,7 @@
                 `;
             }
 
-            const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+            const rankColors = ['#FFC107', '#C0C0C0', '#CD7F32'];
             const rankColor = rankColors[index] || '#4A90E2';
 
             return `
@@ -4513,7 +4474,7 @@
                     <div class="leader-info">
                         <h3>${nombreJugador}</h3>
                         <p class="team-name">${nombreEquipo}</p>
-                        <p class="player-position" style="color: #ffd700; font-size: 0.85rem; margin: 5px 0 10px 0;">
+                        <p class="player-position" style="color: #ffc107; font-size: 0.85rem; margin: 5px 0 10px 0;">
                             Posición: ${posicion}
                         </p>
                         <div class="leader-stats">
@@ -4701,7 +4662,7 @@
             }
            
             // Colores de ranking
-            const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32', '#4A90E2', '#9B59B6'];
+            const rankColors = ['#FFC107', '#C0C0C0', '#CD7F32', '#4A90E2', '#9B59B6'];
             const rankColor = rankColors[index] || '#6C757D';
            
             // Medallas para top 3
@@ -4725,7 +4686,7 @@
                     <div class="player-info">
                         <h4 class="player-name">${nombreJugador}</h4>
                         <p class="player-team">${nombreEquipo}</p>
-                        <p class="player-position" style="color: #ffd700; font-size: 0.9rem; margin: 5px 0;">
+                        <p class="player-position" style="color: #ffc107; font-size: 0.9rem; margin: 5px 0;">
                             ${posicion || 'UTIL'}
                         </p>
                                    
@@ -4804,7 +4765,7 @@
                         resultsCount.style.color = '#ff4757';
                     } else {
                         resultsCount.textContent = `✅ ${encontrados} jugador${encontrados !== 1 ? 'es' : ''} encontrado${encontrados !== 1 ? 's' : ''}`;
-                        resultsCount.style.color = '#ffd700';
+                        resultsCount.style.color = '#ffc107';
                     }
                 }
                        
@@ -4878,13 +4839,13 @@
                              const e = parseInt(l.errors) || 0;
                              return `
                                  <div class="position-card" style="
-                                     background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
+                                     background: #161b22;
                                      border-radius: 16px;
                                      padding: 20px;
-                                     border: 2px solid rgba(255, 215, 0, 0.2);
+                                     border: 2px solid rgba(255, 193, 7, 0.2);
                                  ">
                                      <div class="position-title" style="
-                                         color: #ffd700;
+                                         color: #ffc107;
                                          font-size: 1.2rem;
                                          font-weight: bold;
                                          margin-bottom: 15px;
@@ -4907,7 +4868,7 @@
                                              ">${l.nombre_jugador || l.jugador_nombre || 'Desconocido'}</span>
                                                                         
                                              <span class="position-team" style="
-                                                 color: rgba(255, 215, 0, 0.7);
+                                                 color: rgba(255, 193, 7, 0.7);
                                                  font-size: 0.9rem;
                                              ">${l.equipo_nombre || 'Sin equipo'}</span>
                                                                         
@@ -4918,11 +4879,11 @@
                                                  flex-wrap: wrap;
                                              ">
                                                  <div style="
-                                                     background: rgba(255, 215, 0, 0.15);
+                                                     background: rgba(255, 193, 7, 0.15);
                                                      padding: 6px 12px;
                                                      border-radius: 8px;
                                                  ">
-                                                     <div style="color: #ffd700; font-size: 0.7rem;">FLD%</div>
+                                                     <div style="color: #ffc107; font-size: 0.7rem;">FLD%</div>
                                                      <div style="color: #fff; font-weight: bold; font-size: 1.1rem;">${fldPct.toFixed(3)}</div>
                                                  </div>
                                                  <div style="
@@ -4942,12 +4903,12 @@
                                                      <div style="color: #fff; font-weight: bold;">${a}</div>
                                                  </div>
                                                  <div style="
-                                                     background: rgba(255, 140, 0, 0.15);
+                                                     background: rgba(255, 152, 0, 0.15);
                                                      padding: 6px 12px;
                                                      border-radius: 8px;
                                                  ">
-                                                     <div style="color: #ff8c00; font-size: 0.7rem;">E</div>
-                                                     <div style="color: #ff8c00; font-weight: bold;">${e}</div>
+                                                     <div style="color: #ff9800; font-size: 0.7rem;">E</div>
+                                                     <div style="color: #ff9800; font-weight: bold;">${e}</div>
                                                  </div>
                                              </div>
                                          </div>
@@ -4960,12 +4921,12 @@
                              <div class="empty-state" style="
                                  padding: 40px;
                                  text-align: center;
-                                 background: rgba(255, 215, 0, 0.05);
+                                 background: rgba(255, 193, 7, 0.05);
                                  border-radius: 16px;
-                                 border: 2px dashed rgba(255, 215, 0, 0.3);
+                                 border: 2px dashed rgba(255, 193, 7, 0.3);
                              ">
                                  <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
-                                 <h3 style="color: #ffd700; margin-bottom: 10px;">Sin datos defensivos</h3>
+                                 <h3 style="color: #ffc107; margin-bottom: 10px;">Sin datos defensivos</h3>
                                  <p style="color: rgba(255,255,255,0.6);">Los líderes aparecerán cuando haya estadísticas disponibles</p>
                              </div>
                          `;

@@ -31,10 +31,10 @@ function showAppError(selector, message) {
     const container = document.querySelector(selector);
     if (container) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 50px; color: #ff8c00;">
+            <div style="text-align: center; padding: 50px; color: #ff9800;">
                 <h2>⚠️ Error</h2>
                 <p>${message}</p>
-                <a href="index.html" style="color: #ffd700;">Volver al Inicio</a>
+                <a href="index.html" style="color: #ffc107;">Volver al Inicio</a>
             </div>
         `;
     }
@@ -477,16 +477,17 @@ function mostrarInicialesJugador(elemento, nombreJugador) {
     const iniciales = generarIniciales(nombreJugador);
     
     // Aplicar estilos para las iniciales - TAMAÑO FINAL OPTIMIZADO
-    elemento.style.backgroundImage = 'linear-gradient(45deg, #ffd700, #ff8c00)';
+    elemento.style.backgroundImage = 'none';
+    elemento.style.backgroundColor = '#ffc107';
     elemento.style.display = 'flex';
     elemento.style.alignItems = 'center';
     elemento.style.justifyContent = 'center';
     elemento.style.fontSize = '1.4rem'; // ✅ REDUCIDO más de 1.8rem a 1.4rem
     elemento.style.fontWeight = 'bold';
-    elemento.style.color = '#1a1a2e';
+    elemento.style.color = '#0d1117';
     elemento.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
     elemento.style.border = '3px solid #fff';
-    elemento.style.boxShadow = '0 8px 25px rgba(255, 215, 0, 0.4)';
+    elemento.style.boxShadow = '0 8px 25px rgba(255, 193, 7, 0.4)';
     elemento.style.letterSpacing = '1px'; // ✅ REDUCIDO de 2px a 1px
     elemento.style.width = '120px'; // ✅ FORZAR tamaño exacto
     elemento.style.height = '120px'; // ✅ FORZAR tamaño exacto

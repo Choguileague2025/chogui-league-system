@@ -17,10 +17,10 @@ function showAppError(selector, message) {
     const container = document.querySelector(selector);
     if (container) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 50px; color: #ff8c00;">
+            <div style="text-align: center; padding: 50px; color: #ff9800;">
                 <h2>⚠️ Error</h2>
                 <p>${message}</p>
-                <a href="index.html" style="color: #ffd700; text-decoration: none;">🏠 Volver al Inicio</a>
+                <a href="index.html" style="color: #ffc107; text-decoration: none;">🏠 Volver al Inicio</a>
             </div>
         `;
     }

@@ -279,8 +279,8 @@ function inicializarFuncionalidadesAvanzadas() {
 
 function crearGraficosRendimiento() {
     const partidosData = generarDatosHistoricosParaGraficos();
-    crearGrafico(document.getElementById('battingChart'), 'AVG', partidosData.map(p => p.avg), '#ffd700');
-    crearGrafico(document.getElementById('opsChart'), 'OPS', partidosData.map(p => p.ops), '#ff8c00');
+    crearGrafico(document.getElementById('battingChart'), 'AVG', partidosData.map(p => p.avg), '#ffc107');
+    crearGrafico(document.getElementById('opsChart'), 'OPS', partidosData.map(p => p.ops), '#ff9800');
     
     const tendenciaEl = document.getElementById('tendenciaAvg');
     if (tendenciaEl && partidosData.length >= 2) {
@@ -373,7 +373,7 @@ async function cargarJugadoresMismaPosicion() {
                         <div class="related-team">${jugador.equipo_nombre || 'Sin equipo'}</div>
                     </div>
                     <div class="related-stat">
-                        <span style="color: #ffd700; font-weight: bold;">${avgValue.toFixed(3)}</span>
+                        <span style="color: #ffc107; font-weight: bold;">${avgValue.toFixed(3)}</span>
                         <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
                     </div>
                 </a>
@@ -416,7 +416,7 @@ async function cargarJugadoresMismoEquipo() {
                         <div class="related-team">${formatearPosicion(jugador.posicion)}</div>
                     </div>
                     <div class="related-stat">
-                        <span style="color: #ffd700; font-weight: bold;">${avgValue.toFixed(3)}</span>
+                        <span style="color: #ffc107; font-weight: bold;">${avgValue.toFixed(3)}</span>
                         <span style="font-size: 0.7rem; opacity: 0.8;">AVG</span>
                     </div>
                 </a>
@@ -514,7 +514,7 @@ async function generarComparacion() {
                             <div style="font-weight: bold; color: #fff;">
                                 ${jugador.nombre} ${esJugadorActual ? '(Tú)' : ''}
                             </div>
-                            <div style="font-size: 0.8rem; color: #ffd700;">
+                            <div style="font-size: 0.8rem; color: #ffc107;">
                                 ${jugador.equipo_nombre || 'Sin equipo'}
                             </div>
                         </div>
@@ -636,8 +636,8 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
         top: 20px;
         right: 20px;
         padding: 15px 20px;
-        background: ${tipo === 'success' ? '#00ff88' : tipo === 'warning' ? '#ff8c00' : '#ffd700'};
-        color: #1a1a2e;
+        background: ${tipo === 'success' ? '#00ff88' : tipo === 'warning' ? '#ff9800' : '#ffc107'};
+        color: #0d1117;
         border-radius: 8px;
         font-weight: bold;
         z-index: 10000;

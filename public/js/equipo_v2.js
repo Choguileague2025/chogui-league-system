@@ -152,7 +152,7 @@ function renderizarInformacionEquipo() {
 
     // Breadcrumb
     const breadcrumb = document.getElementById('teamBreadcrumb');
-    if (breadcrumb) breadcrumb.innerHTML = `<strong style="color: #ffd700;">${teamData.nombre}</strong>`;
+    if (breadcrumb) breadcrumb.innerHTML = `<strong style="color: #ffc107;">${teamData.nombre}</strong>`;
 
     // Logo
     const logoUrl = getTeamLogo(teamData.nombre);
@@ -218,8 +218,8 @@ function mostrarLogoEquipo(logoUrl, equipoNombre) {
         logoContainer.style.backgroundImage = 'none';
         logoContainer.innerHTML = `
             <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
-                background:linear-gradient(145deg,#ffd700,#ff8c00);border-radius:50%;
-                font-size:2.5rem;font-weight:bold;color:#1a1a2e;text-shadow:2px 2px 4px rgba(0,0,0,0.2);">
+                background:#ffc107;border-radius:50%;
+                font-size:2.5rem;font-weight:bold;color:#0d1117;text-shadow:2px 2px 4px rgba(0,0,0,0.2);">
                 ${iniciales}
             </div>`;
     };
@@ -570,7 +570,7 @@ function renderizarRoster() {
 
     container.innerHTML = filteredRoster.map(jugador => {
         const esDestacado = jugadorDestacado && jugador.nombre.toLowerCase().includes(jugadorDestacado.toLowerCase());
-        const claseExtra = esDestacado ? ' style="border: 2px solid #ffd700; background: rgba(255,215,0,0.15);"' : '';
+        const claseExtra = esDestacado ? ' style="border: 2px solid #ffc107; background: rgba(255,193,7,0.15);"' : '';
 
         return `
             <div class="roster-player-card"${claseExtra} onclick="verJugador(${jugador.id})">
@@ -584,7 +584,7 @@ function renderizarRoster() {
 
     if (jugadorDestacado) {
         setTimeout(() => {
-            const el = container.querySelector('[style*="rgba(255,215,0,0.15)"]');
+            const el = container.querySelector('[style*="rgba(255,193,7,0.15)"]');
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 500);
     }
@@ -756,7 +756,7 @@ function mostrarErrorEquipo(mensaje) {
     if (!mainCard) return;
     mainCard.innerHTML = `
         <div style="text-align:center;padding:40px 20px;">
-            <h2 style="color:#dc143c;margin-bottom:20px;">⚠️ Error</h2>
+            <h2 style="color:#f44336;margin-bottom:20px;">⚠️ Error</h2>
             <p style="color:#fff;margin-bottom:20px;">${mensaje}</p>
             <div style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;">
                 <button onclick="location.reload()" class="btn-primary">🔄 Reintentar</button>

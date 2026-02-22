@@ -3,17 +3,39 @@
    Shared optimization styles for index + admin
    ============================================= */
 
-/* CSS Variables */
+/* CSS Variables - Phase 1: Clean Dark Background */
 :root {
-    --gold: #ffd700;
-    --gold-light: rgba(255, 215, 0, 0.3);
-    --gold-medium: rgba(255, 215, 0, 0.5);
-    --dark-blue: #1a1a2e;
-    --dark-blue-2: #16213e;
-    --success: #28a745;
-    --error: #dc3545;
-    --info: #17a2b8;
-    --warning: #ff8c00;
+    /* Background Palette */
+    --background-primary: #0d1117;
+    --background-secondary: #161b22;
+    --background-tertiary: #21262d;
+    /* Accent Colors */
+    --gold: #ffc107;
+    --gold-hover: #ffb300;
+    --gold-light: rgba(255, 193, 7, 0.3);
+    --gold-medium: rgba(255, 193, 7, 0.5);
+    --orange: #ff9800;
+    --orange-hover: #fb8c00;
+    /* Functional Colors */
+    --success: #4caf50;
+    --danger: #f44336;
+    --error: #f44336;
+    --warning: #ff9800;
+    --info: #2196f3;
+    /* Text */
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255,255,255,0.7);
+    --text-muted: rgba(255,255,255,0.5);
+    /* Borders & Shadows */
+    --border-color: rgba(255,255,255,0.1);
+    --border-gold: rgba(255, 193, 7, 0.3);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+    --shadow-lg: 0 8px 20px rgba(0,0,0,0.2);
+    --shadow-gold: 0 4px 12px rgba(255, 193, 7, 0.2);
+    /* Legacy Aliases */
+    --dark-blue: #0d1117;
+    --dark-blue-2: #161b22;
 }
 
 /* =============================================
@@ -22,13 +44,13 @@
 .tournament-selector-index {
     margin: 1rem 0;
     padding: 1rem 1.5rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--background-secondary);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    border: 1px solid var(--gold-light);
+    border: 1px solid var(--border-gold);
 }
 
 .tournament-selector-index label {
@@ -102,8 +124,8 @@
 
 .pagination-btn {
     padding: 0.6rem 1.2rem;
-    background: linear-gradient(145deg, var(--gold), var(--warning));
-    color: var(--dark-blue);
+    background: var(--gold);
+    color: var(--background-primary);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -114,7 +136,7 @@
 
 .pagination-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+    box-shadow: var(--shadow-gold);
 }
 
 .pagination-btn:disabled {
@@ -173,7 +195,7 @@
 }
 
 .notification-toast.warning {
-    background: linear-gradient(135deg, #ff8c00, #e67e00);
+    background: linear-gradient(135deg, #ff9800, #e67e00);
     border-left: 4px solid #cc7000;
 }
 
@@ -204,8 +226,8 @@
     align-items: center;
     gap: 1rem;
     padding: 0.75rem 1.25rem;
-    background: rgba(255, 215, 0, 0.08);
-    border: 1px solid var(--gold-light);
+    background: var(--background-secondary);
+    border: 1px solid var(--border-gold);
     border-radius: 10px;
     margin-bottom: 20px;
 }
@@ -247,7 +269,7 @@
     padding: 0.65rem 1rem;
     border-radius: 8px;
     border: 1px solid var(--gold-light);
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--background-tertiary);
     color: white;
     font-size: 0.9rem;
     transition: border-color 0.3s;
@@ -295,12 +317,12 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #28a745;
+    background: var(--success);
     animation: sse-pulse 2s infinite;
 }
 
 .sse-dot.disconnected {
-    background: #dc3545;
+    background: var(--danger);
     animation: none;
 }
 

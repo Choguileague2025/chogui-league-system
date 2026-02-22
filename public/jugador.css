@@ -1,6 +1,7 @@
 /* ===================================
    CSS ADICIONAL PARA MEJORAR JUGADOR.HTML
    Agregar al final de tu equipo.css
+   Phase 1: Clean dark background & refined color palette
    ===================================*/
 
 /* Mejoras específicas para el logo del jugador */
@@ -8,8 +9,8 @@
     width: 120px !important;
     height: 120px !important;
     border-radius: 50%;
-    border: 3px solid #ffd700;
-    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    border: 3px solid #ffc107;
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
     transition: transform 0.3s ease;
     background-size: cover;
     background-position: center;
@@ -35,7 +36,7 @@
 .record-number {
     font-size: 2rem !important; /* Reducido de tamaño por defecto */
     font-weight: bold;
-    color: #ffd700;
+    color: #ffc107;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     line-height: 1.2;
     word-break: break-word; /* Para nombres largos */
@@ -49,7 +50,7 @@
 /* Mejorar el subtítulo del jugador */
 .team-subtitle {
     font-size: 1.1rem;
-    color: #ff8c00;
+    color: #ff9800;
     margin-bottom: 15px;
     display: flex;
     align-items: center;
@@ -73,25 +74,25 @@
         width: 100px !important;
         height: 100px !important;
     }
-    
+
     .team-logo.iniciales {
         font-size: 1.2rem !important;
     }
-    
+
     .record-number {
         font-size: 1.4rem !important;
     }
-    
+
     .record-number.long-name {
         font-size: 1.2rem !important;
     }
-    
+
     .team-subtitle {
         font-size: 1rem;
         justify-content: center;
         text-align: center;
     }
-    
+
     .team-stats-row {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
@@ -100,6 +101,6 @@
 
 /* Mejorar el breadcrumb */
 .breadcrumb strong {
-    color: #ffd700 !important;
+    color: #ffc107 !important;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }

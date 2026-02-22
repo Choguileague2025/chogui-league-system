@@ -411,12 +411,12 @@ window.addEventListener('load', () => {
                             const a = parseInt(l.assists) || 0;
                             const e = parseInt(l.errors) || 0;
                             return `
-                                <div class="position-card" style="background:linear-gradient(145deg,#2a2a4a,#1a1a2e);border-radius:16px;padding:20px;border:2px solid rgba(255,215,0,0.2);">
-                                    <div style="color:#ffd700;font-size:1.2rem;font-weight:bold;margin-bottom:15px;">🛡️ ${l.posicion || 'UTIL'}</div>
+                                <div class="position-card" style="background:#161b22;border-radius:16px;padding:20px;border:2px solid rgba(255,193,7,0.2);">
+                                    <div style="color:#ffc107;font-size:1.2rem;font-weight:bold;margin-bottom:15px;">🛡️ ${l.posicion || 'UTIL'}</div>
                                     <div style="display:flex;flex-direction:column;gap:8px;">
                                         <div style="font-weight:bold;color:#fff;">${l.jugador_nombre || 'N/A'}</div>
                                         <div style="color:rgba(255,255,255,0.7);font-size:0.85rem;">${l.equipo_nombre || ''}</div>
-                                        <div style="color:#ffd700;font-size:1.1rem;font-weight:bold;">FLD% ${fldPct.toFixed(3)}</div>
+                                        <div style="color:#ffc107;font-size:1.1rem;font-weight:bold;">FLD% ${fldPct.toFixed(3)}</div>
                                         <div style="color:rgba(255,255,255,0.6);font-size:0.8rem;">PO:${po} A:${a} E:${e}</div>
                                     </div>
                                 </div>`;

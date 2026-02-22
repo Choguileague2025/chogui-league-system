@@ -101,11 +101,11 @@ function mostrarLogoEquipo(logoUrl, equipoNombre) {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background: linear-gradient(145deg, #ffd700, #ff8c00);
+                background: #ffc107;
                 border-radius: 50%;
                 font-size: 2.5rem;
                 font-weight: bold;
-                color: #1a1a2e;
+                color: #0d1117;
                 text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
             ">
                 ${iniciales}
@@ -321,7 +321,7 @@ function renderizarInformacionEquipo() {
         
         const breadcrumb = document.getElementById('teamBreadcrumb');
         if (breadcrumb) {
-            breadcrumb.innerHTML = `<strong style="color: #ffd700;">${teamData.nombre}</strong>`;
+            breadcrumb.innerHTML = `<strong style="color: #ffc107;">${teamData.nombre}</strong>`;
         }
     }
     actualizarURLAmigable();
@@ -361,7 +361,7 @@ function renderizarRoster() {
     let html = '';
     filteredRoster.forEach(jugador => {
         const esDestacado = jugadorDestacado && jugador.nombre.toLowerCase().includes(jugadorDestacado.toLowerCase());
-        const claseDestacado = esDestacado ? ' style="background: rgba(255, 215, 0, 0.3); border: 2px solid #ffd700; animation: highlight 2s ease-in-out;"' : '';
+        const claseDestacado = esDestacado ? ' style="background: rgba(255, 193, 7, 0.3); border: 2px solid #ffc107; animation: highlight 2s ease-in-out;"' : '';
         
         html += `
             <div class="player-card"${claseDestacado} onclick="verJugador(${jugador.id})">
@@ -378,7 +378,7 @@ function renderizarRoster() {
     
     if (jugadorDestacado) {
         setTimeout(() => {
-            const jugadorElement = container.querySelector('[style*="rgba(255, 215, 0, 0.3)"]');
+            const jugadorElement = container.querySelector('[style*="rgba(255, 193, 7, 0.3)"]');
             if (jugadorElement) {
                 jugadorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
@@ -604,7 +604,7 @@ function mostrarErrorEquipo(mensaje) {
     if (!mainCard) return;
     mainCard.innerHTML = `
         <div style="text-align: center; padding: 40px 20px;">
-            <h2 style="color: #dc143c; margin-bottom: 20px;">⚠️ Error</h2>
+            <h2 style="color: #f44336; margin-bottom: 20px;">⚠️ Error</h2>
             <p style="color: #fff; margin-bottom: 20px;">${mensaje}</p>
             <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
                 <button onclick="location.reload()" class="btn-primary">🔄 Reintentar</button>
