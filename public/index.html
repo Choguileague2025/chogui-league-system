@@ -36,18 +36,18 @@
             z-index: 1;
         }
 
-        /* ✅ MODIFICADO: Header sticky fijo en top */
+        /* Header sticky con gradiente dorado */
         .header {
             text-align: center;
             margin-bottom: 40px;
             padding: 30px 20px;
-            background: #161b22; border: 1px solid rgba(255,193,7,0.2);
+            background: linear-gradient(135deg, #ff9800 0%, #ffb300 50%, #ffc107 100%);
             border-radius: 20px;
-            position: sticky; /* ✅ NUEVO */
-            top: 0; /* ✅ NUEVO */
-            z-index: 1000; /* ✅ NUEVO: Asegurar que esté sobre otros elementos */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* ✅ NUEVO: Sombra para profundidad */
-            transition: padding 0.3s ease, box-shadow 0.3s ease; /* ✅ NUEVO: Transición suave */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: padding 0.3s ease, box-shadow 0.3s ease;
             overflow: hidden;
         }
 
@@ -80,7 +80,15 @@
 
 
         .header::before {
-            display: none;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         .header-content {
@@ -106,35 +114,30 @@
             background-repeat: no-repeat;
             background-position: center;
             border-radius: 50%;
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
-            animation: rotate 20s linear infinite;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             transition: width 0.3s ease, height 0.3s ease; /* ✅ NUEVO: Transición suave para el tamaño */
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
         }
 
         .header h1 {
             font-size: clamp(1.8rem, 4vw, 2.5rem);
-            font-weight: bold;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             margin-bottom: 10px;
-            color: #ffc107;
-            background: none;
-            -webkit-background-clip: unset;
-            -webkit-text-fill-color: unset;
-            background-clip: unset;
-            transition: font-size 0.3s ease, margin 0.3s ease; /* ✅ NUEVO: Transición suave */
+            color: #1a1a1a;
+            position: relative;
+            z-index: 1;
+            transition: font-size 0.3s ease, margin 0.3s ease;
         }
 
         .header p {
             font-size: clamp(0.9rem, 2vw, 1.1rem);
-            opacity: 0.7;
-            color: #ffffff;
+            opacity: 1;
+            color: rgba(0, 0, 0, 0.8);
             font-weight: 600;
-            transition: font-size 0.3s ease, margin 0.3s ease; /* ✅ NUEVO: Transición suave */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 1;
+            transition: font-size 0.3s ease, margin 0.3s ease;
         }
 
         .nav-tabs {

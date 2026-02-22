@@ -238,5 +238,17 @@
     </footer>
 
     <script src="js/equipo_v2.min.js" defer></script>
+    <script>
+    window.addEventListener('scroll', function() {
+        var header = document.querySelector('.header');
+        if (header) {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        }
+    });
+    </script>
 </body>
 </html>
