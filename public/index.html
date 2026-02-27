@@ -264,30 +264,266 @@
             transition: all 0.3s ease;
         }
 
-        .position-number {
-            display: inline-block;
-            background: #ffc107;
-            color: #0d1117;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 25px;
-            font-weight: bold;
-            margin-right: 8px;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 5px rgba(255, 193, 7, 0.4);
+        /* ═══════════════════════════════════════════════════════
+           PHASE 6: STANDINGS TABLE — PROFESSIONAL POLISH
+           ═══════════════════════════════════════════════════════ */
+
+        /* Scoped table overrides */
+        .standings-table {
+            background: var(--background-secondary);
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
         }
 
-        .playoff-indicator {
+        .standings-table th {
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            color: var(--background-primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 14px 10px;
+            border-bottom: none;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* Tooltip on header cells */
+        .standings-table th[data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+
+        .standings-table th[data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -34px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.85);
+            background: var(--background-primary);
+            color: var(--text-primary);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 20;
+            border: 1px solid var(--border-gold);
+            box-shadow: var(--shadow-md);
+        }
+
+        .standings-table th[data-tooltip]:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* Row base styles */
+        .standings-table td {
+            padding: 12px 10px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        .standings-table tbody tr {
+            border-left: 4px solid transparent;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        /* Animation trigger class */
+        .standings-table tbody tr.standings-visible {
+            animation: standingsSlideIn 0.4s ease forwards;
+        }
+
+        @keyframes standingsSlideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Left border tiers */
+        .standings-table tbody tr.standings-tier-gold {
+            border-left-color: var(--gold);
+        }
+
+        .standings-table tbody tr.standings-tier-green {
+            border-left-color: var(--success);
+        }
+
+        .standings-table tbody tr.standings-tier-neutral {
+            border-left-color: var(--border-color);
+        }
+
+        /* Hover: elevation + subtle glow */
+        .standings-table tbody tr:hover {
+            background: rgba(255, 193, 7, 0.08);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 193, 7, 0.1);
+        }
+
+        /* Position badge — base */
+        .standings-pos-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .standings-pos-gold {
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: var(--background-primary);
+            box-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .standings-pos-silver {
+            background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+            color: var(--background-primary);
+            box-shadow: 0 2px 10px rgba(192, 192, 192, 0.4);
+        }
+
+        .standings-pos-bronze {
+            background: linear-gradient(135deg, #cd7f32, #b8690e);
+            color: var(--background-primary);
+            box-shadow: 0 2px 10px rgba(205, 127, 50, 0.4);
+        }
+
+        .standings-pos-standard {
+            background: var(--background-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Team cell with initials logo */
+        .standings-team-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .standings-team-initials {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-hover));
+            color: var(--background-primary);
+            font-weight: 800;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .standings-team-name {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Status badges */
+        .standings-status-badge {
             display: inline-block;
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 12px;
             font-size: 0.7rem;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(76, 175, 80, 0.3);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .standings-status-playoffs {
+            background: linear-gradient(135deg, var(--success), #45a049);
+            color: white;
+            box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+        }
+
+        .standings-status-struggle {
+            background: rgba(255, 152, 0, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        /* Playoff cutoff separator */
+        .standings-table tbody tr.standings-cutoff-row td {
+            border-bottom: 2px dashed var(--border-gold);
+            padding-bottom: 14px;
+        }
+
+        .standings-table tbody tr.standings-cutoff-row + tr td {
+            padding-top: 14px;
+        }
+
+        /* Diff coloring */
+        .standings-diff-positive { color: var(--success); font-weight: 600; }
+        .standings-diff-negative { color: var(--danger); font-weight: 600; }
+        .standings-diff-zero { color: var(--text-muted); }
+
+        /* Legend */
+        .standings-legend {
+            margin-top: 15px;
+            color: var(--gold);
+            font-size: 0.8rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .standings-table th {
+                padding: 10px 6px;
+                font-size: 0.68rem;
+            }
+            .standings-table td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+            .standings-team-initials {
+                width: 26px;
+                height: 26px;
+                font-size: 0.6rem;
+            }
+            .standings-team-name {
+                font-size: 0.82rem;
+                max-width: 100px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .standings-pos-badge {
+                width: 24px;
+                height: 24px;
+                font-size: 0.75rem;
+            }
+            .standings-status-badge {
+                font-size: 0.6rem;
+                padding: 3px 6px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .standings-table tbody tr {
+                opacity: 1;
+                transform: none;
+            }
+            .standings-table tbody tr.standings-visible {
+                animation: none;
+            }
         }
        
         .playoffs-list [data-list] { display: flex; flex-direction: column; gap: 10px; }
@@ -3061,25 +3297,25 @@
                  <div data-loader>Cargando...</div>
                  <div data-empty></div>
                  <div class="table-container">
-                     <table id="posicionesTable">
+                     <table id="posicionesTable" class="standings-table">
                          <thead>
                              <tr>
-                                 <th>Pos</th>
-                                 <th>Equipo</th>
-                                 <th>PJ</th>
-                                 <th>PG</th>
-                                 <th>PP</th>
-                                 <th>%</th>
-                                 <th>CF</th>
-                                 <th>CE</th>
-                                 <th>DIF</th>
-                                 <th>Estado</th>
+                                 <th data-tooltip="Posición">#</th>
+                                 <th data-tooltip="Equipo">Equipo</th>
+                                 <th data-tooltip="Partidos Jugados">PJ</th>
+                                 <th data-tooltip="Partidos Ganados">PG</th>
+                                 <th data-tooltip="Partidos Perdidos">PP</th>
+                                 <th data-tooltip="Porcentaje">%</th>
+                                 <th data-tooltip="Carreras a Favor">CF</th>
+                                 <th data-tooltip="Carreras en Contra">CE</th>
+                                 <th data-tooltip="Diferencia">DIF</th>
+                                 <th data-tooltip="Estado Clasificación">Estado</th>
                              </tr>
                          </thead>
                          <tbody id="tablaPosicionesBody"></tbody>
                      </table>
                  </div>
-                 <p style="margin-top: 15px; color: #ffc107; font-size: 0.8rem; position: relative; z-index: 2;">
+                 <p class="standings-legend">
                      <strong>Leyenda:</strong> PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, %=Porcentaje, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia
                  </p>
              </div>
@@ -3336,7 +3572,7 @@
             const lista = Array.isArray(standings) ? standings : [];
             const hasRanking = lista.some(t => t.ranking !== undefined && t.ranking !== null);
             const toNum = (v) => Number(v) || 0;
-            const ordered = hasRanking 
+            const ordered = hasRanking
                 ? [...lista].sort((a, b) => {
                     const rankDiff = toNum(a.ranking) - toNum(b.ranking);
                     if (rankDiff !== 0) return rankDiff;
@@ -3351,24 +3587,79 @@
                     if (diffDiff !== 0) return diffDiff;
                     return (a.equipo_nombre || '').localeCompare(b.equipo_nombre || '');
                 });
-            const rows = ordered
-                .map((t, i) => {
-                    const posicion = t.ranking || (i + 1);
-                    const enPlayoffs = posicion <= 8;
-                    let estadoHTML = enPlayoffs ? '<span class="playoff-indicator">Playoffs</span>' : 'En Lucha';
-                    return `
-                    <tr data-equipo-id="${t.equipo_id}">
-                        <td><span class="position-number">${posicion}</span></td>
-                        <td><strong style="color: #ffc107;">${t.equipo_nombre ?? ''}</strong></td>
-                        <td>${t.pj ?? 0}</td><td style="color: #4CAF50;">${t.pg ?? 0}</td>
-                        <td style="color: #f44336;">${t.pp ?? 0}</td>
-                        <td><strong>${(t.porcentaje != null) ? Number(t.porcentaje).toFixed(3) : '0.000'}</strong></td>
-                        <td>${t.cf ?? 0}</td><td>${t.ce ?? 0}</td>
-                        <td style="color: ${t.dif >= 0 ? '#4CAF50' : '#f44336'};">${t.dif >= 0 ? '+' : ''}${t.dif ?? 0}</td>
-                        <td>${t.estado ?? estadoHTML}</td>
-                    </tr>`;
-                }).join('');
+
+            const getPosBadgeClass = (pos) => {
+                if (pos === 1) return 'standings-pos-gold';
+                if (pos === 2) return 'standings-pos-silver';
+                if (pos === 3) return 'standings-pos-bronze';
+                return 'standings-pos-standard';
+            };
+
+            const getTierClass = (pos) => {
+                if (pos <= 3) return 'standings-tier-gold';
+                if (pos <= 8) return 'standings-tier-green';
+                return 'standings-tier-neutral';
+            };
+
+            const getInitials = (name) => {
+                if (!name) return '??';
+                return name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 3);
+            };
+
+            const getDiffClass = (dif) => {
+                if (dif > 0) return 'standings-diff-positive';
+                if (dif < 0) return 'standings-diff-negative';
+                return 'standings-diff-zero';
+            };
+
+            const rows = ordered.map((t, i) => {
+                const posicion = t.ranking || (i + 1);
+                const enPlayoffs = posicion <= 8;
+                const dif = t.dif ?? 0;
+                const cutoffClass = posicion === 8 ? ' standings-cutoff-row' : '';
+                const statusHTML = enPlayoffs
+                    ? '<span class="standings-status-badge standings-status-playoffs">Playoffs</span>'
+                    : '<span class="standings-status-badge standings-status-struggle">En Lucha</span>';
+
+                return `<tr class="${getTierClass(posicion)}${cutoffClass}" data-equipo-id="${t.equipo_id}" style="animation-delay: ${i * 0.04}s">
+                    <td><span class="standings-pos-badge ${getPosBadgeClass(posicion)}">${posicion}</span></td>
+                    <td><div class="standings-team-cell"><span class="standings-team-initials">${getInitials(t.equipo_nombre)}</span><span class="standings-team-name">${t.equipo_nombre ?? ''}</span></div></td>
+                    <td>${t.pj ?? 0}</td>
+                    <td>${t.pg ?? 0}</td>
+                    <td>${t.pp ?? 0}</td>
+                    <td><strong>${(t.porcentaje != null) ? Number(t.porcentaje).toFixed(3) : '0.000'}</strong></td>
+                    <td>${t.cf ?? 0}</td>
+                    <td>${t.ce ?? 0}</td>
+                    <td class="${getDiffClass(dif)}">${dif >= 0 ? '+' : ''}${dif}</td>
+                    <td>${t.estado ?? statusHTML}</td>
+                </tr>`;
+            }).join('');
+
             tbodyEl.innerHTML = rows;
+
+            // Staggered slide-in animation via IntersectionObserver
+            const tableEl = tbodyEl.closest('table');
+            if (tableEl && 'IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            tbodyEl.querySelectorAll('tr').forEach(row => row.classList.add('standings-visible'));
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                observer.observe(tableEl);
+            } else {
+                tbodyEl.querySelectorAll('tr').forEach(row => row.classList.add('standings-visible'));
+            }
+
+            // Click-to-navigate event delegation
+            tbodyEl.onclick = (e) => {
+                const row = e.target.closest('tr[data-equipo-id]');
+                if (row) {
+                    window.location.href = `equipo.html?id=${row.dataset.equipoId}`;
+                }
+            };
         }
 
         async function cargarUltimosPartidos() {
