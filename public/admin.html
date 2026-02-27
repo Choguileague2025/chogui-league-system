@@ -1665,7 +1665,11 @@
                                 <th>Jugador</th>
                                 <th>Equipo</th>
                                 <th>IP</th>
+                                <th>H</th>
                                 <th>ER</th>
+                                <th>K</th>
+                                <th>BB</th>
+                                <th>HR</th>
                                 <th>W</th>
                                 <th>L</th>
                                 <th>SV</th>
@@ -1673,7 +1677,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="8" class="loading">Cargando...</td></tr>
+                            <tr><td colspan="12" class="loading">Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -4193,7 +4197,11 @@
                                 <td>${s.nombre}</td>
                                 <td>${s.equipo_nombre || '-'}</td>
                                 <td><input type="number" id="ip-${s.jugador_id}" value="${s.innings_pitched || 0}" style="width:60px;" step="0.1"></td>
+                                <td><input type="number" id="ha-${s.jugador_id}" value="${s.hits_allowed || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="er-${s.jugador_id}" value="${s.earned_runs || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="k-${s.jugador_id}" value="${s.strikeouts || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="bba-${s.jugador_id}" value="${s.walks_allowed || 0}" style="width:60px;"></td>
+                                <td><input type="number" id="hra-${s.jugador_id}" value="${s.home_runs_allowed || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="w-${s.jugador_id}" value="${s.wins || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="l-${s.jugador_id}" value="${s.losses || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="sv-${s.jugador_id}" value="${s.saves || 0}" style="width:60px;"></td>
@@ -4398,7 +4406,11 @@
                     case 'pitcheo':
                         endpoint = `/api/estadisticas-pitcheo`;
                         payload.innings_pitched = parseFloat(document.getElementById(`ip-${jugadorId}`).value) || 0;
+                        payload.hits_allowed = parseInt(document.getElementById(`ha-${jugadorId}`).value) || 0;
                         payload.earned_runs = parseInt(document.getElementById(`er-${jugadorId}`).value) || 0;
+                        payload.strikeouts = parseInt(document.getElementById(`k-${jugadorId}`).value) || 0;
+                        payload.walks_allowed = parseInt(document.getElementById(`bba-${jugadorId}`).value) || 0;
+                        payload.home_runs_allowed = parseInt(document.getElementById(`hra-${jugadorId}`).value) || 0;
                         payload.wins = parseInt(document.getElementById(`w-${jugadorId}`).value) || 0;
                         payload.losses = parseInt(document.getElementById(`l-${jugadorId}`).value) || 0;
                         payload.saves = parseInt(document.getElementById(`sv-${jugadorId}`).value) || 0;
@@ -4410,6 +4422,7 @@
                         payload.assists = parseInt(document.getElementById(`a-${jugadorId}`).value) || 0;
                         payload.errors = parseInt(document.getElementById(`e-${jugadorId}`).value) || 0;
                         payload.double_plays = parseInt(document.getElementById(`dp-${jugadorId}`).value) || 0;
+                        payload.chances = payload.putouts + payload.assists + payload.errors;
                         break;
                     
                     default:

@@ -42,11 +42,17 @@ async function obtenerOfensivas(filtros = {}) {
                     ELSE 0.000
                 END as avg,
                 CASE
-                    WHEN SUM(eo.at_bats) > 0 THEN ROUND((SUM(eo.hits) + SUM(eo.walks))::DECIMAL / (SUM(eo.at_bats) + SUM(eo.walks)), 3)
+                    WHEN (SUM(eo.at_bats) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)) + SUM(COALESCE(eo.sacrifice_flies, 0))) > 0
+                    THEN ROUND((SUM(eo.hits) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)))::DECIMAL /
+                         (SUM(eo.at_bats) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)) + SUM(COALESCE(eo.sacrifice_flies, 0))), 3)
                     ELSE 0.000
                 END as obp,
                 CASE
-                    WHEN SUM(eo.at_bats) > 0 THEN ROUND((SUM(eo.hits) + SUM(eo.home_runs) * 3)::DECIMAL / SUM(eo.at_bats), 3)
+                    WHEN SUM(eo.at_bats) > 0 THEN ROUND(
+                        ((SUM(eo.hits) - SUM(COALESCE(eo.doubles, 0)) - SUM(COALESCE(eo.triples, 0)) - SUM(eo.home_runs))
+                        + SUM(COALESCE(eo.doubles, 0)) * 2
+                        + SUM(COALESCE(eo.triples, 0)) * 3
+                        + SUM(eo.home_runs) * 4)::DECIMAL / SUM(eo.at_bats), 3)
                     ELSE 0.000
                 END as slg
             FROM estadisticas_ofensivas eo
@@ -79,11 +85,17 @@ async function obtenerOfensivas(filtros = {}) {
                         ELSE 0.000
                     END as avg,
                     CASE
-                        WHEN SUM(eo.at_bats) > 0 THEN ROUND((SUM(eo.hits) + SUM(eo.walks))::DECIMAL / (SUM(eo.at_bats) + SUM(eo.walks)), 3)
+                        WHEN (SUM(eo.at_bats) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)) + SUM(COALESCE(eo.sacrifice_flies, 0))) > 0
+                        THEN ROUND((SUM(eo.hits) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)))::DECIMAL /
+                             (SUM(eo.at_bats) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)) + SUM(COALESCE(eo.sacrifice_flies, 0))), 3)
                         ELSE 0.000
                     END as obp,
                     CASE
-                        WHEN SUM(eo.at_bats) > 0 THEN ROUND((SUM(eo.hits) + SUM(eo.home_runs) * 3)::DECIMAL / SUM(eo.at_bats), 3)
+                        WHEN SUM(eo.at_bats) > 0 THEN ROUND(
+                            ((SUM(eo.hits) - SUM(COALESCE(eo.doubles, 0)) - SUM(COALESCE(eo.triples, 0)) - SUM(eo.home_runs))
+                            + SUM(COALESCE(eo.doubles, 0)) * 2
+                            + SUM(COALESCE(eo.triples, 0)) * 3
+                            + SUM(eo.home_runs) * 4)::DECIMAL / SUM(eo.at_bats), 3)
                         ELSE 0.000
                     END as slg
                 FROM estadisticas_ofensivas eo
@@ -120,11 +132,17 @@ async function obtenerOfensivas(filtros = {}) {
                    ELSE 0.000
                END as avg,
                CASE
-                   WHEN eo.at_bats > 0 THEN ROUND((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks), 3)
+                   WHEN (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)) > 0
+                   THEN ROUND((eo.hits + eo.walks + COALESCE(eo.hit_by_pitch, 0))::DECIMAL /
+                        (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)), 3)
                    ELSE 0.000
                END as obp,
                CASE
-                   WHEN eo.at_bats > 0 THEN ROUND((eo.hits + eo.home_runs * 3)::DECIMAL / eo.at_bats, 3)
+                   WHEN eo.at_bats > 0 THEN ROUND(
+                       ((eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs)
+                       + COALESCE(eo.doubles, 0) * 2
+                       + COALESCE(eo.triples, 0) * 3
+                       + eo.home_runs * 4)::DECIMAL / eo.at_bats, 3)
                    ELSE 0.000
                END as slg
         FROM estadisticas_ofensivas eo

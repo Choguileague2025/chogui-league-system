@@ -197,8 +197,20 @@ async function obtenerLideresOfensivos(req, res, next) {
         const result = await pool.query(`
             SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
                    ROUND(eo.hits::DECIMAL / eo.at_bats, 3) as avg,
-                   ROUND((eo.hits + eo.walks)::DECIMAL / (eo.at_bats + eo.walks), 3) as obp,
-                   ROUND((eo.hits + eo.home_runs * 3)::DECIMAL / eo.at_bats, 3) as slg
+                   CASE
+                       WHEN (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)) > 0
+                       THEN ROUND((eo.hits + eo.walks + COALESCE(eo.hit_by_pitch, 0))::DECIMAL /
+                            (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)), 3)
+                       ELSE 0.000
+                   END as obp,
+                   CASE
+                       WHEN eo.at_bats > 0 THEN ROUND(
+                           ((eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs)
+                           + COALESCE(eo.doubles, 0) * 2
+                           + COALESCE(eo.triples, 0) * 3
+                           + eo.home_runs * 4)::DECIMAL / eo.at_bats, 3)
+                       ELSE 0.000
+                   END as slg
             FROM estadisticas_ofensivas eo
             JOIN jugadores j ON eo.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
