@@ -821,152 +821,470 @@
             line-height: 1.6;
         }
        
+        /* ═══════════════════════════════════════════════════════
+           PHASE 4: LEADERS SECTION — PREMIUM PODIUM DESIGN
+           ═══════════════════════════════════════════════════════ */
+
         .leaders-section-header {
             text-align: center;
-            margin-bottom: 30px;
-            position: relative;
+            margin-bottom: 2rem;
         }
 
         .leaders-section-header h3 {
             font-size: 2rem;
-            background: #ffc107;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 15px;
+            color: #ffc107;
+            margin-bottom: 0.5rem;
         }
 
+        /* Tab Filters — Premium Pill Style */
         .leaders-filters {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #161b22;
-            border-radius: 15px;
-            border: 2px solid rgba(255, 193, 7, 0.3);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: 0;
         }
 
         .leader-filter {
-            padding: 10px 20px;
-            background: #161b22;
-            color: #ffc107;
-            border: 2px solid rgba(255, 193, 7, 0.3);
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
             font-size: 0.9rem;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .leader-filter::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.1), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .leader-filter:hover::before {
-            left: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
         .leader-filter:hover {
             border-color: #ffc107;
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+            color: #ffc107;
+            transform: translateY(-2px);
         }
 
         .leader-filter.active {
             background: #ffc107;
+            border-color: #ffc107;
             color: #0d1117;
-            border-color: #ff9800;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5);
         }
-       
-        /* ✅ INICIO: ESTILOS MODIFICADOS PARA NUEVAS TARJETAS DE LÍDERES */
-        #lideresGrid {
+
+        /* ═══════════════════════════════════════════════════════
+           PODIUM — TOP 3 HIGHLIGHTED
+           ═══════════════════════════════════════════════════════ */
+        .podio-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 152, 0, 0.05) 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 193, 7, 0.15);
         }
 
-        .leader-card {
+        .podio-card {
             background: #161b22;
-            border: 1px solid rgba(255, 193, 7, 0.2);
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            gap: 15px;
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+            transition: all 0.4s ease;
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .podio-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffc107, #ff9800);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .podio-card:hover::before {
+            opacity: 1;
+        }
+
+        .podio-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(255, 193, 7, 0.3);
+        }
+
+        .podio-card.rank-1 {
+            border-color: #ffd700;
+        }
+
+        .podio-card.rank-2 {
+            border-color: #c0c0c0;
+            transform: scale(0.95);
+        }
+
+        .podio-card.rank-3 {
+            border-color: #cd7f32;
+            transform: scale(0.95);
+        }
+
+        .podio-card.rank-2:hover,
+        .podio-card.rank-3:hover {
+            transform: scale(0.95) translateY(-8px);
+        }
+
+        .podio-ranking {
+            display: inline-flex;
             align-items: center;
-            transition: all 0.3s ease;
-        }
-
-        .leader-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(255, 193, 7, 0.5);
-            box-shadow: 0 6px 18px rgba(255, 193, 7, 0.25);
-        }
-
-        .leader-rank {
-            min-width: 40px;
-            height: 40px;
-            color: #0d1117;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            animation: podio-float 3s ease-in-out infinite;
+        }
+
+        @keyframes podio-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .podio-card.rank-1 .podio-ranking {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #1a1a1a;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .podio-card.rank-2 .podio-ranking {
+            background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+            color: #1a1a1a;
+            box-shadow: 0 4px 20px rgba(192, 192, 192, 0.4);
+        }
+
+        .podio-card.rank-3 .podio-ranking {
+            background: linear-gradient(135deg, #cd7f32, #e5a367);
+            color: #1a1a1a;
+            box-shadow: 0 4px 20px rgba(205, 127, 50, 0.4);
+        }
+
+        .badge-lider {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.8rem;
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #0d1117;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .podio-nombre {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+        }
+
+        .podio-equipo {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.25rem;
+        }
+
+        .podio-posicion {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background: #21262d;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1rem;
+        }
+
+        .podio-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .podio-stat {
+            background: #21262d;
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .podio-stat-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .podio-stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffc107;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           LEADERS GRID — #4 AND BEYOND
+           ═══════════════════════════════════════════════════════ */
+        .lideres-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .lider-card {
+            background: #161b22;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .lider-card:hover {
+            border-color: rgba(255, 193, 7, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .lider-ranking {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 1rem;
-            flex-shrink: 0;
-        }
-
-        .leader-info {
-            flex-grow: 1;
-        }
-
-        .leader-info h3 {
-            font-size: 1.1rem;
-            color: #fff;
-            margin: 0 0 4px 0;
-        }
-
-        .leader-info .team-name {
-            font-size: 0.85rem;
-            color: rgba(255, 193, 7, 0.8);
-            margin: 0;
-        }
-
-        .leader-stats {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-            justify-content: space-around;
-        }
-
-        .leader-stats .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            display: block;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #ff9800;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
+            background: #21262d;
+            border: 2px solid #ffc107;
+            border-radius: 50%;
+            font-weight: 700;
             color: #ffc107;
-            opacity: 0.8;
+            font-size: 0.95rem;
         }
-        /* ✅ FIN: ESTILOS MODIFICADOS PARA NUEVAS TARJETAS DE LÍDERES */
+
+        .lider-header {
+            margin-bottom: 1rem;
+            padding-right: 50px;
+        }
+
+        .lider-nombre {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+        }
+
+        .lider-equipo {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lider-posicion-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            background: #21262d;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .lider-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .lider-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .lider-stat-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .lider-stat-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .lider-stat-bar {
+            width: 100%;
+            height: 4px;
+            background: #21262d;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .lider-stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffc107, #ff9800);
+            transition: width 0.5s ease;
+            border-radius: 2px;
+        }
+
+        .lider-badges {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge.hot-streak {
+            background: rgba(255, 87, 34, 0.15);
+            color: #ff5722;
+            border: 1px solid rgba(255, 87, 34, 0.3);
+        }
+
+        .badge.mvp {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .lider-card-footer {
+            text-align: center;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .lider-view-profile {
+            font-size: 0.8rem;
+            color: #ffc107;
+            font-weight: 500;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .lider-card:hover .lider-view-profile {
+            opacity: 1;
+        }
+
+        /* "Ver más" card */
+        .ver-mas-card {
+            background: rgba(255, 193, 7, 0.05);
+            border: 2px dashed rgba(255, 193, 7, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ver-mas-card:hover {
+            border-color: rgba(255, 193, 7, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .ver-mas-content h4 {
+            color: #ffc107;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .ver-mas-content p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-ver-mas {
+            padding: 0.75rem 2rem;
+            background: transparent;
+            border: 2px solid #ffc107;
+            border-radius: 25px;
+            color: #ffc107;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-ver-mas:hover {
+            background: #ffc107;
+            color: #0d1117;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           LEADERS RESPONSIVE
+           ═══════════════════════════════════════════════════════ */
+        @media (max-width: 992px) {
+            .podio-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                padding: 1.5rem;
+            }
+
+            .podio-card.rank-2,
+            .podio-card.rank-3 {
+                transform: scale(1);
+            }
+
+            .podio-card.rank-2:hover,
+            .podio-card.rank-3:hover {
+                transform: translateY(-8px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .leaders-filters {
+                gap: 0.5rem;
+            }
+
+            .leader-filter {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .lideres-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .podio-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+        /* ═══════════════════════════════════════════════════════ */
        
         .leaders-grid-enhanced {
             display: flex;
@@ -1332,10 +1650,6 @@
                 padding: 0 10px;
             }
 
-            .leader-card-enhanced {
-                padding: 20px 15px;
-            }
-
             .leaders-filters {
                 flex-direction: column;
                 gap: 10px;
@@ -1382,20 +1696,30 @@
            
             /* Se delega el :active a los estilos de navegación móvil */
 
-            .leader-card-enhanced:hover {
-                transform: none;
-            }
-
-            .leader-card-enhanced:active {
-                transform: scale(0.98);
-            }
-
             .leader-filter:hover {
                 transform: none;
             }
 
             .leader-filter:active {
                 transform: scale(0.95);
+            }
+
+            .podio-card:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .podio-card:active {
+                transform: scale(0.98);
+            }
+
+            .lider-card:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .lider-card:active {
+                transform: scale(0.98);
             }
 
             .compare-btn:hover {
@@ -2516,225 +2840,7 @@
             }
         }
        
-        /* CARDS PROFESIONALES DE JUGADORES */
-        .professional-player-card {
-            background: #161b22;
-            border: 1px solid rgba(255, 193, 7, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 10px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            min-height: 200px;
-        }
-
-        .professional-player-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255, 193, 7, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
-        }
-
-        .professional-player-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: #ffc107;
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            gap: 12px;
-        }
-
-        .player-rank {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .player-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .player-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #ffffff;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .player-team-pos {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .team-name {
-            font-size: 12px;
-            color: #ffc107;
-            font-weight: 500;
-        }
-
-        .position-badge {
-            background: rgba(255, 193, 7, 0.2);
-            color: #ffc107;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-            border: 1px solid rgba(255, 193, 7, 0.3);
-        }
-
-        .primary-stat {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .player-metrics {
-            margin: 15px 0;
-        }
-
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .metric-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-
-        .metric-label {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.6);
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .metric-value {
-            font-size: 14px;
-            color: #ffffff;
-            font-weight: bold;
-        }
-
-        .metric-footer {
-            text-align: center;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 193, 7, 0.1);
-        }
-
-        .metric-footer span {
-            font-size: 11px;
-            color: rgba(255, 193, 7, 0.8);
-            font-weight: 500;
-        }
-
-        .card-footer {
-            text-align: center;
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 193, 7, 0.1);
-        }
-
-        .view-profile {
-            font-size: 12px;
-            color: #ffc107;
-            font-weight: 500;
-            opacity: 0.8;
-            transition: opacity 0.3s ease;
-        }
-
-        .professional-player-card:hover .view-profile {
-            opacity: 1;
-        }
-
-        /* GRID RESPONSIVE PARA CARDS */
-        #lideresGrid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            padding: 20px 0;
-        }
-
-        @media (max-width: 768px) {
-            #lideresGrid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .professional-player-card {
-                margin: 5px;
-                padding: 15px;
-            }
-        }
-
-        /* Card "Ver más" */
-        .ver-mas-card {
-            background: rgba(255, 193, 7, 0.1);
-            border: 2px dashed rgba(255, 193, 7, 0.3);
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .ver-mas-card:hover {
-            border-color: rgba(255, 193, 7, 0.6);
-            transform: translateY(-2px);
-        }
-
-        .ver-mas-content h4 {
-            color: #ffc107;
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-
-        .ver-mas-content p {
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 20px;
-        }
-
-        .btn-ver-mas {
-            background: #ffc107;
-            color: #0d1117;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-ver-mas:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.4);
-        }
+        /* (professional-player-card styles removed — Phase 4 uses podio-card and lider-card) */
 </style>
 </head>
 <body>
@@ -3005,7 +3111,8 @@
       "></div>
     </div>
 
-    <div id="lideresGrid"></div>
+    <div id="podioContainer" class="podio-container" style="display: none;"></div>
+    <div id="lideresGrid" class="lideres-grid" style="display: none;"></div>
 
     <div id="positionsContainer" class="positions-container" style="display: none;"></div>
 </div>
@@ -3966,166 +4073,181 @@
         }
 
         function renderizarCards(jugadores, categoria) {
-            const container = document.getElementById('lideresGrid');
-            if (!container) return;
+            const podioContainer = document.getElementById('podioContainer');
+            const gridContainer = document.getElementById('lideresGrid');
+            if (!gridContainer) return;
 
             if (!jugadores || jugadores.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state" style="display:block;">
-                        <h3>📊 Sin datos de ${categoria}</h3>
-                        <p>Los líderes aparecerán cuando haya estadísticas disponibles</p>
+                if (podioContainer) { podioContainer.style.display = 'none'; podioContainer.innerHTML = ''; }
+                gridContainer.innerHTML = `
+                    <div class="scoreboard-empty" style="grid-column: 1/-1;">
+                        <h3>Sin datos de ${categoria}</h3>
+                        <p>Los lideres apareceran cuando haya estadisticas disponibles</p>
                     </div>
                 `;
+                gridContainer.style.display = 'grid';
                 return;
             }
 
-            container.innerHTML = jugadores.map((jugador, index) => {
-                const nombre = jugador.nombre || jugador.jugador_nombre || jugador.nombre_jugador || 'Sin Nombre';
-                const id = jugador.id || jugador.jugador_id || null;
-                const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin Equipo';
-                const posicion = jugador.posicion || jugador.posicion_principal || 'UTIL';
-                
-                // Obtener métricas específicas por categoría
-                let metricas = '';
-                let ranking = '';
-                let badgeColor = '';
-                
-                if (categoria === 'bateo') {
+            // Helper: extract stats for a player by category
+            function getStats(jugador, cat) {
+                if (cat === 'bateo') {
                     const avg = parseFloat(jugador.promedio_bateo || jugador.avg || 0) || 0;
-                    const ops = parseFloat(jugador.ops || 0) || 0;
+                    const obp = parseFloat(jugador.obp || 0) || 0;
+                    const slg = parseFloat(jugador.slg || 0) || 0;
+                    const ops = parseFloat(jugador.ops || 0) || (obp + slg);
                     const hr = parseInt(jugador.home_runs || jugador.hr || 0) || 0;
                     const rbi = parseInt(jugador.rbi || 0) || 0;
+                    const h = parseInt(jugador.hits || jugador.h || 0) || 0;
                     const ab = parseInt(jugador.at_bats || jugador.ab || 0) || 0;
-                    
-                    ranking = avg.toFixed(3);
-                    badgeColor = avg >= 0.400 ? '#4CAF50' : avg >= 0.300 ? '#FF9800' : avg >= 0.250 ? '#2196F3' : '#9E9E9E';
-                    
-                    metricas = `
-                        <div class="player-metrics">
-                            <div class="metric-row">
-                                <div class="metric-item">
-                                    <span class="metric-label">AVG</span>
-                                    <span class="metric-value">${avg.toFixed(3)}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">OPS</span>
-                                    <span class="metric-value">${ops.toFixed(3)}</span>
-                                </div>
-                            </div>
-                            <div class="metric-row">
-                                <div class="metric-item">
-                                    <span class="metric-label">HR</span>
-                                    <span class="metric-value">${hr}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">RBI</span>
-                                    <span class="metric-value">${rbi}</span>
-                                </div>
-                            </div>
-                            <div class="metric-footer">
-                                <span class="at-bats">${ab} AB</span>
-                            </div>
-                        </div>
-                    `;
-                } else if (categoria === 'pitcheo') {
+                    const sb = parseInt(jugador.stolen_bases || jugador.sb || 0) || 0;
+                    return { primary: avg.toFixed(3), primaryLabel: 'AVG', primaryRaw: avg,
+                             stats: [
+                                 { label: 'AVG', value: avg.toFixed(3), raw: avg },
+                                 { label: 'HR', value: hr, raw: hr },
+                                 { label: 'RBI', value: rbi, raw: rbi },
+                                 { label: 'OPS', value: ops.toFixed(3), raw: ops }
+                             ],
+                             extra: `${ab} AB` };
+                } else if (cat === 'pitcheo') {
                     const era = parseFloat(jugador.era || 0) || 0;
                     const whip = parseFloat(jugador.whip || 0) || 0;
                     const so = parseInt(jugador.strikeouts || jugador.so || 0) || 0;
                     const wins = parseInt(jugador.wins || jugador.w || 0) || 0;
+                    const losses = parseInt(jugador.losses || jugador.l || 0) || 0;
                     const ip = parseFloat(jugador.innings_pitched || jugador.ip || 0) || 0;
-                    
-                    ranking = era.toFixed(2);
-                    badgeColor = era <= 2.00 ? '#4CAF50' : era <= 3.50 ? '#FF9800' : era <= 5.00 ? '#2196F3' : '#9E9E9E';
-                    
-                    metricas = `
-                        <div class="player-metrics">
-                            <div class="metric-row">
-                                <div class="metric-item">
-                                    <span class="metric-label">ERA</span>
-                                    <span class="metric-value">${era.toFixed(2)}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">WHIP</span>
-                                    <span class="metric-value">${whip.toFixed(2)}</span>
-                                </div>
-                            </div>
-                            <div class="metric-row">
-                                <div class="metric-item">
-                                    <span class="metric-label">SO</span>
-                                    <span class="metric-value">${so}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">W</span>
-                                    <span class="metric-value">${wins}</span>
-                                </div>
-                            </div>
-                            <div class="metric-footer">
-                                <span class="innings">${ip} IP</span>
-                            </div>
-                        </div>
-                    `;
-                } else if (categoria === 'defensiva') {
+                    return { primary: era.toFixed(2), primaryLabel: 'ERA', primaryRaw: era,
+                             stats: [
+                                 { label: 'ERA', value: era.toFixed(2), raw: era },
+                                 { label: 'WHIP', value: whip.toFixed(2), raw: whip },
+                                 { label: 'SO', value: so, raw: so },
+                                 { label: 'W-L', value: `${wins}-${losses}`, raw: wins }
+                             ],
+                             extra: `${ip} IP` };
+                } else {
                     const fld = parseFloat(jugador.fielding_percentage || jugador.fld_pct || 0) || 0;
                     const po = parseInt(jugador.putouts || jugador.po || 0) || 0;
                     const a = parseInt(jugador.assists || jugador.a || 0) || 0;
                     const e = parseInt(jugador.errors || jugador.e || 0) || 0;
-                    
-                    ranking = fld.toFixed(3);
-                    badgeColor = fld >= 0.980 ? '#4CAF50' : fld >= 0.950 ? '#FF9800' : fld >= 0.900 ? '#2196F3' : '#9E9E9E';
-                    
-                    metricas = `
-                        <div class="player-metrics">
-                            <div class="metric-row">
-                                <div class="metric-item">
-                                    <span class="metric-label">FLD%</span>
-                                    <span class="metric-value">${fld.toFixed(3)}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">PO</span>
-                                    <span class="metric-value">${po}</span>
-                                </div>
-                            </div>
-                            <div class="metric-row">
-                                <div class="metric-item">
-                                    <span class="metric-label">A</span>
-                                    <span class="metric-value">${a}</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">E</span>
-                                    <span class="metric-value">${e}</span>
-                                </div>
-                            </div>
-                            <div class="metric-footer">
-                                <span class="total-chances">${po + a + e} TC</span>
+                    return { primary: fld.toFixed(3), primaryLabel: 'FLD%', primaryRaw: fld,
+                             stats: [
+                                 { label: 'FLD%', value: fld.toFixed(3), raw: fld },
+                                 { label: 'PO', value: po, raw: po },
+                                 { label: 'A', value: a, raw: a },
+                                 { label: 'E', value: e, raw: e }
+                             ],
+                             extra: `${po + a + e} TC` };
+                }
+            }
+
+            // Compute max values for progress bars
+            const allStats = jugadores.map(j => getStats(j, categoria));
+            const maxValues = {};
+            if (allStats.length > 0) {
+                allStats[0].stats.forEach((s, i) => {
+                    maxValues[i] = Math.max(...allStats.map(as => Math.abs(parseFloat(as.stats[i].raw)) || 0), 1);
+                });
+            }
+
+            const medals = ['&#129351;', '&#129352;', '&#129353;']; // gold, silver, bronze
+            const badgeLabels = ['Lider de Liga', 'Top 2', 'Top 3'];
+
+            // --- PODIUM (top 3) ---
+            const top3 = jugadores.slice(0, 3);
+            if (podioContainer && top3.length > 0) {
+                podioContainer.style.display = 'grid';
+                podioContainer.innerHTML = top3.map((jugador, index) => {
+                    const nombre = jugador.nombre || jugador.jugador_nombre || jugador.nombre_jugador || 'Sin Nombre';
+                    const id = jugador.id || jugador.jugador_id || null;
+                    const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin Equipo';
+                    const posicion = jugador.posicion || jugador.posicion_principal || 'UTIL';
+                    const st = allStats[index];
+
+                    return `
+                        <div class="podio-card rank-${index + 1}" ${id ? `onclick="window.open('jugador.html?id=${id}','_blank')"` : ''} style="cursor:pointer;">
+                            <div class="podio-ranking">${medals[index]}</div>
+                            <div class="badge-lider">${index === 0 ? '&#11088; ' : ''}${badgeLabels[index]}</div>
+                            <div class="podio-nombre">${nombre}</div>
+                            <div class="podio-equipo">${equipo}</div>
+                            <div class="podio-posicion">${posicion}</div>
+                            <div class="podio-stats">
+                                ${st.stats.map(s => `
+                                    <div class="podio-stat">
+                                        <div class="podio-stat-label">${s.label}</div>
+                                        <div class="podio-stat-value">${s.value}</div>
+                                    </div>
+                                `).join('')}
                             </div>
                         </div>
                     `;
-                }
+                }).join('');
+            } else if (podioContainer) {
+                podioContainer.style.display = 'none';
+                podioContainer.innerHTML = '';
+            }
 
-                return `
-                    <div class="professional-player-card" ${id ? `onclick="window.open('jugador.html?id=${id}','_blank')"` : ''}>
-                        <div class="card-header">
-                            <div class="player-rank" style="background: ${badgeColor}">
-                                #${index + 1}
-                            </div>
-                            <div class="player-info">
-                                <div class="player-name">${nombre}</div>
-                                <div class="player-team-pos">
-                                    <span class="team-name">${equipo}</span>
-                                    <span class="position-badge">${posicion}</span>
+            // --- GRID (#4+) ---
+            const rest = jugadores.slice(3);
+            if (rest.length > 0) {
+                gridContainer.style.display = 'grid';
+                gridContainer.innerHTML = rest.map((jugador, idx) => {
+                    const index = idx + 3;
+                    const nombre = jugador.nombre || jugador.jugador_nombre || jugador.nombre_jugador || 'Sin Nombre';
+                    const id = jugador.id || jugador.jugador_id || null;
+                    const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin Equipo';
+                    const posicion = jugador.posicion || jugador.posicion_principal || 'UTIL';
+                    const st = allStats[index];
+
+                    // Badges
+                    let badgesHTML = '';
+                    if (categoria === 'bateo') {
+                        const avg = parseFloat(jugador.promedio_bateo || jugador.avg || 0) || 0;
+                        const hr = parseInt(jugador.home_runs || jugador.hr || 0) || 0;
+                        if (avg >= 0.350) badgesHTML += '<span class="badge hot-streak">&#128293; Hot Streak</span>';
+                        if (hr >= 5) badgesHTML += '<span class="badge mvp">&#11088; Power</span>';
+                    } else if (categoria === 'pitcheo') {
+                        const era = parseFloat(jugador.era || 0) || 0;
+                        const so = parseInt(jugador.strikeouts || jugador.so || 0) || 0;
+                        if (era <= 2.0) badgesHTML += '<span class="badge hot-streak">&#128293; Dominante</span>';
+                        if (so >= 20) badgesHTML += '<span class="badge mvp">&#11088; Ponchador</span>';
+                    } else {
+                        const fld = parseFloat(jugador.fielding_percentage || jugador.fld_pct || 0) || 0;
+                        if (fld >= 0.980) badgesHTML += '<span class="badge hot-streak">&#128293; Gold Glove</span>';
+                    }
+
+                    return `
+                        <div class="lider-card" ${id ? `onclick="window.open('jugador.html?id=${id}','_blank')"` : ''}>
+                            <div class="lider-ranking">#${index + 1}</div>
+                            <div class="lider-header">
+                                <div class="lider-nombre">${nombre}</div>
+                                <div class="lider-equipo">
+                                    ${equipo}
+                                    <span class="lider-posicion-badge">${posicion}</span>
                                 </div>
                             </div>
-                            <div class="primary-stat" style="color: ${badgeColor}">
-                                ${ranking}
+                            <div class="lider-stats">
+                                ${st.stats.map((s, si) => {
+                                    const pct = maxValues[si] > 0 ? (Math.abs(parseFloat(s.raw)) / maxValues[si]) * 100 : 0;
+                                    return `
+                                        <div class="lider-stat">
+                                            <div class="lider-stat-label">${s.label}</div>
+                                            <div class="lider-stat-value">${s.value}</div>
+                                            <div class="lider-stat-bar"><div class="lider-stat-bar-fill" style="width:${Math.min(pct, 100)}%"></div></div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            ${badgesHTML ? `<div class="lider-badges">${badgesHTML}</div>` : ''}
+                            <div class="lider-card-footer">
+                                <span class="lider-view-profile">Ver Perfil &rarr;</span>
                             </div>
                         </div>
-                        ${metricas}
-                        <div class="card-footer">
-                            <span class="view-profile">Ver Perfil &rarr;</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+            } else {
+                gridContainer.innerHTML = '';
+                gridContainer.style.display = 'none';
+            }
         }
 
         function initBuscadorBateadores() {
@@ -4200,10 +4322,13 @@
                 renderizarLideresPorCategoria(currentLeaderCategory);
                
             } catch (error) {
-                console.error('❌ Error cargando líderes:', error);
+                console.error('Error cargando lideres:', error);
+                const podioEl = document.getElementById('podioContainer');
+                if (podioEl) podioEl.style.display = 'none';
                 const container = document.getElementById('lideresGrid');
                 if (container) {
-                    container.innerHTML = `<div class="empty-state" style="display:block;"><h3>Error al cargar</h3><p>No se pudieron obtener los datos de los líderes.</p></div>`;
+                    container.style.display = 'grid';
+                    container.innerHTML = `<div class="scoreboard-empty" style="grid-column:1/-1;"><h3>Error al cargar</h3><p>No se pudieron obtener los datos de los lideres.</p></div>`;
                 }
             }
         }
@@ -4211,25 +4336,27 @@
         
         async function renderizarLideresPorCategoria(categoria) {
             currentLeaderCategory = categoria;
-            
+
+            const podioContainer = document.getElementById('podioContainer');
             const container = document.getElementById('lideresGrid');
             const positionsContainer = document.getElementById('positionsContainer');
             const searchContainerTodos = document.getElementById('searchContainerTodos');
             const searchContainerBateo = document.getElementById('searchContainerBateo');
             const searchContainerPitcheo = document.getElementById('searchContainerPitcheo');
             const searchContainerDefensiva = document.getElementById('searchContainerDefensiva');
-            
+
             // Ocultar todos los buscadores primero
             [searchContainerTodos, searchContainerBateo, searchContainerPitcheo, searchContainerDefensiva].forEach(sc => {
                 if (sc) sc.style.display = 'none';
             });
-            
+
             document.querySelectorAll('.leader-filter').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.category === categoria);
             });
 
             if (categoria === 'todos') {
-                // Mantener funcionalidad actual
+                // Mantener funcionalidad actual — hide podium + grid, show positions
+                if (podioContainer) podioContainer.style.display = 'none';
                 if (container) container.style.display = 'none';
                 if (positionsContainer) positionsContainer.style.display = 'block';
                 if (searchContainerTodos) searchContainerTodos.style.display = 'block';
@@ -4237,11 +4364,11 @@
                 setTimeout(() => { initBuscadorJugadores(); }, 100);
                 return;
             }
-            
-            // Mostrar container de líderes y ocultar posiciones
-            if (container) container.style.display = 'grid';
+
+            // Mostrar containers de líderes y ocultar posiciones
+            // (renderizarCards will handle showing podioContainer and lideresGrid)
             if (positionsContainer) positionsContainer.style.display = 'none';
-            
+
             // Mostrar buscador específico según categoría
             if (categoria === 'bateo') {
                 if (searchContainerBateo) searchContainerBateo.style.display = 'block';
