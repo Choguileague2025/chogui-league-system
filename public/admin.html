@@ -4415,7 +4415,7 @@
                 const response = await fetch(endpoint, {
                     method: 'POST', // Usamos POST para que coincida con la lógica de UPSERT.
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ ...payload, mode: 'replace' })
                 });
 
                 if (response.ok) {
