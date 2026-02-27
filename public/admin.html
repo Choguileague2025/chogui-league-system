@@ -4381,10 +4381,18 @@
                         endpoint = `/api/estadisticas-ofensivas`;
                         payload.at_bats = parseInt(document.getElementById(`ab-${jugadorId}`).value) || 0;
                         payload.hits = parseInt(document.getElementById(`h-${jugadorId}`).value) || 0;
+                        payload.doubles = parseInt(document.getElementById(`doubles-${jugadorId}`).value) || 0;
+                        payload.triples = parseInt(document.getElementById(`triples-${jugadorId}`).value) || 0;
                         payload.home_runs = parseInt(document.getElementById(`hr-${jugadorId}`).value) || 0;
                         payload.rbi = parseInt(document.getElementById(`rbi-${jugadorId}`).value) || 0;
-                        // Nota: Se envían solo los campos editables en esta tabla.
-                        // El backend debe manejar los demás campos (runs, walks, etc.)
+                        payload.runs = parseInt(document.getElementById(`r-${jugadorId}`).value) || 0;
+                        payload.walks = parseInt(document.getElementById(`bb-${jugadorId}`).value) || 0;
+                        payload.strikeouts = parseInt(document.getElementById(`so-${jugadorId}`).value) || 0;
+                        payload.stolen_bases = parseInt(document.getElementById(`sb-${jugadorId}`).value) || 0;
+                        payload.caught_stealing = parseInt(document.getElementById(`cs-${jugadorId}`).value) || 0;
+                        payload.hit_by_pitch = parseInt(document.getElementById(`hbp-${jugadorId}`).value) || 0;
+                        payload.sacrifice_flies = parseInt(document.getElementById(`sf-${jugadorId}`).value) || 0;
+                        payload.sacrifice_hits = parseInt(document.getElementById(`sh-${jugadorId}`).value) || 0;
                         break;
                     
                     case 'pitcheo':
