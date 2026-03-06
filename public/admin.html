@@ -1636,6 +1636,7 @@
                                 <th>PA</th>
                                 <th>AB</th>
                                 <th>H</th>
+                                <th>1B</th>
                                 <th>2B</th>
                                 <th>3B</th>
                                 <th>HR</th>
@@ -1645,14 +1646,12 @@
                                 <th>SO</th>
                                 <th>SB</th>
                                 <th>CS</th>
-                                <th>HBP</th>
                                 <th>SF</th>
-                                <th>SH</th>
                                 <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="18" class="loading">Cargando...</td></tr>
+                            <tr><td colspan="17" class="loading">Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1719,27 +1718,32 @@
                     <div class="form-group">
                         <label for="plateAppearances">Apariciones (PA):</label>
                         <input type="number" id="plateAppearances" min="0" value="0">
-                        <small style="color: #ffc107; font-size: 0.8rem;">PA = AB + BB + HBP + SF + SH</small>
+                        <small style="color: #ffc107; font-size: 0.8rem;">PA = AB + BB + SF</small>
                     </div>
                     <div class="form-group">
                         <label for="atBats">At Bats (AB):</label>
                         <input type="number" id="atBats" min="0" value="0">
                     </div>
                     <div class="form-group">
-                        <label for="hits">Hits (H):</label>
-                        <input type="number" id="hits" min="0" value="0">
+                        <label for="hits">Hits (H) — auto-calculado:</label>
+                        <input type="number" id="hits" min="0" value="0" readonly style="background:#1a2a1a;color:#7ec87e;" title="Auto-calculado: 1B+2B+3B+HR" tabindex="-1">
+                        <small style="color: #7ec87e; font-size: 0.8rem;">H = 1B + 2B + 3B + HR (se calcula solo)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="singles">Sencillos (1B):</label>
+                        <input type="number" id="singles" min="0" value="0" oninput="autoCalcHForm()">
                     </div>
                     <div class="form-group">
                         <label for="doubles">Dobles (2B):</label>
-                        <input type="number" id="doubles" min="0" value="0">
+                        <input type="number" id="doubles" min="0" value="0" oninput="autoCalcHForm()">
                     </div>
                     <div class="form-group">
                         <label for="triples">Triples (3B):</label>
-                        <input type="number" id="triples" min="0" value="0">
+                        <input type="number" id="triples" min="0" value="0" oninput="autoCalcHForm()">
                     </div>
                     <div class="form-group">
                         <label for="homeRuns">Home Runs (HR):</label>
-                        <input type="number" id="homeRuns" min="0" value="0">
+                        <input type="number" id="homeRuns" min="0" value="0" oninput="autoCalcHForm()">
                     </div>
                     <div class="form-group">
                         <label for="rbi">RBI:</label>
@@ -1766,16 +1770,8 @@
                         <input type="number" id="caughtStealing" min="0" value="0">
                     </div>
                     <div class="form-group">
-                        <label for="hitByPitch">Golpeado (HBP):</label>
-                        <input type="number" id="hitByPitch" min="0" value="0">
-                    </div>
-                    <div class="form-group">
                         <label for="sacrificeFlies">Sacrificio Fly (SF):</label>
                         <input type="number" id="sacrificeFlies" min="0" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="sacrificeHits">Sacrificio Hit (SH):</label>
-                        <input type="number" id="sacrificeHits" min="0" value="0">
                     </div>
                 </div>
                 <button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
@@ -3616,22 +3612,26 @@
                 return;
             }
             
+            const singlesVal  = parseInt(document.getElementById('singles').value)  || 0;
+            const doublesVal  = parseInt(document.getElementById('doubles').value)  || 0;
+            const triplesVal  = parseInt(document.getElementById('triples').value)  || 0;
+            const homeRunsVal = parseInt(document.getElementById('homeRuns').value) || 0;
             const data = {
                 jugador_id: parseInt(jugador_id),
+                plate_appearances: parseInt(document.getElementById('plateAppearances').value) || 0,
                 at_bats: parseInt(document.getElementById('atBats').value) || 0,
-                hits: parseInt(document.getElementById('hits').value) || 0,
-                doubles: parseInt(document.getElementById('doubles').value) || 0,
-                triples: parseInt(document.getElementById('triples').value) || 0,
-                home_runs: parseInt(document.getElementById('homeRuns').value) || 0,
+                singles: singlesVal,
+                doubles: doublesVal,
+                triples: triplesVal,
+                home_runs: homeRunsVal,
+                hits: singlesVal + doublesVal + triplesVal + homeRunsVal,
                 rbi: parseInt(document.getElementById('rbi').value) || 0,
                 runs: parseInt(document.getElementById('runs').value) || 0,
                 walks: parseInt(document.getElementById('walks').value) || 0,
                 strikeouts: parseInt(document.getElementById('strikeouts').value) || 0,
                 stolen_bases: parseInt(document.getElementById('stolenBases').value) || 0,
                 caught_stealing: parseInt(document.getElementById('caughtStealing').value) || 0,
-                hit_by_pitch: parseInt(document.getElementById('hitByPitch').value) || 0,
-                sacrifice_flies: parseInt(document.getElementById('sacrificeFlies').value) || 0,
-                sacrifice_hits: parseInt(document.getElementById('sacrificeHits').value) || 0
+                sacrifice_flies: parseInt(document.getElementById('sacrificeFlies').value) || 0
             };
             
             try {
@@ -3643,7 +3643,7 @@
                 if (res.ok) {
                     toast.success('Estadísticas registradas exitosamente.');
                     await cargarEstadisticas();
-                    document.querySelectorAll('#plateAppearances, #atBats, #hits, #doubles, #triples, #homeRuns, #rbi, #runs, #walks, #strikeouts, #stolenBases, #caughtStealing, #hitByPitch, #sacrificeFlies, #sacrificeHits').forEach(el => el.value = 0);
+                    document.querySelectorAll('#plateAppearances, #atBats, #hits, #singles, #doubles, #triples, #homeRuns, #rbi, #runs, #walks, #strikeouts, #stolenBases, #caughtStealing, #sacrificeFlies').forEach(el => el.value = 0);
                 } else {
                     toast.error('Error al registrar estadísticas.');
                 }
@@ -4033,7 +4033,10 @@
                 // Enriquecer con datos de jugador (esto es clave)
                 const enrichedStats = stats.map(s => {
                     const jugador = jugadores.find(j => j.id === s.jugador_id);
-                    return jugador ? { ...s, nombre: jugador.nombre, equipo_nombre: jugador.equipo_nombre, equipo_id: jugador.equipo_id } : null;
+                    if (!jugador) return null;
+                    // Derivar singles = hits - 2B - 3B - HR (no está almacenado como columna)
+                    const singles = Math.max(0, (s.hits || 0) - (s.doubles || 0) - (s.triples || 0) - (s.home_runs || 0));
+                    return { ...s, singles, nombre: jugador.nombre, equipo_nombre: jugador.equipo_nombre, equipo_id: jugador.equipo_id };
                 }).filter(Boolean); // Filtrar nulos si un jugador no se encontró
                 
                 // Inicializar paginación
@@ -4041,7 +4044,7 @@
                 paginationBateo.render = function() {
                     const data = this.getCurrentPageData();
                     if (data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No se encontraron jugadores con los filtros aplicados.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="17" class="empty-state">No se encontraron jugadores con los filtros aplicados.</td></tr>';
                     } else {
                         tbody.innerHTML = data.map(s => `
                             <tr>
@@ -4049,19 +4052,18 @@
                                 <td>${s.equipo_nombre || '-'}</td>
                                 <td><input type="number" id="pa-${s.jugador_id}" value="${s.plate_appearances || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="ab-${s.jugador_id}" value="${s.at_bats || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="doubles-${s.jugador_id}" value="${s.doubles || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="triples-${s.jugador_id}" value="${s.triples || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:50px;"></td>
+                                <td><input type="number" id="h-${s.jugador_id}" value="${s.hits || 0}" style="width:55px;background:#1a2a1a;color:#7ec87e;" readonly title="Auto-calculado: 1B+2B+3B+HR" tabindex="-1"></td>
+                                <td><input type="number" id="1b-${s.jugador_id}" value="${s.singles || 0}" style="width:50px;" oninput="autoCalcH(${s.jugador_id})"></td>
+                                <td><input type="number" id="doubles-${s.jugador_id}" value="${s.doubles || 0}" style="width:50px;" oninput="autoCalcH(${s.jugador_id})"></td>
+                                <td><input type="number" id="triples-${s.jugador_id}" value="${s.triples || 0}" style="width:50px;" oninput="autoCalcH(${s.jugador_id})"></td>
+                                <td><input type="number" id="hr-${s.jugador_id}" value="${s.home_runs || 0}" style="width:50px;" oninput="autoCalcH(${s.jugador_id})"></td>
                                 <td><input type="number" id="rbi-${s.jugador_id}" value="${s.rbi || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="r-${s.jugador_id}" value="${s.runs || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="bb-${s.jugador_id}" value="${s.walks || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="so-${s.jugador_id}" value="${s.strikeouts || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="sb-${s.jugador_id}" value="${s.stolen_bases || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="cs-${s.jugador_id}" value="${s.caught_stealing || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="hbp-${s.jugador_id}" value="${s.hit_by_pitch || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="sf-${s.jugador_id}" value="${s.sacrifice_flies || 0}" style="width:50px;"></td>
-                                <td><input type="number" id="sh-${s.jugador_id}" value="${s.sacrifice_hits || 0}" style="width:50px;"></td>
                                 <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">💾</button></td>
                             </tr>
                         `).join('');
@@ -4316,6 +4318,26 @@
             }
         }
 
+        // Auto-calcula H = 1B + 2B + 3B + HR en el formulario de registro
+        function autoCalcHForm() {
+            const singles  = parseInt(document.getElementById('singles')?.value)  || 0;
+            const doubles  = parseInt(document.getElementById('doubles')?.value)  || 0;
+            const triples  = parseInt(document.getElementById('triples')?.value)  || 0;
+            const homeRuns = parseInt(document.getElementById('homeRuns')?.value) || 0;
+            const hField   = document.getElementById('hits');
+            if (hField) hField.value = singles + doubles + triples + homeRuns;
+        }
+
+        // Auto-calcula H = 1B + 2B + 3B + HR en la tabla de edición
+        function autoCalcH(jugadorId) {
+            const singles  = parseInt(document.getElementById(`1b-${jugadorId}`)?.value)      || 0;
+            const doubles  = parseInt(document.getElementById(`doubles-${jugadorId}`)?.value)  || 0;
+            const triples  = parseInt(document.getElementById(`triples-${jugadorId}`)?.value)  || 0;
+            const homeRuns = parseInt(document.getElementById(`hr-${jugadorId}`)?.value)       || 0;
+            const hField   = document.getElementById(`h-${jugadorId}`);
+            if (hField) hField.value = singles + doubles + triples + homeRuns;
+        }
+
         function limpiarFormulario(tipo) {
             if (tipo === 'equipo') {
                 document.getElementById('nombreEquipo').value = '';
@@ -4388,21 +4410,22 @@
 
                 switch (tipo) {
                     case 'bateo':
-                        endpoint = `/api/estadisticas-ofensivas`;
-                        payload.at_bats = parseInt(document.getElementById(`ab-${jugadorId}`).value) || 0;
-                        payload.hits = parseInt(document.getElementById(`h-${jugadorId}`).value) || 0;
-                        payload.doubles = parseInt(document.getElementById(`doubles-${jugadorId}`).value) || 0;
-                        payload.triples = parseInt(document.getElementById(`triples-${jugadorId}`).value) || 0;
-                        payload.home_runs = parseInt(document.getElementById(`hr-${jugadorId}`).value) || 0;
-                        payload.rbi = parseInt(document.getElementById(`rbi-${jugadorId}`).value) || 0;
-                        payload.runs = parseInt(document.getElementById(`r-${jugadorId}`).value) || 0;
-                        payload.walks = parseInt(document.getElementById(`bb-${jugadorId}`).value) || 0;
-                        payload.strikeouts = parseInt(document.getElementById(`so-${jugadorId}`).value) || 0;
-                        payload.stolen_bases = parseInt(document.getElementById(`sb-${jugadorId}`).value) || 0;
-                        payload.caught_stealing = parseInt(document.getElementById(`cs-${jugadorId}`).value) || 0;
-                        payload.hit_by_pitch = parseInt(document.getElementById(`hbp-${jugadorId}`).value) || 0;
-                        payload.sacrifice_flies = parseInt(document.getElementById(`sf-${jugadorId}`).value) || 0;
-                        payload.sacrifice_hits = parseInt(document.getElementById(`sh-${jugadorId}`).value) || 0;
+                        endpoint = `/api/estadisticas-ofensivas/edit`;
+                        payload.mode = 'replace';
+                        payload.plate_appearances = parseInt(document.getElementById(`pa-${jugadorId}`)?.value) || 0;
+                        payload.at_bats    = parseInt(document.getElementById(`ab-${jugadorId}`)?.value) || 0;
+                        payload.singles    = parseInt(document.getElementById(`1b-${jugadorId}`)?.value) || 0;
+                        payload.doubles    = parseInt(document.getElementById(`doubles-${jugadorId}`)?.value) || 0;
+                        payload.triples    = parseInt(document.getElementById(`triples-${jugadorId}`)?.value) || 0;
+                        payload.home_runs  = parseInt(document.getElementById(`hr-${jugadorId}`)?.value) || 0;
+                        payload.hits       = payload.singles + payload.doubles + payload.triples + payload.home_runs;
+                        payload.rbi        = parseInt(document.getElementById(`rbi-${jugadorId}`)?.value) || 0;
+                        payload.runs       = parseInt(document.getElementById(`r-${jugadorId}`)?.value) || 0;
+                        payload.walks      = parseInt(document.getElementById(`bb-${jugadorId}`)?.value) || 0;
+                        payload.strikeouts = parseInt(document.getElementById(`so-${jugadorId}`)?.value) || 0;
+                        payload.stolen_bases    = parseInt(document.getElementById(`sb-${jugadorId}`)?.value) || 0;
+                        payload.caught_stealing = parseInt(document.getElementById(`cs-${jugadorId}`)?.value) || 0;
+                        payload.sacrifice_flies = parseInt(document.getElementById(`sf-${jugadorId}`)?.value) || 0;
                         break;
                     
                     case 'pitcheo':
