@@ -425,16 +425,15 @@ async function cargarTopBateadores() {
             });
         });
 
-        // Sort by AVG desc, take top 5
+        // Sort by AVG desc, show ALL players
         playerAggs.sort((a, b) => b.avg - a.avg);
-        const top5 = playerAggs.slice(0, 5);
 
-        if (top5.length === 0) {
+        if (playerAggs.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Sin estadísticas disponibles</td></tr>';
             return;
         }
 
-        tbody.innerHTML = top5.map((p, i) => `
+        tbody.innerHTML = playerAggs.map((p, i) => `
             <tr onclick="verJugador(${p.id})">
                 <td class="rank-cell">${i + 1}</td>
                 <td class="player-name-cell"><a href="jugador.html?id=${p.id}&equipo=${currentTeamId}">${p.nombre}</a></td>
@@ -493,16 +492,15 @@ async function cargarTopLanzadores() {
             });
         });
 
-        // Sort by ERA asc (lower is better), take top 5
+        // Sort by ERA asc (lower is better), show ALL pitchers
         playerAggs.sort((a, b) => a.era - b.era);
-        const top5 = playerAggs.slice(0, 5);
 
-        if (top5.length === 0) {
+        if (playerAggs.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Sin estadísticas disponibles</td></tr>';
             return;
         }
 
-        tbody.innerHTML = top5.map((p, i) => `
+        tbody.innerHTML = playerAggs.map((p, i) => `
             <tr onclick="verJugador(${p.id})">
                 <td class="rank-cell">${i + 1}</td>
                 <td class="player-name-cell"><a href="jugador.html?id=${p.id}&equipo=${currentTeamId}">${p.nombre}</a></td>
@@ -549,7 +547,7 @@ function filtrarRoster() {
     if (currentFilter === 'all') {
         filteredRoster = [...rosterData];
     } else if (currentFilter === 'IF') {
-        filteredRoster = rosterData.filter(p => ['1B', '2B', '3B', 'SS'].includes(p.posicion));
+        filteredRoster = rosterData.filter(p => ['1B', '2B', '3B', 'SS', 'SF'].includes(p.posicion));
     } else if (currentFilter === 'OF') {
         filteredRoster = rosterData.filter(p => ['LF', 'CF', 'RF'].includes(p.posicion));
     } else {
@@ -689,7 +687,9 @@ function formatearPosicion(posicion) {
         'P': 'Pitcher', 'C': 'Catcher',
         '1B': 'Primera Base', '2B': 'Segunda Base',
         '3B': 'Tercera Base', 'SS': 'Shortstop',
-        'LF': 'Left Field', 'CF': 'Center Field', 'RF': 'Right Field'
+        'SF': 'Short Field',
+        'LF': 'Left Field', 'CF': 'Center Field', 'RF': 'Right Field',
+        'UTIL': 'Utilidad'
     };
     return posiciones[posicion] || posicion || 'N/A';
 }

@@ -348,3 +348,121 @@
         font-size: 1.6rem;
     }
 }
+
+/* ============================================
+   TOP PLAYERS TABLE - TODOS LOS JUGADORES
+   (Scroll cuando hay muchos jugadores)
+   ============================================ */
+
+.top-players-section {
+    position: relative;
+}
+
+.table-responsive-v2 {
+    max-height: 480px;
+    overflow-y: auto;
+    border-radius: 10px;
+}
+
+.table-responsive-v2::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-responsive-v2::-webkit-scrollbar-track {
+    background: #21262d;
+    border-radius: 4px;
+}
+
+.table-responsive-v2::-webkit-scrollbar-thumb {
+    background: #ffc107;
+    border-radius: 4px;
+}
+
+.table-responsive-v2::-webkit-scrollbar-thumb:hover {
+    background: #ff9800;
+}
+
+.top-players-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.top-players-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #1a1f28;
+}
+
+.top-players-table thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #ffc107;
+    border-bottom: 2px solid rgba(255, 193, 7, 0.3);
+    white-space: nowrap;
+}
+
+.top-players-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.top-players-table tbody tr:hover {
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.top-players-table tbody td {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    color: #ffffff;
+}
+
+.rank-cell {
+    color: #ffc107;
+    font-weight: 700;
+    font-size: 0.85rem;
+    min-width: 30px;
+}
+
+.player-name-cell a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.player-name-cell a:hover {
+    color: #ffc107;
+}
+
+.loading-cell {
+    text-align: center;
+    padding: 30px !important;
+    color: #ffc107;
+    font-style: italic;
+}
+
+.empty-cell {
+    text-align: center;
+    padding: 30px !important;
+    color: rgba(255, 255, 255, 0.45);
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table-responsive-v2 {
+        max-height: 360px;
+    }
+
+    .top-players-table thead th,
+    .top-players-table tbody td {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+}
