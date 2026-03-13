@@ -2,7 +2,7 @@
  * Validators para Jugadores
  */
 
-const POSICIONES_VALIDAS = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P', 'UTIL', 'DH'];
+const POSICIONES_VALIDAS = ['C', '1B', '2B', '3B', 'SS', 'SF', 'LF', 'CF', 'RF', 'P', 'UTIL', 'DH'];
 
 function validarCrearJugador(body) {
     const errors = [];
@@ -66,7 +66,7 @@ function validarActualizarJugador(body) {
     }
 
     // Posición (se usa lista sin UTIL/DH para update, como en el original)
-    const posicionesUpdate = ['C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'P'];
+    const posicionesUpdate = ['C', '1B', '2B', '3B', 'SS', 'SF', 'LF', 'CF', 'RF', 'P', 'UTIL', 'DH'];
     if (posicion && !posicionesUpdate.includes(posicion)) {
         errors.push('Posición inválida. Debe ser una de: ' + posicionesUpdate.join(', '));
     }
