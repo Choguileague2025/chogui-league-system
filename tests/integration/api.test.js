@@ -165,6 +165,23 @@ describe('Partidos API', () => {
 });
 
 // =============================================
+// PLAYOFFS API
+// =============================================
+
+describe('Playoffs API', () => {
+    test('GET /api/playoffs/bracket - debe obtener bracket estructurado', async () => {
+        const response = await request(app).get('/api/playoffs/bracket');
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('bracket');
+        expect(response.body).toHaveProperty('rounds');
+        expect(Array.isArray(response.body.rounds.quarterfinal)).toBe(true);
+        expect(Array.isArray(response.body.rounds.semifinal)).toBe(true);
+        expect(Array.isArray(response.body.rounds.final)).toBe(true);
+    });
+});
+
+// =============================================
 // STATIC FILES
 // =============================================
 

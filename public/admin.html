@@ -174,6 +174,76 @@
             box-shadow: 0 8px 20px rgba(255, 193, 7, 0.5);
         }
 
+        .playoff-admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .playoff-admin-round {
+            background: #0d1117;
+            border: 1px solid rgba(255, 193, 7, 0.18);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .playoff-admin-round h4 {
+            color: #ffc107;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 0.95rem;
+        }
+
+        .playoff-admin-game {
+            background: #161b22;
+            border: 1px solid rgba(255, 193, 7, 0.14);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+
+        .playoff-admin-game-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.64);
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 0.86rem;
+        }
+
+        .playoff-score-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 76px;
+            gap: 10px;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+        .playoff-score-row span {
+            color: #fff;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
+
+        .playoff-score-row input,
+        .playoff-admin-game select,
+        .playoff-admin-game textarea {
+            width: 100%;
+            background: #21262d;
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.32);
+            border-radius: 8px;
+            padding: 9px;
+        }
+
+        .playoff-admin-game textarea {
+            min-height: 58px;
+            resize: vertical;
+            margin-top: 8px;
+        }
+
         .tab-content {
             display: none;
             animation: fadeIn 0.5s ease-in;
@@ -1150,6 +1220,7 @@
             <button class="nav-tab" data-tab="jugadores">👤 Jugadores</button>
             <button class="nav-tab" data-tab="lideres">🏆 Líderes</button>
             <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
+            <button class="nav-tab" data-tab="playoffs">🔥 Playoffs</button>
             <button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
         </div>
 
@@ -2066,6 +2137,19 @@
             </div>
         </div>
 
+        <div id="playoffs" class="tab-content">
+            <div class="card">
+                <h3>🔥 Playoffs y Final</h3>
+                <p style="color: #ffc107; margin-bottom: 14px;">Cuartos: domingo 19 de abril de 2026. Final: domingo 26 de abril de 2026.</p>
+                <button class="btn-secondary" onclick="inicializarPlayoffs()" style="margin-bottom: 16px;">🏁 Crear/Revisar Bracket</button>
+                <div id="playoffsAdminMessage" class="success-message"></div>
+                <div id="playoffsAdminError" class="error-message"></div>
+                <div id="playoffsAdminGrid" class="playoff-admin-grid">
+                    <div class="loading">Cargando bracket...</div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -2327,6 +2411,9 @@
                 }
                 if (nombrePestana === 'torneos') {
                     cargarTorneos();
+                }
+                if (nombrePestana === 'playoffs') {
+                    cargarPlayoffsAdmin();
                 }
                 if (nombrePestana === 'dashboard') {
                     cargarDashboard();
@@ -3075,6 +3162,134 @@
                 console.error('Error al cargar torneos:', error);
                 const tbody = document.querySelector('#torneosTable tbody');
                 if(tbody) tbody.innerHTML = '<tr><td colspan="5" class="empty-state" style="color:#f44336;">Error al cargar torneos.</td></tr>';
+            }
+        }
+
+        function escapeAdminHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char]));
+        }
+
+        function parseAdminDate(value) {
+            if (!value) return null;
+            const text = String(value);
+            return new Date(text.includes('T') ? text : `${text}T00:00:00`);
+        }
+
+        function renderPlayoffAdminGame(game) {
+            const jugadoresOptions = (jugadores || []).map(jugador => `
+                <option value="${jugador.id}" ${Number(game.mvp_jugador_id) === Number(jugador.id) ? 'selected' : ''}>
+                    ${escapeAdminHTML(jugador.nombre)}
+                </option>
+            `).join('');
+            const hora = game.hora ? String(game.hora).slice(0, 5) : 'TBD';
+            const fecha = game.fecha ? parseAdminDate(game.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'Por definir';
+
+            return `
+                <div class="playoff-admin-game" data-game-id="${game.id}">
+                    <div class="playoff-admin-game-title">
+                        <span>${escapeAdminHTML(game.slot)} • ${fecha}</span>
+                        <span>${hora}</span>
+                    </div>
+                    <div class="playoff-score-row">
+                        <span>${game.seed_local ? `#${game.seed_local} ` : ''}${escapeAdminHTML(game.equipo_local_nombre || 'Ganador pendiente')}</span>
+                        <input type="number" min="0" inputmode="numeric" data-field="carreras_local" value="${game.carreras_local ?? ''}" placeholder="-">
+                    </div>
+                    <div class="playoff-score-row">
+                        <span>${game.seed_visitante ? `#${game.seed_visitante} ` : ''}${escapeAdminHTML(game.equipo_visitante_nombre || 'Ganador pendiente')}</span>
+                        <input type="number" min="0" inputmode="numeric" data-field="carreras_visitante" value="${game.carreras_visitante ?? ''}" placeholder="-">
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>Estado</label>
+                        <select data-field="estado">
+                            <option value="programado" ${game.estado === 'programado' ? 'selected' : ''}>Programado</option>
+                            <option value="en_vivo" ${game.estado === 'en_vivo' ? 'selected' : ''}>En vivo</option>
+                            <option value="finalizado" ${game.estado === 'finalizado' ? 'selected' : ''}>Finalizado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>MVP del juego</label>
+                        <select data-field="mvp_jugador_id">
+                            <option value="">Sin MVP</option>
+                            ${jugadoresOptions}
+                        </select>
+                    </div>
+                    <textarea data-field="resumen" placeholder="Resumen corto del juego...">${escapeAdminHTML(game.resumen || '')}</textarea>
+                    <button class="btn-primary" style="margin-top: 10px; width: 100%;" onclick="guardarJuegoPlayoff(${game.id})">💾 Guardar resultado</button>
+                    ${game.ganador_nombre ? `<p style="color:#4CAF50; margin-top:10px; font-weight:bold;">Avanza: ${escapeAdminHTML(game.ganador_nombre)}</p>` : ''}
+                </div>
+            `;
+        }
+
+        async function cargarPlayoffsAdmin() {
+            const grid = document.getElementById('playoffsAdminGrid');
+            if (!grid) return;
+
+            try {
+                grid.innerHTML = '<div class="loading">Cargando bracket...</div>';
+                const response = await fetch('/api/playoffs/bracket');
+                if (!response.ok) throw new Error('No se pudo cargar el bracket');
+                const data = await response.json();
+                const rounds = data.rounds || {};
+                const sections = [
+                    ['Cuartos de Final', rounds.quarterfinal || []],
+                    ['Semifinales', rounds.semifinal || []],
+                    ['Final', rounds.final || []]
+                ];
+
+                grid.innerHTML = sections.map(([title, games]) => `
+                    <section class="playoff-admin-round">
+                        <h4>${title}</h4>
+                        ${games.length ? games.map(renderPlayoffAdminGame).join('') : '<div class="empty-state">Sin juegos</div>'}
+                    </section>
+                `).join('');
+            } catch (error) {
+                console.error('Error cargando playoffs:', error);
+                grid.innerHTML = '<div class="empty-state" style="color:#f44336;">No se pudo cargar el bracket.</div>';
+            }
+        }
+
+        async function inicializarPlayoffs() {
+            try {
+                const response = await fetch('/api/playoffs/initialize', { method: 'POST' });
+                if (!response.ok) throw new Error('No se pudo inicializar el bracket');
+                toast.success('Bracket de playoffs listo.');
+                await cargarPlayoffsAdmin();
+            } catch (error) {
+                toast.error(error.message || 'Error inicializando playoffs.');
+            }
+        }
+
+        async function guardarJuegoPlayoff(gameId) {
+            const card = document.querySelector(`.playoff-admin-game[data-game-id="${gameId}"]`);
+            if (!card) return;
+
+            const payload = {};
+            card.querySelectorAll('[data-field]').forEach(input => {
+                payload[input.dataset.field] = input.value;
+            });
+
+            try {
+                const response = await fetch(`/api/playoffs/games/${gameId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.error || error.message || 'No se pudo guardar el juego');
+                }
+
+                toast.success('Resultado guardado y bracket actualizado.');
+                await cargarPlayoffsAdmin();
+            } catch (error) {
+                toast.error(error.message || 'Error guardando resultado.');
             }
         }
 

@@ -19,6 +19,7 @@ const partidosRoutes = require('./routes/partidos.routes');
 const estadisticasRoutes = require('./routes/estadisticas.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const sseRoutes = require('./routes/sse.routes');
+const playoffsRoutes = require('./routes/playoffs.routes');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/api/partidos', partidosRoutes);
 app.use('/api/estadisticas', estadisticasRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/sse', sseRoutes);
+app.use('/api/playoffs', playoffsRoutes);
 
 // ==================== ALIASES DE COMPATIBILIDAD ====================
 // El frontend usa estas rutas directamente; redirigimos al controller correcto

@@ -3270,12 +3270,154 @@
             background: #0d1117;
         }
 
+        .championship-stage {
+            background: #161b22;
+            border: 1px solid rgba(255, 193, 7, 0.28);
+            border-radius: 8px;
+            padding: clamp(18px, 3vw, 28px);
+            margin-bottom: 24px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.36);
+        }
+
+        .championship-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+            margin-bottom: 22px;
+        }
+
+        .championship-hero h2 {
+            color: #f7f1dc;
+            font-size: clamp(1.7rem, 4vw, 3.2rem);
+            line-height: 1;
+            margin: 8px 0;
+        }
+
+        .championship-dates {
+            color: rgba(247, 241, 220, 0.76);
+            font-weight: 700;
+        }
+
+        .champion-box {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #0d1117;
+            border-radius: 8px;
+            padding: 14px 18px;
+            min-width: 210px;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .champion-box span {
+            display: block;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.72;
+        }
+
+        .champion-box strong {
+            display: block;
+            font-size: 1.25rem;
+            margin-top: 4px;
+        }
+
+        .playoff-bracket-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(240px, 1fr));
+            gap: 14px;
+            align-items: start;
+        }
+
+        .playoff-round {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .playoff-round h3 {
+            color: #ffc107;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: 0 0 2px;
+        }
+
+        .playoff-game-card {
+            background: #0d1117;
+            border: 1px solid rgba(255, 193, 7, 0.16);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .playoff-game-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .playoff-team-line {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            padding: 9px 0;
+            border-top: 1px solid rgba(255, 193, 7, 0.1);
+        }
+
+        .playoff-seed {
+            color: #0d1117;
+            background: #ffc107;
+            border-radius: 999px;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.8rem;
+        }
+
+        .playoff-team-name {
+            color: #f7f1dc;
+            font-weight: 850;
+            overflow-wrap: anywhere;
+        }
+
+        .playoff-score {
+            color: #ffc107;
+            font-size: 1.2rem;
+            font-weight: 900;
+        }
+
+        .playoff-team-line.winner .playoff-team-name,
+        .playoff-team-line.winner .playoff-score {
+            color: #4caf50;
+        }
+
+        .playoff-status {
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+
         @media (max-width: 860px) {
             .league-pulse {
                 grid-template-columns: 1fr;
             }
 
             .pulse-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .championship-hero,
+            .playoff-bracket-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -3661,6 +3803,25 @@
        
         <div id="playoffs" class="tab-content">
             <section id="playoffs-section" class="section">
+              <div class="championship-stage" id="championshipStage">
+                <div class="championship-hero">
+                    <div>
+                        <div class="pulse-kicker">Camino al Campeonato</div>
+                        <h2>Chogui League Playoffs 2026</h2>
+                        <div class="championship-dates" id="championshipDates">Cuartos: domingo 19 de abril • Final: domingo 26 de abril</div>
+                    </div>
+                    <div class="champion-box">
+                        <span>Campeón</span>
+                        <strong id="championName">Por definirse</strong>
+                    </div>
+                </div>
+                <div class="playoff-bracket-grid" id="playoffBracketGrid">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Cargando bracket...</p>
+                    </div>
+                </div>
+              </div>
               <div class="section-header">
                 <h2>🏆 Clasificación Playoffs</h2>
               </div>
@@ -3780,6 +3941,12 @@
             return [];
         }
 
+        function parseApiDate(value) {
+            if (!value) return null;
+            const text = String(value);
+            return new Date(text.includes('T') ? text : `${text}T00:00:00`);
+        }
+
         async function cargarPulsoLiga() {
             try {
                 const [standingsData, partidosData, ofensivaData, proximosData] = await Promise.all([
@@ -3806,7 +3973,7 @@
 
                 if (pulseTeams) pulseTeams.textContent = standings.length || '--';
                 if (pulseGames) pulseGames.textContent = partidos.length || '--';
-                if (pulseNext) pulseNext.textContent = proximos.length ? new Date(proximos[0].fecha_partido).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'TBD';
+                if (pulseNext) pulseNext.textContent = proximos.length ? parseApiDate(proximos[0].fecha_partido).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'TBD';
                 if (pulseTitle && topTeam) pulseTitle.textContent = `${topTeam.equipo_nombre} marca el ritmo`;
                 if (pulseCopy && topTeam) {
                     pulseCopy.textContent = `Lidera la tabla con ${(Number(topTeam.porcentaje) || 0).toFixed(3)} de porcentaje y diferencia de carreras ${Number(topTeam.dif) >= 0 ? '+' : ''}${Number(topTeam.dif) || 0}.`;
@@ -3865,7 +4032,7 @@
                     const isFinal = partido.estado === 'finalizado' || (partido.carreras_local != null && partido.carreras_visitante != null);
                     const score = isFinal ? `${Number(partido.carreras_visitante || 0)}-${Number(partido.carreras_local || 0)}` : (partido.hora ? partido.hora.substring(0, 5) : 'TBD');
                     const fecha = partido.fecha_partido
-                        ? new Date(partido.fecha_partido).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+                        ? parseApiDate(partido.fecha_partido).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
                         : 'Fecha por definir';
 
                     return `
@@ -3886,6 +4053,74 @@
                         </div>
                         <span class="game-center-score">--</span>
                     </div>`;
+            }
+        }
+
+        function renderPlayoffGame(game) {
+            const localRuns = game.carreras_local;
+            const visitorRuns = game.carreras_visitante;
+            const hasScore = localRuns !== null && localRuns !== undefined && visitorRuns !== null && visitorRuns !== undefined;
+            const localWinner = hasScore && Number(localRuns) > Number(visitorRuns);
+            const visitorWinner = hasScore && Number(visitorRuns) > Number(localRuns);
+            const fecha = game.fecha ? parseApiDate(game.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'Por definir';
+            const hora = game.hora ? String(game.hora).slice(0, 5) : 'TBD';
+            const status = game.estado === 'finalizado' && game.ganador_nombre
+                ? `${game.ganador_nombre} avanza`
+                : game.estado === 'en_vivo' ? 'En vivo' : 'Programado';
+
+            return `
+                <article class="playoff-game-card">
+                    <div class="playoff-game-top">
+                        <span>${escapeHTML(game.slot)}</span>
+                        <span>${fecha} • ${hora}</span>
+                    </div>
+                    <div class="playoff-team-line ${localWinner ? 'winner' : ''}">
+                        <span class="playoff-seed">${game.seed_local || '-'}</span>
+                        <span class="playoff-team-name">${escapeHTML(game.equipo_local_nombre || 'Ganador pendiente')}</span>
+                        <span class="playoff-score">${hasScore ? Number(localRuns) : '-'}</span>
+                    </div>
+                    <div class="playoff-team-line ${visitorWinner ? 'winner' : ''}">
+                        <span class="playoff-seed">${game.seed_visitante || '-'}</span>
+                        <span class="playoff-team-name">${escapeHTML(game.equipo_visitante_nombre || 'Ganador pendiente')}</span>
+                        <span class="playoff-score">${hasScore ? Number(visitorRuns) : '-'}</span>
+                    </div>
+                    <div class="playoff-status">${escapeHTML(status)}</div>
+                </article>`;
+        }
+
+        async function cargarBracketPlayoffs() {
+            const grid = document.getElementById('playoffBracketGrid');
+            if (!grid) return;
+
+            try {
+                const data = await fetchJSON('/api/playoffs/bracket');
+                const bracket = data.bracket || {};
+                const rounds = data.rounds || {};
+                const championName = document.getElementById('championName');
+                const dates = document.getElementById('championshipDates');
+
+                if (championName) championName.textContent = bracket.campeon_nombre || 'Por definirse';
+                if (dates && bracket.fecha_inicio && bracket.fecha_final) {
+                    const inicio = parseApiDate(bracket.fecha_inicio).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                    const final = parseApiDate(bracket.fecha_final).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                    dates.textContent = `Cuartos: ${inicio} • Final: ${final}`;
+                }
+
+                const sections = [
+                    ['Cuartos de Final', rounds.quarterfinal || []],
+                    ['Semifinales', rounds.semifinal || []],
+                    ['Final', rounds.final || []]
+                ];
+
+                grid.innerHTML = sections.map(([title, games]) => `
+                    <div class="playoff-round">
+                        <h3>${title}</h3>
+                        ${games.length ? games.map(renderPlayoffGame).join('') : '<div class="playoff-game-card"><div class="playoff-status">Sin juegos cargados</div></div>'}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error cargando bracket:', error);
+                grid.innerHTML = '<div class="scoreboard-empty"><h3>No se pudo cargar el bracket</h3><p>Intenta recargar la página.</p></div>';
             }
         }
        
@@ -5620,6 +5855,7 @@
         document.addEventListener('DOMContentLoaded', async function() {
             cargarPulsoLiga();
             cargarGameCenter();
+            cargarBracketPlayoffs();
             cargarTablaPosiciones();
             cargarUltimosPartidos();
             cargarPlayoffsClasificacion(); // Carga inicial para la tabla
@@ -5790,6 +6026,7 @@
             // ✅ SUB-PASO 3.2: MODIFICACIÓN para inicializar el toggle
             if (nombrePestana === 'playoffs') {
                 cargarPlayoffsClasificacion(); // Recargar datos por si cambiaron
+                cargarBracketPlayoffs();
                 setTimeout(() => {
                     initPlayoffsToggle();
                 }, 500); // Pequeño delay para asegurar que el DOM esté listo

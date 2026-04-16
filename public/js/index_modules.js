@@ -209,6 +209,8 @@ const SSEModule = {
                 console.log('[SSE] General update recibido');
                 if (typeof cargarTablaPosiciones === 'function') cargarTablaPosiciones();
                 if (typeof cargarUltimosPartidos === 'function') cargarUltimosPartidos();
+                if (typeof cargarBracketPlayoffs === 'function') cargarBracketPlayoffs();
+                if (typeof cargarGameCenter === 'function') cargarGameCenter();
             });
 
             this.connection.onopen = () => {
