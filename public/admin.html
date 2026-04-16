@@ -3178,7 +3178,10 @@
         function parseAdminDate(value) {
             if (!value) return null;
             const text = String(value);
-            return new Date(text.includes('T') ? text : `${text}T00:00:00`);
+            const datePart = text.split('T')[0];
+            const [year, month, day] = datePart.split('-').map(Number);
+            if (year && month && day) return new Date(year, month - 1, day);
+            return new Date(text);
         }
 
         function renderPlayoffAdminGame(game) {
