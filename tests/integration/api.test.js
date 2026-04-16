@@ -132,13 +132,13 @@ describe('Estadísticas API', () => {
         expect(Array.isArray(response.body)).toBe(true);
     });
 
-    test('POST /api/estadisticas-ofensivas sin jugador_id - debe rechazar', async () => {
+    test('POST /api/estadisticas-ofensivas sin autenticación - debe rechazar', async () => {
         const response = await request(app)
             .post('/api/estadisticas-ofensivas')
             .send({ at_bats: 10, hits: 5 });
 
-        // Should get 400 for invalid data
-        expect([400, 422, 500]).toContain(response.status);
+        expect(response.status).toBe(401);
+        expect(response.body.success).toBe(false);
     });
 });
 

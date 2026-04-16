@@ -279,6 +279,7 @@ function calcularEstadisticasEquipo(standingRow) {
         setTextContent('losses', pp);
         setTextContent('runsScored', cf);
         setTextContent('runsAllowed', ce);
+        actualizarSenalesEquipo({ pj, pg, pp, cf, ce, porcentaje, ranking: standingRow.ranking, racha });
         return;
     }
 
@@ -309,6 +310,36 @@ function calcularEstadisticasEquipo(standingRow) {
     setTextContent('losses', derrotas);
     setTextContent('runsScored', carrerasAnotadas);
     setTextContent('runsAllowed', carrerasPermitidas);
+    actualizarSenalesEquipo({
+        pj,
+        pg: victorias,
+        pp: derrotas,
+        cf: carrerasAnotadas,
+        ce: carrerasPermitidas,
+        porcentaje: pct,
+        ranking: null,
+        racha
+    });
+}
+
+function actualizarSenalesEquipo({ pj, pg, pp, cf, ce, porcentaje, ranking, racha }) {
+    const diff = cf - ce;
+    let zona = 'En lucha';
+    if (ranking && ranking <= 6) zona = 'Playoffs';
+    else if (ranking && ranking <= 8) zona = 'Burbuja';
+    else if (porcentaje >= 0.65) zona = 'Zona alta';
+    else if (pj === 0) zona = 'Sin muestra';
+
+    const forma = racha || (pj ? `${pg}-${pp}` : '--');
+    const diffText = `${diff >= 0 ? '+' : ''}${diff}`;
+    const diffMeta = diff > 0 ? 'Produce más de lo que permite' : diff < 0 ? 'Necesita cerrar el diferencial' : 'Diferencial equilibrado';
+
+    setTextContent('teamSignalZone', zona);
+    setTextContent('teamSignalZoneMeta', ranking ? `posición #${ranking} • ${porcentaje.toFixed(3)}` : `${pj} partidos evaluados`);
+    setTextContent('teamSignalDiff', diffText);
+    setTextContent('teamSignalDiffMeta', diffMeta);
+    setTextContent('teamSignalForm', forma);
+    setTextContent('teamSignalFormMeta', pj ? `${pg} victorias, ${pp} derrotas` : 'Sin partidos finalizados');
 }
 
 // ===================================

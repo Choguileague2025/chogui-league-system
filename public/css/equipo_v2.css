@@ -312,8 +312,68 @@
     font-size: 0.8rem;
 }
 
+/* TEAM SIGNALS */
+.team-signal-strip {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 12px;
+    margin: 0 0 1.5rem;
+}
+
+.team-signal-card {
+    background: #161b22;
+    border: 1px solid rgba(255, 193, 7, 0.18);
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 108px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.team-signal-card.featured {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: #0d1117;
+}
+
+.signal-label {
+    color: rgba(255, 193, 7, 0.78);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.team-signal-card.featured .signal-label {
+    color: rgba(13, 17, 23, 0.72);
+}
+
+.team-signal-card strong {
+    color: #ffc107;
+    font-size: clamp(1.4rem, 4vw, 2.15rem);
+    line-height: 1;
+    overflow-wrap: anywhere;
+}
+
+.team-signal-card.featured strong {
+    color: #0d1117;
+}
+
+.team-signal-card small {
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.35;
+}
+
+.team-signal-card.featured small {
+    color: rgba(13, 17, 23, 0.72);
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
+    .team-signal-strip {
+        grid-template-columns: 1fr;
+    }
+
     .tournament-selector-v2 {
         margin-left: 0;
         margin-top: 1rem;

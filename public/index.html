@@ -3119,6 +3119,167 @@
             }
         }
        
+        .league-pulse {
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+            gap: 18px;
+            margin: 0 0 26px;
+            align-items: stretch;
+        }
+
+        .pulse-feature,
+        .pulse-panel,
+        .game-center-card {
+            background: #161b22;
+            border: 1px solid rgba(255, 193, 7, 0.24);
+            border-radius: 8px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.36);
+        }
+
+        .pulse-feature {
+            padding: clamp(18px, 3vw, 28px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pulse-feature::after {
+            content: '';
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffc107, #ff9800, #f44336);
+        }
+
+        .pulse-kicker,
+        .game-center-kicker {
+            color: #ff9800;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .pulse-title {
+            color: #f7f1dc;
+            font-size: clamp(1.65rem, 4vw, 3rem);
+            line-height: 1.02;
+            margin: 10px 0 12px;
+            letter-spacing: 0;
+        }
+
+        .pulse-copy {
+            color: rgba(247, 241, 220, 0.76);
+            max-width: 720px;
+            font-size: clamp(0.96rem, 1.6vw, 1.12rem);
+        }
+
+        .pulse-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pulse-stat {
+            background: #0d1117;
+            border: 1px solid rgba(255, 193, 7, 0.16);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .pulse-stat strong {
+            display: block;
+            color: #ffc107;
+            font-size: clamp(1.35rem, 3vw, 2rem);
+            line-height: 1;
+        }
+
+        .pulse-stat span {
+            display: block;
+            margin-top: 6px;
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pulse-panel {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .pulse-panel h3,
+        .game-center-card h3 {
+            color: #ffc107;
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .pulse-leader-row,
+        .game-center-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 193, 7, 0.12);
+        }
+
+        .pulse-leader-name,
+        .game-center-teams {
+            color: #f7f1dc;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
+
+        .pulse-leader-meta,
+        .game-center-meta {
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.82rem;
+        }
+
+        .pulse-leader-value,
+        .game-center-score {
+            color: #0d1117;
+            background: #ffc107;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .game-center-card {
+            padding: 22px;
+            margin-bottom: 24px;
+        }
+
+        .game-center-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .game-center-row {
+            border: 1px solid rgba(255, 193, 7, 0.13);
+            border-radius: 8px;
+            padding: 14px;
+            background: #0d1117;
+        }
+
+        @media (max-width: 860px) {
+            .league-pulse {
+                grid-template-columns: 1fr;
+            }
+
+            .pulse-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* (professional-player-card styles removed — Phase 4 uses podio-card and lider-card) */
 </style>
 </head>
@@ -3271,6 +3432,43 @@
             </div>
         </div>
 
+        <section class="league-pulse" aria-label="Pulso de la liga">
+            <div class="pulse-feature">
+                <div class="pulse-kicker">Central de Temporada</div>
+                <h2 class="pulse-title" id="pulseTitle">La liga en tiempo real</h2>
+                <p class="pulse-copy" id="pulseCopy">Posiciones, líderes y calendario conectados a los datos oficiales de Chogui League.</p>
+                <div class="pulse-stats">
+                    <div class="pulse-stat">
+                        <strong id="pulseTeams">--</strong>
+                        <span>Equipos activos</span>
+                    </div>
+                    <div class="pulse-stat">
+                        <strong id="pulseGames">--</strong>
+                        <span>Partidos registrados</span>
+                    </div>
+                    <div class="pulse-stat">
+                        <strong id="pulseNext">--</strong>
+                        <span>Próximo juego</span>
+                    </div>
+                </div>
+            </div>
+            <aside class="pulse-panel">
+                <div>
+                    <div class="pulse-kicker">Jugador destacado</div>
+                    <h3 id="pulseLeaderTitle">Cargando líder...</h3>
+                </div>
+                <div id="pulseLeaderRows">
+                    <div class="pulse-leader-row">
+                        <div>
+                            <div class="pulse-leader-name">Actualizando datos</div>
+                            <div class="pulse-leader-meta">Conectando con estadísticas</div>
+                        </div>
+                        <span class="pulse-leader-value">--</span>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
         <nav class="nav-tabs" id="mobileNavigation">
             <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
             <a href="#partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
@@ -3322,6 +3520,19 @@
         </div>
 
         <div id="partidos" class="tab-content">
+             <div class="game-center-card" id="gameCenter">
+                 <div class="game-center-kicker">Game Center</div>
+                 <h3>Centro de partidos</h3>
+                 <div class="game-center-grid" id="gameCenterGrid">
+                     <div class="game-center-row">
+                         <div>
+                             <div class="game-center-teams">Cargando partidos</div>
+                             <div class="game-center-meta">Preparando cobertura</div>
+                         </div>
+                         <span class="game-center-score">--</span>
+                     </div>
+                 </div>
+             </div>
              <div class="card" id="ultimosPartidos">
                  <h3>🎯 Últimos Partidos</h3>
                  <div data-loader>Cargando...</div>
@@ -3550,6 +3761,132 @@
         function getApiUrl(endpoint) {
             if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
             return endpoint;
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char]));
+        }
+
+        function normalizePartidosResponse(data) {
+            if (Array.isArray(data)) return data;
+            if (data && Array.isArray(data.partidos)) return data.partidos;
+            if (data && Array.isArray(data.data)) return data.data;
+            return [];
+        }
+
+        async function cargarPulsoLiga() {
+            try {
+                const [standingsData, partidosData, ofensivaData, proximosData] = await Promise.all([
+                    fetchJSON('/api/standings'),
+                    fetchJSON('/api/partidos?limit=1000'),
+                    fetchJSON('/api/estadisticas-ofensivas?min_at_bats=1'),
+                    fetchJSON('/api/proximos-partidos')
+                ]);
+
+                const standings = Array.isArray(standingsData) ? standingsData : [];
+                const partidos = normalizePartidosResponse(partidosData);
+                const ofensiva = Array.isArray(ofensivaData) ? ofensivaData : [];
+                const proximos = normalizePartidosResponse(proximosData);
+                const leader = [...ofensiva].sort((a, b) => (Number(b.ops) || 0) - (Number(a.ops) || 0))[0];
+                const topTeam = [...standings].sort((a, b) => (Number(b.porcentaje) || 0) - (Number(a.porcentaje) || 0))[0];
+
+                const pulseTeams = document.getElementById('pulseTeams');
+                const pulseGames = document.getElementById('pulseGames');
+                const pulseNext = document.getElementById('pulseNext');
+                const pulseTitle = document.getElementById('pulseTitle');
+                const pulseCopy = document.getElementById('pulseCopy');
+                const pulseLeaderTitle = document.getElementById('pulseLeaderTitle');
+                const pulseLeaderRows = document.getElementById('pulseLeaderRows');
+
+                if (pulseTeams) pulseTeams.textContent = standings.length || '--';
+                if (pulseGames) pulseGames.textContent = partidos.length || '--';
+                if (pulseNext) pulseNext.textContent = proximos.length ? new Date(proximos[0].fecha_partido).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'TBD';
+                if (pulseTitle && topTeam) pulseTitle.textContent = `${topTeam.equipo_nombre} marca el ritmo`;
+                if (pulseCopy && topTeam) {
+                    pulseCopy.textContent = `Lidera la tabla con ${(Number(topTeam.porcentaje) || 0).toFixed(3)} de porcentaje y diferencia de carreras ${Number(topTeam.dif) >= 0 ? '+' : ''}${Number(topTeam.dif) || 0}.`;
+                }
+                if (pulseLeaderTitle) pulseLeaderTitle.textContent = leader ? 'Mayor OPS del torneo' : 'Líderes en preparación';
+                if (pulseLeaderRows) {
+                    pulseLeaderRows.innerHTML = leader ? `
+                        <div class="pulse-leader-row" onclick="window.location.href='jugador.html?id=${leader.jugador_id}'" role="button" tabindex="0">
+                            <div>
+                                <div class="pulse-leader-name">${escapeHTML(leader.jugador_nombre)}</div>
+                                <div class="pulse-leader-meta">${escapeHTML(leader.equipo_nombre)} • AVG ${Number(leader.avg || 0).toFixed(3)} • HR ${Number(leader.home_runs || 0)}</div>
+                            </div>
+                            <span class="pulse-leader-value">${Number(leader.ops || 0).toFixed(3)}</span>
+                        </div>
+                    ` : `
+                        <div class="pulse-leader-row">
+                            <div>
+                                <div class="pulse-leader-name">Sin estadísticas oficiales</div>
+                                <div class="pulse-leader-meta">Carga resultados para activar líderes</div>
+                            </div>
+                            <span class="pulse-leader-value">--</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.warn('No se pudo cargar el pulso de liga:', error);
+            }
+        }
+
+        async function cargarGameCenter() {
+            const grid = document.getElementById('gameCenterGrid');
+            if (!grid) return;
+
+            try {
+                const [proximosData, recientesData] = await Promise.all([
+                    fetchJSON('/api/proximos-partidos'),
+                    fetchJSON('/api/partidos?limit=4')
+                ]);
+                const proximos = normalizePartidosResponse(proximosData);
+                const recientes = normalizePartidosResponse(recientesData);
+                const juegos = [...proximos.slice(0, 3), ...recientes.slice(0, 3)].slice(0, 6);
+
+                if (!juegos.length) {
+                    grid.innerHTML = `
+                        <div class="game-center-row">
+                            <div>
+                                <div class="game-center-teams">Sin partidos cargados</div>
+                                <div class="game-center-meta">Agenda juegos desde el panel admin</div>
+                            </div>
+                            <span class="game-center-score">TBD</span>
+                        </div>`;
+                    return;
+                }
+
+                grid.innerHTML = juegos.map(partido => {
+                    const isFinal = partido.estado === 'finalizado' || (partido.carreras_local != null && partido.carreras_visitante != null);
+                    const score = isFinal ? `${Number(partido.carreras_visitante || 0)}-${Number(partido.carreras_local || 0)}` : (partido.hora ? partido.hora.substring(0, 5) : 'TBD');
+                    const fecha = partido.fecha_partido
+                        ? new Date(partido.fecha_partido).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+                        : 'Fecha por definir';
+
+                    return `
+                        <div class="game-center-row">
+                            <div>
+                                <div class="game-center-teams">${escapeHTML(partido.equipo_visitante_nombre || 'Visitante')} @ ${escapeHTML(partido.equipo_local_nombre || 'Local')}</div>
+                                <div class="game-center-meta">${isFinal ? 'Final' : 'Programado'} • ${fecha}</div>
+                            </div>
+                            <span class="game-center-score">${escapeHTML(score)}</span>
+                        </div>`;
+                }).join('');
+            } catch (error) {
+                grid.innerHTML = `
+                    <div class="game-center-row">
+                        <div>
+                            <div class="game-center-teams">Game Center no disponible</div>
+                            <div class="game-center-meta">Intenta recargar la página</div>
+                        </div>
+                        <span class="game-center-score">--</span>
+                    </div>`;
+            }
         }
        
         // =================================================================================
@@ -5281,6 +5618,8 @@
         let selectedPlayersForComparison = [];
 
         document.addEventListener('DOMContentLoaded', async function() {
+            cargarPulsoLiga();
+            cargarGameCenter();
             cargarTablaPosiciones();
             cargarUltimosPartidos();
             cargarPlayoffsClasificacion(); // Carga inicial para la tabla

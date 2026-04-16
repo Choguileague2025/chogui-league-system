@@ -181,6 +181,7 @@
                     showMessage('✅ Login exitoso. Redirigiendo...', 'success');
                     
                     // Guardar los datos del usuario en localStorage
+                    localStorage.setItem('authToken', data.token);
                     localStorage.setItem('userRole', data.user.role);
                     localStorage.setItem('username', data.user.username);
                     

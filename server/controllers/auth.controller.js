@@ -1,5 +1,7 @@
 const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
+const config = require('../config/environment');
+const { signToken } = require('../utils/token');
 
 // POST /api/login
 async function login(req, res, next) {
@@ -36,9 +38,15 @@ async function login(req, res, next) {
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (isMatch) {
+            const token = signToken({
+                username: user.username,
+                role: user.role
+            }, config.jwtSecret);
+
             res.json({
                 success: true,
                 message: 'Login exitoso',
+                token,
                 user: {
                     username: user.username,
                     role: user.role

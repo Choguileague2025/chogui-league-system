@@ -8,6 +8,7 @@ const corsOptions = require('./config/cors');
 const pool = require('./config/database');
 const logger = require('./middleware/logger');
 const errorHandler = require('./middleware/errorHandler');
+const { requireAdmin } = require('./middleware/auth');
 
 // Importar rutas
 const authRoutes = require('./routes/auth.routes');
@@ -275,40 +276,40 @@ app.get('/api/playoffs-clasificacion', async (req, res, next) => {
 
 // Aliases: rutas legacy estadisticas con guion (frontend usa /api/estadisticas-ofensivas)
 app.get('/api/estadisticas-ofensivas', estadisticasController.obtenerOfensivas);
-app.post('/api/estadisticas-ofensivas', estadisticasController.upsertOfensivas);
-app.put('/api/estadisticas-ofensivas', estadisticasController.upsertOfensivas);
-app.post('/api/estadisticas-ofensivas/edit', estadisticasController.upsertOfensivas);
-app.put('/api/estadisticas-ofensivas/edit', estadisticasController.upsertOfensivas);
+app.post('/api/estadisticas-ofensivas', requireAdmin, estadisticasController.upsertOfensivas);
+app.put('/api/estadisticas-ofensivas', requireAdmin, estadisticasController.upsertOfensivas);
+app.post('/api/estadisticas-ofensivas/edit', requireAdmin, estadisticasController.upsertOfensivas);
+app.put('/api/estadisticas-ofensivas/edit', requireAdmin, estadisticasController.upsertOfensivas);
 
 app.get('/api/estadisticas-pitcheo', estadisticasController.obtenerPitcheo);
 app.get('/api/estadisticas-pitcheo/:id', estadisticasController.obtenerPitcheoPorJugador);
-app.post('/api/estadisticas-pitcheo', estadisticasController.crearPitcheo);
-app.put('/api/estadisticas-pitcheo', estadisticasController.actualizarPitcheo);
+app.post('/api/estadisticas-pitcheo', requireAdmin, estadisticasController.crearPitcheo);
+app.put('/api/estadisticas-pitcheo', requireAdmin, estadisticasController.actualizarPitcheo);
 
 app.get('/api/estadisticas-defensivas', estadisticasController.obtenerDefensivas);
 app.get('/api/estadisticas-defensivas/:id', estadisticasController.obtenerDefensivasPorJugador);
-app.post('/api/estadisticas-defensivas', estadisticasController.crearDefensivas);
-app.put('/api/estadisticas-defensivas', estadisticasController.actualizarDefensivas);
+app.post('/api/estadisticas-defensivas', requireAdmin, estadisticasController.crearDefensivas);
+app.put('/api/estadisticas-defensivas', requireAdmin, estadisticasController.actualizarDefensivas);
 
 // Aliases: guion bajo (legacy)
 app.get('/api/estadisticas_ofensivas', estadisticasController.obtenerOfensivas);
-app.put('/api/estadisticas_ofensivas', estadisticasController.upsertOfensivas);
-app.post('/api/estadisticas_ofensivas', estadisticasController.upsertOfensivas);
+app.put('/api/estadisticas_ofensivas', requireAdmin, estadisticasController.upsertOfensivas);
+app.post('/api/estadisticas_ofensivas', requireAdmin, estadisticasController.upsertOfensivas);
 
 // Aliases: con jugadorId en path
-app.put('/api/estadisticas-ofensivas/:jugadorId', (req, res, next) => {
+app.put('/api/estadisticas-ofensivas/:jugadorId', requireAdmin, (req, res, next) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
     return estadisticasController.upsertOfensivas(req, res, next);
 });
-app.post('/api/estadisticas-ofensivas/:jugadorId', (req, res, next) => {
+app.post('/api/estadisticas-ofensivas/:jugadorId', requireAdmin, (req, res, next) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
     return estadisticasController.upsertOfensivas(req, res, next);
 });
-app.put('/api/estadisticas_ofensivas/:jugadorId', (req, res, next) => {
+app.put('/api/estadisticas_ofensivas/:jugadorId', requireAdmin, (req, res, next) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
     return estadisticasController.upsertOfensivas(req, res, next);
 });
-app.post('/api/estadisticas_ofensivas/:jugadorId', (req, res, next) => {
+app.post('/api/estadisticas_ofensivas/:jugadorId', requireAdmin, (req, res, next) => {
     req.body = { ...req.body, jugador_id: parseInt(req.params.jugadorId, 10) };
     return estadisticasController.upsertOfensivas(req, res, next);
 });
@@ -328,11 +329,13 @@ app.use(errorHandler);
 
 // Iniciar servidor
 const PORT = config.port;
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-    console.log(`📦 Entorno: ${config.nodeEnv}`);
-    console.log(`📊 Rutas: auth, torneos, equipos, jugadores, partidos, estadisticas, dashboard, sse`);
-    console.log(`📡 SSE activo en /api/sse/updates`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+        console.log(`📦 Entorno: ${config.nodeEnv}`);
+        console.log(`📊 Rutas: auth, torneos, equipos, jugadores, partidos, estadisticas, dashboard, sse`);
+        console.log(`📡 SSE activo en /api/sse/updates`);
+    });
+}
 
 module.exports = app;

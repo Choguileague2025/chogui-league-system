@@ -226,8 +226,64 @@ async function loadAllStats() {
         loadOffensiveStats(torneoParam),
         loadPitchingStats(torneoParam),
         loadDefensiveStats(torneoParam),
-        loadComparison(torneoParam)
+        loadComparison(torneoParam),
+        loadPlayerInsights(torneoParam)
     ]);
+}
+
+async function loadPlayerInsights(torneoParam) {
+    const query = torneoParam ? `?${torneoParam.replace(/^&/, '')}` : '';
+    const [allOffensive, playerGames] = await Promise.all([
+        fetchSafe(`/api/estadisticas-ofensivas?min_at_bats=1${torneoParam}`),
+        fetchSafe(`/api/jugadores/${jugadorId}/partidos${query}`)
+    ]);
+
+    const insightOpsRank = document.getElementById('insightOpsRank');
+    const insightOpsMeta = document.getElementById('insightOpsMeta');
+    const insightProfile = document.getElementById('insightProfile');
+    const insightProfileMeta = document.getElementById('insightProfileMeta');
+    const insightStatus = document.getElementById('insightStatus');
+    const insightStatusMeta = document.getElementById('insightStatusMeta');
+
+    const statsList = Array.isArray(allOffensive) ? allOffensive : [];
+    const playerStats = statsList.find(s => String(s.jugador_id) === String(jugadorId));
+
+    if (!playerStats) {
+        if (insightOpsRank) insightOpsRank.textContent = '--';
+        if (insightOpsMeta) insightOpsMeta.textContent = 'Sin turnos oficiales suficientes';
+        if (insightProfile) insightProfile.textContent = 'Sin muestra';
+        if (insightProfileMeta) insightProfileMeta.textContent = 'Carga estadísticas para activar el perfil';
+        if (insightStatus) insightStatus.textContent = 'Pendiente';
+        if (insightStatusMeta) insightStatusMeta.textContent = 'Sin estadísticas del torneo';
+        return;
+    }
+
+    const ranked = [...statsList].sort((a, b) => (Number(b.ops) || 0) - (Number(a.ops) || 0));
+    const rank = ranked.findIndex(s => String(s.jugador_id) === String(jugadorId)) + 1;
+    const total = ranked.length;
+    const avg = Number(playerStats.avg) || 0;
+    const ops = Number(playerStats.ops) || 0;
+    const hr = toNum(playerStats.home_runs);
+    const sb = toNum(playerStats.stolen_bases);
+    const games = Array.isArray(playerGames?.partidos) ? playerGames.partidos.length : (Array.isArray(playerGames) ? playerGames.length : 0);
+
+    let profile = 'Contacto';
+    if (ops >= 0.9 && hr >= 3) profile = 'Poder elite';
+    else if (ops >= 0.8) profile = 'Productor';
+    else if (avg >= 0.32 && sb >= 3) profile = 'Motor ofensivo';
+    else if (avg >= 0.3) profile = 'Bate seguro';
+
+    let status = 'En desarrollo';
+    if (rank > 0 && rank <= 3) status = 'Top de liga';
+    else if (rank > 0 && rank <= Math.ceil(total * 0.25)) status = 'Zona alta';
+    else if (games > 0) status = 'Activo';
+
+    if (insightOpsRank) insightOpsRank.textContent = rank ? `#${rank}` : '--';
+    if (insightOpsMeta) insightOpsMeta.textContent = total ? `entre ${total} jugadores elegibles • OPS ${ops.toFixed(3)}` : 'Sin ranking disponible';
+    if (insightProfile) insightProfile.textContent = profile;
+    if (insightProfileMeta) insightProfileMeta.textContent = `AVG ${avg.toFixed(3)} • HR ${hr} • SB ${sb}`;
+    if (insightStatus) insightStatus.textContent = status;
+    if (insightStatusMeta) insightStatusMeta.textContent = games ? `${games} partidos vinculados al jugador` : 'Sin partidos vinculados todavía';
 }
 
 // ===================================
