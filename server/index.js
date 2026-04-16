@@ -32,6 +32,7 @@ app.use(logger);
 
 // Servir archivos estaticos
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/logos-play', express.static(path.join(__dirname, '../LOGOS PLAY')));
 
 // Health check
 app.get('/api/health', async (req, res) => {

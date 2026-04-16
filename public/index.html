@@ -3466,7 +3466,7 @@
 
         .playoff-team-line {
             display: grid;
-            grid-template-columns: auto minmax(0, 1fr) auto;
+            grid-template-columns: auto auto minmax(0, 1fr) auto;
             gap: 10px;
             align-items: center;
             padding: 9px 0;
@@ -3484,6 +3484,32 @@
             justify-content: center;
             font-weight: 900;
             font-size: 0.8rem;
+        }
+
+        .playoff-team-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #151a20;
+            border: 1px solid rgba(255, 193, 7, 0.26);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 42px;
+            overflow: hidden;
+        }
+
+        .playoff-team-mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .playoff-team-initials {
+            color: #ffc107;
+            font-size: 0.72rem;
+            font-weight: 950;
         }
 
         .playoff-team-name {
@@ -3558,10 +3584,10 @@
     <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
     <div class="mobile-menu">
         <h3 style="color: #ffc107; margin-bottom: 20px; text-align: center;">📱 CHOGUI LEAGUE</h3>
+        <a href="#playoffs" class="mobile-menu-item" onclick="mostrarPestana('playoffs'); closeMobileMenu();">🔥 Playoffs</a>
         <a href="#posiciones" class="mobile-menu-item" onclick="mostrarPestana('posiciones'); closeMobileMenu();">🏆 Posiciones</a>
         <a href="#partidos" class="mobile-menu-item" onclick="mostrarPestana('partidos'); closeMobileMenu();">🎯 Partidos</a>
         <a href="#estadisticas" class="mobile-menu-item" onclick="mostrarPestana('estadisticas'); closeMobileMenu();">📊 Líderes</a>
-        <a href="#playoffs" class="mobile-menu-item" onclick="mostrarPestana('playoffs'); closeMobileMenu();">🔥 Playoffs</a>
         <div style="border-top: 1px solid rgba(255, 193, 7, 0.3); margin: 20px 0; padding-top: 20px;">
             <a href="login.html" class="mobile-menu-item">⚙️ Panel Admin</a>
             <a href="https://wa.me/5491126880792" class="mobile-menu-item" target="_blank">💬 Soporte</a>
@@ -3738,10 +3764,10 @@
         </section>
 
         <nav class="nav-tabs" id="mobileNavigation">
-            <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
+            <a href="#playoffs" class="nav-tab active" data-section="playoffs" data-icon="🔥">Playoffs</a>
+            <a href="#posiciones" class="nav-tab" data-section="posiciones" data-icon="🏆">Posiciones</a>
             <a href="#partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
             <a href="#estadisticas" class="nav-tab" data-section="estadisticas" data-icon="📊">Líderes</a>
-            <a href="#playoffs" class="nav-tab" data-section="playoffs" data-icon="🔥">Playoffs</a>
         </nav>
 
         <section class="proximos-partidos" id="proximos-partidos">
@@ -3757,7 +3783,7 @@
             </div>
         </section>
 
-        <div id="posiciones" class="tab-content active">
+        <div id="posiciones" class="tab-content">
              <div class="card" id="tablaPosiciones">
                  <h3>🏆 Tabla de Posiciones</h3>
                  <div data-loader>Cargando...</div>
@@ -3927,13 +3953,13 @@
             </div>
         </div>
        
-        <div id="playoffs" class="tab-content">
+        <div id="playoffs" class="tab-content active">
             <section id="playoffs-section" class="section">
               <div class="championship-stage" id="championshipStage">
                 <div class="championship-hero">
                     <div>
                         <div class="pulse-kicker">Camino al Campeonato</div>
-                        <h2>Chogui League Playoffs 2026</h2>
+                        <h2>Comenzó lo Bueno</h2>
                         <div class="championship-dates" id="championshipDates">Cuartos: domingo 19 de abril • Final: domingo 26 de abril</div>
                     </div>
                     <div class="championship-side">
@@ -4218,6 +4244,48 @@
             return game?.[`equipo_${side}_nombre`] || (side === 'local' ? 'Ganador pendiente' : 'Ganador pendiente');
         }
 
+        function getInitials(name) {
+            const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+            if (!parts.length) return '--';
+            if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+            return parts.slice(0, 2).map(part => part[0]).join('').toUpperCase();
+        }
+
+        function getPlayoffLogoUrl(name) {
+            const logoMap = {
+                'dominican powers': 'DOMINICAN.jpeg',
+                'dominican': 'DOMINICAN.jpeg',
+                'tricolor': 'TRICOLOR.jpeg',
+                'llaneros': 'LLANEROS.jpeg',
+                'royals': 'ROYALS.jpeg',
+                'los emilia': 'EMILIAS.jpeg',
+                'emilias': 'EMILIAS.jpeg',
+                'venarstone': 'VENEARSTONES.jpeg',
+                'venearstone': 'VENEARSTONES.jpeg',
+                'venearstones': 'VENEARSTONES.jpeg',
+                'impulse': 'IMPULSE.jpeg',
+                'team rd': 'TEAM RD.jpeg',
+                't rd': 'TEAM RD.jpeg',
+                't.rd': 'TEAM RD.jpeg'
+            };
+            const key = String(name || '').toLowerCase().trim();
+            const file = logoMap[key];
+            return file ? `/logos-play/${encodeURIComponent(file)}` : '';
+        }
+
+        function renderPlayoffTeamMark(name) {
+            const logoUrl = getPlayoffLogoUrl(name);
+            const initials = escapeHTML(getInitials(name));
+            if (!logoUrl) {
+                return `<span class="playoff-team-mark"><span class="playoff-team-initials">${initials}</span></span>`;
+            }
+
+            return `
+                <span class="playoff-team-mark">
+                    <img src="${escapeHTML(logoUrl)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.innerHTML='<span class=&quot;playoff-team-initials&quot;>${initials}</span>';">
+                </span>`;
+        }
+
         function getRouteText(game) {
             const routeMap = {
                 QF1: 'Ruta: QF1 -> SF1 -> Final',
@@ -4381,11 +4449,13 @@
                     </div>
                     <div class="playoff-team-line ${localWinner ? 'winner' : ''}">
                         <span class="playoff-seed">${game.seed_local || '-'}</span>
+                        ${renderPlayoffTeamMark(game.equipo_local_nombre)}
                         <span class="playoff-team-name">${escapeHTML(game.equipo_local_nombre || 'Ganador pendiente')}</span>
                         <span class="playoff-score">${hasScore ? Number(localRuns) : '-'}</span>
                     </div>
                     <div class="playoff-team-line ${visitorWinner ? 'winner' : ''}">
                         <span class="playoff-seed">${game.seed_visitante || '-'}</span>
+                        ${renderPlayoffTeamMark(game.equipo_visitante_nombre)}
                         <span class="playoff-team-name">${escapeHTML(game.equipo_visitante_nombre || 'Ganador pendiente')}</span>
                         <span class="playoff-score">${hasScore ? Number(visitorRuns) : '-'}</span>
                     </div>
