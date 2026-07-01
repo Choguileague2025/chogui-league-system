@@ -158,18 +158,42 @@
     </div>
 
     <script>
+        function getCookieValue(name) {
+            const cookies = document.cookie ? document.cookie.split('; ') : [];
+            const prefix = `${name}=`;
+            const match = cookies.find(cookie => cookie.startsWith(prefix));
+            return match ? decodeURIComponent(match.substring(prefix.length)) : '';
+        }
+
+        async function bootstrapCsrf() {
+            await fetch('/api/csrf-token', {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await bootstrapCsrf();
+            } catch (error) {
+                console.error('No se pudo preparar CSRF:', error);
+            }
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
+
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
+            const csrfToken = getCookieValue('chogui_csrf');
+
             try {
-                // Enviar datos al servidor (backend)
                 const response = await fetch('/api/login', {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
                     },
                     body: JSON.stringify({ username, password })
                 });
@@ -177,26 +201,14 @@
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    // Login exitoso
                     showMessage('✅ Login exitoso. Redirigiendo...', 'success');
-                    
-                    // Guardar los datos del usuario en localStorage
-                    localStorage.setItem('authToken', data.token);
-                    localStorage.setItem('userRole', data.user.role);
-                    localStorage.setItem('username', data.user.username);
-                    
-                    // Redirigir al panel de administración
                     setTimeout(() => {
                         window.location.href = 'admin.html';
-                    }, 1500);
-                    
+                    }, 1000);
                 } else {
-                    // Login fallido (respuesta del servidor)
                     showMessage(`❌ ${data.message || 'Error en el login'}`, 'error');
                 }
-
             } catch (error) {
-                // Error de conexión
                 console.error('Error de conexión:', error);
                 showMessage('❌ No se pudo conectar con el servidor.', 'error');
             }

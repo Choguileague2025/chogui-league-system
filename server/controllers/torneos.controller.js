@@ -14,6 +14,17 @@ async function obtenerTodos(req, res, next) {
     }
 }
 
+// GET /api/torneos/publicos
+async function obtenerPublicos(req, res, next) {
+    try {
+        const torneos = await torneosService.obtenerTodos({ publicOnly: true });
+        res.json(torneos);
+    } catch (error) {
+        console.error('Error obteniendo torneos públicos:', error);
+        next(error);
+    }
+}
+
 // GET /api/torneos/activo
 async function obtenerActivo(req, res, next) {
     try {
@@ -53,12 +64,30 @@ async function crear(req, res, next) {
             return res.status(400).json({ error: validation.errors[0] });
         }
 
-        const { nombre, total_juegos, cupos_playoffs } = validation.sanitized;
+        const {
+            nombre,
+            total_juegos,
+            cupos_playoffs,
+            min_ab_rate_stats,
+            min_ab_counting_stats,
+            min_ab_mvp,
+            min_ip_rate_stats,
+            min_ip_counting_stats,
+            min_ip_pitcher_award,
+            min_chances_defense
+        } = validation.sanitized;
 
         const torneo = await torneosService.crear(nombre, {
             fecha_inicio: req.body.fecha_inicio || new Date(),
             total_juegos,
-            cupos_playoffs
+            cupos_playoffs,
+            min_ab_rate_stats,
+            min_ab_counting_stats,
+            min_ab_mvp,
+            min_ip_rate_stats,
+            min_ip_counting_stats,
+            min_ip_pitcher_award,
+            min_chances_defense
         });
 
         res.status(201).json(torneo);
@@ -184,6 +213,7 @@ async function obtenerEstadisticas(req, res, next) {
 
 module.exports = {
     obtenerTodos,
+    obtenerPublicos,
     obtenerActivo,
     obtenerPorId,
     crear,

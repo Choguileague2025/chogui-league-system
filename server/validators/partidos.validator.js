@@ -9,7 +9,7 @@ function validarCrearPartido(body) {
     const {
         equipo_local_id, equipo_visitante_id,
         carreras_local, carreras_visitante,
-        innings_jugados, fecha_partido, hora, estado
+        innings_jugados, fecha_partido, hora, estado, torneo_id
     } = body;
 
     // Requeridos
@@ -78,7 +78,8 @@ function validarCrearPartido(body) {
             innings_jugados: inningsJugadosFinal,
             fecha_partido,
             hora: hora || null,
-            estado: estadoFinal
+            estado: estadoFinal,
+            torneo_id: torneo_id ? parseInt(torneo_id) : null
         }
     };
 }
@@ -88,7 +89,7 @@ function validarActualizarPartido(body) {
     const {
         equipo_local_id, equipo_visitante_id,
         carreras_local, carreras_visitante,
-        innings_jugados, fecha_partido, estado
+        innings_jugados, fecha_partido, estado, torneo_id
     } = body;
 
     if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
@@ -113,7 +114,8 @@ function validarActualizarPartido(body) {
             carreras_visitante: carreras_visitante || null,
             innings_jugados: innings_jugados || 9,
             fecha_partido,
-            estado: estadoFinal
+            estado: estadoFinal,
+            torneo_id: torneo_id ? parseInt(torneo_id) : null
         }
     };
 }

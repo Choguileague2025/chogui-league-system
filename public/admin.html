@@ -1275,6 +1275,45 @@
                             <div class="leader-stat" id="ultima-actualizacion">--</div>
                         </div>
                     </div>
+
+                    <div class="leader-card">
+                        <h4>🌐 AUDIENCIA WEB</h4>
+                        <div class="leader-item">
+                            <div class="leader-name">Visitantes hoy</div>
+                            <div class="leader-stat" id="analytics-visitantes-hoy">0</div>
+                        </div>
+                        <div class="leader-item">
+                            <div class="leader-name">Pageviews 7 días</div>
+                            <div class="leader-stat" id="analytics-pageviews-7d">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🌐 Analítica de Audiencia</h3>
+                <div class="leaders-grid">
+                    <div class="leader-card">
+                        <h4>Últimos 30 días</h4>
+                        <div class="leader-item">
+                            <div class="leader-name">Visitantes únicos</div>
+                            <div class="leader-stat" id="analytics-visitantes-30d">0</div>
+                        </div>
+                        <div class="leader-item">
+                            <div class="leader-name">Sesiones</div>
+                            <div class="leader-stat" id="analytics-sesiones-30d">0</div>
+                        </div>
+                    </div>
+
+                    <div class="leader-card">
+                        <h4>Páginas Top</h4>
+                        <div id="analytics-top-pages">
+                            <div class="leader-item">
+                                <div class="leader-name">Sin datos todavía</div>
+                                <div class="leader-stat">--</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         
@@ -1549,6 +1588,9 @@
 
             <div class="card">
                 <h3>🎯 Partidos Registrados</h3>
+                <p style="font-size: 0.9rem; color: #ffc107; margin-bottom: 15px;">
+                    Usa <strong>📦 Boxscore</strong> para cargar ofensiva, pitcheo y defensa jugador por jugador una vez que el resultado esté listo.
+                </p>
                 <div class="table-container">
                     <table id="partidosTable">
                         <thead>
@@ -1568,6 +1610,149 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <style>
+                .boxscore-modal-overlay {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(5, 8, 14, 0.82);
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 9999;
+                    padding: 20px;
+                }
+                .boxscore-modal-overlay.active { display: flex; }
+                .boxscore-modal {
+                    width: min(1400px, 96vw);
+                    max-height: 92vh;
+                    overflow: auto;
+                    background: #0f1522;
+                    border: 1px solid rgba(255, 193, 7, 0.18);
+                    border-radius: 22px;
+                    box-shadow: 0 24px 80px rgba(0,0,0,0.45);
+                    padding: 22px;
+                }
+                .boxscore-modal-head {
+                    display: flex;
+                    justify-content: space-between;
+                    gap: 18px;
+                    align-items: flex-start;
+                    margin-bottom: 18px;
+                }
+                .boxscore-modal-title {
+                    margin: 0;
+                    color: #ffc107;
+                }
+                .boxscore-modal-subtitle {
+                    margin: 6px 0 0;
+                    color: rgba(255,255,255,0.72);
+                }
+                .boxscore-modal-actions {
+                    display: flex;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+                .boxscore-editor-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 18px;
+                }
+                .boxscore-editor-card {
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255, 193, 7, 0.12);
+                    border-radius: 18px;
+                    padding: 16px;
+                }
+                .boxscore-editor-card h4 {
+                    margin: 0 0 10px;
+                    color: #fff2c4;
+                }
+                .boxscore-team-block + .boxscore-team-block {
+                    margin-top: 16px;
+                }
+                .boxscore-team-name {
+                    margin: 0 0 10px;
+                    color: #ffc107;
+                    font-weight: 800;
+                }
+                .boxscore-editor-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 0.84rem;
+                }
+                .boxscore-editor-table th,
+                .boxscore-editor-table td {
+                    border-bottom: 1px solid rgba(255,255,255,0.06);
+                    padding: 8px 6px;
+                    white-space: nowrap;
+                    text-align: center;
+                }
+                .boxscore-editor-table th:first-child,
+                .boxscore-editor-table td:first-child {
+                    text-align: left;
+                    position: sticky;
+                    left: 0;
+                    background: #111827;
+                    z-index: 1;
+                }
+                .boxscore-editor-table input,
+                .boxscore-editor-table select {
+                    width: 64px;
+                    min-width: 64px;
+                    padding: 6px 8px;
+                    border-radius: 10px;
+                    border: 1px solid rgba(255, 193, 7, 0.16);
+                    background: #0b1018;
+                    color: #fff;
+                }
+                .boxscore-editor-table .player-cell {
+                    min-width: 180px;
+                }
+                .boxscore-editor-note {
+                    margin-top: 12px;
+                    color: rgba(255,255,255,0.6);
+                    font-size: 0.85rem;
+                }
+                @media (max-width: 1100px) {
+                    .boxscore-editor-grid { grid-template-columns: 1fr; }
+                }
+            </style>
+
+            <div id="boxscoreModalOverlay" class="boxscore-modal-overlay">
+                <div class="boxscore-modal">
+                    <div class="boxscore-modal-head">
+                        <div>
+                            <h3 class="boxscore-modal-title" id="boxscoreModalTitle">📦 Boxscore del Partido</h3>
+                            <p class="boxscore-modal-subtitle" id="boxscoreModalSubtitle">Cargando juego...</p>
+                        </div>
+                        <div class="boxscore-modal-actions">
+                            <button class="btn-secondary" type="button" onclick="prefillBoxscoreFromScore()">⚙️ Prefill básico</button>
+                            <button class="btn-primary" type="button" onclick="guardarBoxscoreAdmin()">💾 Guardar Boxscore</button>
+                            <button class="btn-secondary" type="button" onclick="cerrarBoxscoreModal()">✖️ Cerrar</button>
+                        </div>
+                    </div>
+                    <div class="boxscore-editor-grid">
+                        <section class="boxscore-editor-card">
+                            <h4>⚾ Ofensiva</h4>
+                            <div id="boxscoreOffenseWrap">Cargando...</div>
+                            <p class="boxscore-editor-note">Sugerencia: si no completas `PA`, el sistema usa `AB + BB + HBP + SF + SH`. Los sencillos se calculan desde H, 2B, 3B y HR.</p>
+                        </section>
+                        <section class="boxscore-editor-card">
+                            <h4>🥎 Pitcheo</h4>
+                            <div id="boxscorePitchingWrap">Cargando...</div>
+                            <p class="boxscore-editor-note">Registra IP, hits permitidos, carreras limpias, boletos, ponches y decisión del pitcher.</p>
+                        </section>
+                    </div>
+                    <section class="boxscore-editor-card" style="margin-top: 18px;">
+                        <h4>🛡️ Defensa</h4>
+                        <div id="boxscoreDefenseWrap">Cargando...</div>
+                        <p class="boxscore-editor-note">Si no completas `CH`, se calcula como `PO + A + E`.</p>
+                    </section>
+                    <div id="boxscoreModalMessage" class="success-message"></div>
+                    <div id="boxscoreModalError" class="error-message"></div>
                 </div>
             </div>
         </div>
@@ -2327,26 +2512,59 @@
         let equiposFiltrados = [];
         const originalFetch = window.fetch.bind(window);
 
+        function getCookieValue(name) {
+            const cookies = document.cookie ? document.cookie.split('; ') : [];
+            const prefix = `${name}=`;
+            const match = cookies.find(cookie => cookie.startsWith(prefix));
+            return match ? decodeURIComponent(match.substring(prefix.length)) : '';
+        }
+
+        async function bootstrapCsrf() {
+            await originalFetch('/api/csrf-token', {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+        }
+
         window.fetch = function(resource, options = {}) {
             const url = typeof resource === 'string' ? resource : resource.url;
-            const token = localStorage.getItem('authToken');
-            const shouldAttachToken = token && url && url.startsWith('/api');
+            const isApiRequest = Boolean(url && url.startsWith('/api'));
 
-            if (!shouldAttachToken) {
+            if (!isApiRequest) {
                 return originalFetch(resource, options);
             }
 
             const headers = new Headers(options.headers || {});
-            headers.set('Authorization', `Bearer ${token}`);
+            const method = String(options.method || 'GET').toUpperCase();
+
+            if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+                const csrfToken = getCookieValue('chogui_csrf');
+                if (csrfToken) {
+                    headers.set('X-CSRF-Token', csrfToken);
+                }
+            }
 
             return originalFetch(resource, {
                 ...options,
+                credentials: 'same-origin',
                 headers
-            }).then(response => {
-                if (response.status === 401 || response.status === 403) {
-                    localStorage.clear();
+            }).then(async (response) => {
+                if (response.status === 401) {
                     toast.error('Sesión expirada. Vuelve a iniciar sesión.');
                     window.location.href = 'login.html';
+                    return response;
+                }
+
+                if (response.status === 403) {
+                    try {
+                        const clone = response.clone();
+                        const data = await clone.json();
+                        if (data?.message && data.message.toLowerCase().includes('csrf')) {
+                            toast.error('Sesión protegida: recarga la página e intenta de nuevo.');
+                        }
+                    } catch (error) {
+                        // ignore
+                    }
                 }
 
                 return response;
@@ -2354,23 +2572,50 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            verificarAutenticacion();
-            configurarEventListeners();
-            cargarTodosLosDatos();
-            establecerFechaActual();
+            inicializarAdmin();
         });
 
-        function verificarAutenticacion() {
-            const userRole = localStorage.getItem('userRole');
-            const authToken = localStorage.getItem('authToken');
-            if (!authToken || !userRole || userRole !== 'admin') {
-                toast.error('Acceso denegado. Solo administradores pueden acceder.');
+        async function inicializarAdmin() {
+            try {
+                await bootstrapCsrf();
+                await verificarAutenticacion();
+                configurarEventListeners();
+                cargarTodosLosDatos();
+                establecerFechaActual();
+            } catch (error) {
+                console.error('No se pudo inicializar el admin:', error);
+                toast.error('Acceso denegado. Vuelve a iniciar sesión.');
                 window.location.href = 'login.html';
             }
         }
 
-        function logout() {
-            localStorage.clear();
+        async function verificarAutenticacion() {
+            const response = await originalFetch('/api/session', {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                throw new Error('Sesion invalida');
+            }
+
+            const data = await response.json();
+            if (!data?.success || data?.user?.role !== 'admin') {
+                throw new Error('Permisos insuficientes');
+            }
+
+            return data.user;
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST'
+                });
+            } catch (error) {
+                console.error('Error cerrando sesión:', error);
+            }
+
             toast.success('Sesión cerrada correctamente');
             window.location.href = 'login.html';
         }
@@ -2619,7 +2864,8 @@
         async function cargarPartidos() {
             try {
                 console.log('🔄 Cargando partidos...');
-                const response = await fetch('/api/partidos?limit=1000');
+                const torneoId = getCurrentTournamentId();
+                const response = await fetch(`/api/partidos?limit=1000${torneoId ? `&torneo_id=${torneoId}` : ''}`);
                         
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -2882,12 +3128,339 @@
                         <td>${hora}</td>
                         <td>${estadoBadge}</td>
                         <td>
+                            <a class="btn-secondary" href="partido.html?id=${partido.id}" target="_blank" rel="noopener noreferrer">👁️ Ver</a>
+                            <button class="btn-secondary" onclick="abrirBoxscoreModal(${partido.id})">📦 Boxscore</button>
                             <button class="btn-secondary btn-edit" onclick="editarPartido(${partido.id})">✏️</button>
                             <button class="btn-secondary" onclick="eliminarPartido(${partido.id})" style="background: #f44336;">🗑️</button>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        let boxscoreEditorState = {
+            partido: null,
+            boxscore: null
+        };
+
+        function normalizarNumeroAdmin(value) {
+            if (value === '' || value === null || value === undefined) return '';
+            const num = Number(value);
+            return Number.isFinite(num) ? num : '';
+        }
+
+        function getRosterByTeamId(teamId) {
+            return (jugadores || [])
+                .filter(jugador => Number(jugador.equipo_id) === Number(teamId))
+                .sort((a, b) => {
+                    const numA = Number(jugadorNumeroSeguro(a));
+                    const numB = Number(jugadorNumeroSeguro(b));
+                    if (numA !== numB) return numA - numB;
+                    return String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es');
+                });
+        }
+
+        function jugadorNumeroSeguro(jugador) {
+            return Number.isFinite(Number(jugador?.numero)) ? Number(jugador.numero) : 999;
+        }
+
+        function buildPlayerMap(rows) {
+            const map = new Map();
+            (rows || []).forEach(row => {
+                map.set(Number(row.jugador_id), row);
+            });
+            return map;
+        }
+
+        function renderOffenseEditor(team, map, sideKey) {
+            const roster = getRosterByTeamId(team.id);
+            if (!roster.length) {
+                return `<div class="empty-state">No hay roster disponible para ${team.nombre}</div>`;
+            }
+
+            return `
+                <div class="boxscore-team-block">
+                    <h5 class="boxscore-team-name">${team.nombre}</h5>
+                    <div class="table-container">
+                        <table class="boxscore-editor-table">
+                            <thead>
+                                <tr>
+                                    <th class="player-cell">Jugador</th><th>Ord</th><th>PA</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>BB</th><th>SO</th><th>SB</th><th>CS</th><th>HBP</th><th>SF</th><th>SH</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${roster.map(jugador => {
+                                    const row = map.get(Number(jugador.id)) || {};
+                                    return `
+                                        <tr data-boxscore-row="ofensiva" data-team-side="${sideKey}" data-jugador-id="${jugador.id}" data-equipo-id="${team.id}">
+                                            <td class="player-cell">${escapeAdminHTML(jugador.nombre)}${jugador.numero != null ? ` • #${jugador.numero}` : ''}</td>
+                                            <td><input type="number" min="1" max="15" data-field="batting_order" value="${normalizarNumeroAdmin(row.batting_order)}"></td>
+                                            <td><input type="number" min="0" data-field="plate_appearances" value="${normalizarNumeroAdmin(row.plate_appearances)}"></td>
+                                            <td><input type="number" min="0" data-field="at_bats" value="${normalizarNumeroAdmin(row.at_bats)}"></td>
+                                            <td><input type="number" min="0" data-field="hits" value="${normalizarNumeroAdmin(row.hits)}"></td>
+                                            <td><input type="number" min="0" data-field="doubles" value="${normalizarNumeroAdmin(row.doubles)}"></td>
+                                            <td><input type="number" min="0" data-field="triples" value="${normalizarNumeroAdmin(row.triples)}"></td>
+                                            <td><input type="number" min="0" data-field="home_runs" value="${normalizarNumeroAdmin(row.home_runs)}"></td>
+                                            <td><input type="number" min="0" data-field="rbi" value="${normalizarNumeroAdmin(row.rbi)}"></td>
+                                            <td><input type="number" min="0" data-field="runs" value="${normalizarNumeroAdmin(row.runs)}"></td>
+                                            <td><input type="number" min="0" data-field="walks" value="${normalizarNumeroAdmin(row.walks)}"></td>
+                                            <td><input type="number" min="0" data-field="strikeouts" value="${normalizarNumeroAdmin(row.strikeouts)}"></td>
+                                            <td><input type="number" min="0" data-field="stolen_bases" value="${normalizarNumeroAdmin(row.stolen_bases)}"></td>
+                                            <td><input type="number" min="0" data-field="caught_stealing" value="${normalizarNumeroAdmin(row.caught_stealing)}"></td>
+                                            <td><input type="number" min="0" data-field="hit_by_pitch" value="${normalizarNumeroAdmin(row.hit_by_pitch)}"></td>
+                                            <td><input type="number" min="0" data-field="sacrifice_flies" value="${normalizarNumeroAdmin(row.sacrifice_flies)}"></td>
+                                            <td><input type="number" min="0" data-field="sacrifice_hits" value="${normalizarNumeroAdmin(row.sacrifice_hits)}"></td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPitchingEditor(team, map, sideKey) {
+            const roster = getRosterByTeamId(team.id);
+            if (!roster.length) {
+                return `<div class="empty-state">No hay roster disponible para ${team.nombre}</div>`;
+            }
+
+            return `
+                <div class="boxscore-team-block">
+                    <h5 class="boxscore-team-name">${team.nombre}</h5>
+                    <div class="table-container">
+                        <table class="boxscore-editor-table">
+                            <thead>
+                                <tr>
+                                    <th class="player-cell">Jugador</th><th>IP</th><th>H</th><th>ER</th><th>BB</th><th>SO</th><th>HR</th><th>W</th><th>L</th><th>SV</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${roster.map(jugador => {
+                                    const row = map.get(Number(jugador.id)) || {};
+                                    return `
+                                        <tr data-boxscore-row="pitcheo" data-team-side="${sideKey}" data-jugador-id="${jugador.id}" data-equipo-id="${team.id}">
+                                            <td class="player-cell">${escapeAdminHTML(jugador.nombre)}${jugador.numero != null ? ` • #${jugador.numero}` : ''}</td>
+                                            <td><input type="number" min="0" step="0.1" data-field="innings_pitched" value="${normalizarNumeroAdmin(row.innings_pitched)}"></td>
+                                            <td><input type="number" min="0" data-field="hits_allowed" value="${normalizarNumeroAdmin(row.hits_allowed)}"></td>
+                                            <td><input type="number" min="0" data-field="earned_runs" value="${normalizarNumeroAdmin(row.earned_runs)}"></td>
+                                            <td><input type="number" min="0" data-field="walks_allowed" value="${normalizarNumeroAdmin(row.walks_allowed)}"></td>
+                                            <td><input type="number" min="0" data-field="strikeouts" value="${normalizarNumeroAdmin(row.strikeouts)}"></td>
+                                            <td><input type="number" min="0" data-field="home_runs_allowed" value="${normalizarNumeroAdmin(row.home_runs_allowed)}"></td>
+                                            <td><input type="number" min="0" max="1" data-field="wins" value="${normalizarNumeroAdmin(row.wins)}"></td>
+                                            <td><input type="number" min="0" max="1" data-field="losses" value="${normalizarNumeroAdmin(row.losses)}"></td>
+                                            <td><input type="number" min="0" max="1" data-field="saves" value="${normalizarNumeroAdmin(row.saves)}"></td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDefenseEditor(team, map, sideKey) {
+            const roster = getRosterByTeamId(team.id);
+            if (!roster.length) {
+                return `<div class="empty-state">No hay roster disponible para ${team.nombre}</div>`;
+            }
+
+            return `
+                <div class="boxscore-team-block">
+                    <h5 class="boxscore-team-name">${team.nombre}</h5>
+                    <div class="table-container">
+                        <table class="boxscore-editor-table">
+                            <thead>
+                                <tr>
+                                    <th class="player-cell">Jugador</th><th>Pos</th><th>PO</th><th>A</th><th>E</th><th>DP</th><th>PB</th><th>CH</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${roster.map(jugador => {
+                                    const row = map.get(Number(jugador.id)) || {};
+                                    return `
+                                        <tr data-boxscore-row="defensa" data-team-side="${sideKey}" data-jugador-id="${jugador.id}" data-equipo-id="${team.id}">
+                                            <td class="player-cell">${escapeAdminHTML(jugador.nombre)}${jugador.numero != null ? ` • #${jugador.numero}` : ''}</td>
+                                            <td>
+                                                <select data-field="posicion">
+                                                    <option value="">--</option>
+                                                    ${['P','C','1B','2B','3B','SS','SF','LF','CF','RF','UTIL'].map(pos => `<option value="${pos}" ${(row.posicion || jugador.posicion || '') === pos ? 'selected' : ''}>${pos}</option>`).join('')}
+                                                </select>
+                                            </td>
+                                            <td><input type="number" min="0" data-field="putouts" value="${normalizarNumeroAdmin(row.putouts)}"></td>
+                                            <td><input type="number" min="0" data-field="assists" value="${normalizarNumeroAdmin(row.assists)}"></td>
+                                            <td><input type="number" min="0" data-field="errors" value="${normalizarNumeroAdmin(row.errors)}"></td>
+                                            <td><input type="number" min="0" data-field="double_plays" value="${normalizarNumeroAdmin(row.double_plays)}"></td>
+                                            <td><input type="number" min="0" data-field="passed_balls" value="${normalizarNumeroAdmin(row.passed_balls)}"></td>
+                                            <td><input type="number" min="0" data-field="chances" value="${normalizarNumeroAdmin(row.chances)}"></td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBoxscoreEditor(partido, boxscore) {
+            const localTeam = { id: partido.equipo_local_id, nombre: partido.equipo_local_nombre };
+            const visitanteTeam = { id: partido.equipo_visitante_id, nombre: partido.equipo_visitante_nombre };
+            const offenseMap = buildPlayerMap(boxscore?.ofensiva || []);
+            const pitchingMap = buildPlayerMap(boxscore?.pitcheo || []);
+            const defenseMap = buildPlayerMap(boxscore?.defensa || []);
+
+            document.getElementById('boxscoreOffenseWrap').innerHTML =
+                renderOffenseEditor(visitanteTeam, offenseMap, 'visitante') +
+                renderOffenseEditor(localTeam, offenseMap, 'local');
+
+            document.getElementById('boxscorePitchingWrap').innerHTML =
+                renderPitchingEditor(visitanteTeam, pitchingMap, 'visitante') +
+                renderPitchingEditor(localTeam, pitchingMap, 'local');
+
+            document.getElementById('boxscoreDefenseWrap').innerHTML =
+                renderDefenseEditor(visitanteTeam, defenseMap, 'visitante') +
+                renderDefenseEditor(localTeam, defenseMap, 'local');
+        }
+
+        async function abrirBoxscoreModal(partidoId) {
+            const partido = partidos.find(p => Number(p.id) === Number(partidoId));
+            if (!partido) {
+                toast.error('No se encontró el partido para cargar boxscore.');
+                return;
+            }
+
+            boxscoreEditorState.partido = partido;
+            document.getElementById('boxscoreModalTitle').textContent = `📦 Boxscore • ${partido.equipo_visitante_nombre} vs ${partido.equipo_local_nombre}`;
+            document.getElementById('boxscoreModalSubtitle').textContent = `${new Date(partido.fecha_partido).toLocaleDateString('es-AR')} • ${partido.estado || 'programado'} • Torneo ${getCurrentTournamentId() || 'actual'}`;
+            document.getElementById('boxscoreOffenseWrap').innerHTML = 'Cargando...';
+            document.getElementById('boxscorePitchingWrap').innerHTML = 'Cargando...';
+            document.getElementById('boxscoreDefenseWrap').innerHTML = 'Cargando...';
+            document.getElementById('boxscoreModalMessage').style.display = 'none';
+            document.getElementById('boxscoreModalError').style.display = 'none';
+            document.getElementById('boxscoreModalOverlay').classList.add('active');
+
+            try {
+                const response = await fetch(`/api/partidos/${partidoId}/boxscore`);
+                const data = response.ok ? await response.json() : { ofensiva: [], pitcheo: [], defensa: [] };
+                boxscoreEditorState.boxscore = data;
+                renderBoxscoreEditor(partido, data);
+            } catch (error) {
+                console.error('Error cargando boxscore admin:', error);
+                document.getElementById('boxscoreModalError').textContent = 'No se pudo cargar el boxscore actual.';
+                document.getElementById('boxscoreModalError').style.display = 'block';
+                renderBoxscoreEditor(partido, { ofensiva: [], pitcheo: [], defensa: [] });
+            }
+        }
+
+        function cerrarBoxscoreModal() {
+            document.getElementById('boxscoreModalOverlay').classList.remove('active');
+            boxscoreEditorState = { partido: null, boxscore: null };
+        }
+
+        function prefillBoxscoreFromScore() {
+            const partido = boxscoreEditorState.partido;
+            if (!partido) return;
+
+            const scoreLocal = Number(partido.carreras_local || 0);
+            const scoreVisitante = Number(partido.carreras_visitante || 0);
+
+            document.querySelectorAll('tr[data-boxscore-row="pitcheo"]').forEach((row, index) => {
+                const side = row.dataset.teamSide;
+                const scoreAllowed = side === 'local' ? scoreVisitante : scoreLocal;
+                const ipField = row.querySelector('[data-field="innings_pitched"]');
+                const erField = row.querySelector('[data-field="earned_runs"]');
+                if (index === 0 || row.querySelector('[data-field="wins"]').value === '1' || row.querySelector('[data-field="losses"]').value === '1') {
+                    if (ipField && !ipField.value) ipField.value = document.getElementById('inningsJugados').value || 9;
+                    if (erField && !erField.value) erField.value = scoreAllowed;
+                }
+            });
+
+            toast.info('Prefill básico aplicado. Ajusta el detalle jugador por jugador antes de guardar.');
+        }
+
+        function collectBoxscoreRows(kind) {
+            const rows = [...document.querySelectorAll(`tr[data-boxscore-row="${kind}"]`)];
+            return rows.map(row => {
+                const payload = {
+                    jugador_id: Number(row.dataset.jugadorId),
+                    equipo_id: Number(row.dataset.equipoId)
+                };
+                let hasValue = false;
+
+                row.querySelectorAll('[data-field]').forEach(input => {
+                    const field = input.dataset.field;
+                    const raw = input.value;
+                    if (field === 'posicion') {
+                        payload[field] = raw || null;
+                        if (raw) hasValue = true;
+                        return;
+                    }
+                    if (raw !== '') hasValue = true;
+                    payload[field] = raw === '' ? 0 : Number(raw);
+                });
+
+                if (kind === 'ofensiva') {
+                    const hits = Number(payload.hits || 0);
+                    const doubles = Number(payload.doubles || 0);
+                    const triples = Number(payload.triples || 0);
+                    const homeRuns = Number(payload.home_runs || 0);
+                    payload.singles = Math.max(0, hits - doubles - triples - homeRuns);
+                    if (!payload.plate_appearances) {
+                        payload.plate_appearances = Number(payload.at_bats || 0)
+                            + Number(payload.walks || 0)
+                            + Number(payload.hit_by_pitch || 0)
+                            + Number(payload.sacrifice_flies || 0)
+                            + Number(payload.sacrifice_hits || 0);
+                    }
+                }
+
+                if (kind === 'defensa' && !payload.chances) {
+                    payload.chances = Number(payload.putouts || 0) + Number(payload.assists || 0) + Number(payload.errors || 0);
+                }
+
+                return hasValue ? payload : null;
+            }).filter(Boolean);
+        }
+
+        async function guardarBoxscoreAdmin() {
+            const partido = boxscoreEditorState.partido;
+            if (!partido) {
+                toast.error('No hay partido seleccionado.');
+                return;
+            }
+
+            const body = {
+                ofensiva: collectBoxscoreRows('ofensiva'),
+                pitcheo: collectBoxscoreRows('pitcheo'),
+                defensa: collectBoxscoreRows('defensa')
+            };
+
+            try {
+                const response = await fetch(`/api/partidos/${partido.id}/boxscore`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.error || error.message || 'No se pudo guardar el boxscore.');
+                }
+
+                document.getElementById('boxscoreModalMessage').textContent = 'Boxscore guardado correctamente.';
+                document.getElementById('boxscoreModalMessage').style.display = 'block';
+                document.getElementById('boxscoreModalError').style.display = 'none';
+                toast.success('Boxscore guardado correctamente.');
+            } catch (error) {
+                console.error('Error guardando boxscore admin:', error);
+                document.getElementById('boxscoreModalError').textContent = error.message || 'No se pudo guardar el boxscore.';
+                document.getElementById('boxscoreModalError').style.display = 'block';
+                document.getElementById('boxscoreModalMessage').style.display = 'none';
+                toast.error(error.message || 'Error guardando boxscore.');
+            }
         }
 
         function configurarFiltrosEnTiempoReal() {
@@ -3033,6 +3606,38 @@
                     document.getElementById('ultimo-equipo').textContent = ultimoEquipo.nombre;
                 }
 
+                try {
+                    const analyticsResponse = await fetch('/api/analytics/summary?days=30');
+                    if (analyticsResponse.ok) {
+                        const analytics = await analyticsResponse.json();
+                        const totals = analytics?.totals || {};
+                        document.getElementById('analytics-visitantes-hoy').textContent = totals.visitantes_hoy || 0;
+                        document.getElementById('analytics-pageviews-7d').textContent = totals.pageviews_7d || 0;
+                        document.getElementById('analytics-visitantes-30d').textContent = totals.visitantes_periodo || 0;
+                        document.getElementById('analytics-sesiones-30d').textContent = totals.sesiones_periodo || 0;
+
+                        const topPages = document.getElementById('analytics-top-pages');
+                        if (topPages) {
+                            const pages = Array.isArray(analytics.top_pages) ? analytics.top_pages.slice(0, 4) : [];
+                            topPages.innerHTML = pages.length
+                                ? pages.map((page) => `
+                                    <div class="leader-item">
+                                        <div class="leader-name">${page.label}</div>
+                                        <div class="leader-stat">${page.pageviews}</div>
+                                    </div>
+                                `).join('')
+                                : `
+                                    <div class="leader-item">
+                                        <div class="leader-name">Sin datos todavía</div>
+                                        <div class="leader-stat">--</div>
+                                    </div>
+                                `;
+                        }
+                    }
+                } catch (analyticsError) {
+                    console.warn('No se pudo cargar analítica:', analyticsError);
+                }
+
                 // Generar alertas
                 generarAlertas();
 
@@ -3153,6 +3758,7 @@
                             <button class="btn-activar" onclick="activarTorneo(${torneo.id})" ${torneo.activo ? 'disabled' : ''}>
                                 Activar
                             </button>
+                            <button class="btn-secondary" onclick="editarCriteriosTorneo(${torneo.id})">⚙️ Criterios</button>
                             <button class="btn-edit" onclick="editarTorneo(${torneo.id}, '${torneo.nombre.replace(/'/g, "\\'")}')">✏️</button>
                             <button class="btn-secondary" onclick="eliminarTorneo(${torneo.id})">🗑️</button>
                         </td>
@@ -3346,6 +3952,45 @@
             }
         }
 
+        async function editarCriteriosTorneo(id) {
+            try {
+                const response = await fetch(`/api/torneos/${id}`);
+                if (!response.ok) throw new Error('No se pudo cargar el torneo');
+                const torneo = await response.json();
+
+                const nextValues = {
+                    min_ab_rate_stats: prompt('Min AB para AVG/OBP/SLG/OPS y campeones ofensivos por posición (vacío = automático):', torneo.min_ab_rate_stats ?? '') ,
+                    min_ab_counting_stats: prompt('Min AB para hits, dobles, triples, HR, RBI, R, BB, SB (vacío = automático):', torneo.min_ab_counting_stats ?? ''),
+                    min_ab_mvp: prompt('Min AB para MVP del torneo (vacío = automático):', torneo.min_ab_mvp ?? ''),
+                    min_ip_rate_stats: prompt('Min IP para ERA/WHIP (vacío = automático):', torneo.min_ip_rate_stats ?? ''),
+                    min_ip_counting_stats: prompt('Min IP para wins, ponches y saves (vacío = automático):', torneo.min_ip_counting_stats ?? ''),
+                    min_ip_pitcher_award: prompt('Min IP para premio pitcher del torneo (vacío = automático):', torneo.min_ip_pitcher_award ?? ''),
+                    min_chances_defense: prompt('Min chances para defensiva y guantes de oro (vacío = automático):', torneo.min_chances_defense ?? '')
+                };
+
+                const payload = {};
+                Object.entries(nextValues).forEach(([key, value]) => {
+                    if (value !== null) payload[key] = String(value).trim();
+                });
+
+                const saveResponse = await fetch(`/api/torneos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!saveResponse.ok) {
+                    const error = await saveResponse.json().catch(() => ({}));
+                    throw new Error(error.error || 'No se pudieron guardar los criterios');
+                }
+
+                toast.success('Criterios de elegibilidad actualizados.');
+                await cargarTorneos();
+            } catch (error) {
+                toast.error(error.message || 'Error guardando criterios.');
+            }
+        }
+
         async function activarTorneo(id) {
             try {
                 const response = await fetch(`/api/torneos/${id}/activar`, { method: 'PUT' });
@@ -3397,10 +4042,11 @@
 
         async function cargarEstadisticas() {
             try {
+                const torneoQuery = buildTournamentQuery();
                 const [ofensivasRes, defensivasRes, pitcheoRes] = await Promise.all([
-                    fetch('/api/estadisticas-ofensivas'),
-                    fetch('/api/estadisticas-defensivas'),
-                    fetch('/api/estadisticas-pitcheo')
+                    fetch(`/api/estadisticas-ofensivas${torneoQuery}`),
+                    fetch(`/api/estadisticas-defensivas${torneoQuery}`),
+                    fetch(`/api/estadisticas-pitcheo${torneoQuery}`)
                 ]);
 
                 const ofensivas = ofensivasRes.ok ? await ofensivasRes.json() : [];
@@ -3491,7 +4137,7 @@
 
         async function actualizarLideresPorPosicion() {
             try {
-                const response = await fetch('/api/estadisticas-defensivas');
+                const response = await fetch(`/api/estadisticas-defensivas${buildTournamentQuery()}`);
                 if (!response.ok) throw new Error('Failed to fetch defensive stats');
                 const defensivas = await response.json();
                 
@@ -3770,6 +4416,7 @@
                 equipo_visitante_id: parseInt(equipo_visitante_id),
                 fecha_partido,
                 hora,
+                torneo_id: getCurrentTournamentId(),
                 estado: 'programado',
                 lugar: lugar || null,
                 carreras_local: null,
@@ -3824,6 +4471,7 @@
                 equipo_local_id,
                 equipo_visitante_id,
                 fecha_partido,
+                torneo_id: getCurrentTournamentId(),
                 carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
                 carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
                 estado: 'finalizado'
@@ -3864,6 +4512,7 @@
             const homeRunsVal = parseInt(document.getElementById('homeRuns').value) || 0;
             const data = {
                 jugador_id: parseInt(jugador_id),
+                torneo_id: getCurrentTournamentId(),
                 plate_appearances: parseInt(document.getElementById('plateAppearances').value) || 0,
                 at_bats: parseInt(document.getElementById('atBats').value) || 0,
                 singles: singlesVal,
@@ -4101,6 +4750,7 @@
                 fecha_partido,
                 hora: hora || null,
                 lugar: lugar || null,
+                torneo_id: getCurrentTournamentId(),
                 carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
                 carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
                 estado: (carreras_local !== "" && carreras_visitante !== "") ? 'finalizado' : 'programado'
@@ -4166,6 +4816,7 @@
             
             const data = {
                 jugador_id: parseInt(jugador_id),
+                torneo_id: getCurrentTournamentId(),
                 innings_pitched: parseFloat(document.getElementById('inningsPitched').value) || 0,
                 hits_allowed: parseInt(document.getElementById('hitsAllowed').value) || 0,
                 earned_runs: parseInt(document.getElementById('earnedRuns').value) || 0,
@@ -4204,6 +4855,7 @@
             
             const data = {
                 jugador_id: parseInt(jugador_id),
+                torneo_id: getCurrentTournamentId(),
                 putouts: parseInt(document.getElementById('putouts').value) || 0,
                 assists: parseInt(document.getElementById('assists').value) || 0,
                 errors: parseInt(document.getElementById('defensiveErrors').value) || 0,
@@ -4272,7 +4924,7 @@
             }
             try {
                 tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando estadísticas...</td></tr>';
-                const response = await fetch('/api/estadisticas-ofensivas');
+                const response = await fetch(`/api/estadisticas-ofensivas${buildTournamentQuery()}`);
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
                 
@@ -4427,7 +5079,7 @@
             }
             try {
                 tbody.innerHTML = '<tr><td colspan="8" class="loading">Cargando estadísticas...</td></tr>';
-                const response = await fetch('/api/estadisticas-pitcheo');
+                const response = await fetch(`/api/estadisticas-pitcheo${buildTournamentQuery()}`);
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
                 
@@ -4518,7 +5170,7 @@
             }
             try {
                 tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando estadísticas...</td></tr>';
-                const response = await fetch('/api/estadisticas-defensivas');
+                const response = await fetch(`/api/estadisticas-defensivas${buildTournamentQuery()}`);
                 if (!response.ok) throw new Error('Error');
                 const stats = await response.json();
                 
@@ -4625,15 +5277,13 @@
         // usar UPSERT con REEMPLAZO (SET field = EXCLUDED.field) en lugar de
         // SUMA (SET field = table.field + EXCLUDED.field).
         // ==================================================================
-        function getSeasonFromUrl() {
-            const qsTemporada = new URLSearchParams(window.location.search).get('temporada');
-            if (qsTemporada && qsTemporada.trim() !== '') {
-                return qsTemporada.trim();
-            }
-            if (torneoActivo && typeof torneoActivo.temporada === 'string' && torneoActivo.temporada.trim() !== '') {
-                return torneoActivo.temporada.trim();
-            }
-            return null;
+        function getCurrentTournamentId() {
+            return torneoActivo && torneoActivo.id ? Number(torneoActivo.id) : null;
+        }
+
+        function buildTournamentQuery() {
+            const torneoId = getCurrentTournamentId();
+            return torneoId ? `?torneo_id=${torneoId}` : '';
         }
 
         function obtenerEquipoDelJugador(jugadorId) {
@@ -4645,9 +5295,9 @@
             const saveButton = event.target;
             let endpoint = '';
             let payload = { jugador_id: jugadorId };
-            const temporada = getSeasonFromUrl();
+            const torneoId = getCurrentTournamentId();
             const equipoId = obtenerEquipoDelJugador(jugadorId);
-            payload.temporada = temporada || null;
+            payload.torneo_id = torneoId;
             payload.equipo_id = equipoId !== undefined && equipoId !== null ? equipoId : null;
 
             try {

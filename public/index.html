@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chogui League - Sistema de Gestión Profesional</title>
+    <link rel="stylesheet" href="css/brand_shell.css">
     <link rel="stylesheet" href="css/optimizations.min.css">
     <style>
         * {
@@ -224,6 +225,236 @@
             z-index: 2;
         }
 
+        .records-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .records-card {
+            background: #161b22;
+            border: 2px solid rgba(255, 193, 7, 0.18);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+        }
+
+        .records-card h4 {
+            color: #ffc107;
+            font-size: 1.05rem;
+            margin-bottom: 14px;
+        }
+
+        .records-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .records-subnav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .records-subnav-btn {
+            border: 1px solid rgba(255, 193, 7, 0.18);
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(247,241,220,0.88);
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .records-subnav-btn.active {
+            background: rgba(255, 193, 7, 0.14);
+            color: #ffc107;
+            border-color: rgba(255, 193, 7, 0.34);
+        }
+
+        .records-panel {
+            display: none;
+        }
+
+        .records-panel.active {
+            display: block;
+        }
+
+        .records-champions-shell {
+            margin-bottom: 22px;
+        }
+
+        .records-section-intro {
+            color: rgba(255,255,255,0.68);
+            margin-bottom: 14px;
+        }
+
+        .record-row--champion {
+            align-items: flex-start;
+        }
+
+        .record-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .record-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            background: rgba(255, 193, 7, 0.08);
+            color: #ffd86a;
+        }
+
+        .record-badge--soft {
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.75);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .record-row {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            background: #0d1117;
+            border: 1px solid rgba(255, 193, 7, 0.12);
+            border-radius: 14px;
+            padding: 12px 14px;
+        }
+
+        .record-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ffc107;
+            color: #0d1117;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .record-main {
+            min-width: 0;
+        }
+
+        .record-name {
+            color: #f7f1dc;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
+
+        .record-meta {
+            color: rgba(255,255,255,0.62);
+            font-size: 0.82rem;
+            margin-top: 2px;
+        }
+
+        .record-value {
+            color: #ffc107;
+            font-weight: 900;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .records-empty {
+            color: rgba(255,255,255,0.65);
+            background: #0d1117;
+            border: 1px dashed rgba(255, 193, 7, 0.18);
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .records-note {
+            color: rgba(255,255,255,0.58);
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin-top: 10px;
+        }
+
+        .records-accordion {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .records-accordion-item {
+            border: 1px solid rgba(255, 193, 7, 0.14);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            overflow: hidden;
+        }
+
+        .records-accordion-item summary {
+            list-style: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+        }
+
+        .records-accordion-item summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .records-accordion-copy {
+            display: grid;
+            gap: 4px;
+        }
+
+        .records-accordion-title {
+            color: #f7f1dc;
+            font-size: 1.02rem;
+            font-weight: 900;
+        }
+
+        .records-accordion-meta {
+            color: rgba(255,255,255,0.62);
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        .records-accordion-body {
+            padding: 0 18px 18px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .records-department-note {
+            color: rgba(255,255,255,0.68);
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+        }
+
+        .record-value--stack {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .record-subvalue {
+            color: rgba(255,255,255,0.58);
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
+
         .table-container {
             overflow-x: auto;
             border-radius: 15px;
@@ -233,6 +464,11 @@
             border: 2px solid rgba(255, 193, 7, 0.2);
             position: relative;
             z-index: 2;
+        }
+
+        #tablaPosiciones .table-container {
+            max-height: none;
+            overflow-y: visible;
         }
 
         table {
@@ -415,6 +651,26 @@
             gap: 10px;
         }
 
+        .standings-team-mark {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: rgba(17, 23, 34, 0.92);
+            border: 1px solid rgba(255, 193, 7, 0.14);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .standings-team-mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
         .standings-team-initials {
             display: inline-flex;
             align-items: center;
@@ -430,10 +686,24 @@
             flex-shrink: 0;
         }
 
+        .standings-team-mark .standings-team-initials {
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            font-size: 0.7rem;
+        }
+
         .standings-team-name {
             color: var(--text-primary);
             font-weight: 600;
             font-size: 0.95rem;
+        }
+
+        .playoff-race-teamline {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
         }
 
         /* Status badges */
@@ -3142,6 +3412,12 @@
             overflow: hidden;
         }
 
+        .pulse-feature--premium {
+            background:
+                radial-gradient(circle at top right, rgba(255, 193, 7, 0.12), transparent 28%),
+                linear-gradient(160deg, rgba(22, 29, 45, 0.98), rgba(14, 20, 32, 0.98));
+        }
+
         .pulse-feature::after {
             content: '';
             position: absolute;
@@ -3209,6 +3485,47 @@
             flex-direction: column;
             justify-content: space-between;
             gap: 14px;
+        }
+
+        .pulse-panel-stack {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .pulse-panel-card {
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 193, 7, 0.12);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 34%),
+                rgba(13, 17, 23, 0.94);
+        }
+
+        .pulse-panel-card span {
+            display: block;
+            color: rgba(247, 241, 220, 0.58);
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .pulse-panel-card strong {
+            display: block;
+            margin-top: 8px;
+            color: #ffc107;
+            font-size: 1.32rem;
+            line-height: 1.02;
+            font-weight: 900;
+        }
+
+        .pulse-panel-card small {
+            display: block;
+            margin-top: 6px;
+            color: rgba(247, 241, 220, 0.7);
+            font-size: 0.8rem;
+            line-height: 1.45;
         }
 
         .pulse-panel h3,
@@ -3562,6 +3879,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .pulse-panel-stack {
+                grid-template-columns: 1fr;
+            }
+
             .championship-hero,
             .final-night-card,
             .playoff-bracket-grid {
@@ -3575,19 +3896,42 @@
         }
 
         /* (professional-player-card styles removed — Phase 4 uses podio-card and lider-card) */
-</style>
+    </style>
+    <link rel="stylesheet" href="css/brand_shell.css?v=premium-home-20260613">
 </head>
-<body>
-    <a href="login.html" class="admin-link">🔐 Admin</a>
+<body class="brand-page-shell">
+    <header class="brand-topbar">
+        <div class="brand-topbar-inner">
+            <a href="index.html" class="brand-lockup">
+                <span class="brand-mark">
+                    <img src="/images/logos/chogui-league.png" alt="Logo Chogui League">
+                </span>
+                <span class="brand-copy">
+                    <span class="brand-overline">Softbol Profesional</span>
+                    <span class="brand-name">Chogui League</span>
+                    <span class="brand-subcopy">Liga, historial, líderes y espectáculo en un solo sistema</span>
+                </span>
+            </a>
+            <nav class="brand-nav">
+                <a href="#posiciones" class="brand-nav-link">Posiciones</a>
+                <a href="#partidos" class="brand-nav-link">Partidos</a>
+                <a href="#estadisticas" class="brand-nav-link">Líderes</a>
+                <a href="#premios" class="brand-nav-link">Premios</a>
+                <a href="#records" class="brand-nav-link">Récords</a>
+                <a href="login.html" class="brand-admin-link">Admin</a>
+            </nav>
+        </div>
+    </header>
 
     <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
     <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
     <div class="mobile-menu">
         <h3 style="color: #ffc107; margin-bottom: 20px; text-align: center;">📱 CHOGUI LEAGUE</h3>
-        <a href="#playoffs" class="mobile-menu-item" onclick="mostrarPestana('playoffs'); closeMobileMenu();">🔥 Playoffs</a>
         <a href="#posiciones" class="mobile-menu-item" onclick="mostrarPestana('posiciones'); closeMobileMenu();">🏆 Posiciones</a>
         <a href="#partidos" class="mobile-menu-item" onclick="mostrarPestana('partidos'); closeMobileMenu();">🎯 Partidos</a>
-        <a href="#estadisticas" class="mobile-menu-item" onclick="mostrarPestana('estadisticas'); closeMobileMenu();">📊 Líderes</a>
+        <a href="#estadisticas" class="mobile-menu-item" onclick="mostrarPestana('estadisticas'); closeMobileMenu();">📊 Estadísticas</a>
+        <a href="#premios" class="mobile-menu-item" onclick="mostrarPestana('premios'); closeMobileMenu();">🏅 Premios</a>
+        <a href="#records" class="mobile-menu-item" onclick="mostrarPestana('records'); closeMobileMenu();">📚 Récords</a>
         <div style="border-top: 1px solid rgba(255, 193, 7, 0.3); margin: 20px 0; padding-top: 20px;">
             <a href="login.html" class="mobile-menu-item">⚙️ Panel Admin</a>
             <a href="https://wa.me/5491126880792" class="mobile-menu-item" target="_blank">💬 Soporte</a>
@@ -3599,15 +3943,115 @@
     </div>
    
     <div class="container">
-        <div class="header">
-            <div class="header-content">
-                <div class="logo-container">
-                    <div class="logo-chogui"></div>
+        <section class="brand-hero">
+            <div class="brand-hero-art" aria-hidden="true">
+                <span class="hero-art hero-art-ball hero-art-ball-a"></span>
+                <span class="hero-art hero-art-ball hero-art-ball-b"></span>
+                <span class="hero-art hero-art-ball hero-art-ball-c"></span>
+                <span class="hero-art hero-art-bats hero-art-bats-a"></span>
+                <span class="hero-art hero-art-bats hero-art-bats-b"></span>
+                <span class="hero-art hero-art-diamond hero-art-diamond-a"></span>
+                <span class="hero-art hero-art-diamond hero-art-diamond-b"></span>
+                <span class="hero-art hero-art-diamond hero-art-diamond-c"></span>
+            </div>
+            <div class="brand-hero-inner">
+                <div class="brand-hero-logo">
+                    <img src="/images/logos/chogui-league.png" alt="Escudo Chogui League">
                 </div>
-                <h1>🏆 CHOGUI LEAGUE</h1>
-                <p>Sistema de Gestión Profesional de Softbol</p>
+                <div class="brand-hero-copy">
+                    <span class="brand-hero-kicker">Liga Oficial • Softbol Competitivo</span>
+                    <h1 class="brand-hero-title">Chogui League</h1>
+                    <p class="brand-hero-subtitle" id="brandHeroSubtitle">Una portada viva con tabla, líderes, corte playoff y contexto real de torneo en cada jornada.</p>
+                    <div class="brand-hero-meta">
+                        <span class="brand-hero-pill" id="brandHeroTournamentPill">Torneo premium</span>
+                        <span class="brand-hero-pill" id="brandHeroFormatPill">Formato oficial</span>
+                        <span class="brand-hero-pill" id="brandHeroChasePill">Cargando panorama</span>
+                    </div>
                 </div>
-        </div>
+                <div class="brand-hero-badge">
+                    <span id="brandHeroBadgeLabel">Pulso live</span>
+                    <strong id="brandHeroBadgeValue">--</strong>
+                    <span id="brandHeroBadgeSubvalue">Esperando datos del torneo</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="league-pulse" aria-label="Radar premium del torneo">
+            <article class="pulse-feature pulse-feature--premium">
+                <span class="pulse-kicker">Radar del torneo</span>
+                <h2 class="pulse-title" id="pulseTitle">Preparando centro de mando</h2>
+                <p class="pulse-copy" id="pulseCopy">La portada se actualiza con posiciones, líderes y el corte de playoffs del torneo seleccionado.</p>
+                <div class="pulse-stats">
+                    <div class="pulse-stat">
+                        <strong id="pulseTeams">--</strong>
+                        <span>Equipos activos</span>
+                    </div>
+                    <div class="pulse-stat">
+                        <strong id="pulseGames">--</strong>
+                        <span>Partidos cargados</span>
+                    </div>
+                    <div class="pulse-stat">
+                        <strong id="pulseNext">--</strong>
+                        <span>Próxima fecha</span>
+                    </div>
+                </div>
+            </article>
+
+            <aside class="pulse-panel">
+                <div>
+                    <span class="pulse-kicker">Figura y contexto</span>
+                    <h3 id="pulseLeaderTitle">Líderes en preparación</h3>
+                </div>
+                <div id="pulseLeaderRows">
+                    <div class="pulse-leader-row">
+                        <div>
+                            <div class="pulse-leader-name">Sin estadísticas oficiales</div>
+                            <div class="pulse-leader-meta">Carga resultados para activar el radar</div>
+                        </div>
+                        <span class="pulse-leader-value">--</span>
+                    </div>
+                </div>
+                <div class="pulse-panel-stack">
+                    <article class="pulse-panel-card">
+                        <span>Formato</span>
+                        <strong id="pulseFormatValue">--</strong>
+                        <small id="pulseFormatMeta">Esperando configuración</small>
+                    </article>
+                    <article class="pulse-panel-card">
+                        <span>Presión del corte</span>
+                        <strong id="pulsePressureValue">--</strong>
+                        <small id="pulsePressureMeta">Sin clasificación todavía</small>
+                    </article>
+                </div>
+            </aside>
+        </section>
+
+        <section class="sponsors-strip" aria-labelledby="sponsorsTitle">
+            <div class="sponsors-strip-header">
+                <span class="sponsors-kicker">Patrocinio oficial</span>
+                <h2 id="sponsorsTitle">Torneo patrocinado por</h2>
+            </div>
+            <div class="sponsors-grid">
+                <article class="sponsor-card sponsor-card--deportes">
+                    <img src="/images/sponsors/deportes-bd.png" alt="Deportes BD" class="sponsor-logo sponsor-logo--deportes">
+                </article>
+                <article class="sponsor-card sponsor-card--santa">
+                    <img src="/images/sponsors/la-santa-barbershop.png" alt="La Santa Barbershop" class="sponsor-logo sponsor-logo--santa">
+                </article>
+                <article class="sponsor-card sponsor-card--ag">
+                    <img src="/images/sponsors/ag.png" alt="AG" class="sponsor-logo sponsor-logo--ag">
+                </article>
+                <article class="sponsor-card sponsor-card--apimport">
+                    <img src="/images/sponsors/ap-import.png" alt="AP Import" class="sponsor-logo sponsor-logo--apimport">
+                </article>
+                <article class="sponsor-card sponsor-card--western">
+                    <img src="/images/sponsors/western-union.png" alt="Western Union" class="sponsor-logo sponsor-logo--western">
+                </article>
+                <article class="sponsor-card sponsor-card--iphone">
+                    <img src="/images/sponsors/iphone-go.png" alt="iPhone Go" class="sponsor-logo sponsor-logo--iphone">
+                </article>
+            </div>
+        </section>
 
         <div class="search-container">
             <div class="search-bar">
@@ -3726,48 +4170,12 @@
             </div>
         </div>
 
-        <section class="league-pulse" aria-label="Pulso de la liga">
-            <div class="pulse-feature">
-                <div class="pulse-kicker">Central de Temporada</div>
-                <h2 class="pulse-title" id="pulseTitle">La liga en tiempo real</h2>
-                <p class="pulse-copy" id="pulseCopy">Posiciones, líderes y calendario conectados a los datos oficiales de Chogui League.</p>
-                <div class="pulse-stats">
-                    <div class="pulse-stat">
-                        <strong id="pulseTeams">--</strong>
-                        <span>Equipos activos</span>
-                    </div>
-                    <div class="pulse-stat">
-                        <strong id="pulseGames">--</strong>
-                        <span>Partidos registrados</span>
-                    </div>
-                    <div class="pulse-stat">
-                        <strong id="pulseNext">--</strong>
-                        <span>Próximo juego</span>
-                    </div>
-                </div>
-            </div>
-            <aside class="pulse-panel">
-                <div>
-                    <div class="pulse-kicker">Jugador destacado</div>
-                    <h3 id="pulseLeaderTitle">Cargando líder...</h3>
-                </div>
-                <div id="pulseLeaderRows">
-                    <div class="pulse-leader-row">
-                        <div>
-                            <div class="pulse-leader-name">Actualizando datos</div>
-                            <div class="pulse-leader-meta">Conectando con estadísticas</div>
-                        </div>
-                        <span class="pulse-leader-value">--</span>
-                    </div>
-                </div>
-            </aside>
-        </section>
-
         <nav class="nav-tabs" id="mobileNavigation">
-            <a href="#playoffs" class="nav-tab active" data-section="playoffs" data-icon="🔥">Playoffs</a>
-            <a href="#posiciones" class="nav-tab" data-section="posiciones" data-icon="🏆">Posiciones</a>
+            <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
             <a href="#partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
-            <a href="#estadisticas" class="nav-tab" data-section="estadisticas" data-icon="📊">Líderes</a>
+            <a href="#estadisticas" class="nav-tab" data-section="estadisticas" data-icon="📊">Estadísticas</a>
+            <a href="#premios" class="nav-tab" data-section="premios" data-icon="🏅">Premios</a>
+            <a href="#records" class="nav-tab" data-section="records" data-icon="📚">Récords</a>
         </nav>
 
         <section class="proximos-partidos" id="proximos-partidos">
@@ -3783,8 +4191,8 @@
             </div>
         </section>
 
-        <div id="posiciones" class="tab-content">
-             <div class="card" id="tablaPosiciones">
+        <div id="posiciones" class="tab-content active">
+             <div class="card feature-card positions-card" id="tablaPosiciones">
                  <h3>🏆 Tabla de Posiciones</h3>
                  <div data-loader>Cargando...</div>
                  <div data-empty></div>
@@ -3810,6 +4218,24 @@
                  <p class="standings-legend">
                      <strong>Leyenda:</strong> PJ=Partidos Jugados, PG=Partidos Ganados, PP=Partidos Perdidos, %=Porcentaje, CF=Carreras a Favor, CE=Carreras en Contra, DIF=Diferencia
                  </p>
+                 <section class="playoff-race-shell" id="playoffRaceHome">
+                     <div class="playoff-race-header">
+                         <div>
+                             <h4>🛣️ Carrera a Playoffs</h4>
+                             <p id="playoffRaceHeadline">Así se mueve el corte jornada tras jornada.</p>
+                         </div>
+                         <div class="playoff-race-meta" id="playoffRaceMeta">Cargando formato del torneo...</div>
+                     </div>
+                     <div class="playoff-race-summary" id="playoffRaceSummary">
+                         <div class="playoff-race-stat"><span>Corte actual</span><strong>--</strong></div>
+                         <div class="playoff-race-stat"><span>Equipo presionando</span><strong>--</strong></div>
+                         <div class="playoff-race-stat"><span>Margen del corte</span><strong>--</strong></div>
+                         <div class="playoff-race-stat"><span>Partidos restantes</span><strong>--</strong></div>
+                     </div>
+                     <div class="playoff-race-list" id="playoffRaceList">
+                         <div class="records-empty">Cargando carrera a playoffs...</div>
+                     </div>
+                 </section>
              </div>
         </div>
 
@@ -3827,7 +4253,7 @@
                      </div>
                  </div>
              </div>
-             <div class="card" id="ultimosPartidos">
+             <div class="card feature-card games-card" id="ultimosPartidos">
                  <h3>🎯 Últimos Partidos</h3>
                  <div data-loader>Cargando...</div>
                  <div data-empty></div>
@@ -3836,7 +4262,42 @@
         </div>
 
         <div id="estadisticas" class="tab-content">
-            <div class="card" id="lideresContainer">
+            <div class="card feature-card stats-card-shell">
+                <div class="stats-shell-header">
+                    <h3>📊 Estadísticas de la Liga</h3>
+                    <p class="stats-shell-intro">Consulta el torneo por departamentos reales: resumen, ofensiva, pitcheo y defensa.</p>
+                </div>
+                <div class="stats-department-nav">
+                    <button class="stats-department-btn active" data-stats-department="resumen" onclick="mostrarDepartamentoStats('resumen')">🏆 Resumen</button>
+                    <button class="stats-department-btn" data-stats-department="bateo" onclick="mostrarDepartamentoStats('bateo')">🏏 Ofensiva</button>
+                    <button class="stats-department-btn" data-stats-department="pitcheo" onclick="mostrarDepartamentoStats('pitcheo')">🥎 Pitcheo</button>
+                    <button class="stats-department-btn" data-stats-department="defensa" onclick="mostrarDepartamentoStats('defensa')">🛡️ Defensa</button>
+                </div>
+            </div>
+
+            <div class="card feature-card stats-card-shell">
+                <div class="stats-shell-header">
+                    <h3>✅ Criterios Oficiales de Elegibilidad</h3>
+                    <p class="stats-shell-intro" id="statsEligibilitySummary">Cargando reglas del torneo para líderes, premios y campeones por posición...</p>
+                </div>
+                <div class="stats-criteria-grid">
+                    <article class="stats-criteria-card">
+                        <h4>🏏 Ofensiva</h4>
+                        <p id="statsEligibilityBatting">Cargando mínimos ofensivos...</p>
+                    </article>
+                    <article class="stats-criteria-card">
+                        <h4>🥎 Pitcheo</h4>
+                        <p id="statsEligibilityPitching">Cargando mínimos de pitcheo...</p>
+                    </article>
+                    <article class="stats-criteria-card">
+                        <h4>🛡️ Defensa</h4>
+                        <p id="statsEligibilityDefense">Cargando mínimos defensivos...</p>
+                    </article>
+                </div>
+            </div>
+
+            <div class="stats-department-panel active" data-stats-department-content="resumen">
+            <div class="card feature-card leaders-card" id="lideresContainer">
     <div class="leaders-section-header">
         <h3>🏆 Líderes de la Liga</h3>
         <p class="section-subtitle">Descubre quiénes dominan cada categoría estadística</p>
@@ -3856,7 +4317,7 @@
     </div>
 
     <div class="search-container" id="searchContainerPitcheo" style="display: none; margin-bottom: 20px;">
-        <input type="text" id="searchPitchers" class="lideres-search-input" placeholder="🔍 Buscar pitcher...">
+        <input type="text" id="searchPitchers" class="lideres-search-input" placeholder="🔍 Buscar lanzador...">
         <div id="searchResultsPitcheo" class="search-results-label"></div>
     </div>
 
@@ -3879,7 +4340,7 @@
     <div id="positionsContainer" class="positions-container" style="display: none;"></div>
 </div>
 
-            <div class="card">
+            <div class="card feature-card spotlight-card">
                 <h3>⭐ Líderes Ofensivos Destacados</h3>
                 <div id="lideresOfensivosContainer" class="leaders-grid-enhanced">
                     <div class="loading-state">
@@ -3888,10 +4349,22 @@
                     </div>
                 </div>
             </div>
+            </div>
 
-            <div class="card">
-                <h3>📊 Estadísticas Completas de Bateo</h3>
-                <div class="search-box-leaders">
+            <div class="stats-department-panel" data-stats-department-content="bateo">
+            <div class="card feature-card stats-card-shell">
+                <div class="stats-shell-header">
+                    <h3>🏏 Departamento de Ofensiva</h3>
+                    <p class="stats-shell-intro">Vista completa del torneo actual para explorar producción, contacto, poder y eficiencia ofensiva.</p>
+                    <div class="stats-criteria-inline" id="statsEligibilityBattingInline">Cargando criterio ofensivo...</div>
+                </div>
+                <div class="search-box-leaders stats-toolbar department-filters">
+                    <select id="battingTeamFilter">
+                        <option value="">Todos los equipos</option>
+                    </select>
+                    <select id="battingPositionFilter">
+                        <option value="">Todas las posiciones</option>
+                    </select>
                     <input type="text" id="searchStatsTable" placeholder="🔍 Buscar jugador en tabla...">
                 </div>
                 <div class="table-container">
@@ -3927,21 +4400,317 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="pagination-controls" id="statsPagination">
-                    <button class="pagination-btn" id="prevPageStats">← Anterior</button>
-                    <span class="pagination-info">Página <span id="currentPageStats">1</span> de <span id="totalPagesStats">1</span></span>
-                    <button class="pagination-btn" id="nextPageStats">Siguiente →</button>
-                </div>
-                <p style="margin-top: 15px; color: #ffc107; font-size: 0.8rem;">
-                    <strong>Leyenda:</strong> PA=Plate Appearances, AB=At Bats, H=Hits, 1B=Singles, 2B=Doubles, 3B=Triples, HR=Home Runs, RBI=Runs Batted In, R=Runs, BB=Walks, SO=Strikeouts, SB=Stolen Bases, CS=Caught Stealing, AVG=Batting Average, OBP=On-Base Percentage, SLG=Slugging Percentage, OPS=On-Base Plus Slugging, ISO=Isolated Power, TB=Total Bases
+                <p class="stats-legend-text">
+                    <strong>Leyenda:</strong> PA=Apariciones al plato, AB=Turnos oficiales, H=Hits, 1B=Sencillos, 2B=Dobles, 3B=Triples, HR=Jonrones, RBI=Carreras impulsadas, R=Carreras anotadas, BB=Bases por bolas, SO=Ponches, SB=Bases robadas, CS=Robado atrapado, AVG=Promedio de bateo, OBP=Porcentaje de embasado, SLG=Slugging, OPS=OBP + SLG, ISO=Poder aislado, TB=Bases totales
                 </p>
             </div>
-           
-            <div class="card">
-                <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
-                <div class="position-leaders-grid" id="positionLeadersGrid">
-                    <div class="loading">Cargando...</div>
+            </div>
+
+            <div class="stats-department-panel" data-stats-department-content="pitcheo">
+                <div class="card feature-card stats-card-shell">
+                    <div class="stats-shell-header">
+                        <h3>🥎 Departamento de Pitcheo</h3>
+                        <p class="stats-shell-intro">Controla dominio, contacto permitido y resultados reales del montículo en una sola vista.</p>
+                        <div class="stats-criteria-inline" id="statsEligibilityPitchingInline">Cargando criterio de pitcheo...</div>
+                    </div>
+                    <div class="search-box-leaders stats-toolbar department-filters">
+                        <select id="pitchingTeamFilter">
+                            <option value="">Todos los equipos</option>
+                        </select>
+                        <input type="text" id="searchPitchingTable" placeholder="🔍 Buscar pitcher en tabla...">
+                    </div>
+                    <div class="table-container">
+                        <table id="pitchingStatsTable">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th>
+                                    <th>Equipo</th>
+                                    <th>IP</th>
+                                    <th>H</th>
+                                    <th>ER</th>
+                                    <th>BB</th>
+                                    <th>K</th>
+                                    <th>HR-A</th>
+                                    <th>G</th>
+                                    <th>P</th>
+                                    <th>SV</th>
+                                    <th>ERA</th>
+                                    <th>WHIP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pitchingStatsTableBody">
+                                <tr><td colspan="13" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="stats-legend-text">
+                        <strong>Leyenda:</strong> IP=Entradas lanzadas, H=Hits permitidos, ER=Carreras limpias, BB=Bases por bolas permitidas, K=Ponches, HR-A=Jonrones permitidos, G=Ganados, P=Perdidos, SV=Salvados, ERA=Efectividad, WHIP=Boletos + hits por inning.
+                    </p>
                 </div>
+
+                <div class="card feature-card pitching-card">
+                    <h3>📈 Radar del Montículo</h3>
+                    <p class="stats-shell-intro">Lectura rápida del torneo para separar al as, el brazo de carga, el cerrador y el pitcher con mejor control real.</p>
+                    <div class="pitching-highlights-grid" id="pitchingHighlightsGrid">
+                        <div class="records-empty">Cargando radar de pitcheo...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-department-panel" data-stats-department-content="defensa">
+                <div class="card feature-card stats-card-shell">
+                    <div class="stats-shell-header">
+                        <h3>🛡️ Departamento de Defensa</h3>
+                        <p class="stats-shell-intro">Revisa quién sostiene el fildeo del torneo con outs, asistencias, dobles matanzas y porcentaje defensivo real.</p>
+                        <div class="stats-criteria-inline" id="statsEligibilityDefenseInline">Cargando criterio defensivo...</div>
+                    </div>
+                    <div class="search-box-leaders stats-toolbar department-filters">
+                        <select id="defenseTeamFilter">
+                            <option value="">Todos los equipos</option>
+                        </select>
+                        <select id="defensePositionFilter">
+                            <option value="">Todas las posiciones</option>
+                        </select>
+                        <input type="text" id="searchDefenseTable" placeholder="🔍 Buscar defensor en tabla...">
+                    </div>
+                    <div class="table-container">
+                        <table id="defenseStatsTable">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th>
+                                    <th>Equipo</th>
+                                    <th>Pos</th>
+                                    <th>PO</th>
+                                    <th>A</th>
+                                    <th>E</th>
+                                    <th>DP</th>
+                                    <th>PB</th>
+                                    <th>CH</th>
+                                    <th>FLD%</th>
+                                </tr>
+                            </thead>
+                            <tbody id="defenseStatsTableBody">
+                                <tr><td colspan="10" class="loading">Cargando...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="stats-legend-text">
+                        <strong>Leyenda:</strong> PO=Outs realizados, A=Asistencias, E=Errores, DP=Dobles matanzas, PB=Passed balls, CH=Chances, FLD%=Porcentaje defensivo.
+                    </p>
+                </div>
+
+                <div class="card feature-card defense-card">
+                    <h3>📈 Radar Defensivo del Torneo</h3>
+                    <p class="stats-shell-intro">Lectura técnica rápida del fildeo: mejor guante, mayor volumen y líderes en fundamentos defensivos.</p>
+                    <div class="defense-highlights-grid" id="defenseHighlightsGrid">
+                        <div class="records-empty">Cargando radar defensivo...</div>
+                    </div>
+                </div>
+
+                <div class="card feature-card defense-card">
+                    <h3>📍 Archivo Defensivo por Posición</h3>
+                    <p class="stats-shell-intro">Abre cada posición para ver quién defiende mejor ese espacio, con porcentaje, volumen y respaldo técnico.</p>
+                    <div class="defense-position-accordion" id="defensePositionAccordion">
+                        <div class="records-empty">Cargando archivo defensivo por posición...</div>
+                    </div>
+                </div>
+
+                <div class="card feature-card defense-card">
+                    <h3>🥇 MEJORES POR POSICIÓN - DEFENSIVA</h3>
+                    <div class="position-leaders-grid" id="positionLeadersGrid">
+                        <div class="loading">Cargando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="records" class="tab-content">
+            <div class="card feature-card records-shell">
+                <h3>📚 Récords Históricos</h3>
+                <p style="color: rgba(255,255,255,0.68); margin-bottom: 18px;">Archivo histórico de la liga para buscar trayectorias, revisar categorías y encontrar historia real por jugador, equipo o franquicia.</p>
+                <div class="records-subnav">
+                    <button class="records-subnav-btn active" data-records-panel="explorador" onclick="mostrarPanelRecords('explorador')">🔎 Explorador</button>
+                    <button class="records-subnav-btn" data-records-panel="categorias" onclick="mostrarPanelRecords('categorias')">📊 Categorías</button>
+                    <button class="records-subnav-btn" data-records-panel="alltime" onclick="mostrarPanelRecords('alltime')">🏆 Histórico total</button>
+                </div>
+
+                <section class="records-panel active" data-records-panel-content="explorador">
+                    <section class="records-explorer">
+                        <div class="records-explorer-header">
+                            <div>
+                                <h4>🔎 Explorador Histórico</h4>
+                                <p>Busca un jugador o equipo y revisa su historial competitivo, torneos anteriores y contexto de scouting.</p>
+                            </div>
+                            <div class="records-explorer-search">
+                                <input type="text" id="recordsSearchInput" placeholder="Buscar jugador o equipo..." autocomplete="off">
+                            </div>
+                        </div>
+                        <div id="recordsSearchResults" class="records-search-results"></div>
+                        <div id="recordsExplorerDetail" class="records-explorer-detail">
+                            <div class="records-empty">Busca un jugador o un equipo para ver su historia.</div>
+                        </div>
+                    </section>
+                </section>
+
+                <section class="records-panel" data-records-panel-content="categorias">
+                    <section class="records-champions-shell">
+                        <h4>📊 Récords Históricos por Categoría</h4>
+                        <p class="records-section-intro">Organiza el archivo por lo que realmente importa: bateo, pitcheo, defensa, posiciones y equipos.</p>
+                        <div class="records-subnav" style="margin-bottom: 18px;">
+                            <button class="records-subnav-btn active" data-records-category-panel="bateo" onclick="mostrarCategoriaRecords('bateo')">🏏 Bateo</button>
+                            <button class="records-subnav-btn" data-records-category-panel="pitcheo" onclick="mostrarCategoriaRecords('pitcheo')">🥎 Pitcheo</button>
+                            <button class="records-subnav-btn" data-records-category-panel="defensa" onclick="mostrarCategoriaRecords('defensa')">🛡️ Defensa</button>
+                            <button class="records-subnav-btn" data-records-category-panel="posiciones" onclick="mostrarCategoriaRecords('posiciones')">📍 Posiciones</button>
+                            <button class="records-subnav-btn" data-records-category-panel="equipos" onclick="mostrarCategoriaRecords('equipos')">👥 Equipos</button>
+                        </div>
+                        <div class="records-panel active" data-records-category-content="bateo">
+                            <section class="records-card">
+                                <h4>🏏 Títulos Históricos de Bateo</h4>
+                                <p class="records-department-note">Cada fila dice claramente qué título histórico está liderando: AVG, hits, dobles, triples, HR, RBI, OPS o bases robadas.</p>
+                                <div class="records-list" id="recordsCategoryBattingList">
+                                    <div class="records-empty">Cargando categorías ofensivas...</div>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="records-panel" data-records-category-content="pitcheo">
+                            <section class="records-card">
+                                <h4>🥎 Títulos Históricos de Pitcheo</h4>
+                                <p class="records-department-note">Aquí se separa con lógica de pitcheo real: efectividad, WHIP, ganados, ponches y salvados.</p>
+                                <div class="records-list" id="recordsCategoryPitchingList">
+                                    <div class="records-empty">Cargando categorías de pitcheo...</div>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="records-panel" data-records-category-content="defensa">
+                            <section class="records-card">
+                                <h4>🛡️ Títulos Históricos de Defensa</h4>
+                                <p class="records-department-note">Departamento defensivo para ver quién domina fildeo, outs, asistencias y volumen real de chances.</p>
+                                <div class="records-list" id="recordsCategoryDefenseList">
+                                    <div class="records-empty">Cargando categorías defensivas...</div>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="records-panel" data-records-category-content="posiciones">
+                            <section class="records-card">
+                                <h4>📍 Consulta por posición</h4>
+                                <p class="records-department-note">Presiona una posición y despliega sus coronas ofensivas y defensivas, para scouting o archivo histórico real.</p>
+                                <div class="records-accordion" id="recordsPositionsAccordion">
+                                    <div class="records-empty">Cargando archivo por posición...</div>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="records-panel" data-records-category-content="equipos">
+                            <section class="records-card">
+                                <h4>👥 Franquicias históricas</h4>
+                                <p class="records-department-note">Equipos más sólidos de la historia por victorias, porcentaje y diferencial, sin mezclar esta vista con torneos.</p>
+                                <div class="records-list" id="recordsCategoryTeamsList">
+                                    <div class="records-empty">Cargando récords de equipos...</div>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                </section>
+
+                <section class="records-panel" data-records-panel-content="alltime">
+                    <div class="records-grid records-grid--premium">
+                        <section class="records-card">
+                            <h4>👑 Hall of Fame</h4>
+                            <p class="records-department-note">Trayectorias más completas entre producción ofensiva, impacto histórico y peso competitivo acumulado.</p>
+                            <div class="records-list" id="recordsHallOfFameList">
+                                <div class="records-empty">Cargando archivo premium...</div>
+                            </div>
+                        </section>
+                        <section class="records-card">
+                            <h4>🔥 Mejores actuaciones</h4>
+                            <p class="records-department-note">Las planillas individuales más pesadas juego por juego, ideales para memoria de liga y narrativa competitiva.</p>
+                            <div class="records-list" id="recordsBestGamesList">
+                                <div class="records-empty">Cargando actuaciones...</div>
+                            </div>
+                        </section>
+                        <section class="records-card">
+                            <h4>📈 Mejores temporadas</h4>
+                            <p class="records-department-note">Años de referencia para evaluar constancia, impacto y torneos realmente dominantes.</p>
+                            <div class="records-list" id="recordsBestSeasonsList">
+                                <div class="records-empty">Cargando temporadas...</div>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="records-grid">
+                        <section class="records-card">
+                            <h4>🏏 Bateadores históricos</h4>
+                            <div class="records-list" id="recordsBattersList">
+                                <div class="records-empty">Cargando récords...</div>
+                            </div>
+                        </section>
+                        <section class="records-card">
+                            <h4>🥎 Equipos históricos</h4>
+                            <div class="records-list" id="recordsTeamsList">
+                                <div class="records-empty">Cargando récords...</div>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div id="premios" class="tab-content">
+            <div class="card feature-card records-shell">
+                <h3>🏅 Premios Oficiales del Torneo</h3>
+                <p style="color: rgba(255,255,255,0.68); margin-bottom: 18px;">Galardones automáticos del torneo activo con criterios mínimos de elegibilidad para evitar campeones por muestra engañosa.</p>
+                <section class="records-champions-shell">
+                    <h4>🌟 Cuadro de honor</h4>
+                    <p class="records-section-intro" id="awardsQualificationNote">Cargando criterios de elegibilidad...</p>
+                    <div class="records-grid">
+                        <section class="records-card">
+                            <h4>🏆 Premios mayores</h4>
+                            <div class="records-list" id="recordsOfficialAwardsList">
+                                <div class="records-empty">Cargando premios oficiales...</div>
+                            </div>
+                        </section>
+                        <section class="records-card">
+                            <h4>🛡️ Guantes de Oro</h4>
+                            <div class="records-list" id="recordsGoldGlovesList">
+                                <div class="records-empty">Cargando guantes de oro...</div>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+                <section class="records-champions-shell">
+                    <h4>🥇 Campeones por Posición</h4>
+                    <p class="records-section-intro">Cada posición defensiva y ofensiva debe producir su propio campeón oficial cuando cumpla el mínimo del torneo.</p>
+                    <div class="records-grid">
+                        <section class="records-card">
+                            <h4>⚾ Campeones Ofensivos</h4>
+                            <div class="records-list" id="recordsOffensiveChampionsList">
+                                <div class="records-empty">Cargando campeones ofensivos...</div>
+                            </div>
+                        </section>
+                        <section class="records-card">
+                            <h4>🛡️ Campeones Defensivos</h4>
+                            <div class="records-list" id="recordsDefensiveChampionsList">
+                                <div class="records-empty">Cargando campeones defensivos...</div>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+                <section class="records-champions-shell">
+                    <h4>📈 Líderes del Torneo por Categoría</h4>
+                    <p class="records-section-intro">Líderes oficiales del torneo activo para hits, dobles, triples, HR, RBI, AVG, pitcheo y más, todos con filtros mínimos coherentes.</p>
+                    <div class="records-grid">
+                        <section class="records-card">
+                            <h4>🏏 Ofensiva del torneo</h4>
+                            <div class="records-list" id="awardsTournamentBattingList">
+                                <div class="records-empty">Cargando categorías ofensivas del torneo...</div>
+                            </div>
+                        </section>
+                        <section class="records-card">
+                            <h4>🥎 Pitcheo del torneo</h4>
+                            <div class="records-list" id="awardsTournamentPitchingList">
+                                <div class="records-empty">Cargando categorías de pitcheo del torneo...</div>
+                            </div>
+                        </section>
+                    </div>
+                </section>
             </div>
         </div>
 
@@ -3953,138 +4722,18 @@
             </div>
         </div>
        
-        <div id="playoffs" class="tab-content active">
-            <section id="playoffs-section" class="section">
-              <div class="championship-stage" id="championshipStage">
-                <div class="championship-hero">
-                    <div>
-                        <div class="pulse-kicker">Camino al Campeonato</div>
-                        <h2>Comenzó lo Bueno</h2>
-                        <div class="championship-dates" id="championshipDates">Cuartos: domingo 19 de abril • Final: domingo 26 de abril</div>
-                    </div>
-                    <div class="championship-side">
-                        <div class="championship-countdown" aria-label="Cuenta regresiva del playoff">
-                            <div class="countdown-unit"><strong id="countdownDays">--</strong><span>días</span></div>
-                            <div class="countdown-unit"><strong id="countdownHours">--</strong><span>horas</span></div>
-                            <div class="countdown-unit"><strong id="countdownMinutes">--</strong><span>min</span></div>
-                        </div>
-                        <div class="champion-box">
-                            <span>Campeón</span>
-                            <strong id="championName">Por definirse</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="final-night-card" id="finalNightCard">
-                    <div>
-                        <div class="pulse-kicker">Final Night</div>
-                        <div class="final-night-title" id="finalNightTitle">La noche del campeón</div>
-                        <p id="finalNightCopy">La final se juega el sábado 26 de abril y cerrará el camino del campeón.</p>
-                    </div>
-                    <span class="final-night-badge" id="finalNightBadge">26 abr</span>
-                </div>
-                <div class="playoff-bracket-grid" id="playoffBracketGrid">
-                    <div class="loading-state">
-                        <div class="loading-spinner"></div>
-                        <p>Cargando bracket...</p>
-                    </div>
-                </div>
-              </div>
-              <div class="section-header">
-                <h2>🏆 Clasificación Playoffs</h2>
-              </div>
-                <div data-loader style="display: none;">
-                  Cargando clasificación...
-                </div>
-                <div data-empty style="display: none;"></div>
-
-                <div class="playoffs-view-toggle">
-                    <button class="toggle-btn active" data-view="tabla">
-                        📊 Vista Tabla
-                    </button>
-                    <button class="toggle-btn" data-view="barras">
-                        📈 Vista Barras
-                    </button>
-                </div>
-                
-                <div class="playoffs-container">
-                  <div class="playoffs-config">
-                    <span id="playoffs-cupos"></span>
-                  </div>
-               
-                  <div class="table-container">
-                    <table class="tabla-playoffs" id="playoffsTable">
-                      <thead>
-                        <tr>
-                          <th>Pos</th>
-                          <th>Equipo</th>
-                          <th>PJ</th>
-                          <th>PG</th>
-                          <th>PP</th>
-                          <th>%</th>
-                          <th>CF</th>
-                          <th>CE</th>
-                          <th>DIF</th>
-                          <th>Rest</th>
-                          <th>Máx</th>
-                          <th>Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody id="playoffsBody">
-                        </tbody>
-                    </table>
-                  </div>
-               
-                  <div class="playoffs-leyenda">
-                    <h4>📋 Criterios de clasificación:</h4>
-                    <ul>
-                      <li><span class="badge clasificado"></span> <strong>Clasificado:</strong> Ha asegurado un cupo matemáticamente</li>
-                      <li><span class="badge contención"></span> <strong>En contención:</strong> Todavía tiene posibilidades de clasificar</li>
-                      <li><span class="badge eliminado"></span> <strong>No puede alcanzar los playoffs matemáticamente</strong></li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div class="playoffs-barras-container" style="display: none;">
-                    <div class="barras-header">
-                        <h3>🏆 Carrera hacia los Playoffs</h3>
-                        <p class="barras-subtitle">Probabilidad de clasificación • Top 6 avanzan</p>
-                    </div>
-                    <div class="equipos-barras-grid">
-                        <div class="loading-state">
-                            <div class="loading-spinner"></div>
-                            <p>Cargando probabilidades...</p>
-                        </div>
-                    </div>
-                    <div class="barras-leyenda">
-                        <h4>📊 Zonas de Clasificación:</h4>
-                        <div class="leyenda-items">
-                            <div class="leyenda-item">
-                                <span class="leyenda-color clasificado-color"></span>
-                                <span>85-100% • Clasificado matemáticamente</span>
-                            </div>
-                            <div class="leyenda-item">
-                                <span class="leyenda-color contencion-color"></span>
-                                <span>40-84% • En contención por un cupo</span>
-                            </div>
-                            <div class="leyenda-item">
-                                <span class="leyenda-color peligro-color"></span>
-                                <span>10-39% • Necesita ganar urgente</span>
-                            </div>
-                            <div class="leyenda-item">
-                                <span class="leyenda-color eliminado-color"></span>
-                                <span>0-9% • Eliminado matemáticamente</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
     </div>
 
     <script>
         // Configuración de API - Rutas relativas
         const API_BASE_URL = '';
         let estadisticas = []; // Variable global para estadísticas de bateo
+        let offensiveStatsComplete = [];
+        let pitchingStatsComplete = [];
+        let defensiveStatsComplete = [];
+        let currentStatsDepartment = 'resumen';
+        window.__statsEligibilityCriteria = {};
+        let statsLoadRequestToken = 0;
 
         function getApiUrl(endpoint) {
             if (!endpoint.startsWith('/')) endpoint = '/' + endpoint;
@@ -4099,6 +4748,440 @@
                 '"': '&quot;',
                 "'": '&#039;'
             }[char]));
+        }
+
+        function formatDecimal(value, digits = 3) {
+            const parsed = Number(value);
+            if (!Number.isFinite(parsed)) return digits === 0 ? '0' : Number(0).toFixed(digits);
+            return parsed.toFixed(digits);
+        }
+
+        function getPlayerName(row) {
+            return row.jugador_nombre || row.nombre_jugador || row.nombre || 'Sin nombre';
+        }
+
+        function getTeamName(row) {
+            return row.equipo_nombre || row.equipo || 'Sin equipo';
+        }
+
+        function getPlayerPosition(row) {
+            return row.posicion || row.pos || row.posicion_principal || '-';
+        }
+
+        function calculatePlateAppearances(row) {
+            return Number(row.at_bats || 0)
+                + Number(row.walks || 0)
+                + Number(row.hit_by_pitch || 0)
+                + Number(row.sacrifice_flies || 0)
+                + Number(row.sacrifice_hits || 0);
+        }
+
+        function calculateSingles(row) {
+            return Number(row.hits || 0) - Number(row.doubles || 0) - Number(row.triples || 0) - Number(row.home_runs || 0);
+        }
+
+        function calculateTotalBases(row) {
+            return calculateSingles(row)
+                + Number(row.doubles || 0) * 2
+                + Number(row.triples || 0) * 3
+                + Number(row.home_runs || 0) * 4;
+        }
+
+        function calculateIso(row) {
+            return Number(row.slg || 0) - Number(row.avg || 0);
+        }
+
+        function mostrarDepartamentoStats(departmentName) {
+            currentStatsDepartment = departmentName;
+            document.querySelectorAll('.stats-department-btn').forEach((button) => {
+                button.classList.toggle('active', button.dataset.statsDepartment === departmentName);
+            });
+            document.querySelectorAll('.stats-department-panel').forEach((panel) => {
+                panel.classList.toggle('active', panel.dataset.statsDepartmentContent === departmentName);
+            });
+        }
+
+        function buildDepartmentSelectOptions(selectId, rows, extractor, emptyLabel) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            const currentValue = select.value || '';
+            const values = [...new Set((Array.isArray(rows) ? rows : []).map(extractor).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+            select.innerHTML = `<option value="">${emptyLabel}</option>${values.map((value) => `<option value="${escapeHTML(value)}">${escapeHTML(value)}</option>`).join('')}`;
+            if (values.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        }
+
+        function populateDepartmentFilters() {
+            buildDepartmentSelectOptions('battingTeamFilter', offensiveStatsComplete, getTeamName, 'Todos los equipos');
+            buildDepartmentSelectOptions('pitchingTeamFilter', pitchingStatsComplete, getTeamName, 'Todos los equipos');
+            buildDepartmentSelectOptions('defenseTeamFilter', defensiveStatsComplete, getTeamName, 'Todos los equipos');
+            buildDepartmentSelectOptions('battingPositionFilter', offensiveStatsComplete, getPlayerPosition, 'Todas las posiciones');
+            buildDepartmentSelectOptions('defensePositionFilter', defensiveStatsComplete, getPlayerPosition, 'Todas las posiciones');
+        }
+
+        function initDepartmentFilters() {
+            const bindings = [
+                ['battingTeamFilter', renderBattingDepartmentTable],
+                ['battingPositionFilter', renderBattingDepartmentTable],
+                ['searchStatsTable', renderBattingDepartmentTable, 'input'],
+                ['pitchingTeamFilter', renderPitchingDepartmentTable],
+                ['searchPitchingTable', renderPitchingDepartmentTable, 'input'],
+                ['defenseTeamFilter', renderDefenseDepartmentTable],
+                ['defensePositionFilter', renderDefenseDepartmentTable],
+                ['searchDefenseTable', renderDefenseDepartmentTable, 'input']
+            ];
+
+            bindings.forEach(([id, handler, eventName = 'change']) => {
+                const element = document.getElementById(id);
+                if (!element || element.dataset.boundStatsDepartment === 'true') return;
+                element.addEventListener(eventName, handler);
+                element.dataset.boundStatsDepartment = 'true';
+            });
+        }
+
+        function renderBattingDepartmentTable() {
+            const tbody = document.querySelector('#statsTable tbody');
+            if (!tbody) return;
+
+            const selectedTeam = document.getElementById('battingTeamFilter')?.value || '';
+            const selectedPosition = document.getElementById('battingPositionFilter')?.value || '';
+            const search = (document.getElementById('searchStatsTable')?.value || '').trim().toLowerCase();
+
+            const filteredRows = offensiveStatsComplete.filter((row) => {
+                if (selectedTeam && getTeamName(row) !== selectedTeam) return false;
+                if (selectedPosition && getPlayerPosition(row) !== selectedPosition) return false;
+                if (search) {
+                    const haystack = `${getPlayerName(row)} ${getTeamName(row)} ${getPlayerPosition(row)}`.toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
+                return true;
+            });
+
+            if (!filteredRows.length) {
+                tbody.innerHTML = '<tr><td colspan="22" class="loading">No hay datos ofensivos con ese filtro.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredRows.map((row) => {
+                const singles = Math.max(0, calculateSingles(row));
+                const plateAppearances = calculatePlateAppearances(row);
+                const totalBases = calculateTotalBases(row);
+                const iso = calculateIso(row);
+
+                return `
+                    <tr>
+                        <td>${escapeHTML(getPlayerName(row))}</td>
+                        <td>${escapeHTML(getTeamName(row))}</td>
+                        <td>${escapeHTML(getPlayerPosition(row))}</td>
+                        <td>${plateAppearances}</td>
+                        <td>${Number(row.at_bats || 0)}</td>
+                        <td>${Number(row.hits || 0)}</td>
+                        <td>${singles}</td>
+                        <td>${Number(row.doubles || 0)}</td>
+                        <td>${Number(row.triples || 0)}</td>
+                        <td>${Number(row.home_runs || 0)}</td>
+                        <td>${Number(row.rbi || 0)}</td>
+                        <td>${Number(row.runs || 0)}</td>
+                        <td>${Number(row.walks || 0)}</td>
+                        <td>${Number(row.strikeouts || 0)}</td>
+                        <td>${Number(row.stolen_bases || 0)}</td>
+                        <td>${Number(row.caught_stealing || 0)}</td>
+                        <td>${formatDecimal(row.avg, 3)}</td>
+                        <td>${formatDecimal(row.obp, 3)}</td>
+                        <td>${formatDecimal(row.slg, 3)}</td>
+                        <td>${formatDecimal(row.ops, 3)}</td>
+                        <td>${formatDecimal(iso, 3)}</td>
+                        <td>${totalBases}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderPitchingDepartmentTable() {
+            const tbody = document.getElementById('pitchingStatsTableBody');
+            if (!tbody) return;
+
+            const selectedTeam = document.getElementById('pitchingTeamFilter')?.value || '';
+            const search = (document.getElementById('searchPitchingTable')?.value || '').trim().toLowerCase();
+
+            const filteredRows = pitchingStatsComplete.filter((row) => {
+                if (selectedTeam && getTeamName(row) !== selectedTeam) return false;
+                if (search) {
+                    const haystack = `${getPlayerName(row)} ${getTeamName(row)}`.toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
+                return true;
+            });
+
+            if (!filteredRows.length) {
+                tbody.innerHTML = '<tr><td colspan="13" class="loading">No hay datos de pitcheo con ese filtro.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredRows.map((row) => `
+                <tr>
+                    <td>${escapeHTML(getPlayerName(row))}</td>
+                    <td>${escapeHTML(getTeamName(row))}</td>
+                    <td>${formatDecimal(row.innings_pitched, 1)}</td>
+                    <td>${Number(row.hits_allowed || 0)}</td>
+                    <td>${Number(row.earned_runs || 0)}</td>
+                    <td>${Number(row.walks_allowed || 0)}</td>
+                    <td>${Number(row.strikeouts || 0)}</td>
+                    <td>${Number(row.home_runs_allowed || 0)}</td>
+                    <td>${Number(row.wins || 0)}</td>
+                    <td>${Number(row.losses || 0)}</td>
+                    <td>${Number(row.saves || 0)}</td>
+                    <td>${formatDecimal(row.era, 2)}</td>
+                    <td>${formatDecimal(row.whip, 2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPitchingHighlights() {
+            const grid = document.getElementById('pitchingHighlightsGrid');
+            if (!grid) return;
+
+            if (!pitchingStatsComplete.length) {
+                grid.innerHTML = '<div class="records-empty">Todavía no hay suficiente data para construir el radar del montículo.</div>';
+                return;
+            }
+
+            const criteria = window.__statsEligibilityCriteria || {};
+            const minIpRate = Number(criteria.min_ip_rate_stats || 0);
+            const minIpCounting = Number(criteria.min_ip_counting_stats || 0);
+
+            const qualifiedRate = pitchingStatsComplete.filter((row) => Number(row.innings_pitched || 0) >= minIpRate);
+            const qualifiedCounting = pitchingStatsComplete.filter((row) => Number(row.innings_pitched || 0) >= minIpCounting);
+            const rateSource = qualifiedRate.length ? qualifiedRate : pitchingStatsComplete;
+            const countingSource = qualifiedCounting.length ? qualifiedCounting : pitchingStatsComplete;
+
+            const best = (rows, key, label, formatter, options = {}) => {
+                const sorted = [...rows].sort((a, b) => {
+                    const aVal = Number(a[key] || 0);
+                    const bVal = Number(b[key] || 0);
+                    return options.asc ? aVal - bVal : bVal - aVal;
+                });
+                const row = sorted[0];
+                return {
+                    label,
+                    row,
+                    value: formatter(row),
+                    meta: options.meta ? options.meta(row) : `${getTeamName(row)} • ${formatDecimal(row.innings_pitched, 1)} IP`
+                };
+            };
+
+            const safeSavesSource = countingSource.some((row) => Number(row.saves || 0) > 0)
+                ? countingSource.filter((row) => Number(row.saves || 0) > 0)
+                : countingSource;
+
+            const highlights = [
+                best(rateSource, 'era', 'As del torneo', (row) => `ERA ${formatDecimal(row.era, 2)}`, {
+                    asc: true,
+                    meta: (row) => `${getTeamName(row)} • ${formatDecimal(row.innings_pitched, 1)} IP • ${Number(row.earned_runs || 0)} CL`
+                }),
+                best(rateSource, 'whip', 'Mejor control del tráfico', (row) => `WHIP ${formatDecimal(row.whip, 2)}`, {
+                    asc: true,
+                    meta: (row) => `${getTeamName(row)} • ${Number(row.hits_allowed || 0)} H • ${Number(row.walks_allowed || 0)} BB`
+                }),
+                best(countingSource, 'innings_pitched', 'Brazo de carga', (row) => `${formatDecimal(row.innings_pitched, 1)} IP`, {
+                    meta: (row) => `${getTeamName(row)} • ${Number(row.wins || 0)} G • ${Number(row.losses || 0)} P`
+                }),
+                best(countingSource, 'strikeouts', 'Ponchador mayor', (row) => `${Number(row.strikeouts || 0)} K`, {
+                    meta: (row) => `${getTeamName(row)} • ${formatDecimal(row.era, 2)} ERA`
+                }),
+                best(countingSource, 'wins', 'Líder en victorias', (row) => `${Number(row.wins || 0)} G`, {
+                    meta: (row) => `${getTeamName(row)} • ${formatDecimal(row.innings_pitched, 1)} IP`
+                }),
+                best(safeSavesSource, 'saves', 'Cerrador del torneo', (row) => `${Number(row.saves || 0)} SV`, {
+                    meta: (row) => `${getTeamName(row)} • ${Number(row.home_runs_allowed || 0)} HR-A • ${formatDecimal(row.whip, 2)} WHIP`
+                })
+            ];
+
+            grid.innerHTML = highlights.map((item) => `
+                <article class="pitching-highlight-card">
+                    <h4>${escapeHTML(item.label)}</h4>
+                    <p>${escapeHTML(getPlayerName(item.row))}</p>
+                    <p>${escapeHTML(item.meta)}</p>
+                    <strong class="highlight-value">${escapeHTML(item.value)}</strong>
+                </article>
+            `).join('');
+        }
+
+        function hydratePitchingDepartment() {
+            try {
+                renderPitchingDepartmentTable();
+            } catch (error) {
+                console.error('❌ Error hidratando tabla de pitcheo:', error);
+                const tbody = document.getElementById('pitchingStatsTableBody');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="13" class="loading">No se pudo renderizar la tabla de pitcheo.</td></tr>';
+            }
+
+            try {
+                renderPitchingHighlights();
+            } catch (error) {
+                console.error('❌ Error hidratando radar de pitcheo:', error);
+                const grid = document.getElementById('pitchingHighlightsGrid');
+                if (grid) grid.innerHTML = '<div class="records-empty">No se pudo renderizar el radar del montículo.</div>';
+            }
+        }
+
+        function renderDefenseDepartmentTable() {
+            const tbody = document.getElementById('defenseStatsTableBody');
+            if (!tbody) return;
+
+            const selectedTeam = document.getElementById('defenseTeamFilter')?.value || '';
+            const selectedPosition = document.getElementById('defensePositionFilter')?.value || '';
+            const search = (document.getElementById('searchDefenseTable')?.value || '').trim().toLowerCase();
+
+            const filteredRows = defensiveStatsComplete.filter((row) => {
+                if (selectedTeam && getTeamName(row) !== selectedTeam) return false;
+                if (selectedPosition && getPlayerPosition(row) !== selectedPosition) return false;
+                if (search) {
+                    const haystack = `${getPlayerName(row)} ${getTeamName(row)} ${getPlayerPosition(row)}`.toLowerCase();
+                    if (!haystack.includes(search)) return false;
+                }
+                return true;
+            });
+
+            if (!filteredRows.length) {
+                tbody.innerHTML = '<tr><td colspan="10" class="loading">No hay datos defensivos con ese filtro.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredRows.map((row) => `
+                <tr>
+                    <td>${escapeHTML(getPlayerName(row))}</td>
+                    <td>${escapeHTML(getTeamName(row))}</td>
+                    <td>${escapeHTML(getPlayerPosition(row))}</td>
+                    <td>${Number(row.putouts || 0)}</td>
+                    <td>${Number(row.assists || 0)}</td>
+                    <td>${Number(row.errors || 0)}</td>
+                    <td>${Number(row.double_plays || 0)}</td>
+                    <td>${Number(row.passed_balls || 0)}</td>
+                    <td>${Number(row.chances || 0)}</td>
+                    <td>${formatDecimal(row.fielding_percentage, 3)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDefenseHighlights() {
+            const grid = document.getElementById('defenseHighlightsGrid');
+            if (!grid) return;
+
+            const minChances = Number((window.__statsEligibilityCriteria && window.__statsEligibilityCriteria.min_chances_defense) || 0);
+            const qualified = defensiveStatsComplete.filter((row) => Number(row.chances || 0) >= minChances);
+            const source = qualified.length ? qualified : defensiveStatsComplete;
+
+            if (!source.length) {
+                grid.innerHTML = '<div class="records-empty">Todavía no hay suficiente data para construir el radar defensivo.</div>';
+                return;
+            }
+
+            const best = (rows, key, label, formatter, options = {}) => {
+                const sorted = [...rows].sort((a, b) => {
+                    const aVal = Number(a[key] || 0);
+                    const bVal = Number(b[key] || 0);
+                    return options.asc ? aVal - bVal : bVal - aVal;
+                });
+                const row = sorted[0];
+                return {
+                    label,
+                    row,
+                    value: formatter(row),
+                    meta: options.meta ? options.meta(row) : `${getTeamName(row)} • ${getPlayerPosition(row)}`
+                };
+            };
+
+            const highlights = [
+                best(source, 'fielding_percentage', 'Mejor porcentaje de fildeo', (row) => `FLD% ${formatDecimal(row.fielding_percentage, 3)}`, { meta: (row) => `${getTeamName(row)} • ${Number(row.chances || 0)} chances` }),
+                best(source, 'putouts', 'Más outs realizados', (row) => `${Number(row.putouts || 0)} PO`, { meta: (row) => `${getTeamName(row)} • ${getPlayerPosition(row)}` }),
+                best(source, 'assists', 'Más asistencias', (row) => `${Number(row.assists || 0)} A`, { meta: (row) => `${getTeamName(row)} • ${getPlayerPosition(row)}` }),
+                best(source, 'double_plays', 'Más dobles matanzas', (row) => `${Number(row.double_plays || 0)} DP`, { meta: (row) => `${getTeamName(row)} • ${getPlayerPosition(row)}` }),
+                best(source, 'chances', 'Mayor volumen defensivo', (row) => `${Number(row.chances || 0)} CH`, { meta: (row) => `${getTeamName(row)} • ${formatDecimal(row.fielding_percentage, 3)} FLD%` }),
+                best(source, 'errors', 'Menos errores entre elegibles', (row) => `${Number(row.errors || 0)} E`, { asc: true, meta: (row) => `${getTeamName(row)} • ${Number(row.chances || 0)} chances` })
+            ];
+
+            grid.innerHTML = highlights.map((item) => `
+                <article class="defense-highlight-card">
+                    <h4>${escapeHTML(item.label)}</h4>
+                    <p>${escapeHTML(getPlayerName(item.row))}</p>
+                    <p>${escapeHTML(item.meta)}</p>
+                    <strong>${escapeHTML(item.value)}</strong>
+                </article>
+            `).join('');
+        }
+
+        function renderDefensePositionArchive() {
+            const container = document.getElementById('defensePositionAccordion');
+            if (!container) return;
+
+            const grouped = {};
+            defensiveStatsComplete.forEach((row) => {
+                const pos = getPlayerPosition(row);
+                if (!grouped[pos]) grouped[pos] = [];
+                grouped[pos].push(row);
+            });
+
+            const positions = Object.keys(grouped).filter(Boolean).sort((a, b) => a.localeCompare(b));
+            if (!positions.length) {
+                container.innerHTML = '<div class="records-empty">Todavía no hay archivo defensivo suficiente por posición.</div>';
+                return;
+            }
+
+            container.innerHTML = positions.map((pos) => {
+                const rows = [...grouped[pos]].sort((a, b) =>
+                    Number(b.fielding_percentage || 0) - Number(a.fielding_percentage || 0) ||
+                    Number(b.chances || 0) - Number(a.chances || 0)
+                ).slice(0, 3);
+                const top = rows[0];
+                return `
+                    <details class="defense-position-item">
+                        <summary>
+                            <span>${escapeHTML(pos)} • ${escapeHTML(getPlayerName(top))}</span>
+                            <span class="defense-position-meta">FLD% ${formatDecimal(top.fielding_percentage, 3)} • ${Number(top.chances || 0)} chances</span>
+                        </summary>
+                        <div class="defense-position-body">
+                            ${rows.map((row, index) => `
+                                <article class="defense-position-row">
+                                    <span class="defense-position-rank">${index + 1}</span>
+                                    <div>
+                                        <div class="defense-position-name">${escapeHTML(getPlayerName(row))}</div>
+                                        <div class="defense-position-copy">${escapeHTML(getTeamName(row))} • ${Number(row.putouts || 0)} PO • ${Number(row.assists || 0)} A • ${Number(row.errors || 0)} E • ${Number(row.double_plays || 0)} DP</div>
+                                    </div>
+                                    <div class="defense-position-value">FLD% ${formatDecimal(row.fielding_percentage, 3)}<br>CH ${Number(row.chances || 0)}</div>
+                                </article>
+                            `).join('')}
+                        </div>
+                    </details>
+                `;
+            }).join('');
+        }
+
+        function hydrateDefenseDepartment() {
+            try {
+                renderDefenseDepartmentTable();
+            } catch (error) {
+                console.error('❌ Error hidratando tabla defensiva:', error);
+                const tbody = document.getElementById('defenseStatsTableBody');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="10" class="loading">No se pudo renderizar la tabla defensiva.</td></tr>';
+            }
+
+            try {
+                renderDefenseHighlights();
+            } catch (error) {
+                console.error('❌ Error hidratando radar defensivo:', error);
+                const grid = document.getElementById('defenseHighlightsGrid');
+                if (grid) grid.innerHTML = '<div class="records-empty">No se pudo renderizar el radar defensivo.</div>';
+            }
+
+            try {
+                renderDefensePositionArchive();
+            } catch (error) {
+                console.error('❌ Error hidratando archivo defensivo por posición:', error);
+                const container = document.getElementById('defensePositionAccordion');
+                if (container) container.innerHTML = '<div class="records-empty">No se pudo renderizar el archivo defensivo por posición.</div>';
+            }
         }
 
         function normalizePartidosResponse(data) {
@@ -4125,21 +5208,112 @@
             return baseDate;
         }
 
+        function getSelectedTournamentId() {
+            const select = document.getElementById('indexTournamentSelect');
+            const domValue = select?.value || '';
+
+            if (typeof TournamentModule !== 'undefined' && typeof TournamentModule.getCurrentId === 'function') {
+                const currentId = TournamentModule.getCurrentId() || '';
+                if (currentId && currentId !== 'todos') {
+                    return currentId;
+                }
+                if (currentId === 'todos') {
+                    return '';
+                }
+            }
+
+            return domValue && domValue !== 'todos' ? domValue : '';
+        }
+
+        function hasPublicTournamentContext() {
+            if (typeof TournamentModule !== 'undefined'
+                && typeof TournamentModule.hasPublicTournament === 'function'
+                && TournamentModule.hasPublicTournament()) {
+                return true;
+            }
+
+            const select = document.getElementById('indexTournamentSelect');
+            if (!select) return false;
+            const options = Array.from(select.options || []);
+            return options.some(option => option.value && option.value !== 'todos');
+        }
+
+        function getTournamentQueryString() {
+            const tournamentId = getSelectedTournamentId();
+            return tournamentId ? `torneo_id=${encodeURIComponent(tournamentId)}` : '';
+        }
+
+        function getSelectedTournamentLabel() {
+            const select = document.getElementById('indexTournamentSelect');
+            if (select && select.selectedOptions && select.selectedOptions.length) {
+                return select.selectedOptions[0].textContent.trim();
+            }
+            return 'Torneo actual';
+        }
+
+        function withTournament(url) {
+            const tournamentQuery = getTournamentQueryString();
+            if (!tournamentQuery) return url;
+            return `${url}${url.includes('?') ? '&' : '?'}${tournamentQuery}`;
+        }
+
         async function cargarPulsoLiga() {
             try {
-                const [standingsData, partidosData, ofensivaData, proximosData] = await Promise.all([
-                    fetchJSON('/api/standings'),
-                    fetchJSON('/api/partidos?limit=1000'),
-                    fetchJSON('/api/estadisticas-ofensivas?min_at_bats=1'),
-                    fetchJSON('/api/proximos-partidos')
+                if (!hasPublicTournamentContext()) {
+                    const pulseTitle = document.getElementById('pulseTitle');
+                    const pulseCopy = document.getElementById('pulseCopy');
+                    const brandHeroSubtitle = document.getElementById('brandHeroSubtitle');
+                    const brandHeroBadgeLabel = document.getElementById('brandHeroBadgeLabel');
+                    const brandHeroBadgeValue = document.getElementById('brandHeroBadgeValue');
+                    const brandHeroBadgeSubvalue = document.getElementById('brandHeroBadgeSubvalue');
+                    const brandHeroTournamentPill = document.getElementById('brandHeroTournamentPill');
+                    const brandHeroFormatPill = document.getElementById('brandHeroFormatPill');
+                    const brandHeroChasePill = document.getElementById('brandHeroChasePill');
+
+                    if (pulseTitle) pulseTitle.textContent = 'Preparando la próxima portada de torneo';
+                    if (pulseCopy) pulseCopy.textContent = 'Cuando exista un torneo público activo, aquí aparecerán el líder real, la carrera a playoffs y el contexto premium de la liga.';
+                    if (brandHeroSubtitle) brandHeroSubtitle.textContent = 'Portada premium lista para encenderse apenas arranque el próximo torneo público.';
+                    if (brandHeroBadgeLabel) brandHeroBadgeLabel.textContent = 'Estado liga';
+                    if (brandHeroBadgeValue) brandHeroBadgeValue.textContent = 'Stand by';
+                    if (brandHeroBadgeSubvalue) brandHeroBadgeSubvalue.textContent = 'Esperando apertura oficial';
+                    if (brandHeroTournamentPill) brandHeroTournamentPill.textContent = 'Sin torneo público';
+                    if (brandHeroFormatPill) brandHeroFormatPill.textContent = 'Formato por definir';
+                    if (brandHeroChasePill) brandHeroChasePill.textContent = 'Sin carrera activa';
+                    return;
+                }
+
+                const [standingsData, partidosData, ofensivaData, proximosData, clasificacionData] = await Promise.all([
+                    fetchJSON(withTournament('/api/standings')),
+                    fetchJSON(withTournament('/api/partidos?limit=1000')),
+                    fetchJSON(withTournament('/api/estadisticas-ofensivas?min_at_bats=1')),
+                    fetchJSON(withTournament('/api/proximos-partidos')),
+                    fetchJSON(withTournament('/api/playoffs-clasificacion')).catch(() => null)
                 ]);
 
                 const standings = Array.isArray(standingsData) ? standingsData : [];
                 const partidos = normalizePartidosResponse(partidosData);
                 const ofensiva = Array.isArray(ofensivaData) ? ofensivaData : [];
                 const proximos = normalizePartidosResponse(proximosData);
+                const clasificacion = clasificacionData && Array.isArray(clasificacionData.equipos)
+                    ? clasificacionData
+                    : { configuracion: {}, equipos: [] };
                 const leader = [...ofensiva].sort((a, b) => (Number(b.ops) || 0) - (Number(a.ops) || 0))[0];
                 const topTeam = [...standings].sort((a, b) => (Number(b.porcentaje) || 0) - (Number(a.porcentaje) || 0))[0];
+                const topTeamPctRaw = Number(topTeam?.porcentaje || 0);
+                const topTeamPctNormalized = topTeamPctRaw > 1.5 ? (topTeamPctRaw / 100) : topTeamPctRaw;
+                const ordered = [...clasificacion.equipos].sort((a, b) => Number(a.posicion || 0) - Number(b.posicion || 0));
+                const cupos = Number(clasificacion.configuracion?.cupos_playoffs) || 8;
+                const totalJuegos = Number(clasificacion.configuracion?.total_juegos) || 8;
+                const cutoff = ordered[cupos - 1] || null;
+                const bubble = ordered[cupos] || null;
+                const selectedTournamentLabel = getSelectedTournamentLabel();
+                const nextGame = proximos[0] || null;
+                const nextGameText = nextGame?.fecha_partido
+                    ? parseApiDate(nextGame.fecha_partido).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+                    : 'TBD';
+                const margin = cutoff && bubble
+                    ? Number(cutoff.pg || 0) - Number(bubble.pg || 0)
+                    : null;
 
                 const pulseTeams = document.getElementById('pulseTeams');
                 const pulseGames = document.getElementById('pulseGames');
@@ -4148,21 +5322,82 @@
                 const pulseCopy = document.getElementById('pulseCopy');
                 const pulseLeaderTitle = document.getElementById('pulseLeaderTitle');
                 const pulseLeaderRows = document.getElementById('pulseLeaderRows');
+                const pulseFormatValue = document.getElementById('pulseFormatValue');
+                const pulseFormatMeta = document.getElementById('pulseFormatMeta');
+                const pulsePressureValue = document.getElementById('pulsePressureValue');
+                const pulsePressureMeta = document.getElementById('pulsePressureMeta');
+                const brandHeroSubtitle = document.getElementById('brandHeroSubtitle');
+                const brandHeroBadgeLabel = document.getElementById('brandHeroBadgeLabel');
+                const brandHeroBadgeValue = document.getElementById('brandHeroBadgeValue');
+                const brandHeroBadgeSubvalue = document.getElementById('brandHeroBadgeSubvalue');
+                const brandHeroTournamentPill = document.getElementById('brandHeroTournamentPill');
+                const brandHeroFormatPill = document.getElementById('brandHeroFormatPill');
+                const brandHeroChasePill = document.getElementById('brandHeroChasePill');
 
                 if (pulseTeams) pulseTeams.textContent = standings.length || '--';
                 if (pulseGames) pulseGames.textContent = partidos.length || '--';
-                if (pulseNext) pulseNext.textContent = proximos.length ? parseApiDate(proximos[0].fecha_partido).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'TBD';
-                if (pulseTitle && topTeam) pulseTitle.textContent = `${topTeam.equipo_nombre} marca el ritmo`;
-                if (pulseCopy && topTeam) {
-                    pulseCopy.textContent = `Lidera la tabla con ${(Number(topTeam.porcentaje) || 0).toFixed(3)} de porcentaje y diferencia de carreras ${Number(topTeam.dif) >= 0 ? '+' : ''}${Number(topTeam.dif) || 0}.`;
+                if (pulseNext) pulseNext.textContent = nextGameText;
+
+                if (pulseTitle) {
+                    pulseTitle.textContent = topTeam
+                        ? `${topTeam.equipo_nombre} manda la portada`
+                        : `${selectedTournamentLabel} en construcción`;
                 }
-                if (pulseLeaderTitle) pulseLeaderTitle.textContent = leader ? 'Mayor OPS del torneo' : 'Líderes en preparación';
+
+                if (pulseCopy) {
+                    if (topTeam) {
+                        pulseCopy.textContent = `${selectedTournamentLabel}: ${topTeam.equipo_nombre} domina con ${(topTeamPctRaw > 1.5 ? topTeamPctRaw : topTeamPctNormalized).toFixed(3)} de porcentaje, diferencial ${Number(topTeam.dif) >= 0 ? '+' : ''}${Number(topTeam.dif) || 0} y la carrera a playoffs ya empieza a tomar forma.`;
+                    } else {
+                        pulseCopy.textContent = `El torneo ${selectedTournamentLabel} todavía no tiene suficientes resultados para dibujar el mapa competitivo completo.`;
+                    }
+                }
+
+                if (brandHeroSubtitle) {
+                    brandHeroSubtitle.textContent = cutoff
+                        ? `${selectedTournamentLabel} mueve a ${standings.length || '--'} equipos en un formato de ${totalJuegos} juegos por club y ${cupos} boletos a playoffs.`
+                        : `${selectedTournamentLabel} ya está listo para mostrar tabla, líderes, premios y presión real del torneo en una sola portada.`;
+                }
+
+                if (brandHeroBadgeLabel) brandHeroBadgeLabel.textContent = topTeam ? 'Equipo al mando' : 'Estado torneo';
+                if (brandHeroBadgeValue) {
+                    brandHeroBadgeValue.textContent = topTeam
+                        ? `${Math.round(topTeamPctNormalized * 100)}%`
+                        : 'Live';
+                }
+                if (brandHeroBadgeSubvalue) {
+                    brandHeroBadgeSubvalue.textContent = topTeam
+                        ? `${topTeam.equipo_nombre} • ${Number(topTeam.pg || 0)}-${Number(topTeam.pp || 0)}`
+                        : selectedTournamentLabel;
+                }
+
+                if (brandHeroTournamentPill) brandHeroTournamentPill.textContent = selectedTournamentLabel;
+                if (brandHeroFormatPill) brandHeroFormatPill.textContent = `${totalJuegos} juegos • ${cupos} cupos`;
+                if (brandHeroChasePill) {
+                    brandHeroChasePill.textContent = cutoff
+                        ? `Corte: #${cutoff.posicion} ${cutoff.equipo_nombre}`
+                        : 'Cargando corte playoff';
+                }
+
+                if (pulseFormatValue) pulseFormatValue.textContent = `${cupos} cupos`;
+                if (pulseFormatMeta) pulseFormatMeta.textContent = `${totalJuegos} juegos por equipo • ${standings.length || 0} clubes en carrera`;
+                if (pulsePressureValue) {
+                    pulsePressureValue.textContent = margin == null
+                        ? '--'
+                        : `${margin >= 0 ? '+' : ''}${margin} W`;
+                }
+                if (pulsePressureMeta) {
+                    pulsePressureMeta.textContent = cutoff && bubble
+                        ? `${cutoff.equipo_nombre} defiende el corte ante ${bubble.equipo_nombre}`
+                        : 'Esperando suficientes resultados para medir la presión';
+                }
+
+                if (pulseLeaderTitle) pulseLeaderTitle.textContent = leader ? 'Impacto ofensivo del momento' : 'Líderes en preparación';
                 if (pulseLeaderRows) {
                     pulseLeaderRows.innerHTML = leader ? `
                         <div class="pulse-leader-row" onclick="window.location.href='jugador.html?id=${leader.jugador_id}'" role="button" tabindex="0">
                             <div>
                                 <div class="pulse-leader-name">${escapeHTML(leader.jugador_nombre)}</div>
-                                <div class="pulse-leader-meta">${escapeHTML(leader.equipo_nombre)} • AVG ${Number(leader.avg || 0).toFixed(3)} • HR ${Number(leader.home_runs || 0)}</div>
+                                <div class="pulse-leader-meta">${escapeHTML(leader.equipo_nombre)} • AVG ${Number(leader.avg || 0).toFixed(3)} • HR ${Number(leader.home_runs || 0)} • RBI ${Number(leader.rbi || 0)}</div>
                             </div>
                             <span class="pulse-leader-value">${Number(leader.ops || 0).toFixed(3)}</span>
                         </div>
@@ -4214,13 +5449,13 @@
                         : 'Fecha por definir';
 
                     return `
-                        <div class="game-center-row">
+                        <a class="game-center-row" href="partido.html?id=${partido.id}">
                             <div>
                                 <div class="game-center-teams">${escapeHTML(partido.equipo_visitante_nombre || 'Visitante')} @ ${escapeHTML(partido.equipo_local_nombre || 'Local')}</div>
                                 <div class="game-center-meta">${isFinal ? 'Final' : 'Programado'} • ${fecha}</div>
                             </div>
                             <span class="game-center-score">${escapeHTML(score)}</span>
-                        </div>`;
+                        </a>`;
                 }).join('');
             } catch (error) {
                 grid.innerHTML = `
@@ -4251,6 +5486,12 @@
             return parts.slice(0, 2).map(part => part[0]).join('').toUpperCase();
         }
 
+        function getEquipoLogoUrlById(equipoId) {
+            const numericId = Number(equipoId);
+            if (!numericId) return '';
+            return `/api/equipos/${numericId}/logo`;
+        }
+
         function getPlayoffLogoUrl(name) {
             const logoMap = {
                 'dominican powers': 'DOMINICAN.jpeg',
@@ -4273,8 +5514,8 @@
             return file ? `/logos-play/${encodeURIComponent(file)}` : '';
         }
 
-        function renderPlayoffTeamMark(name) {
-            const logoUrl = getPlayoffLogoUrl(name);
+        function renderPlayoffTeamMark(name, equipoId = null) {
+            const logoUrl = getEquipoLogoUrlById(equipoId) || getPlayoffLogoUrl(name);
             const initials = escapeHTML(getInitials(name));
             if (!logoUrl) {
                 return `<span class="playoff-team-mark"><span class="playoff-team-initials">${initials}</span></span>`;
@@ -4283,6 +5524,19 @@
             return `
                 <span class="playoff-team-mark">
                     <img src="${escapeHTML(logoUrl)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.innerHTML='<span class=&quot;playoff-team-initials&quot;>${initials}</span>';">
+                </span>`;
+        }
+
+        function renderStandingsTeamMark(equipoId, name) {
+            const logoUrl = getEquipoLogoUrlById(equipoId);
+            const initials = escapeHTML(getInitials(name));
+            if (!logoUrl) {
+                return `<span class="standings-team-mark"><span class="standings-team-initials">${initials}</span></span>`;
+            }
+
+            return `
+                <span class="standings-team-mark">
+                    <img src="${escapeHTML(logoUrl)}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.innerHTML='<span class=&quot;standings-team-initials&quot;>${initials}</span>';">
                 </span>`;
         }
 
@@ -4449,13 +5703,13 @@
                     </div>
                     <div class="playoff-team-line ${localWinner ? 'winner' : ''}">
                         <span class="playoff-seed">${game.seed_local || '-'}</span>
-                        ${renderPlayoffTeamMark(game.equipo_local_nombre)}
+                        ${renderPlayoffTeamMark(game.equipo_local_nombre, game.equipo_local_id)}
                         <span class="playoff-team-name">${escapeHTML(game.equipo_local_nombre || 'Ganador pendiente')}</span>
                         <span class="playoff-score">${hasScore ? Number(localRuns) : '-'}</span>
                     </div>
                     <div class="playoff-team-line ${visitorWinner ? 'winner' : ''}">
                         <span class="playoff-seed">${game.seed_visitante || '-'}</span>
-                        ${renderPlayoffTeamMark(game.equipo_visitante_nombre)}
+                        ${renderPlayoffTeamMark(game.equipo_visitante_nombre, game.equipo_visitante_id)}
                         <span class="playoff-team-name">${escapeHTML(game.equipo_visitante_nombre || 'Ganador pendiente')}</span>
                         <span class="playoff-score">${hasScore ? Number(visitorRuns) : '-'}</span>
                     </div>
@@ -4517,13 +5771,148 @@
         async function cargarTablaPosiciones() {
             const tbodyEl = document.getElementById('tablaPosicionesBody');
             try {
+                if (!hasPublicTournamentContext()) {
+                    if (tbodyEl) tbodyEl.innerHTML = '';
+                    setLoading('tablaPosiciones', false, 'No hay un torneo público activo todavía.');
+                    renderCarreraPlayoffsHome(null);
+                    return;
+                }
                 setLoading('tablaPosiciones', true);
-                const standings = await fetchJSON('/api/standings');
+                const standings = await fetchJSON(withTournament('/api/standings'));
                 renderTablaPosiciones(standings || [], tbodyEl);
+                await cargarCarreraPlayoffsHome();
                 setLoading('tablaPosiciones', false, (standings && standings.length) ? null : 'Sin datos de posiciones.');
             } catch (e) {
+                renderCarreraPlayoffsHome(null, 'No se pudo cargar la carrera a playoffs.');
                 setLoading('tablaPosiciones', false, 'No se pudo cargar la tabla.');
             }
+        }
+
+        async function cargarCarreraPlayoffsHome() {
+            try {
+                const data = await fetchJSON(withTournament('/api/playoffs-clasificacion'));
+                renderCarreraPlayoffsHome(data);
+            } catch (error) {
+                console.error('❌ Error cargando carrera a playoffs:', error);
+                renderCarreraPlayoffsHome(null, 'No se pudo cargar la carrera a playoffs.');
+            }
+        }
+
+        function renderCarreraPlayoffsHome(data, forcedMessage = null) {
+            const headlineEl = document.getElementById('playoffRaceHeadline');
+            const metaEl = document.getElementById('playoffRaceMeta');
+            const summaryEl = document.getElementById('playoffRaceSummary');
+            const listEl = document.getElementById('playoffRaceList');
+            if (!headlineEl || !metaEl || !summaryEl || !listEl) return;
+
+            if (!data || !Array.isArray(data.equipos) || !data.equipos.length) {
+                headlineEl.textContent = forcedMessage || 'Esperando datos del torneo para activar la carrera a playoffs.';
+                metaEl.textContent = 'Sin clasificación disponible todavía.';
+                summaryEl.innerHTML = `
+                    <div class="playoff-race-stat"><span>Corte actual</span><strong>--</strong></div>
+                    <div class="playoff-race-stat"><span>Equipo presionando</span><strong>--</strong></div>
+                    <div class="playoff-race-stat"><span>Margen del corte</span><strong>--</strong></div>
+                    <div class="playoff-race-stat"><span>Partidos restantes</span><strong>--</strong></div>
+                `;
+                listEl.innerHTML = `<div class="records-empty">${forcedMessage || 'Todavía no hay suficientes resultados para proyectar el corte.'}</div>`;
+                return;
+            }
+
+            const { configuracion, equipos } = data;
+            const cupos = Number(configuracion?.cupos_playoffs) || 8;
+            const totalJuegos = Number(configuracion?.total_juegos) || 8;
+            const ordered = [...equipos].sort((a, b) => Number(a.posicion || 0) - Number(b.posicion || 0));
+            const cutoff = ordered[cupos - 1] || null;
+            const bubble = ordered[cupos] || null;
+            const maxRestantes = ordered.reduce((max, team) => Math.max(max, Number(team.restantes || 0)), 0);
+            const margin = cutoff && bubble ? Number(cutoff.pg || 0) - Number(bubble.pg || 0) : 0;
+
+            headlineEl.textContent = `${configuracion?.torneo_nombre || 'Torneo actual'}: el corte lo marca el #${cutoff?.posicion || cupos}.`;
+            metaEl.textContent = `${ordered.length} equipos • ${cupos} clasifican • ${totalJuegos} juegos por club`;
+
+            summaryEl.innerHTML = `
+                <div class="playoff-race-stat">
+                    <span>Corte actual</span>
+                    <strong>${cutoff ? escapeHTML(cutoff.equipo_nombre) : '--'}</strong>
+                </div>
+                <div class="playoff-race-stat">
+                    <span>Equipo presionando</span>
+                    <strong>${bubble ? escapeHTML(bubble.equipo_nombre) : 'Nadie'}</strong>
+                </div>
+                <div class="playoff-race-stat">
+                    <span>Margen del corte</span>
+                    <strong>${cutoff && bubble ? `${margin >= 0 ? '+' : ''}${margin} W` : '--'}</strong>
+                </div>
+                <div class="playoff-race-stat">
+                    <span>Partidos restantes</span>
+                    <strong>${maxRestantes}</strong>
+                </div>
+            `;
+
+            const statusLabel = (team) => {
+                if (team.estado === 'clasificado') return 'Clasificado';
+                if (team.estado === 'eliminado') return 'Sin margen';
+                if (Number(team.posicion) <= cupos) return 'Dentro';
+                return 'Persiguiendo';
+            };
+
+            const statusClass = (team) => {
+                if (team.estado === 'clasificado') return 'clasificado';
+                if (team.estado === 'eliminado') return 'eliminado';
+                return 'contencion';
+            };
+
+            listEl.innerHTML = ordered.map((team) => {
+                const pos = Number(team.posicion || 0);
+                const pct = Number(team.porcentaje || 0) * 100;
+                const progress = totalJuegos > 0 ? Math.min(100, Math.max(6, (Number(team.pg || 0) / totalJuegos) * 100)) : 6;
+                const rowClass = pos <= cupos ? (pos === cupos ? 'cutoff top' : 'top') : 'outside';
+                const marginText = cutoff
+                    ? `${Number(team.pg || 0) - Number(cutoff.pg || 0) >= 0 ? '+' : ''}${Number(team.pg || 0) - Number(cutoff.pg || 0)} W`
+                    : '--';
+                const record = `${Number(team.pg || 0)}-${Number(team.pp || 0)}`;
+
+                return `
+                    <article class="playoff-race-row ${rowClass}" data-equipo-id="${Number(team.equipo_id)}">
+                        <div class="playoff-race-main">
+                            <span class="playoff-race-rank">${pos}</span>
+                            <div class="playoff-race-teamline">
+                                ${renderPlayoffTeamMark(team.equipo_nombre, team.equipo_id)}
+                                <div class="playoff-race-team">
+                                    <strong>${escapeHTML(team.equipo_nombre)}</strong>
+                                    <small>${record} • ${pct.toFixed(1)}% • ${Number(team.restantes || 0)} por jugar</small>
+                                </div>
+                            </div>
+                            <div class="playoff-race-stats">
+                                <div class="playoff-race-mini">
+                                    <span>Estado</span>
+                                    <strong><span class="playoff-race-pill ${statusClass(team)}">${statusLabel(team)}</span></strong>
+                                </div>
+                                <div class="playoff-race-mini">
+                                    <span>CF / CE</span>
+                                    <strong>${Number(team.cf || 0)} / ${Number(team.ce || 0)}</strong>
+                                </div>
+                                <div class="playoff-race-mini">
+                                    <span>Diferencial</span>
+                                    <strong>${Number(team.dif || 0) >= 0 ? '+' : ''}${Number(team.dif || 0)}</strong>
+                                </div>
+                                <div class="playoff-race-mini">
+                                    <span>Vs corte</span>
+                                    <strong>${marginText}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="playoff-race-bar"><span style="width:${progress}%"></span></div>
+                    </article>
+                `;
+            }).join('');
+
+            listEl.onclick = (e) => {
+                const card = e.target.closest('[data-equipo-id]');
+                if (card) {
+                    window.location.href = `equipo.html?id=${card.dataset.equipoId}`;
+                }
+            };
         }
 
         function renderTablaPosiciones(standings, tbodyEl) {
@@ -4582,7 +5971,7 @@
 
                 return `<tr class="${getTierClass(posicion)}${cutoffClass}" data-equipo-id="${t.equipo_id}" style="animation-delay: ${i * 0.04}s">
                     <td><span class="standings-pos-badge ${getPosBadgeClass(posicion)}">${posicion}</span></td>
-                    <td><div class="standings-team-cell"><span class="standings-team-initials">${getInitials(t.equipo_nombre)}</span><span class="standings-team-name">${t.equipo_nombre ?? ''}</span></div></td>
+                    <td><div class="standings-team-cell">${renderStandingsTeamMark(t.equipo_id, t.equipo_nombre)}<span class="standings-team-name">${t.equipo_nombre ?? ''}</span></div></td>
                     <td>${t.pj ?? 0}</td>
                     <td>${t.pg ?? 0}</td>
                     <td>${t.pp ?? 0}</td>
@@ -4624,8 +6013,13 @@
         async function cargarUltimosPartidos() {
             const grid = document.getElementById('ultimosPartidosGrid');
             try {
+                if (!hasPublicTournamentContext()) {
+                    if (grid) grid.innerHTML = '';
+                    setLoading('ultimosPartidos', false, 'Esperando el calendario del próximo torneo.');
+                    return;
+                }
                 setLoading('ultimosPartidos', true);
-                const partidos = await fetchJSON('/api/partidos?estado=finalizado&limit=10');
+                const partidos = await fetchJSON(withTournament('/api/partidos?estado=finalizado&limit=10'));
                 renderUltimosPartidos(partidos || [], grid);
                 setLoading('ultimosPartidos', false, (partidos && partidos.length) ? null : 'Sin partidos finalizados.');
             } catch (e) {
@@ -4643,7 +6037,7 @@
                 const visitanteWins = cVisitante > cLocal;
                 const innings = p.innings ?? '-';
                 return `
-                    <div class="scoreboard-card results">
+                    <a class="scoreboard-card results" href="partido.html?id=${p.id}">
                         <div class="scoreboard-status-bar">
                             <span class="status-badge final">FINAL</span>
                             <span class="scoreboard-date">${fmtFecha(p.fecha_partido)}</span>
@@ -4664,8 +6058,8 @@
                                 <span class="team-score">${cLocal}</span>
                             </div>
                         </div>
-                        ${innings !== '-' ? `<div class="scoreboard-footer"><span class="scoreboard-innings">Final / ${innings} innings</span></div>` : ''}
-                    </div>`;
+                        ${innings !== '-' ? `<div class="scoreboard-footer"><span class="scoreboard-innings">Final / ${innings} innings</span><span class="scoreboard-innings">Ver detalle →</span></div>` : `<div class="scoreboard-footer"><span class="scoreboard-innings">Ver detalle →</span></div>`}
+                    </a>`;
             }).join('');
         }
        
@@ -4674,7 +6068,7 @@
             console.log('🏆 Cargando clasificación de playoffs...');
             setLoading('playoffs-section', true);
             try {
-                const data = await fetchJSON('/api/playoffs-clasificacion');
+                const data = await fetchJSON(withTournament('/api/playoffs-clasificacion'));
                 if (!data || !data.equipos || data.equipos.length === 0) {
                     setLoading('playoffs-section', false, 'No hay datos de clasificación disponibles');
                     return;
@@ -4694,7 +6088,7 @@
             
             // ✅ SUB-PASO 3.2: Corrección de textos estáticos
             if (cuposEl) {
-                const cupos = configuracion.cupos_playoffs || 6; // Forzar 6 si no viene del backend
+                const cupos = configuracion.cupos_playoffs || 8;
                 cuposEl.innerHTML = `<strong>${cupos}</strong> equipos clasifican`;
             }
 
@@ -4782,7 +6176,7 @@
         async function cargarPlayoffsBarras() {
             console.log('📊 Cargando datos para barras de playoffs...');
             try {
-                const data = await fetchJSON('/api/playoffs-clasificacion');
+                const data = await fetchJSON(withTournament('/api/playoffs-clasificacion'));
                 if (!data || !data.equipos || data.equipos.length === 0) {
                     console.error('❌ No hay datos de playoffs disponibles');
                     const container = document.querySelector('.equipos-barras-grid');
@@ -4813,14 +6207,14 @@
             // Actualizar header con cupos correctos
             const headerSubtitle = document.querySelector('.barras-subtitle');
             if (headerSubtitle) {
-                const cupos = configuracion.cupos_playoffs || 6;
+                const cupos = configuracion.cupos_playoffs || 8;
                 headerSubtitle.textContent = `Probabilidad de clasificación • Top ${cupos} avanzan`;
             }
 
             // Generar HTML de cada equipo
             const html = equipos.map((equipo, index) => {
                 const posicion = index + 1;
-                const cupos = configuracion.cupos_playoffs || 6;
+                const cupos = configuracion.cupos_playoffs || 8;
 
                 // Calcular probabilidad visual (0-100%)
                 const probabilidad = calcularProbabilidadVisual(equipo, posicion, cupos, equipos);
@@ -5098,7 +6492,7 @@
                                         <span class="lider-posicion">${index + 1}</span>
                                         <span class="lider-info">
                                             <strong>${lider.jugador_nombre || 'Desconocido'}</strong><br>
-                                            <small>${lider.equipo_nombre || 'Sin Equipo'}</small>
+                                            <small>${lider.equipo_nombre || 'Sin equipo'}</small>
                                         </span>
                                         <span class="lider-valor">${formatearValorLider(resultado.key, lider)}</span>
                                     </div>
@@ -5214,7 +6608,7 @@
         async function cargarYMostrarBateadores(filtro = '') {
             try {
                 if (bateadoresCompletos.length === 0) {
-                    const response = await fetch('/api/lideres?tipo=bateo&min_ab=1');
+                    const response = await fetch(withTournament('/api/lideres?tipo=bateo&min_ab=1'));
                     bateadoresCompletos = await response.json();
                 }
                 
@@ -5258,7 +6652,7 @@
         async function cargarYMostrarPitchers(filtro = '') {
             try {
                 if (pitchersCompletos.length === 0) {
-                    const response = await fetch('/api/lideres?tipo=pitcheo');
+                    const response = await fetch(withTournament('/api/lideres?tipo=pitcheo'));
                     pitchersCompletos = await response.json();
                 }
                 
@@ -5302,7 +6696,7 @@
         async function cargarYMostrarDefensivos(filtro = '') {
             try {
                 if (defensivosCompletos.length === 0) {
-                    const response = await fetch('/api/lideres?tipo=defensa');
+                    const response = await fetch(withTournament('/api/lideres?tipo=defensa'));
                     defensivosCompletos = await response.json();
                 }
                 
@@ -5430,7 +6824,7 @@
                 podioContainer.innerHTML = top3.map((jugador, index) => {
                     const nombre = jugador.nombre || jugador.jugador_nombre || jugador.nombre_jugador || 'Sin Nombre';
                     const id = jugador.id || jugador.jugador_id || null;
-                    const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin Equipo';
+                    const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin equipo';
                     const posicion = jugador.posicion || jugador.posicion_principal || 'UTIL';
                     const st = allStats[index];
 
@@ -5465,7 +6859,7 @@
                     const index = idx + 3;
                     const nombre = jugador.nombre || jugador.jugador_nombre || jugador.nombre_jugador || 'Sin Nombre';
                     const id = jugador.id || jugador.jugador_id || null;
-                    const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin Equipo';
+                    const equipo = jugador.equipo_nombre || jugador.team_name || jugador.equipo || 'Sin equipo';
                     const posicion = jugador.posicion || jugador.posicion_principal || 'UTIL';
                     const st = allStats[index];
 
@@ -5569,21 +6963,32 @@
         // 🐛 PROBLEMA 4 CORREGIDO
         async function cargarLideres() {
             try {
+                if (!hasPublicTournamentContext()) {
+                    const podioEl = document.getElementById('podioContainer');
+                    if (podioEl) podioEl.style.display = 'none';
+                    const container = document.getElementById('lideresGrid');
+                    if (container) {
+                        container.style.display = 'grid';
+                        container.innerHTML = `<div class="scoreboard-empty" style="grid-column:1/-1;"><h3>Esperando nuevo torneo</h3><p>Los líderes oficiales aparecerán cuando inicie el próximo torneo público.</p></div>`;
+                    }
+                    return;
+                }
+
                 // Helper para fetch, no estaba definido fetchWithRetry
                 const fetchWithRetry = (url) => fetchJSON(url);
 
                 // Bateo
-                const bateadores = await fetchWithRetry('/api/leaders?tipo=bateo&limit=10');
+                const bateadores = await fetchWithRetry(withTournament('/api/leaders?tipo=bateo&limit=10'));
                 leadersData.bateo = bateadores || [];
                 console.log('✅ Líderes de bateo:', leadersData.bateo.length, leadersData.bateo);
                        
                 // Pitcheo
-                const pitchers = await fetchWithRetry('/api/leaders?tipo=pitcheo&limit=10');
+                const pitchers = await fetchWithRetry(withTournament('/api/leaders?tipo=pitcheo&limit=10'));
                 leadersData.pitcheo = pitchers || [];
                 console.log('✅ Líderes de pitcheo:', leadersData.pitcheo.length, leadersData.pitcheo);
                        
                 // Defensiva
-                const defensivos = await fetchWithRetry('/api/leaders?tipo=defensiva&limit=10');
+                const defensivos = await fetchWithRetry(withTournament('/api/leaders?tipo=defensa&limit=10'));
                 leadersData.defensiva = defensivos || [];
                 console.log('✅ Líderes defensivos:', leadersData.defensiva.length, leadersData.defensiva);
                        
@@ -5602,6 +7007,838 @@
                     container.innerHTML = `<div class="scoreboard-empty" style="grid-column:1/-1;"><h3>Error al cargar</h3><p>No se pudieron obtener los datos de los lideres.</p></div>`;
                 }
             }
+        }
+
+        async function cargarRecordsHistoricos() {
+            const battersEl = document.getElementById('recordsBattersList');
+            const teamsEl = document.getElementById('recordsTeamsList');
+            const hallOfFameEl = document.getElementById('recordsHallOfFameList');
+            const bestGamesEl = document.getElementById('recordsBestGamesList');
+            const bestSeasonsEl = document.getElementById('recordsBestSeasonsList');
+            const battingCategoriesEl = document.getElementById('recordsCategoryBattingList');
+            const pitchingCategoriesEl = document.getElementById('recordsCategoryPitchingList');
+            const defenseCategoriesEl = document.getElementById('recordsCategoryDefenseList');
+            const positionsAccordionEl = document.getElementById('recordsPositionsAccordion');
+            const categoryTeamsEl = document.getElementById('recordsCategoryTeamsList');
+
+            try {
+                const data = await fetchJSON('/api/dashboard/records');
+                if (!data) throw new Error('Sin respuesta');
+
+                const renderRows = (items, formatter) => {
+                    if (!Array.isArray(items) || !items.length) {
+                        return '<div class="records-empty">No hay récords disponibles todavía.</div>';
+                    }
+                    return items.slice(0, 5).map((item, index) => formatter(item, index)).join('');
+                };
+
+                if (battersEl) {
+                    battersEl.innerHTML = renderRows(data.bateadores, (item, index) => `
+                        <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(item.jugador_id)})" style="cursor:pointer;">
+                            <span class="record-rank">${index + 1}</span>
+                            <div class="record-main">
+                                <div class="record-name">${escapeHTML(item.jugador_nombre || 'Sin nombre')}</div>
+                                <div class="record-meta">${escapeHTML(item.equipo_nombre || 'Sin equipo')} • ${escapeHTML(item.posicion || 'UTIL')} • ${Number(item.hits || 0)} H / ${Number(item.home_runs || 0)} HR</div>
+                            </div>
+                            <div class="record-value">OPS ${Number(item.ops || 0).toFixed(3)}</div>
+                        </article>
+                    `);
+                }
+
+                if (hallOfFameEl) {
+                    hallOfFameEl.innerHTML = renderRows(data.hall_of_fame, (item, index) => `
+                        <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(item.jugador_id)})" style="cursor:pointer;">
+                            <span class="record-rank">${index + 1}</span>
+                            <div class="record-main">
+                                <div class="record-name">${escapeHTML(item.jugador_nombre || 'Sin nombre')}</div>
+                                <div class="record-meta">${escapeHTML(item.equipo_nombre || 'Sin equipo')} • ${escapeHTML(item.posicion || 'UTIL')} • ${Number(item.hits || 0)} H • ${Number(item.home_runs || 0)} HR • ${Number(item.wins || 0)} W</div>
+                            </div>
+                            <div class="record-value--stack">
+                                <span class="record-value">Score ${Number(item.legacy_score || 0).toFixed(1)}</span>
+                                <span class="record-subvalue">${formatDecimal(item.avg, 3)} AVG • ${Number(item.strikeouts || 0)} K</span>
+                            </div>
+                        </article>
+                    `);
+                }
+
+                if (bestGamesEl) {
+                    bestGamesEl.innerHTML = renderRows(data.mejores_actuaciones, (item, index) => `
+                        <article class="record-row" onclick="window.location.href='partido.html?id=${Number(item.partido_id)}'" style="cursor:pointer;">
+                            <span class="record-rank">${index + 1}</span>
+                            <div class="record-main">
+                                <div class="record-name">${escapeHTML(item.jugador_nombre || 'Sin nombre')}</div>
+                                <div class="record-meta">${escapeHTML(item.equipo_nombre || 'Sin equipo')} vs ${escapeHTML(item.rival_nombre || 'Rival')} • ${escapeHTML(item.torneo_nombre || 'Torneo')}</div>
+                                <div class="record-meta">${Number(item.hits || 0)} H • ${Number(item.home_runs || 0)} HR • ${Number(item.rbi || 0)} RBI • ${Number(item.runs || 0)} R • ${Number(item.walks || 0)} BB</div>
+                            </div>
+                            <div class="record-value--stack">
+                                <span class="record-value">Impacto ${Number(item.performance_score || 0).toFixed(2)}</span>
+                                <span class="record-subvalue">${item.fecha_partido ? new Date(item.fecha_partido).toLocaleDateString('es-AR') : 'Sin fecha'}</span>
+                            </div>
+                        </article>
+                    `);
+                }
+
+                if (bestSeasonsEl) {
+                    bestSeasonsEl.innerHTML = renderRows(data.mejores_temporadas, (item, index) => `
+                        <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(item.jugador_id)})" style="cursor:pointer;">
+                            <span class="record-rank">${index + 1}</span>
+                            <div class="record-main">
+                                <div class="record-name">${escapeHTML(item.jugador_nombre || 'Sin nombre')}</div>
+                                <div class="record-meta">${escapeHTML(item.torneo_nombre || 'Torneo')} • ${escapeHTML(item.equipo_nombre || 'Sin equipo')} • ${escapeHTML(item.posicion || 'UTIL')}</div>
+                                <div class="record-meta">${Number(item.at_bats || 0)} AB • ${Number(item.hits || 0)} H • ${Number(item.home_runs || 0)} HR • ${Number(item.rbi || 0)} RBI</div>
+                            </div>
+                            <div class="record-value--stack">
+                                <span class="record-value">OPS ${Number(item.ops || 0).toFixed(3)}</span>
+                                <span class="record-subvalue">${formatDecimal(item.avg, 3)} AVG • ${Number(item.runs || 0)} R</span>
+                            </div>
+                        </article>
+                    `);
+                }
+
+                if (teamsEl) {
+                    const teamsHtml = renderRows(data.equipos, (item, index) => `
+                        <article class="record-row" onclick="seleccionarRecordHistorico('equipo', ${Number(item.equipo_id)})" style="cursor:pointer;">
+                            <span class="record-rank">${index + 1}</span>
+                            <div class="record-main">
+                                <div class="record-name">${escapeHTML(item.equipo_nombre || 'Sin nombre')}</div>
+                                <div class="record-meta">${Number(item.victorias || 0)}-${Number(item.derrotas || 0)} • DIF ${Number(item.diferencial || 0) >= 0 ? '+' : ''}${Number(item.diferencial || 0)}</div>
+                            </div>
+                            <div class="record-value">${Number(item.porcentaje || 0).toFixed(3)}</div>
+                        </article>
+                    `);
+                    teamsEl.innerHTML = teamsHtml;
+                    if (categoryTeamsEl) categoryTeamsEl.innerHTML = teamsHtml;
+                }
+
+                const categoryRow = (label, description, items, statKey, formatter = (value) => value) => {
+                    const leader = Array.isArray(items) && items.length ? items[0] : null;
+                    if (!leader) {
+                        return `
+                            <article class="record-row">
+                                <span class="record-rank">-</span>
+                                <div class="record-main">
+                                    <div class="record-name">${escapeHTML(label)}</div>
+                                    <div class="record-meta">${escapeHTML(description)}</div>
+                                    <div class="record-meta">Sin líder histórico todavía</div>
+                                </div>
+                                <div class="record-value">--</div>
+                            </article>
+                        `;
+                    }
+
+                    return `
+                        <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(leader.jugador_id)})" style="cursor:pointer;">
+                            <span class="record-rank">${escapeHTML(label.slice(0, 2).toUpperCase())}</span>
+                            <div class="record-main">
+                                <div class="record-name">${escapeHTML(label)}</div>
+                                <div class="record-meta">${escapeHTML(description)}</div>
+                                <div class="record-meta">${escapeHTML(leader.jugador_nombre || 'Sin nombre')} • ${escapeHTML(leader.equipo_nombre || 'Sin equipo')} • ${escapeHTML(leader.posicion || 'UTIL')}</div>
+                            </div>
+                            <div class="record-value">${formatter(leader[statKey])}</div>
+                        </article>
+                    `;
+                };
+
+                if (battingCategoriesEl) {
+                    const battingCategories = data?.categorias?.bateo || {};
+                    battingCategoriesEl.innerHTML = [
+                        categoryRow('Promedio de bateo', 'Líder histórico de AVG', battingCategories.avg, 'avg', (v) => Number(v || 0).toFixed(3)),
+                        categoryRow('Jonrones', 'Líder histórico de cuadrangulares', battingCategories.home_runs, 'home_runs', (v) => Number(v || 0)),
+                        categoryRow('Carreras impulsadas', 'Líder histórico de RBI', battingCategories.rbi, 'rbi', (v) => Number(v || 0)),
+                        categoryRow('Hits', 'Líder histórico de imparables', battingCategories.hits, 'hits', (v) => Number(v || 0)),
+                        categoryRow('Dobles', 'Líder histórico de 2B', battingCategories.doubles, 'doubles', (v) => Number(v || 0)),
+                        categoryRow('Triples', 'Líder histórico de 3B', battingCategories.triples, 'triples', (v) => Number(v || 0)),
+                        categoryRow('OPS', 'Líder histórico de producción total', battingCategories.ops, 'ops', (v) => Number(v || 0).toFixed(3)),
+                        categoryRow('Bases robadas', 'Líder histórico de velocidad', battingCategories.stolen_bases, 'stolen_bases', (v) => Number(v || 0))
+                    ].join('');
+                }
+
+                if (pitchingCategoriesEl) {
+                    const pitchingCategories = data?.categorias?.pitcheo || {};
+                    pitchingCategoriesEl.innerHTML = [
+                        categoryRow('Efectividad', 'Líder histórico de ERA', pitchingCategories.era, 'era', (v) => Number(v || 0).toFixed(2)),
+                        categoryRow('WHIP', 'Líder histórico de tráfico permitido', pitchingCategories.whip, 'whip', (v) => Number(v || 0).toFixed(2)),
+                        categoryRow('Victorias', 'Líder histórico de juegos ganados', pitchingCategories.wins, 'wins', (v) => Number(v || 0)),
+                        categoryRow('Ponches', 'Líder histórico de strikeouts', pitchingCategories.strikeouts, 'strikeouts', (v) => Number(v || 0)),
+                        categoryRow('Salvados', 'Líder histórico de saves', pitchingCategories.saves, 'saves', (v) => Number(v || 0))
+                    ].join('');
+                }
+
+                if (defenseCategoriesEl) {
+                    const defenseCategories = data?.categorias?.defensa || {};
+                    const defenseRows = [
+                        Array.isArray(defenseCategories.fielding_percentage) && defenseCategories.fielding_percentage.length
+                            ? categoryRow('Porcentaje de fildeo', 'Mejor guante histórico por FPCT', defenseCategories.fielding_percentage, 'fielding_percentage', (v) => Number(v || 0).toFixed(3))
+                            : '',
+                        Array.isArray(defenseCategories.putouts) && defenseCategories.putouts.length
+                            ? categoryRow('Putouts', 'Más outs defendidos en la historia', defenseCategories.putouts, 'putouts', (v) => Number(v || 0))
+                            : '',
+                        Array.isArray(defenseCategories.assists) && defenseCategories.assists.length
+                            ? categoryRow('Asistencias', 'Más jugadas completadas en la historia', defenseCategories.assists, 'assists', (v) => Number(v || 0))
+                            : '',
+                        Array.isArray(defenseCategories.chances) && defenseCategories.chances.length
+                            ? categoryRow('Chances', 'Mayor volumen defensivo histórico', defenseCategories.chances, 'chances', (v) => Number(v || 0))
+                            : ''
+                    ].filter(Boolean);
+                    defenseCategoriesEl.innerHTML = defenseRows.length
+                        ? defenseRows.join('')
+                        : '<div class="records-empty">Todavía no hay suficiente archivo defensivo para declarar líderes históricos reales.</div>';
+                }
+
+                const buildPositionAccordion = (offensiveItems, defensiveItems) => {
+                    const byPosition = new Map();
+                    [...(offensiveItems || []), ...(defensiveItems || [])].forEach((item) => {
+                        const key = item.posicion || 'UTIL';
+                        if (!byPosition.has(key)) byPosition.set(key, { ofensiva: [], defensiva: [] });
+                        byPosition.get(key)[item.lado === 'defensiva' ? 'defensiva' : 'ofensiva'].push(item);
+                    });
+                    const ordered = Array.from(byPosition.entries()).sort((a, b) => a[0].localeCompare(b[0], 'es'));
+                    if (!ordered.length) {
+                        return '<div class="records-empty">Todavía no hay archivo suficiente por posición.</div>';
+                    }
+                    return ordered.map(([posicion, sides], index) => `
+                        <details class="records-accordion-item" ${index === 0 ? 'open' : ''}>
+                            <summary>
+                                <div class="records-accordion-copy">
+                                    <div class="records-accordion-title">${escapeHTML(posicion)}</div>
+                                    <div class="records-accordion-meta">Presiona para ver sus coronas ofensivas y defensivas.</div>
+                                </div>
+                                <span class="record-badge">${(sides.ofensiva?.length || 0) + (sides.defensiva?.length || 0)} registros</span>
+                            </summary>
+                            <div class="records-accordion-body">
+                                <div class="records-list">
+                                    ${sides.ofensiva.length ? sides.ofensiva.map((item) => `
+                                        <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(item.jugador_id)})" style="cursor:pointer;">
+                                            <span class="record-rank">OF</span>
+                                            <div class="record-main">
+                                                <div class="record-name">${escapeHTML(item.jugador_nombre || 'Sin nombre')}</div>
+                                                <div class="record-meta">${escapeHTML(item.equipo_nombre || 'Sin equipo')} • Campeón ofensivo • ${Number(item.titulos || 0)} títulos</div>
+                                            </div>
+                                            <div class="record-value">${Number(item.titulos || 0)}</div>
+                                        </article>
+                                    `).join('') : '<div class="records-empty">Sin coronas ofensivas registradas en esta posición.</div>'}
+                                    ${sides.defensiva.length ? sides.defensiva.map((item) => `
+                                        <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(item.jugador_id)})" style="cursor:pointer;">
+                                            <span class="record-rank">DF</span>
+                                            <div class="record-main">
+                                                <div class="record-name">${escapeHTML(item.jugador_nombre || 'Sin nombre')}</div>
+                                                <div class="record-meta">${escapeHTML(item.equipo_nombre || 'Sin equipo')} • Campeón defensivo • ${Number(item.titulos || 0)} títulos</div>
+                                            </div>
+                                            <div class="record-value">${Number(item.titulos || 0)}</div>
+                                        </article>
+                                    `).join('') : '<div class="records-empty">Sin coronas defensivas registradas en esta posición.</div>'}
+                                </div>
+                            </div>
+                        </details>
+                    `).join('');
+                };
+
+                if (positionsAccordionEl) {
+                    positionsAccordionEl.innerHTML = buildPositionAccordion(
+                        data?.categorias?.posiciones?.ofensiva || [],
+                        data?.categorias?.posiciones?.defensiva || []
+                    );
+                }
+            } catch (error) {
+                console.error('Error cargando récords históricos:', error);
+                const errorHtml = '<div class="records-empty">No se pudieron cargar los récords históricos.</div>';
+                if (battersEl) battersEl.innerHTML = errorHtml;
+                if (teamsEl) teamsEl.innerHTML = errorHtml;
+                if (battingCategoriesEl) battingCategoriesEl.innerHTML = errorHtml;
+                if (pitchingCategoriesEl) pitchingCategoriesEl.innerHTML = errorHtml;
+                if (defenseCategoriesEl) defenseCategoriesEl.innerHTML = errorHtml;
+                if (positionsAccordionEl) positionsAccordionEl.innerHTML = errorHtml;
+                if (categoryTeamsEl) categoryTeamsEl.innerHTML = errorHtml;
+            }
+        }
+
+        async function cargarCampeonesPosicionales() {
+            const offensiveEl = document.getElementById('recordsOffensiveChampionsList');
+            const defensiveEl = document.getElementById('recordsDefensiveChampionsList');
+            const officialAwardsEl = document.getElementById('recordsOfficialAwardsList');
+            const goldGlovesEl = document.getElementById('recordsGoldGlovesList');
+            const qualificationNoteEl = document.getElementById('awardsQualificationNote');
+            const tournamentBattingEl = document.getElementById('awardsTournamentBattingList');
+            const tournamentPitchingEl = document.getElementById('awardsTournamentPitchingList');
+            const statsEligibilitySummaryEl = document.getElementById('statsEligibilitySummary');
+            const statsEligibilityBattingEl = document.getElementById('statsEligibilityBatting');
+            const statsEligibilityPitchingEl = document.getElementById('statsEligibilityPitching');
+            const statsEligibilityDefenseEl = document.getElementById('statsEligibilityDefense');
+            const statsEligibilityBattingInlineEl = document.getElementById('statsEligibilityBattingInline');
+            const statsEligibilityPitchingInlineEl = document.getElementById('statsEligibilityPitchingInline');
+            const statsEligibilityDefenseInlineEl = document.getElementById('statsEligibilityDefenseInline');
+
+            if (!offensiveEl || !defensiveEl || !officialAwardsEl || !goldGlovesEl || !qualificationNoteEl || !tournamentBattingEl || !tournamentPitchingEl) return;
+
+            const applyEligibilityCopy = (copy) => {
+                if (statsEligibilitySummaryEl) statsEligibilitySummaryEl.textContent = copy.summary;
+                if (statsEligibilityBattingEl) statsEligibilityBattingEl.textContent = copy.batting;
+                if (statsEligibilityPitchingEl) statsEligibilityPitchingEl.textContent = copy.pitching;
+                if (statsEligibilityDefenseEl) statsEligibilityDefenseEl.textContent = copy.defense;
+                if (statsEligibilityBattingInlineEl) statsEligibilityBattingInlineEl.textContent = copy.battingInline;
+                if (statsEligibilityPitchingInlineEl) statsEligibilityPitchingInlineEl.textContent = copy.pitchingInline;
+                if (statsEligibilityDefenseInlineEl) statsEligibilityDefenseInlineEl.textContent = copy.defenseInline;
+            };
+
+            if (typeof TournamentModule !== 'undefined' && !TournamentModule.hasPublicTournament()) {
+                const waitingHtml = '<div class="records-empty">Los campeones por posición aparecerán cuando el próximo torneo público tenga estadísticas oficiales.</div>';
+                offensiveEl.innerHTML = waitingHtml;
+                defensiveEl.innerHTML = waitingHtml;
+                officialAwardsEl.innerHTML = '<div class="records-empty">Los premios oficiales se activarán cuando el próximo torneo publique estadísticas oficiales.</div>';
+                goldGlovesEl.innerHTML = waitingHtml;
+                qualificationNoteEl.textContent = 'Los criterios aparecerán cuando exista un torneo público con muestra suficiente.';
+                tournamentBattingEl.innerHTML = waitingHtml;
+                tournamentPitchingEl.innerHTML = waitingHtml;
+                applyEligibilityCopy({
+                    summary: 'Las reglas visibles aparecerán cuando exista un torneo público con muestra suficiente.',
+                    batting: 'Sin torneo público activo para publicar mínimos ofensivos.',
+                    pitching: 'Sin torneo público activo para publicar mínimos de pitcheo.',
+                    defense: 'Sin torneo público activo para publicar mínimos defensivos.',
+                    battingInline: 'Sin criterio ofensivo publicado todavía.',
+                    pitchingInline: 'Sin criterio de pitcheo publicado todavía.',
+                    defenseInline: 'Sin criterio defensivo publicado todavía.'
+                });
+                return;
+            }
+
+            try {
+                const tournamentQuery = (typeof getTournamentQueryParam === 'function' && getTournamentQueryParam()) || '';
+                const [data, awardsData] = await Promise.all([
+                    fetchJSON(`/api/dashboard/campeones-posicion${tournamentQuery ? `?${tournamentQuery}` : ''}`),
+                    fetchJSON(`/api/dashboard/premios-oficiales${tournamentQuery ? `?${tournamentQuery}` : ''}`)
+                ]);
+                if (!data || !awardsData) throw new Error('Sin respuesta');
+
+                const renderChampionRows = (items, side) => {
+                    if (!Array.isArray(items) || !items.length) {
+                        return '<div class="records-empty">Todavía no hay suficiente muestra oficial para declarar campeones en estas posiciones.</div>';
+                    }
+
+                    return items.map((item) => {
+                        const metric = side === 'ofensiva'
+                            ? `OPS ${Number(item.ops || 0).toFixed(3)}`
+                            : `FLD% ${Number(item.fielding_percentage || 0).toFixed(3)}`;
+                        const qualifier = side === 'ofensiva'
+                            ? `Mín. ${Number(item.qualifying_min_ab || 0)} AB`
+                            : `Mín. ${Number(item.qualifying_min_chances || 0)} chances`;
+                        const support = side === 'ofensiva'
+                            ? `${Number(item.hits || 0)} H • ${Number(item.home_runs || 0)} HR • ${Number(item.rbi || 0)} RBI`
+                            : `${Number(item.putouts || 0)} PO • ${Number(item.assists || 0)} A • ${Number(item.errors || 0)} E`;
+
+                        return `
+                            <article class="record-row record-row--champion" onclick="seleccionarRecordHistorico('jugador', ${Number(item.jugador_id)})" style="cursor:pointer;">
+                                <span class="record-rank">${escapeHTML(item.posicion || 'U')}</span>
+                                <div class="record-main">
+                                    <div class="record-name">${escapeHTML(item.jugador_nombre || 'Sin nombre')}</div>
+                                    <div class="record-meta">${escapeHTML(item.equipo_nombre || 'Sin equipo')} • ${support}</div>
+                                    <div class="record-badges">
+                                        <span class="record-badge">${metric}</span>
+                                        <span class="record-badge record-badge--soft">${qualifier}</span>
+                                        <span class="record-badge record-badge--soft">${escapeHTML(item.criterio || '')}</span>
+                                    </div>
+                                </div>
+                            </article>
+                        `;
+                    }).join('');
+                };
+
+                const renderOfficialAwards = (awards) => {
+                    const awardMap = [
+                        { label: 'MVP del torneo', payload: awards?.mvp, key: 'ops', formatter: (row) => `OPS ${Number(row.ops || 0).toFixed(3)}` },
+                        { label: 'Campeón de bateo', payload: awards?.bateo, key: 'avg', formatter: (row) => `AVG ${Number(row.avg || 0).toFixed(3)}` },
+                        { label: 'Pitcher del torneo', payload: awards?.pitcher, key: 'era', formatter: (row) => `ERA ${Number(row.era || 0).toFixed(2)}` },
+                        { label: 'Guante de oro', payload: awards?.guante_oro, key: 'fielding_percentage', formatter: (row) => `FLD% ${Number(row.fielding_percentage || 0).toFixed(3)}` }
+                    ];
+
+                    return awardMap.map((entry) => {
+                        const row = entry.payload;
+                        if (!row) {
+                            return `
+                                <article class="record-row">
+                                    <span class="record-rank">--</span>
+                                    <div class="record-main">
+                                        <div class="record-name">${escapeHTML(entry.label)}</div>
+                                        <div class="record-meta">Sin ganador oficial todavía</div>
+                                    </div>
+                                    <div class="record-value">--</div>
+                                </article>
+                            `;
+                        }
+
+                        return `
+                            <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(row.jugador_id)})" style="cursor:pointer;">
+                                <span class="record-rank">${escapeHTML(entry.label.slice(0, 2).toUpperCase())}</span>
+                                <div class="record-main">
+                                    <div class="record-name">${escapeHTML(row.jugador_nombre || 'Sin nombre')}</div>
+                                    <div class="record-meta">${escapeHTML(entry.label)} • ${escapeHTML(row.equipo_nombre || 'Sin equipo')} • ${escapeHTML(row.posicion || 'UTIL')}</div>
+                                </div>
+                                <div class="record-value--stack">
+                                    <span class="record-value">${entry.formatter(row)}</span>
+                                    <span class="record-subvalue">${escapeHTML(row.criterio || '')}</span>
+                                </div>
+                            </article>
+                        `;
+                    }).join('');
+                };
+
+                const renderGoldGloves = (items) => {
+                    if (!Array.isArray(items) || !items.length) {
+                        return '<div class="records-empty">Todavía no hay suficientes datos defensivos para declarar guantes de oro.</div>';
+                    }
+
+                    return items.map((item) => `
+                        <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(item.jugador_id)})" style="cursor:pointer;">
+                            <span class="record-rank">${escapeHTML(item.posicion || 'U')}</span>
+                            <div class="record-main">
+                                <div class="record-name">${escapeHTML(item.jugador_nombre || 'Sin nombre')}</div>
+                                <div class="record-meta">${escapeHTML(item.equipo_nombre || 'Sin equipo')} • ${Number(item.putouts || 0)} PO • ${Number(item.assists || 0)} A • ${Number(item.errors || 0)} E</div>
+                            </div>
+                            <div class="record-value">FLD% ${Number(item.fielding_percentage || 0).toFixed(3)}</div>
+                        </article>
+                    `).join('');
+                };
+
+                const renderCategoryLeaders = (categoryMap, formatterMap) => {
+                    return Object.entries(formatterMap).map(([key, config]) => {
+                        const row = Array.isArray(categoryMap?.[key]) ? categoryMap[key][0] : null;
+                        if (!row) {
+                            return `
+                                <article class="record-row">
+                                    <span class="record-rank">${escapeHTML(config.short)}</span>
+                                    <div class="record-main">
+                                        <div class="record-name">${escapeHTML(config.label)}</div>
+                                        <div class="record-meta">Sin líder elegible todavía</div>
+                                    </div>
+                                    <div class="record-value">--</div>
+                                </article>
+                            `;
+                        }
+
+                        return `
+                            <article class="record-row" onclick="seleccionarRecordHistorico('jugador', ${Number(row.jugador_id)})" style="cursor:pointer;">
+                                <span class="record-rank">${escapeHTML(config.short)}</span>
+                                <div class="record-main">
+                                    <div class="record-name">${escapeHTML(row.jugador_nombre || 'Sin nombre')}</div>
+                                    <div class="record-meta">${escapeHTML(config.label)} • ${escapeHTML(row.equipo_nombre || 'Sin equipo')} • ${escapeHTML(row.posicion || 'UTIL')}</div>
+                                </div>
+                                <div class="record-value">${config.format(row)}</div>
+                            </article>
+                        `;
+                    }).join('');
+                };
+
+                offensiveEl.innerHTML = renderChampionRows(data.ofensivos, 'ofensiva');
+                defensiveEl.innerHTML = renderChampionRows(data.defensivos, 'defensiva');
+                officialAwardsEl.innerHTML = renderOfficialAwards(awardsData.resumen || {});
+                goldGlovesEl.innerHTML = renderGoldGloves(awardsData.guantes_por_posicion || []);
+                qualificationNoteEl.textContent = `Elegibilidad actual: ${Number(awardsData?.criterios?.min_ab_rate_stats || 0)} AB para títulos rate, ${Number(awardsData?.criterios?.min_ab_counting_stats || 0)} AB para categorías acumulativas, ${Number(awardsData?.criterios?.min_ip_rate_stats || 0)} IP para ERA/WHIP, ${Number(awardsData?.criterios?.min_ip_counting_stats || 0)} IP para wins/K/saves y ${Number(awardsData?.criterios?.min_chances_defense || 0)} chances para defensa.`;
+                applyEligibilityCopy({
+                    summary: `Usamos mínimos oficiales del torneo para evitar campeones por muestra engañosa y declarar líderes con criterios reales.`,
+                    batting: `${Number(awardsData?.criterios?.min_ab_rate_stats || 0)} AB para AVG, OBP, SLG y OPS. ${Number(awardsData?.criterios?.min_ab_counting_stats || 0)} AB para hits, dobles, triples, HR, RBI, carreras, boletos y robos.`,
+                    pitching: `${Number(awardsData?.criterios?.min_ip_rate_stats || 0)} IP para ERA y WHIP. ${Number(awardsData?.criterios?.min_ip_counting_stats || 0)} IP para ganados, ponches y salvados.`,
+                    defense: `${Number(awardsData?.criterios?.min_chances_defense || 0)} chances mínimas para títulos defensivos, guantes y porcentaje de fildeo.`,
+                    battingInline: `Criterio ofensivo: ${Number(awardsData?.criterios?.min_ab_rate_stats || 0)} AB para rate y ${Number(awardsData?.criterios?.min_ab_counting_stats || 0)} AB para acumulativas.`,
+                    pitchingInline: `Criterio de pitcheo: ${Number(awardsData?.criterios?.min_ip_rate_stats || 0)} IP para ERA/WHIP y ${Number(awardsData?.criterios?.min_ip_counting_stats || 0)} IP para categorías acumulativas.`,
+                    defenseInline: `Criterio defensivo: ${Number(awardsData?.criterios?.min_chances_defense || 0)} chances mínimas para entrar en defensa oficial.`
+                });
+                window.__statsEligibilityCriteria = awardsData?.criterios || {};
+                if (!offensiveStatsComplete.length && !pitchingStatsComplete.length && !defensiveStatsComplete.length && typeof cargarEstadisticasCompletas === 'function') {
+                    cargarEstadisticasCompletas();
+                }
+                if (typeof hydratePitchingDepartment === 'function') hydratePitchingDepartment();
+                if (typeof hydrateDefenseDepartment === 'function') hydrateDefenseDepartment();
+                tournamentBattingEl.innerHTML = renderCategoryLeaders(awardsData.categorias?.ofensiva || {}, {
+                    avg: { label: 'Líder de AVG', short: 'AV', format: (row) => Number(row.avg || 0).toFixed(3) },
+                    hits: { label: 'Líder de Hits', short: 'H', format: (row) => Number(row.hits || 0) },
+                    doubles: { label: 'Líder de Dobles', short: '2B', format: (row) => Number(row.doubles || 0) },
+                    triples: { label: 'Líder de Triples', short: '3B', format: (row) => Number(row.triples || 0) },
+                    home_runs: { label: 'Líder de HR', short: 'HR', format: (row) => Number(row.home_runs || 0) },
+                    rbi: { label: 'Líder de RBI', short: 'RBI', format: (row) => Number(row.rbi || 0) },
+                    runs: { label: 'Líder de Carreras', short: 'R', format: (row) => Number(row.runs || 0) },
+                    stolen_bases: { label: 'Líder de Bases Robadas', short: 'SB', format: (row) => Number(row.stolen_bases || 0) }
+                });
+                tournamentPitchingEl.innerHTML = renderCategoryLeaders(awardsData.categorias?.pitcheo || {}, {
+                    era: { label: 'Líder de ERA', short: 'ER', format: (row) => Number(row.era || 0).toFixed(2) },
+                    whip: { label: 'Líder de WHIP', short: 'WH', format: (row) => Number(row.whip || 0).toFixed(2) },
+                    wins: { label: 'Líder de Ganados', short: 'W', format: (row) => Number(row.wins || 0) },
+                    strikeouts: { label: 'Líder de Ponches', short: 'K', format: (row) => Number(row.strikeouts || 0) },
+                    saves: { label: 'Líder de Salvados', short: 'SV', format: (row) => Number(row.saves || 0) }
+                });
+            } catch (error) {
+                console.error('Error cargando campeones por posición:', error);
+                const errorHtml = '<div class="records-empty">No se pudieron cargar los campeones automáticos por posición.</div>';
+                offensiveEl.innerHTML = errorHtml;
+                defensiveEl.innerHTML = errorHtml;
+                officialAwardsEl.innerHTML = '<div class="records-empty">No se pudieron cargar los premios oficiales.</div>';
+                goldGlovesEl.innerHTML = errorHtml;
+                qualificationNoteEl.textContent = 'No se pudieron calcular los criterios del torneo.';
+                tournamentBattingEl.innerHTML = errorHtml;
+                tournamentPitchingEl.innerHTML = errorHtml;
+                applyEligibilityCopy({
+                    summary: 'No se pudieron cargar las reglas visibles del torneo.',
+                    batting: 'No se pudieron calcular los mínimos ofensivos.',
+                    pitching: 'No se pudieron calcular los mínimos de pitcheo.',
+                    defense: 'No se pudieron calcular los mínimos defensivos.',
+                    battingInline: 'No se pudo cargar el criterio ofensivo.',
+                    pitchingInline: 'No se pudo cargar el criterio de pitcheo.',
+                    defenseInline: 'No se pudo cargar el criterio defensivo.'
+                });
+            }
+        }
+
+        let recordsSearchTimer = null;
+
+        function mostrarPanelRecords(panelName) {
+            document.querySelectorAll('.records-subnav-btn').forEach((button) => {
+                if (button.dataset.recordsPanel) {
+                    button.classList.toggle('active', button.dataset.recordsPanel === panelName);
+                }
+            });
+            document.querySelectorAll('.records-panel').forEach((panel) => {
+                if (panel.dataset.recordsPanelContent) {
+                    panel.classList.toggle('active', panel.dataset.recordsPanelContent === panelName);
+                }
+            });
+        }
+
+        function mostrarCategoriaRecords(panelName) {
+            document.querySelectorAll('[data-records-category-panel]').forEach((button) => {
+                button.classList.toggle('active', button.dataset.recordsCategoryPanel === panelName);
+            });
+            document.querySelectorAll('[data-records-category-content]').forEach((panel) => {
+                panel.classList.toggle('active', panel.dataset.recordsCategoryContent === panelName);
+            });
+        }
+
+        function initRecordsExplorer() {
+            const input = document.getElementById('recordsSearchInput');
+            if (!input) return;
+
+            input.addEventListener('input', (event) => {
+                const query = (event.target.value || '').trim();
+                clearTimeout(recordsSearchTimer);
+
+                if (query.length < 2) {
+                    const results = document.getElementById('recordsSearchResults');
+                    if (results) results.innerHTML = '';
+                    const detail = document.getElementById('recordsExplorerDetail');
+                    if (detail) detail.innerHTML = '<div class="records-empty">Busca un jugador o un equipo para ver su historia.</div>';
+                    return;
+                }
+
+                recordsSearchTimer = setTimeout(() => buscarRecordsHistoricos(query), 260);
+            });
+        }
+
+        async function buscarRecordsHistoricos(query) {
+            const resultsEl = document.getElementById('recordsSearchResults');
+            const detailEl = document.getElementById('recordsExplorerDetail');
+            if (!resultsEl || !detailEl) return;
+
+            resultsEl.innerHTML = '<div class="records-empty">Buscando...</div>';
+            detailEl.innerHTML = '<div class="records-empty">Selecciona un resultado para ver su historial.</div>';
+
+            try {
+                const data = await fetchJSON(`/api/buscar?q=${encodeURIComponent(query)}`);
+                const jugadores = Array.isArray(data.jugadores) ? data.jugadores : [];
+                const equipos = Array.isArray(data.equipos) ? data.equipos : [];
+                const items = [
+                    ...jugadores.map(item => ({ ...item, tipo_resultado: 'jugador' })),
+                    ...equipos.map(item => ({ ...item, tipo_resultado: 'equipo' }))
+                ];
+
+                if (!items.length) {
+                    resultsEl.innerHTML = '<div class="records-empty">No encontramos resultados históricos con ese nombre.</div>';
+                    return;
+                }
+
+                resultsEl.innerHTML = items.map(item => `
+                    <div class="records-search-item" onclick="seleccionarRecordHistorico('${item.tipo_resultado}', ${Number(item.id)})">
+                        <span class="records-search-type">${item.tipo_resultado === 'jugador' ? 'J' : 'E'}</span>
+                        <div>
+                            <div class="records-search-name">${escapeHTML(item.nombre)}</div>
+                            <div class="records-search-meta">
+                                ${item.tipo_resultado === 'jugador'
+                                    ? `${escapeHTML(item.equipo_nombre || 'Sin equipo')} • ${escapeHTML(item.posicion || 'N/A')}`
+                                    : `${escapeHTML(item.ciudad || 'Sin ciudad')} • ${escapeHTML(item.manager || 'Sin manager')}`
+                                }
+                            </div>
+                        </div>
+                        <span class="records-search-action">Ver historial</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error buscando en récords históricos:', error);
+                resultsEl.innerHTML = '<div class="records-empty">No se pudo completar la búsqueda histórica.</div>';
+            }
+        }
+
+        function cerrarBusquedaRecords({ preserveValue = true, selectedLabel = '' } = {}) {
+            const resultsEl = document.getElementById('recordsSearchResults');
+            const inputEl = document.getElementById('recordsSearchInput');
+
+            if (resultsEl) {
+                resultsEl.innerHTML = '';
+            }
+
+            if (inputEl) {
+                if (!preserveValue) {
+                    inputEl.value = '';
+                } else if (selectedLabel) {
+                    inputEl.value = selectedLabel;
+                }
+                inputEl.blur();
+            }
+        }
+
+        async function seleccionarRecordHistorico(tipo, id) {
+            const detailEl = document.getElementById('recordsExplorerDetail');
+            if (!detailEl) return;
+            detailEl.innerHTML = '<div class="records-empty">Cargando historial...</div>';
+
+            try {
+                if (tipo === 'jugador') {
+                    const [historico, vsEquipos] = await Promise.all([
+                        fetchJSON(`/api/jugadores/${id}/historico`),
+                        fetchJSON(`/api/jugadores/${id}/vs-equipos`).catch(() => ({ rivales: [] }))
+                    ]);
+                    cerrarBusquedaRecords({
+                        preserveValue: true,
+                        selectedLabel: historico?.jugador?.nombre || ''
+                    });
+                    renderJugadorHistorico(detailEl, historico, vsEquipos);
+                    detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+
+                const [historicoEquipo, headToHead] = await Promise.all([
+                    fetchJSON(`/api/equipos/${id}/historico`),
+                    fetchJSON(`/api/equipos/${id}/head-to-head`).catch(() => [])
+                ]);
+                cerrarBusquedaRecords({
+                    preserveValue: true,
+                    selectedLabel: historicoEquipo?.equipo?.nombre || ''
+                });
+                renderEquipoHistorico(detailEl, historicoEquipo, headToHead);
+                detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (error) {
+                console.error('Error cargando detalle histórico:', error);
+                detailEl.innerHTML = '<div class="records-empty">No se pudo cargar el historial solicitado.</div>';
+            }
+        }
+
+        function renderJugadorHistorico(container, historico, vsEquipos) {
+            const jugador = historico?.jugador || {};
+            const batting = historico?.career?.batting || {};
+            const awards = historico?.career?.awards || {};
+            const torneos = Array.isArray(historico?.by_tournament) ? historico.by_tournament.slice(0, 5) : [];
+            const rivales = Array.isArray(vsEquipos?.rivales) ? vsEquipos.rivales.slice(0, 6) : [];
+            const scoutingFallback = torneos.length
+                ? 'Este jugador sí tiene historial por torneos. El detalle rival por rival aparece cuando las planillas por partido están cargadas.'
+                : 'Todavía no hay suficiente historial cargado para medir al jugador contra rivales específicos.';
+
+            container.innerHTML = `
+                <div class="records-scout-card">
+                    <div class="records-scout-header">
+                        <div>
+                            <h5>${escapeHTML(jugador.nombre || 'Jugador')}</h5>
+                            <p>${escapeHTML(jugador.equipo_nombre || 'Sin equipo')} • ${escapeHTML(jugador.posicion || 'N/A')}</p>
+                        </div>
+                        <a class="records-scout-link" href="jugador.html?id=${Number(jugador.id)}">Abrir perfil →</a>
+                    </div>
+                    <div class="records-scout-stats">
+                        <div class="records-scout-stat"><span>AVG carrera</span><strong>${Number(batting.avg || 0).toFixed(3)}</strong></div>
+                        <div class="records-scout-stat"><span>OPS carrera</span><strong>${Number(batting.ops || 0).toFixed(3)}</strong></div>
+                        <div class="records-scout-stat"><span>Hits</span><strong>${Number(batting.hits || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>HR</span><strong>${Number(batting.home_runs || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>RBI</span><strong>${Number(batting.rbi || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>SB</span><strong>${Number(batting.stolen_bases || 0)}</strong></div>
+                    </div>
+                </div>
+                <div class="records-scout-card">
+                    <div class="records-scout-header">
+                        <div>
+                            <h5>🥇 Palmarés Posicional</h5>
+                            <p>Cuántas veces fue campeón automático en su posición, ofensiva o defensivamente.</p>
+                        </div>
+                    </div>
+                    <div class="records-scout-stats">
+                        <div class="records-scout-stat"><span>Total</span><strong>${Number(awards.total || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>Ofensivos</span><strong>${Number(awards.ofensivos || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>Defensivos</span><strong>${Number(awards.defensivos || 0)}</strong></div>
+                    </div>
+                    ${(Array.isArray(awards.detalle) && awards.detalle.length) ? `
+                        <table class="records-scout-table">
+                            <thead><tr><th>Lado</th><th>Pos</th><th>Títulos</th><th>Último torneo</th></tr></thead>
+                            <tbody>
+                                ${awards.detalle.map((row) => `
+                                    <tr>
+                                        <td>${row.lado === 'ofensiva' ? 'Ofensiva' : 'Defensiva'}</td>
+                                        <td>${escapeHTML(row.posicion || 'UTIL')}</td>
+                                        <td>${Number(row.titulos || 0)}</td>
+                                        <td>${escapeHTML(row.ultimo_torneo || 'Sin torneo')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="records-empty">Todavía no tiene títulos posicionales registrados.</div>'}
+                </div>
+                <div class="records-scout-card">
+                    <div class="records-scout-header">
+                        <div>
+                            <h5>🏆 Torneos Anteriores</h5>
+                            <p>Cómo se comportó el jugador en temporadas previas.</p>
+                        </div>
+                    </div>
+                    ${torneos.length ? `
+                        <table class="records-scout-table">
+                            <thead><tr><th>Torneo</th><th>AB</th><th>H</th><th>HR</th><th>RBI</th><th>IP</th></tr></thead>
+                            <tbody>
+                                ${torneos.map(row => `
+                                    <tr>
+                                        <td>${escapeHTML(row.torneo_nombre || 'Torneo')}</td>
+                                        <td>${Number(row.at_bats || 0)}</td>
+                                        <td>${Number(row.hits || 0)}</td>
+                                        <td>${Number(row.home_runs || 0)}</td>
+                                        <td>${Number(row.rbi || 0)}</td>
+                                        <td>${Number(row.innings_pitched || 0)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="records-empty">Todavía no hay torneos históricos para este jugador.</div>'}
+                </div>
+                <div class="records-scout-card">
+                    <div class="records-scout-header">
+                        <div>
+                            <h5>🧭 Scouting vs Equipos</h5>
+                            <p>Ideal para managers que quieren ver cómo le fue al jugador contra distintos rivales.</p>
+                        </div>
+                    </div>
+                    ${rivales.length ? `
+                        <table class="records-scout-table">
+                            <thead><tr><th>Rival</th><th>J</th><th>AB</th><th>H</th><th>AVG</th><th>HR</th><th>RBI</th></tr></thead>
+                            <tbody>
+                                ${rivales.map(row => `
+                                    <tr>
+                                        <td>${escapeHTML(row.rival_nombre || 'Rival')}</td>
+                                        <td>${Number(row.juegos || 0)}</td>
+                                        <td>${Number(row.at_bats || 0)}</td>
+                                        <td>${Number(row.hits || 0)}</td>
+                                        <td>${Number(row.avg || 0).toFixed(3)}</td>
+                                        <td>${Number(row.home_runs || 0)}</td>
+                                        <td>${Number(row.rbi || 0)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : `<div class="records-empty">${escapeHTML(scoutingFallback)}</div>`}
+                </div>
+            `;
+        }
+
+        function renderEquipoHistorico(container, historico, headToHead) {
+            const equipo = historico?.equipo || {};
+            const career = historico?.career || {};
+            const awards = career?.awards || {};
+            const torneos = Array.isArray(historico?.by_tournament) ? historico.by_tournament.slice(0, 5) : [];
+            const rivales = Array.isArray(headToHead) ? headToHead.slice(0, 6) : [];
+
+            container.innerHTML = `
+                <div class="records-scout-card">
+                    <div class="records-scout-header">
+                        <div>
+                            <h5>${escapeHTML(equipo.nombre || 'Equipo')}</h5>
+                            <p>${escapeHTML(equipo.ciudad || 'Sin ciudad')} • ${escapeHTML(equipo.manager || 'Sin manager')}</p>
+                        </div>
+                        <a class="records-scout-link" href="equipo.html?id=${Number(equipo.id)}">Abrir equipo →</a>
+                    </div>
+                    <div class="records-scout-stats">
+                        <div class="records-scout-stat"><span>Récord</span><strong>${Number(career.victorias || 0)}-${Number(career.derrotas || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>PCT</span><strong>${Number(career.porcentaje || 0).toFixed(3)}</strong></div>
+                        <div class="records-scout-stat"><span>Carreras</span><strong>${Number(career.carreras_anotadas || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>Permitidas</span><strong>${Number(career.carreras_permitidas || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>Diferencial</span><strong>${Number(career.diferencial || 0)}</strong></div>
+                        <div class="records-scout-stat"><span>Plantilla</span><strong>${Number(career.roster?.total_jugadores || 0)}</strong></div>
+                    </div>
+                </div>
+                <div class="records-scout-card">
+                    <div class="records-scout-header">
+                        <div>
+                            <h5>👑 Jugadores Coronados</h5>
+                            <p>Títulos posicionales ganados por atletas de esta franquicia a lo largo de los torneos.</p>
+                        </div>
+                    </div>
+                    <div class="records-scout-stats">
+                        <div class="records-scout-stat"><span>Total</span><strong>${Number(awards.total || 0)}</strong></div>
+                    </div>
+                    ${(Array.isArray(awards.detalle) && awards.detalle.length) ? `
+                        <table class="records-scout-table">
+                            <thead><tr><th>Jugador</th><th>Lado</th><th>Pos</th><th>Títulos</th></tr></thead>
+                            <tbody>
+                                ${awards.detalle.map((row) => `
+                                    <tr>
+                                        <td>${escapeHTML(row.jugador_nombre || 'Jugador')}</td>
+                                        <td>${row.lado === 'ofensiva' ? 'Ofensiva' : 'Defensiva'}</td>
+                                        <td>${escapeHTML(row.posicion || 'UTIL')}</td>
+                                        <td>${Number(row.titulos || 0)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="records-empty">Este equipo todavía no tiene títulos posicionales registrados.</div>'}
+                </div>
+                <div class="records-scout-card">
+                    <div class="records-scout-header">
+                        <div>
+                            <h5>🏆 Torneos del Equipo</h5>
+                            <p>Resumen por torneo para ver constancia y evolución competitiva.</p>
+                        </div>
+                    </div>
+                    ${torneos.length ? `
+                        <table class="records-scout-table">
+                            <thead><tr><th>Torneo</th><th>J</th><th>W</th><th>L</th><th>CA</th><th>CP</th></tr></thead>
+                            <tbody>
+                                ${torneos.map(row => `
+                                    <tr>
+                                        <td>${escapeHTML(row.torneo_nombre || 'Torneo')}</td>
+                                        <td>${Number(row.juegos || 0)}</td>
+                                        <td>${Number(row.victorias || 0)}</td>
+                                        <td>${Number(row.derrotas || 0)}</td>
+                                        <td>${Number(row.carreras_anotadas || 0)}</td>
+                                        <td>${Number(row.carreras_permitidas || 0)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="records-empty">Todavía no hay torneos históricos para este equipo.</div>'}
+                </div>
+                <div class="records-scout-card">
+                    <div class="records-scout-header">
+                        <div>
+                            <h5>🤝 Cara a cara histórico</h5>
+                            <p>Cómo se comportó el equipo frente a sus rivales más frecuentes.</p>
+                        </div>
+                    </div>
+                    ${rivales.length ? `
+                        <table class="records-scout-table">
+                            <thead><tr><th>Rival</th><th>J</th><th>W</th><th>L</th><th>CA</th><th>CP</th></tr></thead>
+                            <tbody>
+                                ${rivales.map(row => `
+                                    <tr>
+                                        <td>${escapeHTML(row.rival_nombre || 'Rival')}</td>
+                                        <td>${Number(row.juegos || 0)}</td>
+                                        <td>${Number(row.victorias || 0)}</td>
+                                        <td>${Number(row.derrotas || 0)}</td>
+                                        <td>${Number(row.carreras_anotadas || 0)}</td>
+                                        <td>${Number(row.carreras_permitidas || 0)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<div class="records-empty">Todavía no hay head-to-head histórico suficiente para este equipo.</div>'}
+                </div>
+            `;
         }
        
         
@@ -5670,7 +7907,7 @@
             const nombreEquipo = lider.equipo_nombre || 
                                    lider.team_name || 
                                    lider.equipo || 
-                                   'Sin Equipo';
+                                   'Sin equipo';
 
             const posicion = lider.posicion || 
                                lider.posicion_principal || 
@@ -5899,7 +8136,7 @@
             const nombreEquipo = jugador.equipo_nombre || 
                                    jugador.team_name || 
                                    jugador.equipo || 
-                                   'Sin Equipo';
+                                   'Sin equipo';
            
             // Stats según tipo de jugador
             let statsHTML = '';
@@ -6081,31 +8318,57 @@
         }
        
         async function cargarEstadisticasCompletas() {
-             try {
-                 const data = await fetchJSON('/api/estadisticas-ofensivas');
-                 let estadisticasFiltradas;
-                 const tiene2025 = (data || []).some(r => (r.temporada ?? '').toString().trim() === '2025');
+             const requestToken = ++statsLoadRequestToken;
+             const tournamentSnapshot = (typeof getSelectedTournamentId === 'function' ? getSelectedTournamentId() : '') || '';
 
-                 if (tiene2025) {
-                     estadisticasFiltradas = data.filter(r => (r.temporada ?? '').toString().trim() === '2025');
-                 } else {
-                     estadisticasFiltradas = data || [];
-                 }
-                 estadisticas = estadisticasFiltradas;
-               
-                 const tbody = document.getElementById('statsTable').querySelector('tbody');
-                 if(tbody) {
-                     // ✅ MODIFICACIÓN APLICADA: AGREGAR EL DATO DE 'SO' (STRIKEOUTS)
-                      tbody.innerHTML = estadisticasFiltradas.slice(0, 7).map(s => `<tr><td>${s.jugador_nombre}</td><td>${s.equipo_nombre}</td><td>${s.posicion || '-'}</td><td>${s.at_bats}</td><td>${s.hits}</td><td>${s.avg}</td><td>${s.obp}</td><td>${s.ops}</td><td>${s.home_runs}</td><td>${s.rbi}</td><td>${s.strikeouts || 0}</td><td>-</td></tr>`).join('');
-                 }
-              } catch(e) { console.error('❌ Error cargando estadísticas completas:', e); }
+             if (typeof TournamentModule !== 'undefined' && Array.isArray(TournamentModule.allTorneos) && TournamentModule.allTorneos.length > 0 && !tournamentSnapshot) {
+                 return;
+             }
 
              try {
-                 const lideres = leadersData.defensiva || [];
+                 const [battingData, pitchingData, defenseData] = await Promise.all([
+                     fetchJSON(withTournament('/api/estadisticas-ofensivas')),
+                     fetchJSON(withTournament('/api/estadisticas-pitcheo')),
+                     fetchJSON(withTournament('/api/estadisticas-defensivas'))
+                 ]);
+
+                 const currentTournament = (typeof getSelectedTournamentId === 'function' ? getSelectedTournamentId() : '') || '';
+                 if (requestToken !== statsLoadRequestToken || currentTournament !== tournamentSnapshot) {
+                     return;
+                 }
+
+                 offensiveStatsComplete = Array.isArray(battingData) ? battingData : [];
+                 pitchingStatsComplete = Array.isArray(pitchingData) ? pitchingData : [];
+                 defensiveStatsComplete = Array.isArray(defenseData) ? defenseData : [];
+                 estadisticas = offensiveStatsComplete;
+
+                 populateDepartmentFilters();
+                 renderBattingDepartmentTable();
+                 hydratePitchingDepartment();
+                 hydrateDefenseDepartment();
+             } catch(e) {
+                 console.error('❌ Error cargando estadísticas completas:', e);
+                 const battingBody = document.querySelector('#statsTable tbody');
+                 const pitchingBody = document.getElementById('pitchingStatsTableBody');
+                 const defenseBody = document.getElementById('defenseStatsTableBody');
+                 const pitchingHighlightsGrid = document.getElementById('pitchingHighlightsGrid');
+                 const defenseHighlightsGrid = document.getElementById('defenseHighlightsGrid');
+                 const defensePositionAccordion = document.getElementById('defensePositionAccordion');
+                 if (battingBody) battingBody.innerHTML = '<tr><td colspan="22" class="loading">No se pudo cargar ofensiva.</td></tr>';
+                 if (pitchingBody) pitchingBody.innerHTML = '<tr><td colspan="13" class="loading">No se pudo cargar pitcheo.</td></tr>';
+                 if (pitchingHighlightsGrid) pitchingHighlightsGrid.innerHTML = '<div class="records-empty">No se pudo cargar el radar del montículo.</div>';
+                 if (defenseBody) defenseBody.innerHTML = '<tr><td colspan="10" class="loading">No se pudo cargar defensa.</td></tr>';
+                 if (defenseHighlightsGrid) defenseHighlightsGrid.innerHTML = '<div class="records-empty">No se pudo cargar el radar defensivo.</div>';
+                 if (defensePositionAccordion) defensePositionAccordion.innerHTML = '<div class="records-empty">No se pudo cargar el archivo defensivo por posición.</div>';
+             }
+
+             try {
+                 const lideres = (leadersData.defensiva && leadersData.defensiva.length)
+                    ? leadersData.defensiva
+                    : defensiveStatsComplete;
                  const grid = document.getElementById('positionLeadersGrid');
                  if (grid) {
                      if (lideres.length > 0) {
-                         // Agrupar por posición y tomar el mejor de cada una
                          const mejoresPorPosicion = {};
                          lideres.forEach(l => {
                              const pos = l.posicion || 'UTIL';
@@ -6114,14 +8377,13 @@
                                  mejoresPorPosicion[pos] = l;
                              }
                          });
-                         // Renderizar top 4 posiciones
                          const posicionesOrdenadas = Object.values(mejoresPorPosicion)
                              .sort((a, b) => {
                                  const fldA = parseFloat(a.fielding_percentage) || 0;
                                  const fldB = parseFloat(b.fielding_percentage) || 0;
                                  return fldB - fldA;
                              })
-                             .slice(0, 4);
+                             .slice(0, 6);
                          grid.innerHTML = posicionesOrdenadas.map(l => {
                              const fldPct = parseFloat(l.fielding_percentage) || 0;
                              const po = parseInt(l.putouts) || 0;
@@ -6146,57 +8408,23 @@
                                          🛡️ ${l.posicion || 'UTIL'}
                                      </div>
                                      <div class="position-leader-item">
-                                         <div class="position-player-container" style="
-                                             display: flex;
-                                             flex-direction: column;
-                                             gap: 8px;
-                                         ">
-                                             <span class="position-player" style="
-                                                 color: #fff;
-                                                 font-weight: bold;
-                                                 font-size: 1.1rem;
-                                             ">${l.nombre_jugador || l.jugador_nombre || 'Desconocido'}</span>
-                                                                        
-                                             <span class="position-team" style="
-                                                 color: rgba(255, 193, 7, 0.7);
-                                                 font-size: 0.9rem;
-                                             ">${l.equipo_nombre || 'Sin equipo'}</span>
-                                                                        
-                                             <div style="
-                                                 display: flex;
-                                                 gap: 12px;
-                                                 margin-top: 10px;
-                                                 flex-wrap: wrap;
-                                             ">
-                                                 <div style="
-                                                     background: rgba(255, 193, 7, 0.15);
-                                                     padding: 6px 12px;
-                                                     border-radius: 8px;
-                                                 ">
+                                         <div class="position-player-container" style="display: flex; flex-direction: column; gap: 8px;">
+                                             <span class="position-player" style="color: #fff; font-weight: bold; font-size: 1.1rem;">${getPlayerName(l)}</span>
+                                             <span class="position-team" style="color: rgba(255, 193, 7, 0.7); font-size: 0.9rem;">${escapeHTML(getTeamName(l))}</span>
+                                             <div style="display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;">
+                                                 <div style="background: rgba(255, 193, 7, 0.15); padding: 6px 12px; border-radius: 8px;">
                                                      <div style="color: #ffc107; font-size: 0.7rem;">FLD%</div>
                                                      <div style="color: #fff; font-weight: bold; font-size: 1.1rem;">${fldPct.toFixed(3)}</div>
                                                  </div>
-                                                 <div style="
-                                                     background: rgba(255, 255, 255, 0.05);
-                                                     padding: 6px 12px;
-                                                     border-radius: 8px;
-                                                 ">
+                                                 <div style="background: rgba(255, 255, 255, 0.05); padding: 6px 12px; border-radius: 8px;">
                                                      <div style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">PO</div>
                                                      <div style="color: #fff; font-weight: bold;">${po}</div>
                                                  </div>
-                                                 <div style="
-                                                     background: rgba(255, 255, 255, 0.05);
-                                                     padding: 6px 12px;
-                                                     border-radius: 8px;
-                                                 ">
+                                                 <div style="background: rgba(255, 255, 255, 0.05); padding: 6px 12px; border-radius: 8px;">
                                                      <div style="color: rgba(255,255,255,0.6); font-size: 0.7rem;">A</div>
                                                      <div style="color: #fff; font-weight: bold;">${a}</div>
                                                  </div>
-                                                 <div style="
-                                                     background: rgba(255, 152, 0, 0.15);
-                                                     padding: 6px 12px;
-                                                     border-radius: 8px;
-                                                 ">
+                                                 <div style="background: rgba(255, 152, 0, 0.15); padding: 6px 12px; border-radius: 8px;">
                                                      <div style="color: #ff9800; font-size: 0.7rem;">E</div>
                                                      <div style="color: #ff9800; font-weight: bold;">${e}</div>
                                                  </div>
@@ -6223,13 +8451,13 @@
                      }
                  }
              } catch(e) { 
-                  console.error('❌ Error renderizando líderes defensivos:', e);
-                  const grid = document.getElementById('positionLeadersGrid');
+                 console.error('❌ Error renderizando líderes defensivos:', e);
+                 const grid = document.getElementById('positionLeadersGrid');
                  if (grid) {
                      grid.innerHTML = '<div class="empty-state" style="color: #ff6b6b;">Error al cargar datos defensivos</div>';
                  }
              }
-            }
+        }
 
         // =================================================================================
         // LÓGICA DE INICIALIZACIÓN Y EVENT LISTENERS
@@ -6240,20 +8468,35 @@
         let selectedPlayersForComparison = [];
 
         document.addEventListener('DOMContentLoaded', async function() {
-            cargarPulsoLiga();
-            cargarGameCenter();
-            cargarBracketPlayoffs();
-            cargarTablaPosiciones();
-            cargarUltimosPartidos();
-            cargarPlayoffsClasificacion(); // Carga inicial para la tabla
-            await cargarLideres(); 
+            const safeRun = async (label, task) => {
+                try {
+                    return await task();
+                } catch (error) {
+                    console.error(`❌ Error en inicialización: ${label}`, error);
+                    return null;
+                }
+            };
+
+            initDepartmentFilters();
+            mostrarDepartamentoStats('resumen');
+            safeRun('pulso de liga', () => cargarPulsoLiga());
+            safeRun('game center', () => cargarGameCenter());
+            safeRun('tabla de posiciones', () => cargarTablaPosiciones());
+            safeRun('últimos partidos', () => cargarUltimosPartidos());
+            await safeRun('líderes', () => cargarLideres()); 
+            await safeRun('récords históricos', () => cargarRecordsHistoricos());
+            await safeRun('premios y campeones', () => cargarCampeonesPosicionales());
+            initRecordsExplorer();
             configurarTabsLideres();
            
-            await cargarProximosPartidos(); 
-            await cargarEstadisticasCompletas(); 
+            await safeRun('próximos partidos', () => cargarProximosPartidos()); 
+            await safeRun('estadísticas completas', () => cargarEstadisticasCompletas()); 
             
             // ✅ LLAMADA AÑADIDA: Cargar los líderes ofensivos
-            cargarLideresOfensivos(); 
+            safeRun('líderes ofensivos', () => cargarLideresOfensivos()); 
+            window.setTimeout(() => {
+                safeRun('pulso de liga post selector', () => cargarPulsoLiga());
+            }, 900);
 
             initMobileNavigation();
             initStickyHeader();
@@ -6410,15 +8653,6 @@
                 botonActivo.classList.add('active');
             }
 
-            // ✅ SUB-PASO 3.2: MODIFICACIÓN para inicializar el toggle
-            if (nombrePestana === 'playoffs') {
-                cargarPlayoffsClasificacion(); // Recargar datos por si cambiaron
-                cargarBracketPlayoffs();
-                setTimeout(() => {
-                    initPlayoffsToggle();
-                }, 500); // Pequeño delay para asegurar que el DOM esté listo
-            }
-        
             setTimeout(function() {
                 var header = document.querySelector('.header');
                 var headerHeight = header ? header.offsetHeight : 0;
@@ -6431,9 +8665,14 @@
             }, 100);
         }
 
+        window.mostrarPestana = mostrarPestana;
+        window.mostrarPanelRecords = mostrarPanelRecords;
+        window.seleccionarRecordHistorico = seleccionarRecordHistorico;
+        window.buscarRecordsHistoricos = buscarRecordsHistoricos;
+
         // Event listeners para navegación
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.nav-tabs .nav-tab').forEach(tab => {
+            document.querySelectorAll('.nav-tabs .nav-tab, .brand-nav-link').forEach(tab => {
                 tab.addEventListener('click', (e) => {
                     e.preventDefault();
                     const seccion = tab.dataset.section || tab.getAttribute('href')?.replace('#', '');
@@ -6451,6 +8690,11 @@
                     }
                 });
             });
+
+            const seccionInicial = window.location.hash ? window.location.hash.replace('#', '') : null;
+            if (seccionInicial && document.getElementById(seccionInicial)) {
+                mostrarPestana(seccionInicial);
+            }
         });
 
         async function cargarProximosPartidos() {
@@ -6506,7 +8750,7 @@
                 const recordLocal = partido.record_local || '';
                 const recordVisitante = partido.record_visitante || '';
                 return `
-                    <div class="scoreboard-card upcoming">
+                    <a class="scoreboard-card upcoming" href="partido.html?id=${partido.id}">
                         <div class="scoreboard-status-bar">
                             <span class="status-badge programado">${partido.estado || 'Programado'}</span>
                             <span class="scoreboard-date">${fecha}</span>
@@ -6529,7 +8773,8 @@
                                 </div>
                             </div>
                         </div>
-                    </div>`;
+                        <div class="scoreboard-footer"><span class="scoreboard-innings">Ver previa →</span></div>
+                    </a>`;
             }).join('');
         }
 
@@ -6560,8 +8805,6 @@
             initMobileNavigation();
         });
     </script>
-    <a href="https://wa.me/5491126880792?text=Miguel%2C%20tengo%2C%20una%20consulta" class="whatsapp-btn" target="_blank">💬 Consultas</a>
-
     <footer class="main-footer">
       <div class="footer-content">
         <div class="footer-section">
@@ -6577,7 +8820,7 @@
           <ul class="footer-links">
             <li><a href="#posiciones">Posiciones</a></li>
             <li><a href="#partidos">Partidos</a></li>
-            <li><a href="#estadisticas">Líderes</a></li>
+            <li><a href="#estadisticas">Estadísticas</a></li>
             <li><a href="admin.html">Administración</a></li>
           </ul>
         </div>
@@ -6602,6 +8845,7 @@
     </footer>
     
     
-    <script src="js/index_modules.min.js" defer></script>
+    <script src="js/analytics.js" defer></script>
+    <script src="js/index_modules.min.js?v=premium-home-20260613" defer></script>
 </body>
 </html>

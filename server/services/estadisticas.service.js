@@ -21,48 +21,6 @@ async function obtenerOfensivas(filtros = {}) {
     // Modo "todos": sumar estadísticas de todos los torneos por jugador
     if (torneo_id === 'todos') {
         let query = `
-            SELECT
-                eo.jugador_id,
-                j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
-                SUM(eo.at_bats)::INT as at_bats,
-                SUM(eo.hits)::INT as hits,
-                SUM(eo.doubles)::INT as doubles,
-                SUM(eo.triples)::INT as triples,
-                SUM(eo.home_runs)::INT as home_runs,
-                SUM(eo.rbi)::INT as rbi,
-                SUM(eo.runs)::INT as runs,
-                SUM(eo.walks)::INT as walks,
-                SUM(COALESCE(eo.strikeouts, 0))::INT as strikeouts,
-                SUM(eo.stolen_bases)::INT as stolen_bases,
-                SUM(eo.caught_stealing)::INT as caught_stealing,
-                SUM(eo.hit_by_pitch)::INT as hit_by_pitch,
-                SUM(eo.sacrifice_flies)::INT as sacrifice_flies,
-                CASE
-                    WHEN SUM(eo.at_bats) > 0 THEN ROUND(SUM(eo.hits)::DECIMAL / SUM(eo.at_bats), 3)
-                    ELSE 0.000
-                END as avg,
-                CASE
-                    WHEN (SUM(eo.at_bats) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)) + SUM(COALESCE(eo.sacrifice_flies, 0))) > 0
-                    THEN ROUND((SUM(eo.hits) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)))::DECIMAL /
-                         (SUM(eo.at_bats) + SUM(eo.walks) + SUM(COALESCE(eo.hit_by_pitch, 0)) + SUM(COALESCE(eo.sacrifice_flies, 0))), 3)
-                    ELSE 0.000
-                END as obp,
-                CASE
-                    WHEN SUM(eo.at_bats) > 0 THEN ROUND(
-                        ((SUM(eo.hits) - SUM(COALESCE(eo.doubles, 0)) - SUM(COALESCE(eo.triples, 0)) - SUM(eo.home_runs))
-                        + SUM(COALESCE(eo.doubles, 0)) * 2
-                        + SUM(COALESCE(eo.triples, 0)) * 3
-                        + SUM(eo.home_runs) * 4)::DECIMAL / SUM(eo.at_bats), 3)
-                    ELSE 0.000
-                END as slg
-            FROM estadisticas_ofensivas eo
-            JOIN jugadores j ON eo.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE SUM(eo.at_bats) >= 0
-            GROUP BY eo.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
-        `;
-        // WHERE con HAVING para min_at_bats en GROUP BY
-        query = `
             SELECT * FROM (
                 SELECT
                     eo.jugador_id,
@@ -80,6 +38,7 @@ async function obtenerOfensivas(filtros = {}) {
                     SUM(eo.caught_stealing)::INT as caught_stealing,
                     SUM(eo.hit_by_pitch)::INT as hit_by_pitch,
                     SUM(eo.sacrifice_flies)::INT as sacrifice_flies,
+                    SUM(COALESCE(eo.sacrifice_hits, 0))::INT as sacrifice_hits,
                     CASE
                         WHEN SUM(eo.at_bats) > 0 THEN ROUND(SUM(eo.hits)::DECIMAL / SUM(eo.at_bats), 3)
                         ELSE 0.000
@@ -101,16 +60,28 @@ async function obtenerOfensivas(filtros = {}) {
                 FROM estadisticas_ofensivas eo
                 JOIN jugadores j ON eo.jugador_id = j.id
                 JOIN equipos e ON j.equipo_id = e.id
+                WHERE 1=1
                 GROUP BY eo.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
             ) sub
             WHERE at_bats >= $1
-            ORDER BY avg DESC, hits DESC
         `;
 
         const params = [min_at_bats];
         let paramIndex = 2;
 
-        // Filtros adicionales no aplican en la subquery, se pueden agregar al WHERE externo si es necesario
+        if (jugador_id) {
+            query += ` AND jugador_id = $${paramIndex}`;
+            params.push(jugador_id);
+            paramIndex++;
+        }
+
+        if (equipo_id) {
+            query += ` AND equipo_id = $${paramIndex}`;
+            params.push(equipo_id);
+            paramIndex++;
+        }
+
+        query += ` ORDER BY avg DESC, hits DESC`;
 
         const result = await pool.query(query, params);
         return result.rows.map(jugador => ({
@@ -340,7 +311,7 @@ async function obtenerPitcheo(filtros = {}) {
 
     // Modo "todos": sumar estadísticas de todos los torneos por jugador
     if (torneo_id === 'todos') {
-        const query = `
+        let query = `
             SELECT
                 ep.jugador_id,
                 j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre,
@@ -364,10 +335,28 @@ async function obtenerPitcheo(filtros = {}) {
             FROM estadisticas_pitcheo ep
             JOIN jugadores j ON ep.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
-            GROUP BY ep.jugador_id, j.nombre, j.equipo_id, e.nombre
-            ORDER BY era ASC
+            WHERE 1=1
         `;
-        const result = await pool.query(query);
+        const params = [];
+        let paramIndex = 1;
+
+        if (jugador_id) {
+            query += ` AND ep.jugador_id = $${paramIndex}`;
+            params.push(jugador_id);
+            paramIndex++;
+        }
+
+        if (equipo_id) {
+            query += ` AND j.equipo_id = $${paramIndex}`;
+            params.push(equipo_id);
+            paramIndex++;
+        }
+
+        query += `
+            GROUP BY ep.jugador_id, j.nombre, j.equipo_id, e.nombre
+            ORDER BY era ASC, strikeouts DESC
+        `;
+        const result = await pool.query(query, params);
         return result.rows;
     }
 
@@ -578,7 +567,7 @@ async function obtenerDefensivas(filtros = {}) {
 
     // Modo "todos": sumar estadísticas de todos los torneos por jugador
     if (torneo_id === 'todos') {
-        const query = `
+        let query = `
             SELECT
                 ed.jugador_id,
                 j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
@@ -595,10 +584,28 @@ async function obtenerDefensivas(filtros = {}) {
             FROM estadisticas_defensivas ed
             JOIN jugadores j ON ed.jugador_id = j.id
             JOIN equipos e ON j.equipo_id = e.id
-            GROUP BY ed.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
-            ORDER BY fielding_percentage DESC
+            WHERE 1=1
         `;
-        const result = await pool.query(query);
+        const params = [];
+        let paramIndex = 1;
+
+        if (jugador_id) {
+            query += ` AND ed.jugador_id = $${paramIndex}`;
+            params.push(jugador_id);
+            paramIndex++;
+        }
+
+        if (equipo_id) {
+            query += ` AND j.equipo_id = $${paramIndex}`;
+            params.push(equipo_id);
+            paramIndex++;
+        }
+
+        query += `
+            GROUP BY ed.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
+            ORDER BY fielding_percentage DESC, chances DESC
+        `;
+        const result = await pool.query(query, params);
         return result.rows;
     }
 

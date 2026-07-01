@@ -1,50 +1,71 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 const fs = require('fs');
+const path = require('path');
+
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL no esta definida');
+  process.exit(1);
+}
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-async function run() {
-  const sql = fs.readFileSync('migrations/002_performance_indexes.sql', 'utf8');
-  const lines = sql.split('\n');
-
-  // Build individual statements
-  let current = '';
-  const statements = [];
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('--') || trimmed === '') continue;
-    current += ' ' + trimmed;
-    if (trimmed.endsWith(';')) {
-      statements.push(current.trim());
-      current = '';
-    }
-  }
-
-  for (const stmt of statements) {
-    try {
-      const result = await pool.query(stmt);
-      if (result.rows && result.rows.length > 0) {
-        console.log('=== INDICES EXISTENTES ===');
-        result.rows.forEach(r => console.log('  ' + r.tablename + ' -> ' + r.indexname));
-      } else {
-        const preview = stmt.substring(0, 70).replace(/\s+/g, ' ');
-        console.log('OK: ' + preview + '...');
-      }
-    } catch (err) {
-      console.log('WARN: ' + err.message.substring(0, 120));
-    }
-  }
-
-  await pool.end();
-  console.log('\nMigration complete!');
+async function runFile(client, filePath) {
+  const sql = fs.readFileSync(filePath, 'utf8');
+  const fileName = path.basename(filePath);
+  console.log(`\n==> Ejecutando ${fileName}`);
+  await client.query(sql);
+  console.log(`OK  ${fileName}`);
 }
 
-run().catch(err => {
-  console.error('Migration failed:', err);
-  process.exit(1);
-});
+async function run() {
+  const migrationsDir = path.join(process.cwd(), 'migrations');
+  let files = fs.readdirSync(migrationsDir)
+    .filter(name => name.endsWith('.sql'))
+    .filter(name => !name.toLowerCase().includes('rollback'))
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+  const singleMigration = process.env.MIGRATION_FILE;
+  if (singleMigration) {
+    files = files.filter((name) => name === singleMigration);
+    if (!files.length) {
+      throw new Error(`No se encontro la migracion solicitada: ${singleMigration}`);
+    }
+  }
+
+  if (!files.length) {
+    console.log('No hay migraciones para ejecutar.');
+    return;
+  }
+
+  console.log(`Se ejecutaran ${files.length} migraciones en orden:`);
+  files.forEach(file => console.log(`- ${file}`));
+
+  const client = await pool.connect();
+  try {
+    for (const file of files) {
+      await runFile(client, path.join(migrationsDir, file));
+    }
+  } finally {
+    client.release();
+  }
+
+  console.log('\nMigraciones completadas.');
+}
+
+run()
+  .catch(async (err) => {
+    console.error('\nMigration failed:', err.message);
+    try {
+      await pool.end();
+    } catch (_) {
+      // noop
+    }
+    process.exit(1);
+  })
+  .finally(async () => {
+    await pool.end();
+  });

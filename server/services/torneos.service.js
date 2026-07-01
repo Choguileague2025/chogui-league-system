@@ -4,6 +4,8 @@
  * con aislamiento de estadísticas por torneo
  */
 const pool = require('../config/database');
+const { hasColumn } = require('../utils/schema');
+const { DEFAULT_TOTAL_GAMES, DEFAULT_PLAYOFF_SLOTS } = require('../utils/playoffFormat');
 
 // ============================================================
 // RESOLVER TORNEO
@@ -22,11 +24,27 @@ async function resolveTorneoId(torneo_id) {
     }
 
     // Buscar el torneo activo
-    const result = await pool.query(
-        'SELECT id FROM torneos WHERE activo = true LIMIT 1'
-    );
+    const result = await pool.query(`
+        SELECT id
+        FROM torneos
+        WHERE activo = true
+        ORDER BY fecha_inicio DESC NULLS LAST, id DESC
+        LIMIT 1
+    `);
     if (result.rows.length > 0) {
         return result.rows[0].id;
+    }
+
+    const currentPublic = await pool.query(`
+        SELECT id
+        FROM torneos
+        WHERE COALESCE(visible_publico, true) = true
+          AND COALESCE(estado, 'activo') = 'activo'
+        ORDER BY fecha_inicio DESC NULLS LAST, id DESC
+        LIMIT 1
+    `);
+    if (currentPublic.rows.length > 0) {
+        return currentPublic.rows[0].id;
     }
 
     // Fallback: el torneo más reciente
@@ -45,20 +63,58 @@ async function resolveTorneoId(torneo_id) {
  * @returns {object|null}
  */
 async function obtenerTorneoActivo() {
-    const result = await pool.query(
-        'SELECT * FROM torneos WHERE activo = true LIMIT 1'
-    );
-    return result.rows[0] || null;
+    const result = await pool.query(`
+        SELECT *
+        FROM torneos
+        WHERE activo = true
+        ORDER BY fecha_inicio DESC NULLS LAST, id DESC
+        LIMIT 1
+    `);
+    if (result.rows[0]) return result.rows[0];
+
+    const fallback = await pool.query(`
+        SELECT *
+        FROM torneos
+        WHERE COALESCE(visible_publico, true) = true
+          AND COALESCE(estado, 'activo') = 'activo'
+        ORDER BY fecha_inicio DESC NULLS LAST, id DESC
+        LIMIT 1
+    `);
+    return fallback.rows[0] || null;
 }
 
 /**
  * Obtiene todos los torneos ordenados por fecha
  * @returns {Array}
  */
-async function obtenerTodos() {
-    const result = await pool.query(
-        'SELECT * FROM torneos ORDER BY fecha_inicio DESC'
-    );
+async function obtenerTodos(options = {}) {
+    const {
+        publicOnly = false
+    } = options;
+
+    const hasEstado = await hasColumn('torneos', 'estado');
+    const hasVisiblePublico = await hasColumn('torneos', 'visible_publico');
+
+    const where = [];
+    const params = [];
+
+    if (publicOnly) {
+        if (hasVisiblePublico) {
+            where.push('visible_publico = true');
+        }
+        if (hasEstado) {
+            where.push(`COALESCE(estado, 'activo') <> 'archivado'`);
+        }
+    }
+
+    const query = `
+        SELECT *
+        FROM torneos
+        ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+        ORDER BY activo DESC, fecha_inicio DESC, id DESC
+    `;
+
+    const result = await pool.query(query, params);
     return result.rows;
 }
 
@@ -75,6 +131,23 @@ async function obtenerPorId(torneoId) {
     return result.rows[0] || null;
 }
 
+function normalizarCriteriosElegibilidad(torneo = {}) {
+    return {
+        min_ab_rate_stats: torneo.min_ab_rate_stats === null || torneo.min_ab_rate_stats === undefined ? null : Number(torneo.min_ab_rate_stats),
+        min_ab_counting_stats: torneo.min_ab_counting_stats === null || torneo.min_ab_counting_stats === undefined ? null : Number(torneo.min_ab_counting_stats),
+        min_ab_mvp: torneo.min_ab_mvp === null || torneo.min_ab_mvp === undefined ? null : Number(torneo.min_ab_mvp),
+        min_ip_rate_stats: torneo.min_ip_rate_stats === null || torneo.min_ip_rate_stats === undefined ? null : Number(torneo.min_ip_rate_stats),
+        min_ip_counting_stats: torneo.min_ip_counting_stats === null || torneo.min_ip_counting_stats === undefined ? null : Number(torneo.min_ip_counting_stats),
+        min_ip_pitcher_award: torneo.min_ip_pitcher_award === null || torneo.min_ip_pitcher_award === undefined ? null : Number(torneo.min_ip_pitcher_award),
+        min_chances_defense: torneo.min_chances_defense === null || torneo.min_chances_defense === undefined ? null : Number(torneo.min_chances_defense)
+    };
+}
+
+async function obtenerCriteriosElegibilidad(torneoId) {
+    const torneo = await obtenerPorId(torneoId);
+    return normalizarCriteriosElegibilidad(torneo || {});
+}
+
 /**
  * Crea un nuevo torneo
  * @param {string} nombre
@@ -84,15 +157,39 @@ async function obtenerPorId(torneoId) {
 async function crear(nombre, opciones = {}) {
     const {
         fecha_inicio = new Date(),
-        total_juegos = 22,
-        cupos_playoffs = 6
+        total_juegos = DEFAULT_TOTAL_GAMES,
+        cupos_playoffs = DEFAULT_PLAYOFF_SLOTS,
+        min_ab_rate_stats = null,
+        min_ab_counting_stats = null,
+        min_ab_mvp = null,
+        min_ip_rate_stats = null,
+        min_ip_counting_stats = null,
+        min_ip_pitcher_award = null,
+        min_chances_defense = null
     } = opciones;
 
     const result = await pool.query(
-        `INSERT INTO torneos (nombre, fecha_inicio, activo, total_juegos, cupos_playoffs)
-         VALUES ($1, $2, false, $3, $4)
+        `INSERT INTO torneos (
+            nombre, fecha_inicio, activo, total_juegos, cupos_playoffs,
+            min_ab_rate_stats, min_ab_counting_stats, min_ab_mvp,
+            min_ip_rate_stats, min_ip_counting_stats, min_ip_pitcher_award,
+            min_chances_defense
+         )
+         VALUES ($1, $2, false, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
-        [nombre, fecha_inicio, total_juegos, cupos_playoffs]
+        [
+            nombre,
+            fecha_inicio,
+            total_juegos,
+            cupos_playoffs,
+            min_ab_rate_stats,
+            min_ab_counting_stats,
+            min_ab_mvp,
+            min_ip_rate_stats,
+            min_ip_counting_stats,
+            min_ip_pitcher_award,
+            min_chances_defense
+        ]
     );
     return result.rows[0];
 }
@@ -261,6 +358,8 @@ module.exports = {
     obtenerTorneoActivo,
     obtenerTodos,
     obtenerPorId,
+    obtenerCriteriosElegibilidad,
+    normalizarCriteriosElegibilidad,
     crear,
     activarTorneo,
     inicializarEstadisticas,

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partido - Chogui League</title>
+    <meta name="description" content="Planilla oficial, actuaciones destacadas y detalle completo del partido en Chogui League.">
+    <link rel="stylesheet" href="css/brand_shell.css">
+    <link rel="stylesheet" href="css/partido_v2.css">
+</head>
+<body class="brand-page-shell">
+    <header class="brand-topbar">
+        <div class="brand-topbar-inner">
+            <a href="index.html" class="brand-lockup">
+                <span class="brand-mark">
+                    <img src="/images/logos/chogui-league.png" alt="Logo Chogui League">
+                </span>
+                <span class="brand-copy">
+                    <span class="brand-overline">Detalle oficial del juego</span>
+                    <span class="brand-name">Chogui League</span>
+                    <span class="brand-subcopy">Detalle del juego, mejores actuaciones y lectura rápida del partido</span>
+                </span>
+            </a>
+            <nav class="brand-nav">
+                <a href="index.html#partidos" class="brand-nav-link">Partidos</a>
+                <a href="index.html#premios" class="brand-nav-link">Premios</a>
+                <a href="index.html#records" class="brand-nav-link">Récords</a>
+                <a href="login.html" class="brand-admin-link">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container partido-page">
+        <section class="brand-hero match-hero">
+            <div class="brand-hero-inner match-hero-inner">
+                <div class="brand-hero-copy match-copy">
+                    <span class="brand-hero-kicker" id="matchHeroKicker">Juego oficial</span>
+                    <h1 class="brand-hero-title" id="matchHeroTitle">Cargando partido...</h1>
+                    <p class="brand-hero-subtitle" id="matchHeroSubtitle">Preparando la planilla completa del encuentro.</p>
+                </div>
+                <div class="brand-hero-badge match-badge">
+                    <span id="matchBadgeLabel">Estado</span>
+                    <strong id="matchBadgeValue">--</strong>
+                    <span id="matchBadgeMeta">Sin cronología disponible</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="breadcrumb">
+            <a href="index.html">🏠 Inicio</a>
+            <span>></span>
+            <a href="index.html#partidos">📅 Partidos</a>
+            <span>></span>
+            <strong id="matchBreadcrumb">Cargando...</strong>
+        </div>
+
+        <nav class="page-quicknav" aria-label="Navegación rápida del partido">
+            <a class="page-quicknav-link" href="#matchScoreboard">Marcador</a>
+            <a class="page-quicknav-link" href="#matchHighlights">Destacados</a>
+            <a class="page-quicknav-link" href="#visitorBoxscore">Visitante</a>
+            <a class="page-quicknav-link" href="#localBoxscore">Local</a>
+        </nav>
+
+        <section class="match-scoreboard-card" id="matchScoreboard">
+            <div class="match-scoreboard-team">
+                <span class="match-scoreboard-label">Visitante</span>
+                <h2 id="visitorName">Visitante</h2>
+                <a id="visitorTeamLink" href="#" class="mini-link">Ver equipo</a>
+            </div>
+            <div class="match-scoreboard-score">
+                <span class="score-big" id="visitorScore">-</span>
+                <span class="score-separator">:</span>
+                <span class="score-big" id="localScore">-</span>
+            </div>
+            <div class="match-scoreboard-team align-right">
+                <span class="match-scoreboard-label">Local</span>
+                <h2 id="localName">Local</h2>
+                <a id="localTeamLink" href="#" class="mini-link">Ver equipo</a>
+            </div>
+        </section>
+
+        <section class="match-summary-grid">
+            <div class="match-summary-card">
+                <span class="summary-label">Hits</span>
+                <strong id="summaryHits">--</strong>
+                <small id="summaryHitsMeta">Visitante vs local</small>
+            </div>
+            <div class="match-summary-card">
+                <span class="summary-label">Errores</span>
+                <strong id="summaryErrors">--</strong>
+                <small id="summaryErrorsMeta">Defensa del juego</small>
+            </div>
+            <div class="match-summary-card">
+                <span class="summary-label">Jonrones</span>
+                <strong id="summaryHr">--</strong>
+                <small id="summaryHrMeta">Poder ofensivo</small>
+            </div>
+            <div class="match-summary-card featured">
+                <span class="summary-label">MVP proyectado</span>
+                <strong id="summaryMvp">--</strong>
+                <small id="summaryMvpMeta">Esperando planilla</small>
+            </div>
+        </section>
+
+        <section class="match-highlights-card" id="matchHighlights">
+            <div class="section-headline">
+                <h3>⭐ Actuaciones Destacadas</h3>
+                <p>Los nombres que más pesaron en el resultado del juego.</p>
+            </div>
+            <div class="highlight-columns">
+                <div class="highlight-column">
+                    <h4>Ofensiva</h4>
+                    <div id="highlightOffense" class="highlight-list">
+                        <div class="highlight-empty">Esperando planilla ofensiva...</div>
+                    </div>
+                </div>
+                <div class="highlight-column">
+                    <h4>Pitcheo</h4>
+                    <div id="highlightPitching" class="highlight-list">
+                        <div class="highlight-empty">Esperando planilla de pitcheo...</div>
+                    </div>
+                </div>
+                <div class="highlight-column">
+                    <h4>Defensa</h4>
+                    <div id="highlightDefense" class="highlight-list">
+                        <div class="highlight-empty">Esperando planilla defensiva...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="team-boxscore-grid">
+            <article class="team-boxscore-card" id="visitorBoxscore">
+                <div class="team-boxscore-header">
+                    <div>
+                        <h3 id="visitorPanelTitle">Visitante</h3>
+                        <p id="visitorPanelMeta">Resumen ofensivo y defensivo del visitante</p>
+                    </div>
+                    <div class="team-boxscore-totals">
+                        <span id="visitorOpsBadge">OPS .000</span>
+                        <span id="visitorDefBadge">FPCT .000</span>
+                    </div>
+                </div>
+                <div class="team-boxscore-section">
+                    <h4>Bateo</h4>
+                    <div class="table-responsive-v2">
+                        <table class="top-players-table compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th><th>PA</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>BB</th><th>SO</th><th>SB</th><th>AVG</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visitorOffenseBody"><tr><td colspan="13" class="loading-cell">Cargando...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="team-boxscore-section">
+                    <h4>Pitcheo</h4>
+                    <div class="table-responsive-v2">
+                        <table class="top-players-table compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th><th>IP</th><th>H</th><th>ER</th><th>BB</th><th>SO</th><th>HR</th><th>ERA</th><th>WHIP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visitorPitchingBody"><tr><td colspan="9" class="loading-cell">Cargando...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="team-boxscore-section">
+                    <h4>Defensa</h4>
+                    <div class="table-responsive-v2">
+                        <table class="top-players-table compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th><th>Pos</th><th>PO</th><th>A</th><th>E</th><th>DP</th><th>CH</th><th>FPCT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="visitorDefenseBody"><tr><td colspan="8" class="loading-cell">Cargando...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </article>
+
+            <article class="team-boxscore-card" id="localBoxscore">
+                <div class="team-boxscore-header">
+                    <div>
+                        <h3 id="localPanelTitle">Local</h3>
+                        <p id="localPanelMeta">Resumen ofensivo y defensivo del local</p>
+                    </div>
+                    <div class="team-boxscore-totals">
+                        <span id="localOpsBadge">OPS .000</span>
+                        <span id="localDefBadge">FPCT .000</span>
+                    </div>
+                </div>
+                <div class="team-boxscore-section">
+                    <h4>Bateo</h4>
+                    <div class="table-responsive-v2">
+                        <table class="top-players-table compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th><th>PA</th><th>AB</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>R</th><th>BB</th><th>SO</th><th>SB</th><th>AVG</th>
+                                </tr>
+                            </thead>
+                            <tbody id="localOffenseBody"><tr><td colspan="13" class="loading-cell">Cargando...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="team-boxscore-section">
+                    <h4>Pitcheo</h4>
+                    <div class="table-responsive-v2">
+                        <table class="top-players-table compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th><th>IP</th><th>H</th><th>ER</th><th>BB</th><th>SO</th><th>HR</th><th>ERA</th><th>WHIP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="localPitchingBody"><tr><td colspan="9" class="loading-cell">Cargando...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="team-boxscore-section">
+                    <h4>Defensa</h4>
+                    <div class="table-responsive-v2">
+                        <table class="top-players-table compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Jugador</th><th>Pos</th><th>PO</th><th>A</th><th>E</th><th>DP</th><th>CH</th><th>FPCT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="localDefenseBody"><tr><td colspan="8" class="loading-cell">Cargando...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </div>
+
+    <script src="js/analytics.js" defer></script>
+    <script src="js/partido_v2.js" defer></script>
+</body>
+</html>

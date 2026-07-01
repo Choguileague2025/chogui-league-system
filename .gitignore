@@ -6,3 +6,6 @@ backups/*.sql
 *.log
 coverage/
 .claude/
+
+output/
+tmp/

@@ -7,21 +7,48 @@
     <meta name="description" content="Estadísticas y perfil completo del jugador en la Chogui League.">
     <link rel="stylesheet" href="equipo.min.css">
     <link rel="stylesheet" href="css/jugador_v2.min.css">
+    <link rel="stylesheet" href="css/brand_shell.css">
 </head>
-<body>
-    <a href="login.html" class="admin-link">🔒 Admin</a>
+<body class="brand-page-shell">
+    <header class="brand-topbar">
+        <div class="brand-topbar-inner">
+            <a href="index.html" class="brand-lockup">
+                <span class="brand-mark">
+                    <img src="/images/logos/chogui-league.png" alt="Logo Chogui League">
+                </span>
+                <span class="brand-copy">
+                    <span class="brand-overline">Perfil de Jugador</span>
+                    <span class="brand-name">Chogui League</span>
+                    <span class="brand-subcopy">Estadísticas, historial y rendimiento oficial del jugador</span>
+                </span>
+            </a>
+            <nav class="brand-nav">
+                <a href="index.html#posiciones" class="brand-nav-link">Posiciones</a>
+                <a href="index.html#estadisticas" class="brand-nav-link">Líderes</a>
+                <a href="index.html#records" class="brand-nav-link">Récords</a>
+                <a href="login.html" class="brand-admin-link">Admin</a>
+            </nav>
+        </div>
+    </header>
 
     <div class="container">
-        <!-- HEADER -->
-        <div class="header">
-            <div class="header-content">
-                <div class="logo-container">
-                    <div class="logo-chogui"></div>
+        <section class="brand-hero">
+            <div class="brand-hero-inner">
+                <div class="brand-hero-logo">
+                    <img id="heroPlayerLogo" src="/images/logos/chogui-league.png" alt="Escudo del jugador">
                 </div>
-                <h1>🏆 CHOGUI LEAGUE</h1>
-                <p>Sistema de Gestión Profesional de Softbol</p>
+                <div class="brand-hero-copy">
+                    <span class="brand-hero-kicker" id="playerHeroKicker">Perfil oficial del jugador</span>
+                    <h1 class="brand-hero-title" id="playerHeroTitle">Perfil del Jugador</h1>
+                    <p class="brand-hero-subtitle" id="playerHeroSubtitle">Estadísticas, histórico y rendimiento oficial dentro de la liga.</p>
+                </div>
+                <div class="brand-hero-badge">
+                    <span id="playerHeroBadgeLabel">Equipo</span>
+                    <strong id="playerHeroBadgeValue">--</strong>
+                    <span id="playerHeroBadgeMeta">Jugador oficial</span>
+                </div>
             </div>
-        </div>
+        </section>
 
         <!-- BREADCRUMB -->
         <div class="breadcrumb">
@@ -31,6 +58,15 @@
             <span>></span>
             <strong id="playerBreadcrumb">Cargando...</strong>
         </div>
+
+        <nav class="page-quicknav" aria-label="Navegación rápida del jugador">
+            <button class="page-quicknav-link active" type="button" data-jump-tab="ofensivas">Ofensiva</button>
+            <button class="page-quicknav-link" type="button" data-jump-tab="pitcheo">Pitcheo</button>
+            <button class="page-quicknav-link" type="button" data-jump-tab="defensivas">Defensa</button>
+            <button class="page-quicknav-link" type="button" data-jump-tab="comparacion">Scouting</button>
+            <button class="page-quicknav-link" type="button" data-jump-tab="historico">Histórico</button>
+            <button class="page-quicknav-link" type="button" data-jump-tab="gamelog">Juego a juego</button>
+        </nav>
 
         <!-- PLAYER CARD HEADER -->
         <div class="team-main-card">
@@ -46,19 +82,19 @@
                     <div class="team-stats-row">
                         <div class="stat-item">
                             <span class="stat-value" id="headerAVG">---</span>
-                            <span class="stat-label">AVG</span>
+                            <span class="stat-label" id="headerLabel1">AVG</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-value" id="headerHR">---</span>
-                            <span class="stat-label">HR</span>
+                            <span class="stat-label" id="headerLabel2">HR</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-value" id="headerRBI">---</span>
-                            <span class="stat-label">RBI</span>
+                            <span class="stat-label" id="headerLabel3">RBI</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-value" id="headerOPS">---</span>
-                            <span class="stat-label">OPS</span>
+                            <span class="stat-label" id="headerLabel4">OPS</span>
                         </div>
                     </div>
                 </div>
@@ -96,6 +132,8 @@
             <button class="player-tab" data-tab="pitcheo">🥎 Pitcheo</button>
             <button class="player-tab" data-tab="defensivas">🛡️ Defensivas</button>
             <button class="player-tab" data-tab="comparacion">📊 Comparación</button>
+            <button class="player-tab" data-tab="historico">🏆 Histórico</button>
+            <button class="player-tab" data-tab="gamelog">🗓️ Juego a juego</button>
         </nav>
 
         <!-- TAB PANELS -->
@@ -112,17 +150,17 @@
                     <div class="stat-card-v2">
                         <span class="stat-card-title">OBP</span>
                         <span class="stat-card-value" id="statOBP">.000</span>
-                        <span class="stat-card-desc">On-Base %</span>
+                        <span class="stat-card-desc">Porcentaje de embasado</span>
                     </div>
                     <div class="stat-card-v2">
                         <span class="stat-card-title">SLG</span>
                         <span class="stat-card-value" id="statSLG">.000</span>
-                        <span class="stat-card-desc">Slugging</span>
+                        <span class="stat-card-desc">Poder al bate</span>
                     </div>
                     <div class="stat-card-v2">
                         <span class="stat-card-title">OPS</span>
                         <span class="stat-card-value" id="statOPS">.000</span>
-                        <span class="stat-card-desc">OBP + SLG</span>
+                        <span class="stat-card-desc">Producción total</span>
                     </div>
                 </div>
 
@@ -205,7 +243,7 @@
                     <div class="stat-card-v2">
                         <span class="stat-card-title">PO</span>
                         <span class="stat-card-value" id="statPO">0</span>
-                        <span class="stat-card-desc">Putouts</span>
+                        <span class="stat-card-desc">Outs defensivos</span>
                     </div>
                     <div class="stat-card-v2">
                         <span class="stat-card-title">A</span>
@@ -239,14 +277,217 @@
 
             <!-- COMPARACION TAB -->
             <div id="tab-comparacion" class="player-tab-panel">
-                <h3 class="section-title">📊 Comparación con Líderes de Liga</h3>
+                <h3 class="section-title">📊 Comparativa y scouting</h3>
                 <div id="comparisonContainer" class="comparison-grid">
                     <div class="loading">Cargando comparaciones...</div>
+                </div>
+
+                <div class="scouting-highlights" id="scoutingHighlights">
+                    <article class="scouting-highlight-card">
+                        <span class="scouting-highlight-label">Rival objetivo</span>
+                        <strong>Calculando...</strong>
+                        <p>Esperando lectura rival por rival.</p>
+                    </article>
                 </div>
 
                 <div class="chart-container" style="margin-top: 2rem;">
                     <h3 class="section-title">🎯 Radar de Habilidades</h3>
                     <canvas id="radarChart"></canvas>
+                </div>
+
+                <div class="detailed-table-section">
+                    <h3 class="section-title">🧭 Scouting vs Rivales</h3>
+                    <div class="scouting-rivals-grid" id="vsTeamsCards">
+                        <article class="recent-game-card empty">
+                            <span class="recent-game-date">Scouting</span>
+                            <strong>Esperando rivales</strong>
+                            <p>Las lecturas rápidas por rival aparecerán aquí.</p>
+                        </article>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>Rival</th><th>J</th><th>AB</th><th>H</th><th>HR</th><th>RBI</th><th>AVG</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vsTeamsBody">
+                                <tr><td colspan="7" class="loading">Cargando scouting por rival...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="detailed-table-section">
+                    <h3 class="section-title">📈 Forma reciente y contexto</h3>
+                    <div class="stats-cards-grid" id="playerScoutingSummary">
+                        <div class="stat-card-v2"><span class="stat-card-title">Últimos 5</span><span class="stat-card-value">--</span><span class="stat-card-desc">Esperando scouting</span></div>
+                        <div class="stat-card-v2"><span class="stat-card-title">Tendencia</span><span class="stat-card-value">--</span><span class="stat-card-desc">Esperando scouting</span></div>
+                        <div class="stat-card-v2"><span class="stat-card-title">Casa vs ruta</span><span class="stat-card-value">--</span><span class="stat-card-desc">Esperando scouting</span></div>
+                    </div>
+                    <div class="table-responsive" style="margin-top: 18px;">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>Split</th><th>J</th><th>AB</th><th>H</th><th>HR</th><th>RBI</th><th>AVG</th><th>OPS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="playerScoutingSplitsBody">
+                                <tr><td colspan="8" class="loading">Cargando splits de scouting...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-responsive" style="margin-top: 18px;">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>Torneo</th><th>J</th><th>AB</th><th>H</th><th>HR</th><th>RBI</th><th>AVG</th><th>OPS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="playerScoutingTournamentsBody">
+                                <tr><td colspan="8" class="loading">Cargando splits por torneo...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="detailed-table-section">
+                    <h3 class="section-title">⚔️ Comparar con otro jugador</h3>
+                    <div id="similarPlayersChips" class="comparable-cards-grid">
+                        <div class="loading">Buscando comparables...</div>
+                    </div>
+                    <div class="comparison-faceoff-summary" id="comparisonFaceoffSummary">
+                        <article class="historical-executive-card">
+                            <span class="scouting-highlight-label">Cara a cara</span>
+                            <strong>Selecciona un comparable</strong>
+                            <p>La lectura rápida del duelo entre perfiles aparecerá aquí.</p>
+                        </article>
+                    </div>
+                    <div class="table-responsive" style="margin-top: 18px;">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>Métrica</th><th id="compareBaseHeader">Jugador</th><th id="compareRivalHeader">Rival</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparePlayersBody">
+                                <tr><td colspan="3" class="loading">Selecciona un comparable para ver el reporte</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-historico" class="player-tab-panel">
+                <div class="historical-executive-grid" id="historicalExecutiveSummary">
+                    <article class="historical-executive-card">
+                        <span class="scouting-highlight-label">Mejor torneo</span>
+                        <strong>Calculando...</strong>
+                        <p>Esperando lectura histórica.</p>
+                    </article>
+                </div>
+
+                <div class="historical-awards-visual" id="historicalAwardsVisual">
+                    <span class="recent-game-chip">Palmarés en preparación</span>
+                </div>
+
+                <div class="stats-cards-grid">
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">AVG histórico</span>
+                        <span class="stat-card-value" id="careerAvg">.000</span>
+                        <span class="stat-card-desc">Promedio histórico</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">OPS histórico</span>
+                        <span class="stat-card-value" id="careerOps">.000</span>
+                        <span class="stat-card-desc">Producción acumulada</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">ERA histórico</span>
+                        <span class="stat-card-value" id="careerEra">0.00</span>
+                        <span class="stat-card-desc">Pitcheo histórico</span>
+                    </div>
+                    <div class="stat-card-v2">
+                        <span class="stat-card-title">FPCT histórico</span>
+                        <span class="stat-card-value" id="careerFpct">.000</span>
+                        <span class="stat-card-desc">Fildeo acumulado</span>
+                    </div>
+                </div>
+
+                <div class="detailed-table-section">
+                    <h3 class="section-title">🥇 Palmarés Posicional</h3>
+                    <div class="stats-cards-grid">
+                        <div class="stat-card-v2">
+                            <span class="stat-card-title">Títulos</span>
+                            <span class="stat-card-value" id="careerAwardsTotal">0</span>
+                            <span class="stat-card-desc">Campeonatos posicionales</span>
+                        </div>
+                        <div class="stat-card-v2">
+                            <span class="stat-card-title">Ofensivos</span>
+                            <span class="stat-card-value" id="careerAwardsOffense">0</span>
+                            <span class="stat-card-desc">Coronas de bateo por posición</span>
+                        </div>
+                        <div class="stat-card-v2">
+                            <span class="stat-card-title">Defensivos</span>
+                            <span class="stat-card-value" id="careerAwardsDefense">0</span>
+                            <span class="stat-card-desc">Coronas defensivas por posición</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>Lado</th><th>Posición</th><th>Títulos</th><th>Último torneo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historicalAwardsBody">
+                                <tr><td colspan="4" class="loading">Cargando palmarés...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="detailed-table-section">
+                    <h3 class="section-title">📚 Resumen por Torneo</h3>
+                    <div class="table-responsive">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>Torneo</th><th>AB</th><th>H</th><th>HR</th><th>RBI</th>
+                                    <th>R</th><th>IP</th><th>W-L</th><th>CH</th><th>E</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historicalTableBody">
+                                <tr><td colspan="10" class="loading">Cargando histórico...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-gamelog" class="player-tab-panel">
+                <div class="recent-games-strip" id="recentGamesStrip">
+                    <article class="recent-game-card empty">
+                        <span class="recent-game-date">--</span>
+                        <strong>Esperando partidos oficiales</strong>
+                        <p>La lectura rápida aparecerá aquí cuando el jugador tenga juegos vinculados.</p>
+                    </article>
+                </div>
+                <div class="detailed-table-section">
+                    <h3 class="section-title">🗓️ Partidos y Rendimiento</h3>
+                    <div class="table-responsive">
+                        <table class="stats-table-v2">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th><th>Partido</th><th>Torneo</th><th>H</th><th>RBI</th>
+                                    <th>R</th><th>IP</th><th>SO</th><th>CH</th><th>E</th><th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gameLogTableBody">
+                                <tr><td colspan="11" class="loading">Cargando juego a juego...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>
@@ -284,6 +525,7 @@
         </div>
     </footer>
 
+    <script src="js/analytics.js" defer></script>
     <script src="js/jugador_v2.min.js" defer></script>
     <script>
     window.addEventListener('scroll', function() {

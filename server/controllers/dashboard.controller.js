@@ -1,5 +1,22 @@
 const pool = require('../config/database');
 const cache = require('../utils/cache');
+const estadisticasService = require('../services/estadisticas.service');
+const campeonesService = require('../services/campeones.service');
+const { resolveTorneoId, obtenerCriteriosElegibilidad } = require('../services/torneos.service');
+const { hasColumn, hasTable } = require('../utils/schema');
+
+function toNumber(value, fallback = 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function qualifyByThreshold(rows, key, fallbackThreshold) {
+    const candidates = (Array.isArray(rows) ? rows : []).filter((row) => toNumber(row[key]) > 0);
+    if (!candidates.length) return { qualified: [], threshold: 0 };
+    const threshold = fallbackThreshold;
+    const qualified = candidates.filter((row) => toNumber(row[key]) >= threshold);
+    return { qualified: qualified.length ? qualified : candidates, threshold };
+}
 
 // GET /api/dashboard/stats
 async function obtenerStats(req, res, next) {
@@ -33,14 +50,42 @@ async function obtenerStats(req, res, next) {
 // GET /api/posiciones
 async function obtenerPosiciones(req, res, next) {
     try {
-        const cacheKey = 'posiciones';
+        const torneoIdParam = req.query.torneo_id;
+        const hasPartidosTorneo = await hasColumn('partidos', 'torneo_id');
+        const shouldFilterByTournament = hasPartidosTorneo && torneoIdParam !== 'todos';
+        const torneoIdResolved = shouldFilterByTournament ? await resolveTorneoId(torneoIdParam || null) : null;
+        const cacheKey = `posiciones_${torneoIdParam || (shouldFilterByTournament ? torneoIdResolved : 'all') || 'all'}`;
         const cached = cache.get(cacheKey);
         if (cached) return res.json(cached);
+
+        if (shouldFilterByTournament && torneoIdResolved) {
+            const matchesCheck = await pool.query(`
+                SELECT
+                    COUNT(*)::INT AS total_partidos,
+                    COUNT(*) FILTER (WHERE estado = 'finalizado')::INT AS finalizados
+                FROM partidos
+                WHERE torneo_id = $1
+            `, [torneoIdResolved]);
+            const totals = matchesCheck.rows[0] || {};
+            if (!toNumber(totals.total_partidos) || !toNumber(totals.finalizados)) {
+                cache.set(cacheKey, []);
+                return res.json([]);
+            }
+        }
+
+        const params = [];
+        const finalizadosWhere = [`estado = 'finalizado'`];
+
+        if (shouldFilterByTournament && torneoIdResolved) {
+            params.push(torneoIdResolved);
+            finalizadosWhere.push(`torneo_id = $${params.length}`);
+        }
 
         const result = await pool.query(`
             WITH finalizados AS (
                 SELECT id, equipo_local_id, equipo_visitante_id, carreras_local, carreras_visitante
-                FROM partidos WHERE estado = 'finalizado'
+                FROM partidos
+                WHERE ${finalizadosWhere.join(' AND ')}
             ),
             juegos AS (
                 SELECT equipo_local_id AS equipo_id,
@@ -74,7 +119,7 @@ async function obtenerPosiciones(req, res, next) {
             LEFT JOIN juegos j ON j.equipo_id = e.id
             GROUP BY e.id, e.nombre
             ORDER BY porcentaje DESC, dif DESC, e.nombre ASC;
-        `);
+        `, params);
 
         cache.set(cacheKey, result.rows);
         res.json(result.rows);
@@ -87,49 +132,27 @@ async function obtenerPosiciones(req, res, next) {
 // GET /api/lideres
 async function obtenerLideres(req, res, next) {
     try {
-        const { tipo = 'bateo', min_ab = 10 } = req.query;
-        const cacheKey = `lideres_${tipo}_${min_ab}`;
+        const { tipo = 'bateo', min_ab, torneo_id } = req.query;
+        const cacheKey = `lideres_${tipo}_${min_ab}_${torneo_id || 'auto'}`;
         const cached = cache.get(cacheKey);
         if (cached) return res.json(cached);
+        const torneoIdResolved = torneo_id && torneo_id !== 'todos' ? await resolveTorneoId(torneo_id) : null;
+        const criterios = torneoIdResolved ? await obtenerCriteriosElegibilidad(torneoIdResolved) : {};
 
         if (tipo === 'bateo') {
-            const query = `
-                SELECT
-                    j.id, j.nombre, j.posicion, e.nombre as equipo,
-                    eo.at_bats, eo.hits, eo.home_runs, eo.rbi, eo.runs,
-                    eo.walks, eo.stolen_bases, eo.strikeouts,
-                    COALESCE(eo.doubles, 0) as doubles,
-                    COALESCE(eo.triples, 0) as triples,
-                    COALESCE(eo.caught_stealing, 0) as caught_stealing,
-                    COALESCE(eo.hit_by_pitch, 0) as hit_by_pitch,
-                    COALESCE(eo.sacrifice_flies, 0) as sacrifice_flies,
-                    COALESCE(eo.sacrifice_hits, 0) as sacrifice_hits,
-                    CASE WHEN eo.at_bats > 0
-                        THEN ROUND(eo.hits::DECIMAL / eo.at_bats, 3)
-                        ELSE 0.000 END as avg,
-                    CASE WHEN (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)) > 0
-                        THEN ROUND((eo.hits + eo.walks + COALESCE(eo.hit_by_pitch, 0))::DECIMAL /
-                                 (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)), 3)
-                        ELSE 0.000 END as obp,
-                    CASE WHEN eo.at_bats > 0
-                        THEN ROUND(((eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs) +
-                                  COALESCE(eo.doubles, 0) * 2 + COALESCE(eo.triples, 0) * 3 + eo.home_runs * 4)::DECIMAL / eo.at_bats, 3)
-                        ELSE 0.000 END as slg,
-                    (eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs) as singles,
-                    ((eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs) +
-                     COALESCE(eo.doubles, 0) * 2 + COALESCE(eo.triples, 0) * 3 + eo.home_runs * 4) as total_bases,
-                    (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0) + COALESCE(eo.sacrifice_hits, 0)) as plate_appearances
-                FROM estadisticas_ofensivas eo
-                JOIN jugadores j ON eo.jugador_id = j.id
-                JOIN equipos e ON j.equipo_id = e.id
-                WHERE eo.at_bats >= $1
-                ORDER BY avg DESC, eo.hits DESC
-                LIMIT 20`;
+            const minAtBats = min_ab !== undefined
+                ? Number(min_ab)
+                : (criterios.min_ab_rate_stats ?? 10);
+            const rows = await estadisticasService.obtenerOfensivas({
+                torneo_id,
+                min_at_bats: minAtBats
+            });
 
-            const result = await pool.query(query, [min_ab]);
-
-            const lideres = result.rows.map(jugador => ({
+            const lideres = rows.slice(0, 20).map(jugador => ({
                 ...jugador,
+                id: jugador.id || jugador.jugador_id,
+                nombre: jugador.nombre || jugador.jugador_nombre,
+                equipo: jugador.equipo || jugador.equipo_nombre,
                 ops: parseFloat((parseFloat(jugador.obp) + parseFloat(jugador.slg)).toFixed(3)),
                 iso: parseFloat((parseFloat(jugador.slg) - parseFloat(jugador.avg)).toFixed(3))
             }));
@@ -138,45 +161,46 @@ async function obtenerLideres(req, res, next) {
             res.json(lideres);
 
         } else if (tipo === 'pitcheo') {
-            const query = `
-                SELECT
-                    j.id, j.nombre, j.posicion, e.nombre as equipo,
-                    ep.innings_pitched, ep.earned_runs, ep.strikeouts, ep.walks_allowed,
-                    ep.hits_allowed, ep.home_runs_allowed, ep.wins, ep.losses,
-                    CASE WHEN ep.innings_pitched > 0
-                        THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2)
-                        ELSE 0.00 END as era,
-                    CASE WHEN ep.innings_pitched > 0
-                        THEN ROUND((ep.hits_allowed + ep.walks_allowed) / ep.innings_pitched, 2)
-                        ELSE 0.00 END as whip
-                FROM estadisticas_pitcheo ep
-                JOIN jugadores j ON ep.jugador_id = j.id
-                JOIN equipos e ON j.equipo_id = e.id
-                WHERE ep.innings_pitched >= 5
-                ORDER BY era ASC
-                LIMIT 20`;
+            const rows = await estadisticasService.obtenerPitcheo({ torneo_id });
+            const minIp = criterios.min_ip_rate_stats ?? 5;
+            const lideres = rows
+                .filter(jugador => Number(jugador.innings_pitched) >= minIp)
+                .sort((a, b) => {
+                    const eraDiff = Number(a.era) - Number(b.era);
+                    if (eraDiff !== 0) return eraDiff;
+                    return Number(a.whip) - Number(b.whip);
+                })
+                .slice(0, 20)
+                .map(jugador => ({
+                    ...jugador,
+                    id: jugador.id || jugador.jugador_id,
+                    nombre: jugador.nombre || jugador.jugador_nombre,
+                    equipo: jugador.equipo || jugador.equipo_nombre
+                }));
 
-            const result = await pool.query(query);
-            cache.set(cacheKey, result.rows);
-            res.json(result.rows);
+            cache.set(cacheKey, lideres);
+            res.json(lideres);
 
         } else if (tipo === 'defensa') {
-            const query = `
-                SELECT
-                    j.id, j.nombre, j.posicion, e.nombre as equipo,
-                    ed.putouts, ed.assists, ed.errors, ed.double_plays,
-                    CASE WHEN (ed.putouts + ed.assists + ed.errors) > 0
-                        THEN ROUND((ed.putouts + ed.assists)::DECIMAL / (ed.putouts + ed.assists + ed.errors), 3)
-                        ELSE 1.000 END as fielding_percentage
-                FROM estadisticas_defensivas ed
-                JOIN jugadores j ON ed.jugador_id = j.id
-                JOIN equipos e ON j.equipo_id = e.id
-                ORDER BY fielding_percentage DESC, ed.putouts DESC
-                LIMIT 20`;
+            const rows = await estadisticasService.obtenerDefensivas({ torneo_id });
+            const minChances = criterios.min_chances_defense ?? 5;
+            const lideres = rows
+                .filter(jugador => Number(jugador.chances) >= minChances)
+                .sort((a, b) => {
+                    const pctDiff = Number(b.fielding_percentage) - Number(a.fielding_percentage);
+                    if (pctDiff !== 0) return pctDiff;
+                    return Number(b.chances) - Number(a.chances);
+                })
+                .slice(0, 20)
+                .map(jugador => ({
+                    ...jugador,
+                    id: jugador.id || jugador.jugador_id,
+                    nombre: jugador.nombre || jugador.jugador_nombre,
+                    equipo: jugador.equipo || jugador.equipo_nombre
+                }));
 
-            const result = await pool.query(query);
-            cache.set(cacheKey, result.rows);
-            res.json(result.rows);
+            cache.set(cacheKey, lideres);
+            res.json(lideres);
         } else {
             res.status(400).json({ error: 'Tipo no válido. Use: bateo, pitcheo, defensa' });
         }
@@ -189,36 +213,20 @@ async function obtenerLideres(req, res, next) {
 // GET /api/lideres-ofensivos
 async function obtenerLideresOfensivos(req, res, next) {
     try {
-        const { min_at_bats = 10 } = req.query;
-        const cacheKey = `lideres_ofensivos_${min_at_bats}`;
+        const { min_at_bats, torneo_id } = req.query;
+        const cacheKey = `lideres_ofensivos_${min_at_bats}_${torneo_id || 'auto'}`;
         const cached = cache.get(cacheKey);
         if (cached) return res.json(cached);
+        const torneoIdResolved = torneo_id && torneo_id !== 'todos' ? await resolveTorneoId(torneo_id) : null;
+        const criterios = torneoIdResolved ? await obtenerCriteriosElegibilidad(torneoIdResolved) : {};
+        const minAtBats = min_at_bats !== undefined ? Number(min_at_bats) : (criterios.min_ab_rate_stats ?? 10);
 
-        const result = await pool.query(`
-            SELECT eo.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
-                   ROUND(eo.hits::DECIMAL / eo.at_bats, 3) as avg,
-                   CASE
-                       WHEN (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)) > 0
-                       THEN ROUND((eo.hits + eo.walks + COALESCE(eo.hit_by_pitch, 0))::DECIMAL /
-                            (eo.at_bats + eo.walks + COALESCE(eo.hit_by_pitch, 0) + COALESCE(eo.sacrifice_flies, 0)), 3)
-                       ELSE 0.000
-                   END as obp,
-                   CASE
-                       WHEN eo.at_bats > 0 THEN ROUND(
-                           ((eo.hits - COALESCE(eo.doubles, 0) - COALESCE(eo.triples, 0) - eo.home_runs)
-                           + COALESCE(eo.doubles, 0) * 2
-                           + COALESCE(eo.triples, 0) * 3
-                           + eo.home_runs * 4)::DECIMAL / eo.at_bats, 3)
-                       ELSE 0.000
-                   END as slg
-            FROM estadisticas_ofensivas eo
-            JOIN jugadores j ON eo.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE eo.at_bats >= $1
-            ORDER BY avg DESC
-        `, [min_at_bats]);
+        const rows = await estadisticasService.obtenerOfensivas({
+            torneo_id,
+            min_at_bats: minAtBats
+        });
 
-        const jugadoresConOPS = result.rows.map(jugador => ({
+        const jugadoresConOPS = rows.map(jugador => ({
             ...jugador,
             ops: parseFloat((parseFloat(jugador.obp) + parseFloat(jugador.slg)).toFixed(3))
         }));
@@ -234,28 +242,24 @@ async function obtenerLideresOfensivos(req, res, next) {
 // GET /api/lideres-pitcheo
 async function obtenerLideresPitcheo(req, res, next) {
     try {
-        const cacheKey = 'lideres_pitcheo';
+        const { torneo_id } = req.query;
+        const cacheKey = `lideres_pitcheo_${torneo_id || 'auto'}`;
         const cached = cache.get(cacheKey);
         if (cached) return res.json(cached);
+        const torneoIdResolved = torneo_id && torneo_id !== 'todos' ? await resolveTorneoId(torneo_id) : null;
+        const criterios = torneoIdResolved ? await obtenerCriteriosElegibilidad(torneoIdResolved) : {};
+        const minIp = criterios.min_ip_rate_stats ?? 5;
 
-        const result = await pool.query(`
-            SELECT ep.*, j.nombre as jugador_nombre, e.nombre as equipo_nombre,
-                   CASE
-                       WHEN ep.innings_pitched >= 5 THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2)
-                       ELSE 99.99
-                   END as era,
-                   CASE
-                       WHEN ep.innings_pitched >= 5 THEN ROUND((ep.hits_allowed + ep.walks_allowed) / ep.innings_pitched, 2)
-                       ELSE 99.99
-                   END as whip
-            FROM estadisticas_pitcheo ep
-            JOIN jugadores j ON ep.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE ep.innings_pitched >= 5
-            ORDER BY era ASC
-        `);
-        cache.set(cacheKey, result.rows);
-        res.json(result.rows);
+        const result = await estadisticasService.obtenerPitcheo({ torneo_id });
+        const rows = result
+            .filter(jugador => Number(jugador.innings_pitched) >= minIp)
+            .sort((a, b) => {
+                const eraDiff = Number(a.era) - Number(b.era);
+                if (eraDiff !== 0) return eraDiff;
+                return Number(a.whip) - Number(b.whip);
+            });
+        cache.set(cacheKey, rows);
+        res.json(rows);
     } catch (error) {
         console.error('Error obteniendo líderes de pitcheo:', error);
         next(error);
@@ -265,25 +269,28 @@ async function obtenerLideresPitcheo(req, res, next) {
 // GET /api/lideres-defensivos
 async function obtenerLideresDefensivos(req, res, next) {
     try {
-        const cacheKey = 'lideres_defensivos';
+        const { torneo_id } = req.query;
+        const cacheKey = `lideres_defensivos_${torneo_id || 'auto'}`;
         const cached = cache.get(cacheKey);
         if (cached) return res.json(cached);
+        const torneoIdResolved = torneo_id && torneo_id !== 'todos' ? await resolveTorneoId(torneo_id) : null;
+        const criterios = torneoIdResolved ? await obtenerCriteriosElegibilidad(torneoIdResolved) : {};
+        const minChances = criterios.min_chances_defense ?? 5;
 
-        const result = await pool.query(`
-            SELECT ed.*, j.nombre as jugador_nombre, j.posicion, e.nombre as equipo_nombre,
-                   CASE
-                       WHEN ed.chances >= 5 THEN ROUND((ed.putouts + ed.assists)::DECIMAL / ed.chances, 3)
-                       ELSE 0.000
-                   END as fielding_percentage,
-                   ed.chances as total_chances
-            FROM estadisticas_defensivas ed
-            JOIN jugadores j ON ed.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
-            WHERE ed.chances >= 5
-            ORDER BY fielding_percentage DESC, ed.chances DESC
-        `);
-        cache.set(cacheKey, result.rows);
-        res.json(result.rows);
+        const result = await estadisticasService.obtenerDefensivas({ torneo_id });
+        const rows = result
+            .filter(jugador => Number(jugador.chances) >= minChances)
+            .sort((a, b) => {
+                const pctDiff = Number(b.fielding_percentage) - Number(a.fielding_percentage);
+                if (pctDiff !== 0) return pctDiff;
+                return Number(b.chances) - Number(a.chances);
+            })
+            .map(jugador => ({
+                ...jugador,
+                total_chances: jugador.chances
+            }));
+        cache.set(cacheKey, rows);
+        res.json(rows);
     } catch (error) {
         console.error('Error obteniendo líderes defensivos:', error);
         next(error);
@@ -329,6 +336,415 @@ async function buscarUniversal(req, res, next) {
     }
 }
 
+// GET /api/dashboard/records
+async function obtenerRecordsHistoricos(req, res, next) {
+    try {
+        const cacheKey = 'records_historicos_v1';
+        const cached = cache.get(cacheKey);
+        if (cached) return res.json(cached);
+
+        const hasOffensiveBoxscore = await hasTable('partido_jugador_ofensiva');
+
+        const [bateadoresResult, pitchersResult, equiposResult, torneosResult, categorias, hallOfFameResult, bestGamesResult, bestSeasonsResult] = await Promise.all([
+            pool.query(`
+                SELECT
+                    j.id AS jugador_id,
+                    j.nombre AS jugador_nombre,
+                    j.posicion,
+                    MAX(e.nombre) AS equipo_nombre,
+                    COALESCE(SUM(eo.at_bats), 0)::INT AS at_bats,
+                    COALESCE(SUM(eo.hits), 0)::INT AS hits,
+                    COALESCE(SUM(eo.home_runs), 0)::INT AS home_runs,
+                    COALESCE(SUM(eo.rbi), 0)::INT AS rbi,
+                    COALESCE(SUM(eo.runs), 0)::INT AS runs,
+                    COALESCE(SUM(eo.walks), 0)::INT AS walks,
+                    COALESCE(SUM(eo.strikeouts), 0)::INT AS strikeouts,
+                    COALESCE(SUM(eo.doubles), 0)::INT AS doubles,
+                    COALESCE(SUM(eo.triples), 0)::INT AS triples,
+                    CASE
+                        WHEN COALESCE(SUM(eo.at_bats), 0) > 0
+                        THEN ROUND(COALESCE(SUM(eo.hits), 0)::numeric / SUM(eo.at_bats), 3)
+                        ELSE 0
+                    END AS avg,
+                    CASE
+                        WHEN (COALESCE(SUM(eo.at_bats), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0) + COALESCE(SUM(eo.sacrifice_flies), 0)) > 0
+                        THEN ROUND(
+                            (COALESCE(SUM(eo.hits), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0))::numeric /
+                            NULLIF(COALESCE(SUM(eo.at_bats), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0) + COALESCE(SUM(eo.sacrifice_flies), 0), 0),
+                            3
+                        )
+                        ELSE 0
+                    END AS obp,
+                    CASE
+                        WHEN COALESCE(SUM(eo.at_bats), 0) > 0
+                        THEN ROUND(
+                            (
+                                (COALESCE(SUM(eo.hits), 0) - COALESCE(SUM(eo.doubles), 0) - COALESCE(SUM(eo.triples), 0) - COALESCE(SUM(eo.home_runs), 0)) +
+                                (2 * COALESCE(SUM(eo.doubles), 0)) +
+                                (3 * COALESCE(SUM(eo.triples), 0)) +
+                                (4 * COALESCE(SUM(eo.home_runs), 0))
+                            )::numeric / SUM(eo.at_bats),
+                            3
+                        )
+                        ELSE 0
+                    END AS slg
+                FROM jugadores j
+                JOIN estadisticas_ofensivas eo ON eo.jugador_id = j.id
+                LEFT JOIN equipos e ON e.id = j.equipo_id
+                GROUP BY j.id, j.nombre, j.posicion
+                HAVING COALESCE(SUM(eo.at_bats), 0) >= 20
+                ORDER BY home_runs DESC, rbi DESC, avg DESC, hits DESC, j.nombre ASC
+                LIMIT 10
+            `),
+            pool.query(`
+                SELECT
+                    j.id AS jugador_id,
+                    j.nombre AS jugador_nombre,
+                    j.posicion,
+                    MAX(e.nombre) AS equipo_nombre,
+                    ROUND(COALESCE(SUM(ep.innings_pitched), 0)::numeric, 1) AS innings_pitched,
+                    COALESCE(SUM(ep.wins), 0)::INT AS wins,
+                    COALESCE(SUM(ep.losses), 0)::INT AS losses,
+                    COALESCE(SUM(ep.saves), 0)::INT AS saves,
+                    COALESCE(SUM(ep.strikeouts), 0)::INT AS strikeouts,
+                    COALESCE(SUM(ep.walks_allowed), 0)::INT AS walks_allowed,
+                    COALESCE(SUM(ep.hits_allowed), 0)::INT AS hits_allowed,
+                    CASE
+                        WHEN COALESCE(SUM(ep.innings_pitched), 0) > 0
+                        THEN ROUND((COALESCE(SUM(ep.earned_runs), 0)::numeric * 9) / SUM(ep.innings_pitched), 2)
+                        ELSE 0
+                    END AS era,
+                    CASE
+                        WHEN COALESCE(SUM(ep.innings_pitched), 0) > 0
+                        THEN ROUND((COALESCE(SUM(ep.walks_allowed), 0) + COALESCE(SUM(ep.hits_allowed), 0))::numeric / SUM(ep.innings_pitched), 2)
+                        ELSE 0
+                    END AS whip
+                FROM jugadores j
+                JOIN estadisticas_pitcheo ep ON ep.jugador_id = j.id
+                LEFT JOIN equipos e ON e.id = j.equipo_id
+                GROUP BY j.id, j.nombre, j.posicion
+                HAVING COALESCE(SUM(ep.innings_pitched), 0) >= 10
+                ORDER BY wins DESC, era ASC, strikeouts DESC, j.nombre ASC
+                LIMIT 10
+            `),
+            pool.query(`
+                WITH juegos AS (
+                    SELECT
+                        p.torneo_id,
+                        p.equipo_local_id AS equipo_id,
+                        p.carreras_local AS carreras_favor,
+                        p.carreras_visitante AS carreras_contra,
+                        CASE WHEN p.carreras_local > p.carreras_visitante THEN 1 ELSE 0 END AS victoria,
+                        CASE WHEN p.carreras_local < p.carreras_visitante THEN 1 ELSE 0 END AS derrota
+                    FROM partidos p
+                    WHERE p.estado = 'finalizado'
+                    UNION ALL
+                    SELECT
+                        p.torneo_id,
+                        p.equipo_visitante_id AS equipo_id,
+                        p.carreras_visitante AS carreras_favor,
+                        p.carreras_local AS carreras_contra,
+                        CASE WHEN p.carreras_visitante > p.carreras_local THEN 1 ELSE 0 END AS victoria,
+                        CASE WHEN p.carreras_visitante < p.carreras_local THEN 1 ELSE 0 END AS derrota
+                    FROM partidos p
+                    WHERE p.estado = 'finalizado'
+                )
+                SELECT
+                    e.id AS equipo_id,
+                    e.nombre AS equipo_nombre,
+                    COUNT(*)::INT AS juegos,
+                    COALESCE(SUM(j.victoria), 0)::INT AS victorias,
+                    COALESCE(SUM(j.derrota), 0)::INT AS derrotas,
+                    COALESCE(SUM(j.carreras_favor), 0)::INT AS carreras_anotadas,
+                    COALESCE(SUM(j.carreras_contra), 0)::INT AS carreras_permitidas,
+                    COALESCE(SUM(j.carreras_favor), 0)::INT - COALESCE(SUM(j.carreras_contra), 0)::INT AS diferencial,
+                    CASE
+                        WHEN COUNT(*) > 0 THEN ROUND(COALESCE(SUM(j.victoria), 0)::numeric / COUNT(*), 3)
+                        ELSE 0
+                    END AS porcentaje
+                FROM juegos j
+                JOIN equipos e ON e.id = j.equipo_id
+                GROUP BY e.id, e.nombre
+                HAVING COUNT(*) >= 5
+                ORDER BY victorias DESC, porcentaje DESC, diferencial DESC, e.nombre ASC
+                LIMIT 10
+            `),
+            pool.query(`
+                SELECT
+                    t.id AS torneo_id,
+                    t.nombre AS torneo_nombre,
+                    t.estado,
+                    t.activo,
+                    COUNT(DISTINCT p.id)::INT AS partidos_finalizados,
+                    COUNT(DISTINCT CASE WHEN p.estado = 'programado' THEN p.id END)::INT AS partidos_programados,
+                    COUNT(DISTINCT CASE WHEN p.estado = 'finalizado' THEN p.equipo_local_id END)
+                      + COUNT(DISTINCT CASE WHEN p.estado = 'finalizado' THEN p.equipo_visitante_id END) AS apariciones_equipo,
+                    COALESCE(SUM(CASE WHEN p.estado = 'finalizado' THEN COALESCE(p.carreras_local, 0) + COALESCE(p.carreras_visitante, 0) ELSE 0 END), 0)::INT AS carreras_totales
+                FROM torneos t
+                LEFT JOIN partidos p ON p.torneo_id = t.id
+                GROUP BY t.id, t.nombre, t.estado, t.activo, t.fecha_inicio
+                ORDER BY partidos_finalizados DESC, carreras_totales DESC, t.fecha_inicio DESC NULLS LAST, t.id DESC
+                LIMIT 10
+            `),
+            campeonesService.obtenerLideresHistoricosCategorias(),
+            pool.query(`
+                WITH ofensiva AS (
+                    SELECT
+                        jugador_id,
+                        COALESCE(SUM(at_bats), 0)::INT AS at_bats,
+                        COALESCE(SUM(hits), 0)::INT AS hits,
+                        COALESCE(SUM(home_runs), 0)::INT AS home_runs,
+                        COALESCE(SUM(rbi), 0)::INT AS rbi,
+                        COALESCE(SUM(runs), 0)::INT AS runs,
+                        COALESCE(SUM(stolen_bases), 0)::INT AS stolen_bases,
+                        CASE
+                            WHEN COALESCE(SUM(at_bats), 0) > 0
+                            THEN ROUND(COALESCE(SUM(hits), 0)::numeric / NULLIF(SUM(at_bats), 0), 3)
+                            ELSE 0
+                        END AS avg
+                    FROM estadisticas_ofensivas
+                    GROUP BY jugador_id
+                ),
+                pitcheo AS (
+                    SELECT
+                        jugador_id,
+                        ROUND(COALESCE(SUM(innings_pitched), 0)::numeric, 1) AS innings_pitched,
+                        COALESCE(SUM(wins), 0)::INT AS wins,
+                        COALESCE(SUM(strikeouts), 0)::INT AS strikeouts,
+                        COALESCE(SUM(saves), 0)::INT AS saves
+                    FROM estadisticas_pitcheo
+                    GROUP BY jugador_id
+                )
+                SELECT
+                    j.id AS jugador_id,
+                    j.nombre AS jugador_nombre,
+                    j.posicion,
+                    COALESCE(e.nombre, 'Sin equipo') AS equipo_nombre,
+                    COALESCE(o.at_bats, 0)::INT AS at_bats,
+                    COALESCE(o.hits, 0)::INT AS hits,
+                    COALESCE(o.home_runs, 0)::INT AS home_runs,
+                    COALESCE(o.rbi, 0)::INT AS rbi,
+                    COALESCE(o.runs, 0)::INT AS runs,
+                    COALESCE(o.stolen_bases, 0)::INT AS stolen_bases,
+                    COALESCE(o.avg, 0) AS avg,
+                    COALESCE(p.innings_pitched, 0) AS innings_pitched,
+                    COALESCE(p.wins, 0)::INT AS wins,
+                    COALESCE(p.strikeouts, 0)::INT AS strikeouts,
+                    COALESCE(p.saves, 0)::INT AS saves,
+                    ROUND(
+                        (
+                            (COALESCE(o.hits, 0) * 1.0) +
+                            (COALESCE(o.home_runs, 0) * 4.0) +
+                            (COALESCE(o.rbi, 0) * 1.2) +
+                            (COALESCE(o.runs, 0) * 0.8) +
+                            (COALESCE(o.stolen_bases, 0) * 1.0) +
+                            (COALESCE(p.wins, 0) * 6.0) +
+                            (COALESCE(p.strikeouts, 0) * 0.45) +
+                            (COALESCE(p.saves, 0) * 5.0)
+                        )::numeric,
+                        1
+                    ) AS legacy_score
+                FROM jugadores j
+                LEFT JOIN ofensiva o ON o.jugador_id = j.id
+                LEFT JOIN pitcheo p ON p.jugador_id = j.id
+                LEFT JOIN equipos e ON e.id = j.equipo_id
+                WHERE COALESCE(o.at_bats, 0) >= 12 OR COALESCE(p.innings_pitched, 0) >= 5
+                ORDER BY legacy_score DESC, COALESCE(o.hits, 0) DESC, COALESCE(o.home_runs, 0) DESC, j.nombre ASC
+                LIMIT 10
+            `),
+            hasOffensiveBoxscore
+                ? pool.query(`
+                    SELECT
+                        pjo.partido_id,
+                        j.id AS jugador_id,
+                        j.nombre AS jugador_nombre,
+                        COALESCE(eq.nombre, 'Sin equipo') AS equipo_nombre,
+                        COALESCE(t.nombre, 'Torneo') AS torneo_nombre,
+                        p.fecha_partido,
+                        CASE
+                            WHEN p.equipo_local_id = pjo.equipo_id THEN COALESCE(ev.nombre, 'Rival')
+                            ELSE COALESCE(el.nombre, 'Rival')
+                        END AS rival_nombre,
+                        COALESCE(pjo.at_bats, 0)::INT AS at_bats,
+                        COALESCE(pjo.hits, 0)::INT AS hits,
+                        COALESCE(pjo.doubles, 0)::INT AS doubles,
+                        COALESCE(pjo.triples, 0)::INT AS triples,
+                        COALESCE(pjo.home_runs, 0)::INT AS home_runs,
+                        COALESCE(pjo.rbi, 0)::INT AS rbi,
+                        COALESCE(pjo.runs, 0)::INT AS runs,
+                        COALESCE(pjo.walks, 0)::INT AS walks,
+                        COALESCE(pjo.stolen_bases, 0)::INT AS stolen_bases,
+                        ROUND((
+                            COALESCE(pjo.hits, 0) * 1.0 +
+                            COALESCE(pjo.doubles, 0) * 0.8 +
+                            COALESCE(pjo.triples, 0) * 1.4 +
+                            COALESCE(pjo.home_runs, 0) * 3.0 +
+                            COALESCE(pjo.rbi, 0) * 1.4 +
+                            COALESCE(pjo.runs, 0) * 1.0 +
+                            COALESCE(pjo.walks, 0) * 0.35 +
+                            COALESCE(pjo.stolen_bases, 0) * 0.75
+                        )::numeric, 2) AS performance_score
+                    FROM partido_jugador_ofensiva pjo
+                    JOIN partidos p ON p.id = pjo.partido_id
+                    JOIN jugadores j ON j.id = pjo.jugador_id
+                    LEFT JOIN equipos eq ON eq.id = pjo.equipo_id
+                    LEFT JOIN equipos el ON el.id = p.equipo_local_id
+                    LEFT JOIN equipos ev ON ev.id = p.equipo_visitante_id
+                    LEFT JOIN torneos t ON t.id = COALESCE(pjo.torneo_id, p.torneo_id)
+                    WHERE p.estado = 'finalizado'
+                      AND (
+                        COALESCE(pjo.at_bats, 0) > 0 OR
+                        COALESCE(pjo.walks, 0) > 0 OR
+                        COALESCE(pjo.hit_by_pitch, 0) > 0 OR
+                        COALESCE(pjo.sacrifice_flies, 0) > 0 OR
+                        COALESCE(pjo.sacrifice_hits, 0) > 0
+                      )
+                    ORDER BY performance_score DESC, COALESCE(pjo.home_runs, 0) DESC, COALESCE(pjo.hits, 0) DESC, COALESCE(pjo.rbi, 0) DESC, p.fecha_partido DESC
+                    LIMIT 10
+                `)
+                : Promise.resolve({ rows: [] }),
+            pool.query(`
+                SELECT
+                    eo.torneo_id,
+                    t.nombre AS torneo_nombre,
+                    j.id AS jugador_id,
+                    j.nombre AS jugador_nombre,
+                    j.posicion,
+                    MAX(e.nombre) AS equipo_nombre,
+                    COALESCE(SUM(eo.at_bats), 0)::INT AS at_bats,
+                    COALESCE(SUM(eo.hits), 0)::INT AS hits,
+                    COALESCE(SUM(eo.home_runs), 0)::INT AS home_runs,
+                    COALESCE(SUM(eo.rbi), 0)::INT AS rbi,
+                    COALESCE(SUM(eo.runs), 0)::INT AS runs,
+                    COALESCE(SUM(eo.walks), 0)::INT AS walks,
+                    COALESCE(SUM(eo.stolen_bases), 0)::INT AS stolen_bases,
+                    CASE
+                        WHEN COALESCE(SUM(eo.at_bats), 0) > 0
+                        THEN ROUND(COALESCE(SUM(eo.hits), 0)::numeric / NULLIF(SUM(eo.at_bats), 0), 3)
+                        ELSE 0
+                    END AS avg,
+                    CASE
+                        WHEN (COALESCE(SUM(eo.at_bats), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0) + COALESCE(SUM(eo.sacrifice_flies), 0)) > 0
+                        THEN ROUND(
+                            (COALESCE(SUM(eo.hits), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0))::numeric /
+                            NULLIF(COALESCE(SUM(eo.at_bats), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0) + COALESCE(SUM(eo.sacrifice_flies), 0), 0),
+                            3
+                        )
+                        ELSE 0
+                    END AS obp,
+                    CASE
+                        WHEN COALESCE(SUM(eo.at_bats), 0) > 0
+                        THEN ROUND(
+                            (
+                                (COALESCE(SUM(eo.hits), 0) - COALESCE(SUM(eo.doubles), 0) - COALESCE(SUM(eo.triples), 0) - COALESCE(SUM(eo.home_runs), 0)) +
+                                (2 * COALESCE(SUM(eo.doubles), 0)) +
+                                (3 * COALESCE(SUM(eo.triples), 0)) +
+                                (4 * COALESCE(SUM(eo.home_runs), 0))
+                            )::numeric / NULLIF(SUM(eo.at_bats), 0),
+                            3
+                        )
+                        ELSE 0
+                    END AS slg
+                FROM estadisticas_ofensivas eo
+                JOIN jugadores j ON j.id = eo.jugador_id
+                LEFT JOIN equipos e ON e.id = j.equipo_id
+                LEFT JOIN torneos t ON t.id = eo.torneo_id
+                GROUP BY eo.torneo_id, t.nombre, j.id, j.nombre, j.posicion
+                HAVING COALESCE(SUM(eo.at_bats), 0) >= 8
+                ORDER BY
+                    (
+                        CASE
+                            WHEN (COALESCE(SUM(eo.at_bats), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0) + COALESCE(SUM(eo.sacrifice_flies), 0)) > 0
+                            THEN ROUND(
+                                (COALESCE(SUM(eo.hits), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0))::numeric /
+                                NULLIF(COALESCE(SUM(eo.at_bats), 0) + COALESCE(SUM(eo.walks), 0) + COALESCE(SUM(eo.hit_by_pitch), 0) + COALESCE(SUM(eo.sacrifice_flies), 0), 0),
+                                3
+                            )
+                            ELSE 0
+                        END
+                        +
+                        CASE
+                            WHEN COALESCE(SUM(eo.at_bats), 0) > 0
+                            THEN ROUND(
+                                (
+                                    (COALESCE(SUM(eo.hits), 0) - COALESCE(SUM(eo.doubles), 0) - COALESCE(SUM(eo.triples), 0) - COALESCE(SUM(eo.home_runs), 0)) +
+                                    (2 * COALESCE(SUM(eo.doubles), 0)) +
+                                    (3 * COALESCE(SUM(eo.triples), 0)) +
+                                    (4 * COALESCE(SUM(eo.home_runs), 0))
+                                )::numeric / NULLIF(SUM(eo.at_bats), 0),
+                                3
+                            )
+                            ELSE 0
+                        END
+                    ) DESC,
+                    COALESCE(SUM(eo.home_runs), 0) DESC,
+                    COALESCE(SUM(eo.hits), 0) DESC,
+                    j.nombre ASC
+                LIMIT 10
+            `)
+        ]);
+
+        const bateadores = bateadoresResult.rows.map((row) => ({
+            ...row,
+            ops: Number((Number(row.obp || 0) + Number(row.slg || 0)).toFixed(3))
+        }));
+
+        const result = {
+            bateadores,
+            pitchers: pitchersResult.rows,
+            equipos: equiposResult.rows,
+            categorias,
+            hall_of_fame: hallOfFameResult.rows,
+            mejores_actuaciones: bestGamesResult.rows,
+            mejores_temporadas: bestSeasonsResult.rows.map((row) => ({
+                ...row,
+                ops: Number((Number(row.obp || 0) + Number(row.slg || 0)).toFixed(3))
+            })),
+            torneos: torneosResult.rows.map((row) => ({
+                ...row,
+                apariciones_equipo: Math.floor(Number(row.apariciones_equipo || 0) / 2)
+            }))
+        };
+
+        cache.set(cacheKey, result);
+        res.json(result);
+    } catch (error) {
+        console.error('Error obteniendo récords históricos:', error);
+        next(error);
+    }
+}
+
+// GET /api/dashboard/campeones-posicion
+async function obtenerCampeonesPosicion(req, res, next) {
+    try {
+        const { torneo_id } = req.query;
+        const [actuales, historicos] = await Promise.all([
+            campeonesService.obtenerCampeonesPorPosicion(torneo_id),
+            campeonesService.obtenerPalmaresHistoricoPosicional()
+        ]);
+
+        res.json({
+            ...actuales,
+            historicos
+        });
+    } catch (error) {
+        console.error('Error obteniendo campeones por posición:', error);
+        next(error);
+    }
+}
+
+// GET /api/dashboard/premios-oficiales
+async function obtenerPremiosOficiales(req, res, next) {
+    try {
+        const { torneo_id } = req.query;
+        const data = await campeonesService.obtenerPremiosOficialesTorneo(torneo_id);
+        res.json(data);
+    } catch (error) {
+        console.error('Error obteniendo premios oficiales:', error);
+        next(error);
+    }
+}
+
 module.exports = {
     obtenerStats,
     obtenerPosiciones,
@@ -336,5 +752,8 @@ module.exports = {
     obtenerLideresOfensivos,
     obtenerLideresPitcheo,
     obtenerLideresDefensivos,
-    buscarUniversal
+    buscarUniversal,
+    obtenerRecordsHistoricos,
+    obtenerCampeonesPosicion,
+    obtenerPremiosOficiales
 };

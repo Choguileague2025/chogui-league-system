@@ -91,11 +91,247 @@ function getTeamLogo(teamName) {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=ffc107&color=0d1117&size=120`;
 }
 
+function getPlayerAvatarByPosition(position) {
+    const pos = String(position || '').toUpperCase();
+    if (pos === 'P') return '/images/avatars/player-pitcher.svg';
+    if (pos === 'C') return '/images/avatars/player-catcher.svg';
+    if (['1B', '2B', '3B', 'SS'].includes(pos)) return '/images/avatars/player-infield.svg';
+    if (['LF', 'CF', 'RF'].includes(pos)) return '/images/avatars/player-outfield.svg';
+    return '/images/avatars/player-utility.svg';
+}
+
 function getInitials(name) {
     if (!name) return 'JG';
     const words = name.trim().split(/\s+/);
     if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
     return words.slice(0, 2).map(w => w.charAt(0).toUpperCase()).join('');
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+function setHtml(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = value;
+}
+
+function isPitcherPrimary() {
+    return String(playerData?.posicion || '').toUpperCase() === 'P';
+}
+
+function getTournamentParam() {
+    if (!currentTournamentId || currentTournamentId === 'todos') return '';
+    return `&torneo_id=${currentTournamentId}`;
+}
+
+function setHeaderLabels(labels = ['AVG', 'HR', 'RBI', 'OPS']) {
+    setText('headerLabel1', labels[0] || 'AVG');
+    setText('headerLabel2', labels[1] || 'HR');
+    setText('headerLabel3', labels[2] || 'RBI');
+    setText('headerLabel4', labels[3] || 'OPS');
+}
+
+function setHeaderValues(values = ['---', '---', '---', '---']) {
+    setText('headerAVG', values[0] ?? '---');
+    setText('headerHR', values[1] ?? '---');
+    setText('headerRBI', values[2] ?? '---');
+    setText('headerOPS', values[3] ?? '---');
+}
+
+function getTeamBadgeMarkup(teamName) {
+    return `<span class="team-badge-mini">${getInitials(teamName || 'EQ')}</span>`;
+}
+
+function getTeamLogoUrl(equipoId, equipoNombre) {
+    const numericId = Number(equipoId);
+    if (numericId) return `/api/equipos/${numericId}/logo`;
+    if (!equipoNombre) return '/images/logos/default-logo.png';
+    const nombreArchivo = equipoNombre
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '') + '.png';
+    return `/images/logos/${nombreArchivo}`;
+}
+
+function getTeamMediaMarkup(equipoId, equipoNombre) {
+    const logoUrl = getTeamLogoUrl(equipoId, equipoNombre);
+    const initials = getInitials(equipoNombre || 'EQ');
+    return `
+        <span class="team-media">
+            <img src="${logoUrl}" alt="Logo ${equipoNombre || 'equipo'}" loading="lazy"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+            <span class="team-media-fallback" style="display:none;">${initials}</span>
+        </span>
+    `;
+}
+
+function renderRecentGamesCards(games = [], source = 'fallback') {
+    const strip = document.getElementById('recentGamesStrip');
+    if (!strip) return;
+
+    if (!games.length) {
+        strip.innerHTML = `
+            <article class="recent-game-card empty">
+                <span class="recent-game-date">Sin juegos</span>
+                <strong>Esperando partidos oficiales</strong>
+                <p>La lectura rápida del rendimiento partido a partido aparecerá aquí cuando el jugador tenga actividad registrada.</p>
+            </article>
+        `;
+        return;
+    }
+
+    strip.innerHTML = games.slice(0, 3).map((game) => {
+        const matchup = `${game.equipo_local_nombre || 'Local'} ${game.carreras_local ?? '-'} - ${game.carreras_visitante ?? '-'} ${game.equipo_visitante_nombre || 'Visitante'}`;
+        const chips = source === 'boxscore'
+            ? `
+                <span class="recent-game-chip">H ${toNum(game.hits)}</span>
+                <span class="recent-game-chip">RBI ${toNum(game.rbi)}</span>
+                <span class="recent-game-chip">IP ${Number(game.innings_pitched || 0).toFixed(1)}</span>
+              `
+            : `
+                <span class="recent-game-chip">Marcador oficial</span>
+                <span class="recent-game-chip">${game.equipo_local_nombre || 'Local'} vs ${game.equipo_visitante_nombre || 'Visitante'}</span>
+              `;
+
+        return `
+            <article class="recent-game-card">
+                <span class="recent-game-date">${formatDateShort(game.fecha_partido)}</span>
+                <strong>${matchup}</strong>
+                <p>${game.torneo_nombre || (currentTournamentId === 'todos' ? 'Histórico oficial' : 'Torneo activo')}</p>
+                <div class="recent-game-meta">${chips}</div>
+                <a class="recent-game-link" href="partido.html?id=${game.partido_id || game.id}">Abrir boxscore →</a>
+            </article>
+        `;
+    }).join('');
+}
+
+function renderScoutingHighlights({ rivales = [], trend = {}, torneos = [] } = {}) {
+    const wrap = document.getElementById('scoutingHighlights');
+    if (!wrap) return;
+
+    if (!rivales.length && !torneos.length) {
+        wrap.innerHTML = `
+            <article class="scouting-highlight-card">
+                <span class="scouting-highlight-label">Scouting pendiente</span>
+                <strong>Esperando datos suficientes</strong>
+                <p>Cuando el jugador acumule boxscore oficial, aquí aparecerán sus focos de scouting.</p>
+            </article>
+        `;
+        return;
+    }
+
+    const sortedByAvg = [...rivales].sort((a, b) => (Number(b.avg) || 0) - (Number(a.avg) || 0));
+    const sortedByOps = [...rivales].sort((a, b) => (Number(b.ops) || 0) - (Number(a.ops) || 0));
+    const sortedByDifficulty = [...rivales].sort((a, b) => (Number(a.avg) || 0) - (Number(b.avg) || 0));
+    const bestRival = sortedByAvg[0] || sortedByOps[0];
+    const toughRival = sortedByDifficulty[0] || null;
+    const bestTournament = [...torneos].sort((a, b) => (Number(b.ops) || 0) - (Number(a.ops) || 0))[0] || null;
+    const trendLabel = trend.estado === 'subiendo' ? 'Subiendo' : (trend.estado === 'bajando' ? 'Bajando' : 'Estable');
+
+    wrap.innerHTML = `
+        <article class="scouting-highlight-card">
+            <span class="scouting-highlight-label">Rival objetivo</span>
+            <strong>${bestRival?.rival_nombre || 'Sin lectura todavía'}</strong>
+            <p>${bestRival ? `AVG ${Number(bestRival.avg || 0).toFixed(3)} • OPS ${Number(bestRival.ops || 0).toFixed(3)} • ${toNum(bestRival.hits)} hits` : 'No hay muestra rival por rival suficiente.'}</p>
+        </article>
+        <article class="scouting-highlight-card">
+            <span class="scouting-highlight-label">Rival más duro</span>
+            <strong>${toughRival?.rival_nombre || 'Sin lectura todavía'}</strong>
+            <p>${toughRival ? `AVG ${Number(toughRival.avg || 0).toFixed(3)} • ${toNum(toughRival.juegos)} juego(s) • tendencia ${trendLabel.toLowerCase()}` : 'Aún no hay un rival que marque una diferencia clara.'}</p>
+        </article>
+        <article class="scouting-highlight-card">
+            <span class="scouting-highlight-label">Torneo más fuerte</span>
+            <strong>${bestTournament?.torneo_nombre || 'En construcción'}</strong>
+            <p>${bestTournament ? `OPS ${Number(bestTournament.ops || 0).toFixed(3)} • AVG ${Number(bestTournament.avg || 0).toFixed(3)} • ${toNum(bestTournament.hits)} hits` : 'Se activará cuando existan cortes por torneo con boxscore.'}</p>
+        </article>
+    `;
+}
+
+function renderVsTeamsCards(rivales = []) {
+    const grid = document.getElementById('vsTeamsCards');
+    if (!grid) return;
+
+    if (!rivales.length) {
+        grid.innerHTML = `
+            <article class="recent-game-card empty">
+                <span class="recent-game-date">Sin lectura</span>
+                <strong>Esperando rivales</strong>
+                <p>Las tarjetas de scouting rival aparecerán cuando el jugador tenga boxscore cruzado contra otros equipos.</p>
+            </article>
+        `;
+        return;
+    }
+
+    grid.innerHTML = rivales.slice(0, 4).map((row) => `
+        <article class="recent-game-card">
+            <div class="card-head-inline">
+                ${getTeamMediaMarkup(row.rival_id, row.rival_nombre || 'Rival')}
+                <div class="card-head-copy">
+                    <strong>${row.rival_nombre || 'Rival'}</strong>
+                    <span>Scouting rival oficial</span>
+                </div>
+            </div>
+            <span class="recent-game-date">AVG ${Number(row.avg || 0).toFixed(3)} • OPS ${Number(row.ops || 0).toFixed(3)}</span>
+            <p>${toNum(row.juegos)} juego(s) contra este rival con ${toNum(row.hits)} hits y ${toNum(row.rbi)} impulsadas.</p>
+            <div class="recent-game-meta">
+                <span class="recent-game-chip">AB ${toNum(row.at_bats)}</span>
+                <span class="recent-game-chip">HR ${toNum(row.home_runs)}</span>
+                <span class="recent-game-chip">RBI ${toNum(row.rbi)}</span>
+            </div>
+        </article>
+    `).join('');
+}
+
+function renderHistoricalExecutive({ tournaments = [], awardsDetail = [], career = {}, rivals = [] } = {}) {
+    const wrap = document.getElementById('historicalExecutiveSummary');
+    const awardsWrap = document.getElementById('historicalAwardsVisual');
+    if (!wrap || !awardsWrap) return;
+
+    const bestTournament = tournaments.length
+        ? [...tournaments].sort((a, b) => ((toNum(b.hits) + toNum(b.home_runs) * 2 + toNum(b.rbi)) - (toNum(a.hits) + toNum(a.home_runs) * 2 + toNum(a.rbi))))[0]
+        : null;
+    const bestRival = rivals.length
+        ? [...rivals].sort((a, b) => (Number(b.avg) || 0) - (Number(a.avg) || 0))[0]
+        : null;
+    const totalTitles = toNum(career?.awards?.total);
+    const totalTournaments = tournaments.length;
+
+    wrap.innerHTML = `
+        <article class="historical-executive-card">
+            <span class="scouting-highlight-label">Mejor torneo</span>
+            <strong>${bestTournament?.torneo_nombre || 'Sin histórico suficiente'}</strong>
+            <p>${bestTournament ? `${toNum(bestTournament.hits)} hits • ${toNum(bestTournament.home_runs)} HR • ${toNum(bestTournament.rbi)} RBI` : 'Se activará cuando el jugador tenga más torneos acumulados.'}</p>
+        </article>
+        <article class="historical-executive-card">
+            <span class="scouting-highlight-label">Mejor rival histórico</span>
+            <strong>${bestRival?.rival_nombre || 'Sin lectura cruzada'}</strong>
+            <p>${bestRival ? `AVG ${Number(bestRival.avg || 0).toFixed(3)} • ${toNum(bestRival.hits)} hits en ${toNum(bestRival.juegos)} juego(s)` : 'Aún no hay suficiente scouting histórico rival por rival.'}</p>
+        </article>
+        <article class="historical-executive-card">
+            <span class="scouting-highlight-label">Palmarés global</span>
+            <strong>${totalTitles} título(s) • ${totalTournaments} torneo(s)</strong>
+            <p>AVG ${Number(career?.batting?.avg || 0).toFixed(3)} • OPS ${Number(career?.batting?.ops || 0).toFixed(3)} • ERA ${Number(career?.pitching?.era || 0).toFixed(2)}</p>
+        </article>
+    `;
+
+    awardsWrap.innerHTML = awardsDetail.length
+        ? awardsDetail.map((row) => `
+            <span class="award-visual-chip">
+                ${row.lado === 'ofensiva' ? '🏅' : '🛡️'}
+                ${row.posicion || 'UTIL'} • ${toNum(row.titulos)} título(s)
+            </span>
+        `).join('')
+        : '<span class="recent-game-chip">Sin palmarés posicional todavía</span>';
+}
+
+function formatDateShort(dateValue) {
+    if (!dateValue) return '--';
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return '--';
+    return date.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 // ===================================
@@ -104,16 +340,32 @@ function getInitials(name) {
 function setupTabs() {
     const tabs = document.querySelectorAll('.player-tab');
     const panels = document.querySelectorAll('.player-tab-panel');
+    const quickNav = document.querySelectorAll('[data-jump-tab]');
+
+    function activateTab(target) {
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        quickNav.forEach(btn => btn.classList.remove('active'));
+
+        const tabButton = document.querySelector(`.player-tab[data-tab="${target}"]`);
+        const panel = document.getElementById(`tab-${target}`);
+        const quickButton = document.querySelector(`.page-quicknav-link[data-jump-tab="${target}"]`);
+
+        if (tabButton) tabButton.classList.add('active');
+        if (panel) panel.classList.add('active');
+        if (quickButton) quickButton.classList.add('active');
+    }
 
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
+            activateTab(tab.dataset.tab);
+        });
+    });
 
-            tabs.forEach(t => t.classList.remove('active'));
-            panels.forEach(p => p.classList.remove('active'));
-
-            tab.classList.add('active');
-            document.getElementById(`tab-${target}`).classList.add('active');
+    quickNav.forEach(btn => {
+        btn.addEventListener('click', () => {
+            activateTab(btn.dataset.jumpTab);
+            document.querySelector('.player-tab-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
 }
@@ -123,10 +375,18 @@ function setupTabs() {
 // ===================================
 async function loadTournaments() {
     try {
-        const torneos = await fetchSafe('/api/torneos');
+        const torneos = await fetchSafe('/api/torneos/publicos');
         if (!torneos) return;
 
         const select = document.getElementById('tournamentSelect');
+        if (!torneos.length) {
+            select.innerHTML = '<option value="">Archivo disponible</option>';
+            select.disabled = true;
+            currentTournamentId = null;
+            return;
+        }
+
+        select.disabled = false;
         select.innerHTML = '<option value="todos">Todos los torneos</option>';
 
         torneos.forEach(torneo => {
@@ -163,43 +423,48 @@ async function loadPlayerInfo() {
         playerData = player;
         document.title = `${player.nombre} - Chogui League`;
 
+        const playerNumber = player.numero ? `#${player.numero}` : '#--';
+        const playerPosition = formatPos(player.posicion);
+        const playerTeam = player.equipo_nombre || 'Sin equipo';
+        const teamInitials = playerTeam && playerTeam !== 'Sin equipo' ? getInitials(playerTeam) : '--';
+
+        setText('playerHeroTitle', player.nombre);
+        setText('playerHeroSubtitle', `${playerNumber} • ${playerPosition} • ${playerTeam}`);
+        setText('playerHeroBadgeLabel', 'Equipo');
+        setText('playerHeroBadgeValue', teamInitials);
+        setText('playerHeroBadgeMeta', playerTeam);
+
         // Header info
         document.getElementById('playerName').textContent = player.nombre;
         document.getElementById('playerNumber').textContent = player.numero ? `#${player.numero}` : '#--';
         document.getElementById('playerPosition').textContent = formatPos(player.posicion);
-        document.getElementById('playerTeamName').textContent = player.equipo_nombre || 'Sin Equipo';
+        document.getElementById('playerTeamName').textContent = player.equipo_nombre || 'Sin equipo';
+        setHeaderLabels(isPitcherPrimary() ? ['ERA', 'WHIP', 'SO', 'IP'] : ['AVG', 'HR', 'RBI', 'OPS']);
 
         // Breadcrumbs
         const teamBreadcrumb = document.getElementById('teamBreadcrumbLink');
         if (player.equipo_id) {
             teamBreadcrumb.innerHTML = `<a href="equipo.html?id=${player.equipo_id}">${player.equipo_nombre}</a>`;
         } else {
-            teamBreadcrumb.textContent = 'Sin Equipo';
+            teamBreadcrumb.textContent = 'Sin equipo';
         }
         document.getElementById('playerBreadcrumb').textContent = player.nombre;
 
-        // Logo/Iniciales
+        // Avatar del jugador por posición
         const logoEl = document.getElementById('teamLogo');
-        if (logoEl && player.equipo_nombre) {
-            const img = new Image();
-            img.onload = () => {
-                logoEl.style.backgroundImage = `url('${getTeamLogo(player.equipo_nombre)}')`;
-                logoEl.style.backgroundSize = 'cover';
-                logoEl.style.backgroundPosition = 'center';
-                logoEl.innerHTML = '';
-            };
-            img.onerror = () => {
-                logoEl.style.backgroundImage = 'none';
-                logoEl.style.backgroundColor = '#ffc107';
-                logoEl.style.display = 'flex';
-                logoEl.style.alignItems = 'center';
-                logoEl.style.justifyContent = 'center';
-                logoEl.style.fontSize = '1.4rem';
-                logoEl.style.fontWeight = 'bold';
-                logoEl.style.color = '#0d1117';
-                logoEl.innerHTML = getInitials(player.nombre);
-            };
-            img.src = getTeamLogo(player.equipo_nombre);
+        const heroLogo = document.getElementById('heroPlayerLogo');
+        const avatarUrl = getPlayerAvatarByPosition(player.posicion);
+        if (logoEl) {
+            logoEl.style.backgroundImage = `url('${avatarUrl}')`;
+            logoEl.style.backgroundSize = 'cover';
+            logoEl.style.backgroundPosition = 'center';
+            logoEl.style.backgroundRepeat = 'no-repeat';
+            logoEl.style.backgroundColor = '#0f1726';
+            logoEl.innerHTML = '';
+        }
+        if (heroLogo) {
+            heroLogo.src = avatarUrl;
+            heroLogo.alt = `Avatar de ${player.nombre}`;
         }
 
         // Navigation
@@ -220,21 +485,162 @@ async function loadPlayerInfo() {
 // CARGAR TODAS LAS STATS
 // ===================================
 async function loadAllStats() {
-    const torneoParam = currentTournamentId ? `&torneo_id=${currentTournamentId}` : '';
+    if (!currentTournamentId) {
+        setHtml('offensiveTableBody', '<tr><td colspan="12" class="empty-state-v2">Esperando nuevo torneo público</td></tr>');
+        setHtml('pitchingTableBody', '<tr><td colspan="11" class="empty-state-v2">Esperando nuevo torneo público</td></tr>');
+        setHtml('defensiveTableBody', '<tr><td colspan="7" class="empty-state-v2">Esperando nuevo torneo público</td></tr>');
+        await Promise.all([loadHistoricalStats(), loadGameLog('')]);
+        return;
+    }
 
-    await Promise.all([
+    const torneoParam = getTournamentParam();
+    const tasks = [
         loadOffensiveStats(torneoParam),
         loadPitchingStats(torneoParam),
         loadDefensiveStats(torneoParam),
         loadComparison(torneoParam),
-        loadPlayerInsights(torneoParam)
+        loadPlayerScouting(torneoParam),
+        loadPlayerInsights(torneoParam),
+        loadHistoricalStats(),
+        loadGameLog(torneoParam)
+    ];
+
+    const results = await Promise.allSettled(tasks);
+    results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+            console.error(`Error cargando módulo de jugador #${index + 1}:`, result.reason);
+        }
+    });
+}
+
+async function loadHistoricalStats() {
+    const [data, rivalData] = await Promise.all([
+        fetchSafe(`/api/jugadores/${jugadorId}/historico`),
+        fetchSafe(`/api/jugadores/${jugadorId}/vs-equipos`)
     ]);
+    const career = data?.career;
+    const tournaments = Array.isArray(data?.by_tournament) ? data.by_tournament : [];
+    const awards = career?.awards || {};
+    const awardsDetail = Array.isArray(awards.detalle) ? awards.detalle : [];
+    const rivals = Array.isArray(rivalData?.rivales) ? rivalData.rivales : [];
+
+    if (!career) {
+        document.getElementById('careerAvg').textContent = '.000';
+        document.getElementById('careerOps').textContent = '.000';
+        document.getElementById('careerEra').textContent = '0.00';
+        document.getElementById('careerFpct').textContent = '.000';
+        document.getElementById('careerAwardsTotal').textContent = '0';
+        document.getElementById('careerAwardsOffense').textContent = '0';
+        document.getElementById('careerAwardsDefense').textContent = '0';
+        renderHistoricalExecutive();
+        document.getElementById('historicalAwardsBody').innerHTML = '<tr><td colspan="4" class="empty-state-v2">Sin palmarés disponible</td></tr>';
+        document.getElementById('historicalTableBody').innerHTML = '<tr><td colspan="10" class="empty-state-v2">Sin histórico disponible</td></tr>';
+        return;
+    }
+
+    document.getElementById('careerAvg').textContent = Number(career.batting?.avg || 0).toFixed(3);
+    document.getElementById('careerOps').textContent = Number(career.batting?.ops || 0).toFixed(3);
+    document.getElementById('careerEra').textContent = Number(career.pitching?.era || 0).toFixed(2);
+    document.getElementById('careerFpct').textContent = Number(career.fielding?.fielding_percentage || 0).toFixed(3);
+    document.getElementById('careerAwardsTotal').textContent = toNum(awards.total);
+    document.getElementById('careerAwardsOffense').textContent = toNum(awards.ofensivos);
+    document.getElementById('careerAwardsDefense').textContent = toNum(awards.defensivos);
+    renderHistoricalExecutive({ tournaments, awardsDetail, career: { ...career, awards }, rivals });
+
+    document.getElementById('historicalAwardsBody').innerHTML = awardsDetail.length
+        ? awardsDetail.map((row) => `
+            <tr>
+                <td>${row.lado === 'ofensiva' ? 'Ofensiva' : 'Defensiva'}</td>
+                <td>${row.posicion || 'UTIL'}</td>
+                <td>${toNum(row.titulos)}</td>
+                <td>${row.ultimo_torneo || 'Sin torneo'}</td>
+            </tr>
+        `).join('')
+        : '<tr><td colspan="4" class="empty-state-v2">Este jugador todavía no tiene títulos posicionales registrados</td></tr>';
+
+    document.getElementById('historicalTableBody').innerHTML = tournaments.length
+        ? tournaments.map(row => `
+            <tr>
+                <td>${row.torneo_nombre || 'Sin torneo'}</td>
+                <td>${toNum(row.at_bats)}</td>
+                <td>${toNum(row.hits)}</td>
+                <td>${toNum(row.home_runs)}</td>
+                <td>${toNum(row.rbi)}</td>
+                <td>${toNum(row.runs)}</td>
+                <td>${Number(row.innings_pitched || 0).toFixed(1)}</td>
+                <td>${toNum(row.wins)}-${toNum(row.losses)}</td>
+                <td>${toNum(row.chances)}</td>
+                <td>${toNum(row.errors)}</td>
+            </tr>
+        `).join('')
+        : '<tr><td colspan="10" class="empty-state-v2">Aún no hay torneos con histórico acumulado</td></tr>';
+}
+
+async function loadGameLog(torneoParam) {
+    const query = torneoParam ? `?${torneoParam.replace(/^&/, '')}` : '';
+    const [data, fallbackGames] = await Promise.all([
+        fetchSafe(`/api/jugadores/${jugadorId}/game-log${query}`),
+        fetchSafe(`/api/jugadores/${jugadorId}/partidos${query}`)
+    ]);
+    const games = Array.isArray(data?.games) ? data.games : [];
+    const fallback = Array.isArray(fallbackGames) ? fallbackGames : [];
+    const tbody = document.getElementById('gameLogTableBody');
+
+    if (!games.length && !fallback.length) {
+        tbody.innerHTML = '<tr><td colspan="11" class="empty-state-v2">Sin game log cargado todavía</td></tr>';
+        renderRecentGamesCards([]);
+        return;
+    }
+
+    if (games.length) {
+        renderRecentGamesCards(games, 'boxscore');
+        tbody.innerHTML = games.map(game => {
+            const matchup = `${game.equipo_local_nombre || 'Local'} ${game.carreras_local ?? '-'} - ${game.carreras_visitante ?? '-'} ${game.equipo_visitante_nombre || 'Visitante'}`;
+            return `
+                <tr>
+                    <td>${formatDateShort(game.fecha_partido)}</td>
+                    <td>${matchup}</td>
+                    <td>${game.torneo_nombre || 'Sin torneo'}</td>
+                    <td>${toNum(game.hits)}</td>
+                    <td>${toNum(game.rbi)}</td>
+                    <td>${toNum(game.runs)}</td>
+                    <td>${Number(game.innings_pitched || 0).toFixed(1)}</td>
+                    <td>${toNum(game.pitch_strikeouts)}</td>
+                    <td>${toNum(game.chances)}</td>
+                    <td>${toNum(game.errors)}</td>
+                    <td><a class="boxscore-player-link" href="partido.html?id=${game.partido_id}">Abrir</a></td>
+                </tr>
+            `;
+        }).join('');
+        return;
+    }
+
+    renderRecentGamesCards(fallback, 'fallback');
+    tbody.innerHTML = fallback.map(game => {
+        const matchup = `${game.equipo_local_nombre || 'Local'} ${game.carreras_local ?? '-'} - ${game.carreras_visitante ?? '-'} ${game.equipo_visitante_nombre || 'Visitante'}`;
+        return `
+            <tr>
+                <td>${formatDateShort(game.fecha_partido)}</td>
+                <td>${matchup}</td>
+                <td>${game.torneo_nombre || (currentTournamentId === 'todos' ? 'Histórico' : 'Torneo actual')}</td>
+                <td>--</td>
+                <td>--</td>
+                <td>--</td>
+                <td>--</td>
+                <td>--</td>
+                <td>--</td>
+                <td>--</td>
+                <td><a class="boxscore-player-link" href="partido.html?id=${game.id}">Abrir</a></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 async function loadPlayerInsights(torneoParam) {
     const query = torneoParam ? `?${torneoParam.replace(/^&/, '')}` : '';
-    const [allOffensive, playerGames] = await Promise.all([
+    const [allOffensive, allPitching, playerGames] = await Promise.all([
         fetchSafe(`/api/estadisticas-ofensivas?min_at_bats=1${torneoParam}`),
+        fetchSafe(`/api/estadisticas-pitcheo${query}`),
         fetchSafe(`/api/jugadores/${jugadorId}/partidos${query}`)
     ]);
 
@@ -249,6 +655,27 @@ async function loadPlayerInsights(torneoParam) {
     const playerStats = statsList.find(s => String(s.jugador_id) === String(jugadorId));
 
     if (!playerStats) {
+        const pitchingList = Array.isArray(allPitching) ? allPitching : [];
+        const playerPitching = pitchingList.find(s => String(s.jugador_id) === String(jugadorId));
+        if (playerPitching) {
+            const ip = Number(playerPitching.innings_pitched || 0);
+            const so = toNum(playerPitching.strikeouts);
+            const era = Number(playerPitching.era || 0).toFixed(2);
+            const whip = Number(playerPitching.whip || 0).toFixed(2);
+            const rankedEra = [...pitchingList]
+                .filter((row) => Number(row.innings_pitched || 0) > 0)
+                .sort((a, b) => (Number(a.era) || 999) - (Number(b.era) || 999));
+            const pitchRank = rankedEra.findIndex((row) => String(row.jugador_id) === String(jugadorId)) + 1;
+
+            if (insightOpsRank) insightOpsRank.textContent = pitchRank ? `#${pitchRank}` : '--';
+            if (insightOpsMeta) insightOpsMeta.textContent = ip > 0 ? `ERA ${era} • WHIP ${whip}` : 'Sin innings suficientes';
+            if (insightProfile) insightProfile.textContent = ip >= 4 ? 'Brazo en rotación' : 'Brazo en desarrollo';
+            if (insightProfileMeta) insightProfileMeta.textContent = `IP ${ip.toFixed(1)} • SO ${so}`;
+            if (insightStatus) insightStatus.textContent = ip > 0 ? 'Pitcher activo' : 'Pendiente';
+            if (insightStatusMeta) insightStatusMeta.textContent = games ? `${games} partidos vinculados al jugador` : 'Sin partidos vinculados todavía';
+            return;
+        }
+
         if (insightOpsRank) insightOpsRank.textContent = '--';
         if (insightOpsMeta) insightOpsMeta.textContent = 'Sin turnos oficiales suficientes';
         if (insightProfile) insightProfile.textContent = 'Sin muestra';
@@ -299,10 +726,10 @@ async function loadOffensiveStats(torneoParam) {
         document.getElementById('statOBP').textContent = '.000';
         document.getElementById('statSLG').textContent = '.000';
         document.getElementById('statOPS').textContent = '.000';
-        document.getElementById('headerAVG').textContent = '---';
-        document.getElementById('headerHR').textContent = '0';
-        document.getElementById('headerRBI').textContent = '0';
-        document.getElementById('headerOPS').textContent = '---';
+        if (!isPitcherPrimary()) {
+            setHeaderLabels(['AVG', 'HR', 'RBI', 'OPS']);
+            setHeaderValues(['---', '0', '0', '---']);
+        }
         document.getElementById('offensiveTableBody').innerHTML = '<tr><td colspan="12" class="empty-state-v2">Sin estadísticas ofensivas</td></tr>';
         return;
     }
@@ -333,10 +760,10 @@ async function loadOffensiveStats(torneoParam) {
     document.getElementById('statOPS').textContent = ops.toFixed(3);
 
     // Header stats
-    document.getElementById('headerAVG').textContent = avg.toFixed(3);
-    document.getElementById('headerHR').textContent = hr;
-    document.getElementById('headerRBI').textContent = rbi;
-    document.getElementById('headerOPS').textContent = ops.toFixed(3);
+    if (!isPitcherPrimary()) {
+        setHeaderLabels(['AVG', 'HR', 'RBI', 'OPS']);
+        setHeaderValues([avg.toFixed(3), String(hr), String(rbi), ops.toFixed(3)]);
+    }
 
     // Table
     document.getElementById('offensiveTableBody').innerHTML = `
@@ -364,6 +791,10 @@ async function loadPitchingStats(torneoParam) {
         document.getElementById('statWL').textContent = '0-0';
         document.getElementById('statPitchSO').textContent = '0';
         document.getElementById('statWHIP').textContent = '0.00';
+        if (isPitcherPrimary()) {
+            setHeaderLabels(['ERA', 'WHIP', 'SO', 'IP']);
+            setHeaderValues(['0.00', '0.00', '0', '0.0']);
+        }
         document.getElementById('pitchingTableBody').innerHTML = '<tr><td colspan="11" class="empty-state-v2">Sin estadísticas de pitcheo</td></tr>';
         return;
     }
@@ -386,6 +817,10 @@ async function loadPitchingStats(torneoParam) {
     document.getElementById('statWL').textContent = `${w}-${l}`;
     document.getElementById('statPitchSO').textContent = so;
     document.getElementById('statWHIP').textContent = whip.toFixed(2);
+    if (isPitcherPrimary()) {
+        setHeaderLabels(['ERA', 'WHIP', 'SO', 'IP']);
+        setHeaderValues([era.toFixed(2), whip.toFixed(2), String(so), ip.toFixed(1)]);
+    }
 
     // Table
     document.getElementById('pitchingTableBody').innerHTML = `
@@ -443,12 +878,28 @@ async function loadDefensiveStats(torneoParam) {
 // ===================================
 async function loadComparison(torneoParam) {
     const container = document.getElementById('comparisonContainer');
+    const vsTeamsBody = document.getElementById('vsTeamsBody');
+    const vsTeamsCards = document.getElementById('vsTeamsCards');
+    const similarPlayersChips = document.getElementById('similarPlayersChips');
+    const comparePlayersBody = document.getElementById('comparePlayersBody');
+    const compareBaseHeader = document.getElementById('compareBaseHeader');
+    const compareRivalHeader = document.getElementById('compareRivalHeader');
+    const comparisonFaceoffSummary = document.getElementById('comparisonFaceoffSummary');
 
     // Get all offensive stats to find leaders
+    const directQuery = torneoParam ? `?${torneoParam.replace(/^&/, '')}` : '';
     const allOffensive = await fetchSafe(`/api/estadisticas-ofensivas?min_at_bats=1${torneoParam}`);
+    const [vsEquipos, similares] = await Promise.all([
+        fetchSafe(`/api/jugadores/${jugadorId}/vs-equipos${directQuery}`),
+        fetchSafe(`/api/jugadores/${jugadorId}/similares?limit=6`)
+    ]);
 
     if (!allOffensive || !Array.isArray(allOffensive) || allOffensive.length === 0) {
         container.innerHTML = '<div class="empty-state-v2">No hay datos para comparar</div>';
+        if (vsTeamsBody) vsTeamsBody.innerHTML = '<tr><td colspan="7" class="empty-state-v2">Sin datos de scouting por rival</td></tr>';
+        if (vsTeamsCards) renderVsTeamsCards([]);
+        if (similarPlayersChips) similarPlayersChips.innerHTML = '<div class="empty-state-v2">Sin comparables disponibles</div>';
+        if (comparisonFaceoffSummary) comparisonFaceoffSummary.innerHTML = '<article class="historical-executive-card"><span class="scouting-highlight-label">Cara a cara</span><strong>Sin comparables disponibles</strong><p>Cuando existan perfiles comparables, aparecerá el resumen del duelo.</p></article>';
         return;
     }
 
@@ -467,7 +918,7 @@ async function loadComparison(torneoParam) {
         { key: 'stolen_bases', label: 'SB (Bases Robadas)', format: v => toNum(v), higher: true }
     ];
 
-    let html = '';
+    let html = '<div class="comparison-card"><h4>Referencia contra líderes</h4><p style="color:rgba(255,255,255,0.68);margin:0 0 8px;">Mide al jugador contra los techos ofensivos del torneo visible.</p></div>';
 
     categories.forEach(cat => {
         const sorted = [...allOffensive].sort((a, b) => {
@@ -499,6 +950,239 @@ async function loadComparison(torneoParam) {
 
     // Radar chart
     createRadarChart(playerStats, allOffensive);
+
+    const rivales = Array.isArray(vsEquipos?.rivales) ? vsEquipos.rivales : [];
+    renderVsTeamsCards(rivales);
+    if (vsTeamsBody) {
+        vsTeamsBody.innerHTML = rivales.length
+            ? rivales.map((row) => `
+                <tr>
+                    <td>${row.rival_nombre || 'Rival'}</td>
+                    <td>${toNum(row.juegos)}</td>
+                    <td>${toNum(row.at_bats)}</td>
+                    <td>${toNum(row.hits)}</td>
+                    <td>${toNum(row.home_runs)}</td>
+                    <td>${toNum(row.rbi)}</td>
+                    <td>${Number(row.avg || 0).toFixed(3)}</td>
+                </tr>
+            `).join('')
+            : '<tr><td colspan="7" class="empty-state-v2">Este jugador todavía no tiene suficiente detalle rival por rival</td></tr>';
+    }
+
+    const comparables = Array.isArray(similares) ? similares : [];
+    if (similarPlayersChips) {
+        similarPlayersChips.innerHTML = comparables.length
+            ? comparables.map((row) => `
+                <button class="player-tab comparable-player-card" type="button" data-compare-player="${row.id}">
+                    <div class="card-head-inline">
+                        ${getTeamMediaMarkup(row.equipo_id, row.equipo_nombre || 'EQ')}
+                        <div class="card-head-copy">
+                            <strong>${row.nombre}</strong>
+                            <span>${row.equipo_nombre || 'Sin equipo'} • ${formatPos(row.posicion)}</span>
+                        </div>
+                    </div>
+                    <div class="recent-game-meta">
+                        <span class="recent-game-chip">Comparable</span>
+                        <span class="recent-game-chip">Misma zona competitiva</span>
+                    </div>
+                </button>
+            `).join('')
+            : '<div class="empty-state-v2">No hay comparables por posición todavía</div>';
+
+        similarPlayersChips.querySelectorAll('[data-compare-player]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                similarPlayersChips.querySelectorAll('[data-compare-player]').forEach((item) => item.classList.remove('active'));
+                btn.classList.add('active');
+                await loadPlayerComparisonDetail(btn.dataset.comparePlayer, torneoParam);
+            });
+        });
+
+        if (comparables[0]) {
+            const firstBtn = similarPlayersChips.querySelector('[data-compare-player]');
+            if (firstBtn) {
+                firstBtn.classList.add('active');
+                await loadPlayerComparisonDetail(firstBtn.dataset.comparePlayer, torneoParam);
+            }
+        } else if (comparePlayersBody) {
+            comparePlayersBody.innerHTML = '<tr><td colspan="3" class="empty-state-v2">Sin comparativa disponible todavía</td></tr>';
+            if (comparisonFaceoffSummary) comparisonFaceoffSummary.innerHTML = '<article class="historical-executive-card"><span class="scouting-highlight-label">Cara a cara</span><strong>Sin comparables disponibles</strong><p>Este jugador todavía no tiene un espejo competitivo claro para comparar.</p></article>';
+        }
+    }
+    if (compareBaseHeader) compareBaseHeader.textContent = playerStats.jugador_nombre || playerData?.nombre || 'Jugador';
+    if (compareRivalHeader && !comparables.length) compareRivalHeader.textContent = 'Rival';
+}
+
+async function loadPlayerScouting(torneoParam) {
+    const summary = document.getElementById('playerScoutingSummary');
+    const splitsBody = document.getElementById('playerScoutingSplitsBody');
+    const tournamentsBody = document.getElementById('playerScoutingTournamentsBody');
+    const directQuery = torneoParam ? `?${torneoParam.replace(/^&/, '')}` : '';
+    const data = await fetchSafe(`/api/jugadores/${jugadorId}/scouting${directQuery}`);
+
+    if (!data || data.source === 'historico_no_disponible') {
+        const fallbackGames = await fetchSafe(`/api/jugadores/${jugadorId}/partidos${directQuery}`);
+        const gamesCount = Array.isArray(fallbackGames) ? fallbackGames.length : 0;
+        if (summary) {
+            summary.innerHTML = `
+                <div class="stat-card-v2"><span class="stat-card-title">Partidos ligados</span><span class="stat-card-value">${gamesCount}</span><span class="stat-card-desc">Aparece en el calendario oficial</span></div>
+                <div class="stat-card-v2"><span class="stat-card-title">Tendencia</span><span class="stat-card-value">Esperando boxscore</span><span class="stat-card-desc">Activa los splits juego a juego</span></div>
+                <div class="stat-card-v2"><span class="stat-card-title">Estado de scouting</span><span class="stat-card-value">${gamesCount ? 'Base lista' : 'Pendiente'}</span><span class="stat-card-desc">Falta detalle ofensivo por partido</span></div>
+            `;
+        }
+        renderScoutingHighlights();
+        if (splitsBody) splitsBody.innerHTML = '<tr><td colspan="8" class="empty-state-v2">Sin splits de scouting todavía</td></tr>';
+        if (tournamentsBody) tournamentsBody.innerHTML = '<tr><td colspan="8" class="empty-state-v2">Sin scouting por torneo todavía</td></tr>';
+        return;
+    }
+
+    const recent5 = data.recent5 || {};
+    const previous5 = data.previous5 || {};
+    const trend = data.trend || {};
+    const local = data.splits?.local || {};
+    const visitante = data.splits?.visitante || {};
+    const torneos = Array.isArray(data.torneos) ? data.torneos : [];
+    const rivales = Array.isArray(data.rivales) ? data.rivales : [];
+    const trendLabel = trend.estado === 'subiendo' ? 'En alza' : (trend.estado === 'bajando' ? 'En baja' : 'Estable');
+    renderScoutingHighlights({ rivales, trend, torneos });
+
+    if (summary) {
+        summary.innerHTML = `
+            <div class="stat-card-v2">
+                <span class="stat-card-title">Últimos 5</span>
+                <span class="stat-card-value">${Number(recent5.ops || 0).toFixed(3)}</span>
+                <span class="stat-card-desc">OPS • ${toNum(recent5.hits)} H • ${toNum(recent5.home_runs)} HR</span>
+            </div>
+            <div class="stat-card-v2">
+                <span class="stat-card-title">Tendencia</span>
+                <span class="stat-card-value">${trendLabel}</span>
+                <span class="stat-card-desc">AVG ${trend.avg_delta >= 0 ? '+' : ''}${Number(trend.avg_delta || 0).toFixed(3)} • OPS ${trend.ops_delta >= 0 ? '+' : ''}${Number(trend.ops_delta || 0).toFixed(3)}</span>
+            </div>
+            <div class="stat-card-v2">
+                <span class="stat-card-title">Casa vs ruta</span>
+                <span class="stat-card-value">${Number(local.ops || 0).toFixed(3)} / ${Number(visitante.ops || 0).toFixed(3)}</span>
+                <span class="stat-card-desc">OPS local / visitante</span>
+            </div>
+        `;
+    }
+
+    if (splitsBody) {
+        const splitRows = [
+            ['Local', local],
+            ['Visitante', visitante],
+            ['Últimos 5', recent5],
+            ['5 anteriores', previous5]
+        ];
+        splitsBody.innerHTML = splitRows.map(([label, row]) => `
+            <tr>
+                <td>${label}</td>
+                <td>${toNum(row.juegos)}</td>
+                <td>${toNum(row.at_bats)}</td>
+                <td>${toNum(row.hits)}</td>
+                <td>${toNum(row.home_runs)}</td>
+                <td>${toNum(row.rbi)}</td>
+                <td>${Number(row.avg || 0).toFixed(3)}</td>
+                <td>${Number(row.ops || 0).toFixed(3)}</td>
+            </tr>
+        `).join('');
+    }
+
+    if (tournamentsBody) {
+        tournamentsBody.innerHTML = torneos.length
+            ? torneos.map((row) => `
+                <tr>
+                    <td>${row.torneo_nombre || 'Sin torneo'}</td>
+                    <td>${toNum(row.juegos)}</td>
+                    <td>${toNum(row.at_bats)}</td>
+                    <td>${toNum(row.hits)}</td>
+                    <td>${toNum(row.home_runs)}</td>
+                    <td>${toNum(row.rbi)}</td>
+                    <td>${Number(row.avg || 0).toFixed(3)}</td>
+                    <td>${Number(row.ops || 0).toFixed(3)}</td>
+                </tr>
+            `).join('')
+            : '<tr><td colspan="8" class="empty-state-v2">Sin scouting por torneo todavía</td></tr>';
+    }
+}
+
+async function loadPlayerComparisonDetail(rivalId, torneoParam) {
+    const comparePlayersBody = document.getElementById('comparePlayersBody');
+    const compareRivalHeader = document.getElementById('compareRivalHeader');
+    const comparisonFaceoffSummary = document.getElementById('comparisonFaceoffSummary');
+    if (!comparePlayersBody) return;
+
+    comparePlayersBody.innerHTML = '<tr><td colspan="3" class="loading">Cargando comparativa...</td></tr>';
+    const directQuery = torneoParam ? `?${torneoParam.replace(/^&/, '')}` : '';
+    const data = await fetchSafe(`/api/jugadores/${jugadorId}/comparar/${rivalId}${directQuery}`);
+
+    if (!data?.jugador_base || !data?.jugador_rival) {
+        comparePlayersBody.innerHTML = '<tr><td colspan="3" class="empty-state-v2">No se pudo armar la comparativa</td></tr>';
+        if (comparisonFaceoffSummary) comparisonFaceoffSummary.innerHTML = '<article class="historical-executive-card"><span class="scouting-highlight-label">Cara a cara</span><strong>No disponible</strong><p>La comparación detallada todavía no tiene suficiente data oficial.</p></article>';
+        return;
+    }
+
+    if (compareRivalHeader) compareRivalHeader.textContent = data.jugador_rival.nombre || 'Rival';
+
+    const rows = [
+        ['AVG torneo', Number(data.jugador_base.actual?.avg || 0).toFixed(3), Number(data.jugador_rival.actual?.avg || 0).toFixed(3)],
+        ['OPS torneo', Number(data.jugador_base.actual?.ops || 0).toFixed(3), Number(data.jugador_rival.actual?.ops || 0).toFixed(3)],
+        ['HR torneo', toNum(data.jugador_base.actual?.home_runs), toNum(data.jugador_rival.actual?.home_runs)],
+        ['RBI torneo', toNum(data.jugador_base.actual?.rbi), toNum(data.jugador_rival.actual?.rbi)],
+        ['SB torneo', toNum(data.jugador_base.actual?.stolen_bases), toNum(data.jugador_rival.actual?.stolen_bases)],
+        ['AVG histórico', Number(data.jugador_base.historico?.avg || 0).toFixed(3), Number(data.jugador_rival.historico?.avg || 0).toFixed(3)],
+        ['Hits históricos', toNum(data.jugador_base.historico?.hits), toNum(data.jugador_rival.historico?.hits)],
+        ['HR históricos', toNum(data.jugador_base.historico?.home_runs), toNum(data.jugador_rival.historico?.home_runs)],
+        ['Torneos jugados', toNum(data.jugador_base.historico?.torneos), toNum(data.jugador_rival.historico?.torneos)]
+    ];
+
+    const baseOps = Number(data.jugador_base.actual?.ops || 0);
+    const rivalOps = Number(data.jugador_rival.actual?.ops || 0);
+    const winner = baseOps === rivalOps
+        ? 'Duelo parejo'
+        : (baseOps > rivalOps ? (data.jugador_base.nombre || 'Jugador base') : (data.jugador_rival.nombre || 'Rival'));
+    const baseTeam = data.jugador_base.equipo_nombre || playerData?.equipo_nombre || 'Equipo base';
+    const rivalTeam = data.jugador_rival.equipo_nombre || 'Equipo rival';
+    const baseId = data.jugador_base.equipo_id || playerData?.equipo_id || null;
+    const rivalIdNum = data.jugador_rival.equipo_id || null;
+
+    if (comparisonFaceoffSummary) {
+        comparisonFaceoffSummary.innerHTML = `
+            <article class="historical-executive-card">
+                <span class="scouting-highlight-label">Cara a cara actual</span>
+                <div class="card-head-inline">
+                    ${getTeamMediaMarkup(baseId, baseTeam)}
+                    <div class="card-head-copy">
+                        <strong>${data.jugador_base.nombre || 'Jugador base'}</strong>
+                        <span>${baseTeam}</span>
+                    </div>
+                </div>
+                <p>OPS ${baseOps.toFixed(3)} • AVG ${Number(data.jugador_base.actual?.avg || 0).toFixed(3)}</p>
+            </article>
+            <article class="historical-executive-card">
+                <span class="scouting-highlight-label">Ventaja del duelo</span>
+                <strong>${winner}</strong>
+                <p>${baseOps.toFixed(3)} vs ${rivalOps.toFixed(3)} en OPS del torneo actual.</p>
+            </article>
+            <article class="historical-executive-card">
+                <span class="scouting-highlight-label">Rival comparado</span>
+                <div class="card-head-inline">
+                    ${getTeamMediaMarkup(rivalIdNum, rivalTeam)}
+                    <div class="card-head-copy">
+                        <strong>${data.jugador_rival.nombre || 'Rival'}</strong>
+                        <span>${rivalTeam}</span>
+                    </div>
+                </div>
+                <p>OPS ${rivalOps.toFixed(3)} • AVG ${Number(data.jugador_rival.actual?.avg || 0).toFixed(3)}</p>
+            </article>
+        `;
+    }
+
+    comparePlayersBody.innerHTML = rows.map(([label, baseVal, rivalVal]) => `
+        <tr>
+            <td>${label}</td>
+            <td>${baseVal}</td>
+            <td>${rivalVal}</td>
+        </tr>
+    `).join('');
 }
 
 // ===================================

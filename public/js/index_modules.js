@@ -15,12 +15,22 @@ const TournamentModule = {
         try {
             const select = document.getElementById('indexTournamentSelect');
             if (!select) return;
+            this.currentTournamentId = null;
 
-            const response = await fetch('/api/torneos');
+            const response = await fetch('/api/torneos/publicos');
             if (!response.ok) throw new Error('Error cargando torneos');
             const data = await response.json();
             this.allTorneos = Array.isArray(data) ? data : (data.torneos || []);
 
+            if (!this.allTorneos.length) {
+                this.currentTournamentId = null;
+                select.innerHTML = '<option value="">Próximamente</option>';
+                select.disabled = true;
+                this.onTournamentChange({ notify: false });
+                return;
+            }
+
+            select.disabled = false;
             select.innerHTML = '<option value="todos">Todos los torneos</option>';
 
             this.allTorneos.forEach(torneo => {
@@ -34,12 +44,21 @@ const TournamentModule = {
                 select.appendChild(option);
             });
 
-            select.addEventListener('change', (e) => {
-                this.currentTournamentId = e.target.value === 'todos' ? 'todos' : e.target.value;
-                this.onTournamentChange();
-            });
+            if (!this.currentTournamentId && this.allTorneos[0]) {
+                this.currentTournamentId = String(this.allTorneos[0].id);
+                select.value = this.currentTournamentId;
+            }
+
+            if (!select.dataset.boundTournamentListener) {
+                select.addEventListener('change', (e) => {
+                    this.currentTournamentId = e.target.value === 'todos' ? 'todos' : e.target.value;
+                    this.onTournamentChange();
+                });
+                select.dataset.boundTournamentListener = 'true';
+            }
 
             console.log('[Torneos] Cargados:', this.allTorneos.length);
+            this.onTournamentChange({ notify: false });
         } catch (error) {
             console.error('[Torneos] Error:', error);
             const select = document.getElementById('indexTournamentSelect');
@@ -51,16 +70,37 @@ const TournamentModule = {
         return this.currentTournamentId;
     },
 
-    onTournamentChange() {
+    hasPublicTournament() {
+        return Array.isArray(this.allTorneos) && this.allTorneos.length > 0 && !!this.currentTournamentId;
+    },
+
+    onTournamentChange(options = {}) {
+        const { notify = true } = options;
         console.log('[Torneos] Cambiado a:', this.currentTournamentId);
         // Reload leaders and stats with new tournament filter
         if (typeof cargarLideres === 'function') cargarLideres();
         if (typeof cargarEstadisticasCompletas === 'function') cargarEstadisticasCompletas();
         if (typeof cargarLideresOfensivos === 'function') cargarLideresOfensivos();
+        if (typeof cargarCampeonesPosicionales === 'function') cargarCampeonesPosicionales();
         if (typeof cargarTablaPosiciones === 'function') cargarTablaPosiciones();
-        NotificationModule.show('Torneo actualizado', 'info');
+        if (typeof cargarCarreraPlayoffsHome === 'function') cargarCarreraPlayoffsHome();
+        if (typeof cargarPulsoLiga === 'function') cargarPulsoLiga();
+        if (notify) {
+            NotificationModule.show('Torneo actualizado', 'info');
+        }
     }
 };
+
+function getTournamentQueryParam() {
+    if (typeof TournamentModule === 'undefined' || typeof TournamentModule.getCurrentId !== 'function') {
+        return '';
+    }
+    const currentId = TournamentModule.getCurrentId();
+    if (!currentId || currentId === 'todos') {
+        return '';
+    }
+    return `torneo_id=${encodeURIComponent(currentId)}`;
+}
 
 // ============================================
 // MODULE: PAGINATION FOR STATS TABLE
@@ -195,6 +235,9 @@ const SSEModule = {
                 if (typeof cargarLideres === 'function') cargarLideres();
                 if (typeof cargarEstadisticasCompletas === 'function') cargarEstadisticasCompletas();
                 if (typeof cargarLideresOfensivos === 'function') cargarLideresOfensivos();
+                if (typeof cargarCampeonesPosicionales === 'function') cargarCampeonesPosicionales();
+                if (typeof cargarCarreraPlayoffsHome === 'function') cargarCarreraPlayoffsHome();
+                if (typeof cargarPulsoLiga === 'function') cargarPulsoLiga();
             });
 
             this.connection.addEventListener('tournament-change', (e) => {
@@ -203,6 +246,9 @@ const SSEModule = {
                 TournamentModule.load();
                 if (typeof cargarTablaPosiciones === 'function') cargarTablaPosiciones();
                 if (typeof cargarLideres === 'function') cargarLideres();
+                if (typeof cargarCampeonesPosicionales === 'function') cargarCampeonesPosicionales();
+                if (typeof cargarCarreraPlayoffsHome === 'function') cargarCarreraPlayoffsHome();
+                if (typeof cargarPulsoLiga === 'function') cargarPulsoLiga();
             });
 
             this.connection.addEventListener('general-update', (e) => {
@@ -211,6 +257,8 @@ const SSEModule = {
                 if (typeof cargarUltimosPartidos === 'function') cargarUltimosPartidos();
                 if (typeof cargarBracketPlayoffs === 'function') cargarBracketPlayoffs();
                 if (typeof cargarGameCenter === 'function') cargarGameCenter();
+                if (typeof cargarCarreraPlayoffsHome === 'function') cargarCarreraPlayoffsHome();
+                if (typeof cargarPulsoLiga === 'function') cargarPulsoLiga();
             });
 
             this.connection.onopen = () => {
@@ -365,22 +413,28 @@ window.addEventListener('load', () => {
     if (typeof originalFn === 'function') {
         window.cargarEstadisticasCompletas = async function () {
             try {
+                if (!TournamentModule.hasPublicTournament()) {
+                    if (typeof estadisticas !== 'undefined') {
+                        window.estadisticas = [];
+                    }
+                    PaginationModule.setData([]);
+                    const grid = document.getElementById('positionLeadersGrid');
+                    if (grid) {
+                        grid.innerHTML = '<div class="empty-state-v2">Las estadísticas oficiales volverán cuando se publique el próximo torneo.</div>';
+                    }
+                    return;
+                }
+
+                const tournamentQuery = getTournamentQueryParam();
                 const fullUrl = typeof getApiUrl === 'function'
-                    ? getApiUrl('/api/estadisticas-ofensivas')
-                    : '/api/estadisticas-ofensivas';
+                    ? getApiUrl(`/api/estadisticas-ofensivas${tournamentQuery ? `?${tournamentQuery}` : ''}`)
+                    : `/api/estadisticas-ofensivas${tournamentQuery ? `?${tournamentQuery}` : ''}`;
 
                 const res = await fetch(fullUrl, { headers: { 'Accept': 'application/json' } });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
 
-                // Apply same filter logic as original
-                let estadisticasFiltradas;
-                const tiene2025 = (data || []).some(r => (r.temporada ?? '').toString().trim() === '2025');
-                if (tiene2025) {
-                    estadisticasFiltradas = data.filter(r => (r.temporada ?? '').toString().trim() === '2025');
-                } else {
-                    estadisticasFiltradas = data || [];
-                }
+                const estadisticasFiltradas = Array.isArray(data) ? data : [];
 
                 // Store globally
                 if (typeof estadisticas !== 'undefined') {
@@ -423,6 +477,8 @@ window.addEventListener('load', () => {
                                     </div>
                                 </div>`;
                         }).join('');
+                    } else if (grid) {
+                        grid.innerHTML = '<div class="empty-state-v2">Todavía no hay suficientes datos defensivos para mostrar líderes por posición.</div>';
                     }
                 } catch (e) { console.warn('Position leaders render:', e); }
 

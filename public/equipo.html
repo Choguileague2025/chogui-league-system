@@ -7,21 +7,48 @@
     <meta name="description" content="Detalles del equipo, roster y estadísticas en Chogui League.">
     <link rel="stylesheet" href="equipo.min.css">
     <link rel="stylesheet" href="css/equipo_v2.min.css">
+    <link rel="stylesheet" href="css/brand_shell.css">
 </head>
-<body>
-    <a href="login.html" class="admin-link">🔑 Admin</a>
+<body class="brand-page-shell">
+    <header class="brand-topbar">
+        <div class="brand-topbar-inner">
+            <a href="index.html" class="brand-lockup">
+                <span class="brand-mark">
+                    <img src="/images/logos/chogui-league.png" alt="Logo Chogui League">
+                </span>
+                <span class="brand-copy">
+                    <span class="brand-overline">Perfil oficial del equipo</span>
+                    <span class="brand-name">Chogui League</span>
+                    <span class="brand-subcopy">Plantilla, histórico y rendimiento oficial del equipo</span>
+                </span>
+            </a>
+            <nav class="brand-nav">
+                <a href="index.html#posiciones" class="brand-nav-link">Posiciones</a>
+                <a href="index.html#partidos" class="brand-nav-link">Partidos</a>
+                <a href="index.html#records" class="brand-nav-link">Récords</a>
+                <a href="login.html" class="brand-admin-link">Admin</a>
+            </nav>
+        </div>
+    </header>
 
     <div class="container">
-        <!-- HEADER -->
-        <div class="header">
-            <div class="header-content">
-                <div class="logo-container">
-                    <div class="logo-chogui"></div>
+        <section class="brand-hero">
+            <div class="brand-hero-inner">
+                <div class="brand-hero-logo">
+                    <img id="heroTeamLogo" src="/images/logos/chogui-league.png" alt="Escudo del equipo">
                 </div>
-                <h1>🏆 CHOGUI LEAGUE</h1>
-                <p>Sistema de Gestión Profesional de Softbol</p>
+                <div class="brand-hero-copy">
+                    <span class="brand-hero-kicker" id="teamHeroKicker">Perfil oficial del equipo</span>
+                    <h1 class="brand-hero-title" id="teamHeroTitle">Perfil del Equipo</h1>
+                    <p class="brand-hero-subtitle" id="teamHeroSubtitle">Plantilla, histórico y rendimiento oficial dentro de la liga.</p>
+                </div>
+                <div class="brand-hero-badge">
+                    <span id="teamHeroBadgeLabel">Ciudad</span>
+                    <strong id="teamHeroBadgeValue">--</strong>
+                    <span id="teamHeroBadgeMeta">Equipo oficial</span>
+                </div>
             </div>
-        </div>
+        </section>
 
         <!-- BREADCRUMB -->
         <div class="breadcrumb">
@@ -31,6 +58,14 @@
             <span>></span>
             <strong id="teamBreadcrumb" style="color: #ffc107;">Cargando...</strong>
         </div>
+
+        <nav class="page-quicknav" aria-label="Navegación rápida del equipo">
+            <a class="page-quicknav-link" href="#playoffPathSection">Playoffs</a>
+            <a class="page-quicknav-link" href="#teamHistorySection">Histórico</a>
+            <a class="page-quicknav-link" href="#headToHeadSection">Cara a cara</a>
+            <a class="page-quicknav-link" href="#teamCompareSection">Comparador</a>
+            <a class="page-quicknav-link" href="#teamRosterSection">Plantilla</a>
+        </nav>
 
         <!-- TEAM MAIN CARD + TOURNAMENT SELECTOR -->
         <div class="team-main-card">
@@ -58,7 +93,7 @@
             <div class="team-stats-row" id="teamStatsRow">
                 <div class="stat-item">
                     <span class="stat-value" id="teamRecord">-</span>
-                    <span class="stat-label">Record (G-P)</span>
+                    <span class="stat-label">Récord (G-P)</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-value" id="teamPositionStat">-</span>
@@ -90,6 +125,217 @@
                 <span class="signal-label">Forma reciente</span>
                 <strong id="teamSignalForm">--</strong>
                 <small id="teamSignalFormMeta">Últimos partidos cargados</small>
+            </div>
+        </section>
+
+        <section class="top-players-section" id="playoffPathSection">
+            <h3 class="section-title">🛣️ Camino a Playoffs</h3>
+            <p class="section-subtitle">Lectura del corte, margen actual y rivales que definen si el equipo entra o no a postemporada.</p>
+            <div class="collective-stats-grid" id="playoffPathCards">
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Estado</span>
+                    <span class="collective-stat-value" id="playoffPathState">--</span>
+                    <span class="collective-stat-desc" id="playoffPathStateMeta">Calculando...</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Corte</span>
+                    <span class="collective-stat-value" id="playoffPathCutoff">--</span>
+                    <span class="collective-stat-desc" id="playoffPathCutoffMeta">Equipo que marca el límite</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Margen</span>
+                    <span class="collective-stat-value" id="playoffPathMargin">--</span>
+                    <span class="collective-stat-desc" id="playoffPathMarginMeta">Juegos sobre / bajo el corte</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Ruta</span>
+                    <span class="collective-stat-value" id="playoffPathTarget">--</span>
+                    <span class="collective-stat-desc" id="playoffPathTargetMeta">Cruce o victorias objetivo</span>
+                </div>
+            </div>
+            <div class="records-scout-card team-playoff-brief">
+                <div class="records-scout-header">
+                    <div>
+                        <h5 id="playoffPathHeadline">Esperando cálculo de playoffs</h5>
+                        <p id="playoffPathMessage">La ruta competitiva del equipo aparecerá cuando tengamos datos suficientes del torneo.</p>
+                    </div>
+                </div>
+                <div class="table-responsive-v2">
+                    <table class="top-players-table">
+                        <thead>
+                            <tr>
+                                <th>Rival directo</th><th>#</th><th>Récord</th><th>PCT</th><th>Margen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playoffPathRivalsBody">
+                            <tr><td colspan="5" class="loading-cell">Cargando carrera al corte...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="team-collective-section" id="teamHistorySection">
+            <h3 class="section-title">🏆 Histórico del Equipo</h3>
+            <div id="teamHistoricalExecutive" class="historical-executive-grid">
+                <div class="historical-executive-card">
+                    <span class="historical-executive-label">Mejor torneo</span>
+                    <strong class="historical-executive-value">Calculando...</strong>
+                    <small class="historical-executive-meta">Leyendo archivo histórico</small>
+                </div>
+            </div>
+            <div class="collective-stats-grid">
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Récord histórico</span>
+                    <span class="collective-stat-value" id="historicRecord">0-0</span>
+                    <span class="collective-stat-desc">Récord acumulado</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">PCT histórico</span>
+                    <span class="collective-stat-value" id="historicPct">.000</span>
+                    <span class="collective-stat-desc">Porcentaje histórico</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Diferencial</span>
+                    <span class="collective-stat-value" id="historicDiff">0</span>
+                    <span class="collective-stat-desc">Diferencial total</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Plantilla histórica</span>
+                    <span class="collective-stat-value" id="historicRoster">0</span>
+                    <span class="collective-stat-desc">Jugadores registrados</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Títulos posicionales</span>
+                    <span class="collective-stat-value" id="historicAwardsTotal">0</span>
+                    <span class="collective-stat-desc">Ganados por jugadores del equipo</span>
+                </div>
+            </div>
+            <div id="teamAwardsVisual" class="historical-awards-visual">
+                <div class="award-visual-chip muted">Palmarés en carga</div>
+            </div>
+            <div class="table-responsive-v2" style="margin-top: 20px;">
+                <table class="top-players-table">
+                    <thead>
+                        <tr>
+                            <th>Torneo</th><th>J</th><th>W</th><th>L</th><th>PCT</th><th>CA</th><th>CP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicTournamentsBody">
+                        <tr><td colspan="7" class="loading-cell">Cargando histórico...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-responsive-v2" style="margin-top: 20px;">
+                <table class="top-players-table">
+                    <thead>
+                        <tr>
+                            <th>Jugador</th><th>Lado</th><th>Posición</th><th>Títulos</th><th>Último torneo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicAwardsBody">
+                        <tr><td colspan="5" class="loading-cell">Cargando palmarés del equipo...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="top-players-section" id="headToHeadSection">
+            <h3 class="section-title">🤝 Cara a cara</h3>
+            <div id="headToHeadExecutive" class="historical-executive-grid compact">
+                <div class="historical-executive-card">
+                    <span class="historical-executive-label">Lectura de rivales</span>
+                    <strong class="historical-executive-value">Calculando...</strong>
+                    <small class="historical-executive-meta">Esperando cruces históricos</small>
+                </div>
+            </div>
+            <div class="table-responsive-v2">
+                <table class="top-players-table">
+                    <thead>
+                        <tr>
+                            <th>Rival</th><th>J</th><th>W</th><th>L</th><th>CA</th><th>CP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="headToHeadBody">
+                        <tr><td colspan="6" class="loading-cell">Cargando rivales...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="top-players-section" id="teamCompareSection">
+            <h3 class="section-title">⚔️ Comparador de Equipos</h3>
+            <p class="section-subtitle">Compara este equipo con un rival directo para scouting, series y posibles refuerzos.</p>
+            <div id="teamCompareChips" class="comparison-grid">
+                <div class="loading">Cargando rivales para comparar...</div>
+            </div>
+            <div id="teamCompareFaceoffSummary" class="comparison-faceoff-summary">
+                <div class="empty-state">Selecciona un rival para ver la lectura ejecutiva del cruce.</div>
+            </div>
+            <div class="table-responsive-v2" style="margin-top: 18px;">
+                <table class="top-players-table">
+                    <thead>
+                        <tr>
+                            <th>Métrica</th><th id="teamCompareBaseHeader">Equipo</th><th id="teamCompareRivalHeader">Rival</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamCompareBody">
+                        <tr><td colspan="3" class="loading-cell">Selecciona un rival para comparar</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="top-players-section" id="teamScoutingSection">
+            <h3 class="section-title">📈 Scouting del Equipo</h3>
+            <p class="section-subtitle">Lee cómo llega el equipo: forma reciente, comportamiento en casa y ruta, y splits por torneo.</p>
+            <div id="teamScoutingHighlights" class="historical-executive-grid compact">
+                <div class="historical-executive-card">
+                    <span class="historical-executive-label">Lectura scouting</span>
+                    <strong class="historical-executive-value">Calculando...</strong>
+                    <small class="historical-executive-meta">Esperando muestra reciente</small>
+                </div>
+            </div>
+            <div class="collective-stats-grid" id="teamScoutingSummary">
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Últimos 5</span>
+                    <span class="collective-stat-value">--</span>
+                    <span class="collective-stat-desc">Esperando scouting</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Tendencia</span>
+                    <span class="collective-stat-value">--</span>
+                    <span class="collective-stat-desc">Esperando scouting</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Casa vs ruta</span>
+                    <span class="collective-stat-value">--</span>
+                    <span class="collective-stat-desc">Esperando scouting</span>
+                </div>
+            </div>
+            <div class="table-responsive-v2" style="margin-top: 18px;">
+                <table class="top-players-table">
+                    <thead>
+                        <tr>
+                            <th>Split</th><th>J</th><th>G</th><th>P</th><th>PCT</th><th>CF</th><th>CE</th><th>DIF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamScoutingSplitsBody">
+                        <tr><td colspan="8" class="loading-cell">Cargando scouting...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-responsive-v2" style="margin-top: 18px;">
+                <table class="top-players-table">
+                    <thead>
+                        <tr>
+                            <th>Torneo</th><th>J</th><th>G</th><th>P</th><th>PCT</th><th>CF</th><th>CE</th><th>DIF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teamScoutingTournamentsBody">
+                        <tr><td colspan="8" class="loading-cell">Cargando splits por torneo...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 
@@ -126,6 +372,63 @@
                     <span class="collective-stat-title">SB</span>
                     <span class="collective-stat-value" id="teamSb">0</span>
                     <span class="collective-stat-desc">Bases robadas</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="top-players-section" id="teamRosterScoutingSection">
+            <h3 class="section-title">🧠 Núcleo del Roster</h3>
+            <p class="section-subtitle">Identifica rápido quién carga el bateo, quién produce, quién corre y qué brazo sostiene al staff.</p>
+            <div id="teamRosterScoutingGrid" class="roster-scouting-grid">
+                <div class="roster-scout-card">
+                    <span class="roster-scout-kicker">Scouting del roster</span>
+                    <strong class="roster-scout-name">Calculando líderes internos...</strong>
+                    <small class="roster-scout-meta">Esperando datos ofensivos y de pitcheo</small>
+                </div>
+            </div>
+        </section>
+
+        <section class="top-players-section" id="teamPremiumScoutingSection">
+            <h3 class="section-title">🎯 Ficha Premium del Equipo</h3>
+            <p class="section-subtitle">Lectura táctica para managers: corazón ofensivo, orden sugerido, staff jerarquizado y estado competitivo del roster.</p>
+
+            <div class="premium-scout-block">
+                <div class="premium-scout-block-head">
+                    <h4>🔥 Tridente Ofensivo</h4>
+                    <p>Los tres bates que hoy más pesan en la producción del equipo.</p>
+                </div>
+                <div id="teamOffensiveTrident" class="premium-scout-grid">
+                    <div class="premium-scout-empty">Cargando tridente ofensivo...</div>
+                </div>
+            </div>
+
+            <div class="premium-scout-block">
+                <div class="premium-scout-block-head">
+                    <h4>📝 Alineación Ideal</h4>
+                    <p>Orden sugerido según contacto, embasado, poder, producción y velocidad actual.</p>
+                </div>
+                <div id="teamIdealLineup" class="premium-scout-grid lineup">
+                    <div class="premium-scout-empty">Cargando alineación sugerida...</div>
+                </div>
+            </div>
+
+            <div class="premium-scout-block">
+                <div class="premium-scout-block-head">
+                    <h4>🧤 Staff Jerarquizado</h4>
+                    <p>Quién abre, quién sostiene y qué brazo domina el repertorio del equipo.</p>
+                </div>
+                <div id="teamPitchingHierarchy" class="premium-scout-grid">
+                    <div class="premium-scout-empty">Cargando staff...</div>
+                </div>
+            </div>
+
+            <div class="premium-scout-block">
+                <div class="premium-scout-block-head">
+                    <h4>📈 Temperatura del Roster</h4>
+                    <p>Quién está marcando el paso y quién necesita repunte en la muestra actual.</p>
+                </div>
+                <div id="teamRosterTemperature" class="premium-scout-grid compact-two">
+                    <div class="premium-scout-empty">Cargando lectura competitiva...</div>
                 </div>
             </div>
         </section>
@@ -168,14 +471,14 @@
 
         <!-- ROSTER + STATS SIDEBAR -->
         <div class="content-grid">
-            <div class="roster-section">
-                <h3 class="section-title">👥 Roster del Equipo</h3>
+            <div class="roster-section" id="teamRosterSection">
+                <h3 class="section-title">👥 Plantilla del equipo</h3>
                 <div class="roster-filters">
                     <button class="filter-btn active" data-position="all">Todos</button>
-                    <button class="filter-btn" data-position="P">Pitchers</button>
-                    <button class="filter-btn" data-position="C">Catchers</button>
-                    <button class="filter-btn" data-position="IF">Infield / SF</button>
-                    <button class="filter-btn" data-position="OF">Outfield</button>
+                    <button class="filter-btn" data-position="P">Lanzadores</button>
+                    <button class="filter-btn" data-position="C">Receptores</button>
+                    <button class="filter-btn" data-position="IF">Cuadro / SS</button>
+                    <button class="filter-btn" data-position="OF">Jardines</button>
                 </div>
                 <div id="rosterContainer">
                     <div class="loading">Cargando roster...</div>
@@ -255,6 +558,7 @@
         </div>
     </footer>
 
+    <script src="js/analytics.js" defer></script>
     <script src="js/equipo_v2.min.js" defer></script>
     <script>
     window.addEventListener('scroll', function() {
