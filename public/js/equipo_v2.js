@@ -17,6 +17,7 @@ let standingsData = [];
 let currentTorneoId = null;
 let allTorneos = [];
 let sseConnection = null;
+let teamGamesWithBoxscore = [];
 
 function setTextContentSafe(id, value) {
     const el = document.getElementById(id);
@@ -1604,12 +1605,33 @@ async function cargarPartidosRecientes() {
 
         const data = await response.json();
         recentGames = data.partidos || [];
+        teamGamesWithBoxscore = await Promise.all(
+            recentGames.map(async (partido) => {
+                if (!partido?.id) {
+                    return { ...partido, boxscore: null };
+                }
+
+                try {
+                    const boxscoreResponse = await fetch(`/api/partidos/${partido.id}/boxscore`);
+                    if (!boxscoreResponse.ok) {
+                        return { ...partido, boxscore: null };
+                    }
+
+                    const boxscore = await boxscoreResponse.json();
+                    return { ...partido, boxscore };
+                } catch (boxscoreError) {
+                    console.warn('Boxscore no disponible para partido', partido.id, boxscoreError);
+                    return { ...partido, boxscore: null };
+                }
+            })
+        );
+
         renderizarPartidosRecientes();
     } catch (error) {
         console.error('Error cargando partidos:', error);
         container.innerHTML = `
             <div class="empty-state">
-                <h4>⚠️ Error cargando partidos</h4>
+                <h4>⚠️ Error cargando juegos del torneo</h4>
                 <button onclick="cargarPartidosRecientes()" class="btn-secondary" style="margin-top: 10px;">🔄 Reintentar</button>
             </div>`;
     }
@@ -1617,24 +1639,130 @@ async function cargarPartidosRecientes() {
 
 function renderizarPartidosRecientes() {
     const container = document.getElementById('recentGamesContainer');
-    if (!recentGames || recentGames.length === 0) {
-        container.innerHTML = '<div class="empty-state">No hay partidos recientes para este equipo.</div>';
+    const summary = document.getElementById('teamGamesSummary');
+    const games = Array.isArray(teamGamesWithBoxscore) && teamGamesWithBoxscore.length ? teamGamesWithBoxscore : recentGames;
+
+    if (!games || games.length === 0) {
+        if (summary) {
+            summary.innerHTML = `
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Calendario</span>
+                    <span class="collective-stat-value">0</span>
+                    <span class="collective-stat-desc">Sin juegos registrados</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Boxscores</span>
+                    <span class="collective-stat-value">0</span>
+                    <span class="collective-stat-desc">Todavía no hay carga oficial</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Balance</span>
+                    <span class="collective-stat-value">--</span>
+                    <span class="collective-stat-desc">Esperando apertura del torneo</span>
+                </div>
+            `;
+        }
+        container.innerHTML = '<div class="empty-state">No hay juegos registrados para este equipo en el torneo seleccionado.</div>';
         return;
     }
 
-    container.innerHTML = recentGames.map(partido => {
+    const finalizados = games.filter((partido) => partido.carreras_local !== null && partido.carreras_visitante !== null);
+    const boxscoresCargados = games.filter((partido) => partido.boxscore?.resumen?.boxscore_cargado).length;
+    const wins = finalizados.filter((partido) => {
+        const esLocal = partido.equipo_local_id == currentTeamId;
+        const carrerasEquipo = esLocal ? Number(partido.carreras_local) : Number(partido.carreras_visitante);
+        const carrerasRival = esLocal ? Number(partido.carreras_visitante) : Number(partido.carreras_local);
+        return carrerasEquipo > carrerasRival;
+    }).length;
+    const losses = Math.max(0, finalizados.length - wins);
+
+    if (summary) {
+        summary.innerHTML = `
+            <div class="collective-stat-card">
+                <span class="collective-stat-title">Calendario</span>
+                <span class="collective-stat-value">${games.length}</span>
+                <span class="collective-stat-desc">${finalizados.length} finalizado(s) y ${Math.max(0, games.length - finalizados.length)} pendiente(s)</span>
+            </div>
+            <div class="collective-stat-card">
+                <span class="collective-stat-title">Boxscores</span>
+                <span class="collective-stat-value">${boxscoresCargados}</span>
+                <span class="collective-stat-desc">${boxscoresCargados === games.length ? 'Todos sincronizados' : 'Carga oficial en progreso'}</span>
+            </div>
+            <div class="collective-stat-card">
+                <span class="collective-stat-title">Balance</span>
+                <span class="collective-stat-value">${wins}-${losses}</span>
+                <span class="collective-stat-desc">Récord del bloque mostrado</span>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `<div class="team-games-grid">${games.map(partido => {
         const esLocal = partido.equipo_local_id == currentTeamId;
         const equipoRival = esLocal ? partido.equipo_visitante_nombre : partido.equipo_local_nombre;
         const resultado = obtenerResultadoPartido(partido, esLocal);
         const fechaFormateada = formatearFecha(partido.fecha_partido);
+        const rol = esLocal ? 'Local' : 'Visitante';
+        const estado = partido.estado || 'programado';
+        const boxscore = partido.boxscore;
+        const resumen = boxscore?.resumen || null;
+        const isWin = resultado.startsWith('G');
+        const isLoss = resultado.startsWith('P');
+        const resultClass = resultado === 'Pendiente' ? 'pending' : isWin ? 'win' : isLoss ? 'loss' : '';
+        const hitsEquipo = resumen
+            ? esLocal
+                ? toNumber(resumen.total_hits_local)
+                : toNumber(resumen.total_hits_visitante)
+            : null;
+        const errorsEquipo = resumen
+            ? esLocal
+                ? toNumber(resumen.total_errors_local)
+                : toNumber(resumen.total_errors_visitante)
+            : null;
+        const hrEquipo = resumen
+            ? esLocal
+                ? toNumber(resumen.total_hr_local)
+                : toNumber(resumen.total_hr_visitante)
+            : null;
+        const boxscoreState = resumen?.boxscore_cargado
+            ? `Boxscore cargado • H ${hitsEquipo} • E ${errorsEquipo} • HR ${hrEquipo}`
+            : (estado === 'finalizado'
+                ? 'Juego finalizado, boxscore pendiente por cargar'
+                : 'Partido programado, todavía sin boxscore');
+        const ctaLabel = resumen?.boxscore_cargado ? 'Abrir boxscore →' : 'Ver partido →';
 
         return `
-            <div class="game-item">
-                <div class="game-teams">vs ${equipoRival}</div>
-                <div class="game-score">${resultado}</div>
-                <div class="game-date">${fechaFormateada}</div>
-            </div>`;
-    }).join('');
+            <article class="team-game-card">
+                <div class="team-game-card-head">
+                    <div>
+                        <span class="team-game-stage">${escapeHtml(rol)} • ${escapeHtml(estado)}</span>
+                        <div class="team-game-date">${escapeHtml(fechaFormateada)}${partido.hora ? ` • ${escapeHtml(partido.hora.slice(0, 5))}` : ''}</div>
+                    </div>
+                    <span class="team-game-result ${resultClass}">${escapeHtml(resultado)}</span>
+                </div>
+                <div class="team-game-rival">
+                    <strong>vs ${escapeHtml(equipoRival || 'Rival pendiente')}</strong>
+                    <small>${escapeHtml((currentTorneoId ? (allTorneos.find((torneo) => String(torneo.id) === String(currentTorneoId))?.nombre || 'Torneo seleccionado') : 'Archivo general'))}</small>
+                </div>
+                <div class="team-game-meta">
+                    <div class="team-game-metric">
+                        <span class="team-game-metric-label">Marcador</span>
+                        <span class="team-game-metric-value">${partido.carreras_local !== null && partido.carreras_visitante !== null ? `${escapeHtml(String(partido.carreras_local))}-${escapeHtml(String(partido.carreras_visitante))}` : 'Pendiente'}</span>
+                    </div>
+                    <div class="team-game-metric">
+                        <span class="team-game-metric-label">Hits</span>
+                        <span class="team-game-metric-value">${resumen?.boxscore_cargado ? hitsEquipo : '--'}</span>
+                    </div>
+                    <div class="team-game-metric">
+                        <span class="team-game-metric-label">Errores</span>
+                        <span class="team-game-metric-value">${resumen?.boxscore_cargado ? errorsEquipo : '--'}</span>
+                    </div>
+                </div>
+                <div class="team-game-footer">
+                    <span class="team-game-boxscore-state">${escapeHtml(boxscoreState)}</span>
+                    <a class="team-game-link" href="partido.html?id=${partido.id}">${escapeHtml(ctaLabel)}</a>
+                </div>
+            </article>`;
+    }).join('')}</div>`;
 }
 
 // ===================================

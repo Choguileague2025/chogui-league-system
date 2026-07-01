@@ -61,6 +61,7 @@
 
         <nav class="page-quicknav" aria-label="Navegación rápida del equipo">
             <a class="page-quicknav-link" href="#playoffPathSection">Playoffs</a>
+            <a class="page-quicknav-link" href="#teamGamesSection">Juegos</a>
             <a class="page-quicknav-link" href="#teamHistorySection">Histórico</a>
             <a class="page-quicknav-link" href="#headToHeadSection">Cara a cara</a>
             <a class="page-quicknav-link" href="#teamCompareSection">Comparador</a>
@@ -517,10 +518,28 @@
         </div>
 
         <!-- RECENT GAMES -->
-        <div class="recent-games">
-            <h3 class="section-title">🎯 Últimos Partidos</h3>
+        <div class="recent-games" id="teamGamesSection">
+            <h3 class="section-title">🗓️ Juegos del Torneo y Boxscore</h3>
+            <p class="section-subtitle">Todos los juegos del equipo en el torneo seleccionado, con acceso directo al boxscore cuando ya fue cargado.</p>
+            <div class="collective-stats-grid team-games-strip" id="teamGamesSummary">
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Calendario</span>
+                    <span class="collective-stat-value">--</span>
+                    <span class="collective-stat-desc">Esperando juegos del torneo</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Boxscores</span>
+                    <span class="collective-stat-value">--</span>
+                    <span class="collective-stat-desc">Sincronizando carga oficial</span>
+                </div>
+                <div class="collective-stat-card">
+                    <span class="collective-stat-title">Balance</span>
+                    <span class="collective-stat-value">--</span>
+                    <span class="collective-stat-desc">Lectura competitiva actual</span>
+                </div>
+            </div>
             <div id="recentGamesContainer">
-                <div class="loading">Cargando partidos recientes...</div>
+                <div class="loading">Cargando juegos del torneo...</div>
             </div>
         </div>
 

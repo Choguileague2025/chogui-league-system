@@ -1002,6 +1002,174 @@
     font-style: italic;
 }
 
+.team-games-strip {
+    margin-bottom: 18px;
+}
+
+.team-games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+}
+
+.team-game-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(24, 31, 45, 0.98) 0%, rgba(15, 21, 31, 0.98) 100%);
+    border: 1px solid rgba(255, 193, 7, 0.18);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+}
+
+.team-game-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -36px -36px auto;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 193, 7, 0.12) 0%, rgba(255, 193, 7, 0) 70%);
+    pointer-events: none;
+}
+
+.team-game-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.team-game-stage {
+    display: inline-flex;
+    width: fit-content;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(255, 193, 7, 0.1);
+    color: rgba(255, 193, 7, 0.84);
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.team-game-date {
+    color: rgba(255, 255, 255, 0.64);
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+.team-game-result {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 900;
+    border: 1px solid rgba(255, 193, 7, 0.18);
+    background: rgba(255, 193, 7, 0.08);
+    color: #ffd55c;
+}
+
+.team-game-result.win {
+    color: #9cffb0;
+    border-color: rgba(76, 175, 80, 0.35);
+    background: rgba(76, 175, 80, 0.12);
+}
+
+.team-game-result.loss {
+    color: #ffb0a6;
+    border-color: rgba(244, 67, 54, 0.32);
+    background: rgba(244, 67, 54, 0.12);
+}
+
+.team-game-result.pending {
+    color: #ffe082;
+}
+
+.team-game-rival strong {
+    display: block;
+    color: #fff7d1;
+    font-size: 1.1rem;
+    line-height: 1.2;
+}
+
+.team-game-rival small {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.85rem;
+}
+
+.team-game-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.team-game-metric {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 193, 7, 0.12);
+}
+
+.team-game-metric span {
+    display: block;
+}
+
+.team-game-metric-label {
+    color: rgba(255, 193, 7, 0.72);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 3px;
+}
+
+.team-game-metric-value {
+    color: #fff;
+    font-size: 0.96rem;
+    font-weight: 800;
+}
+
+.team-game-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: auto;
+}
+
+.team-game-boxscore-state {
+    color: rgba(255, 255, 255, 0.66);
+    font-size: 0.84rem;
+    line-height: 1.4;
+}
+
+.team-game-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 193, 7, 0.22);
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    text-decoration: none;
+    font-size: 0.84rem;
+    font-weight: 800;
+    transition: all 0.25s ease;
+}
+
+.team-game-link:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 193, 7, 0.16);
+    color: #ffe082;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .table-responsive-v2 {
@@ -1012,5 +1180,22 @@
     .top-players-table tbody td {
         padding: 8px 10px;
         font-size: 0.8rem;
+    }
+
+    .team-games-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .team-game-meta {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .team-game-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .team-game-link {
+        width: 100%;
     }
 }
