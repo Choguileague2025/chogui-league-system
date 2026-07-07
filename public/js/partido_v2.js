@@ -69,19 +69,19 @@ function renderOffenseTable(containerId, rows) {
 
     matchHtml(containerId, rows.map((row) => `
         <tr>
-            <td><a class="boxscore-player-link" href="jugador.html?id=${row.jugador_id}">${matchEscape(row.jugador_nombre)}</a></td>
-            <td>${matchNum(row.plate_appearances)}</td>
-            <td>${matchNum(row.at_bats)}</td>
-            <td>${matchNum(row.hits)}</td>
-            <td>${matchNum(row.doubles)}</td>
-            <td>${matchNum(row.triples)}</td>
-            <td>${matchNum(row.home_runs)}</td>
-            <td>${matchNum(row.rbi)}</td>
-            <td>${matchNum(row.runs)}</td>
-            <td>${matchNum(row.walks)}</td>
-            <td>${matchNum(row.strikeouts)}</td>
-            <td>${matchNum(row.stolen_bases)}</td>
-            <td>${Number(row.avg || 0).toFixed(3)}</td>
+            <td class="boxscore-name-cell" data-label="Jugador"><a class="boxscore-player-link" href="jugador.html?id=${row.jugador_id}">${matchEscape(row.jugador_nombre)}</a></td>
+            <td data-label="PA">${matchNum(row.plate_appearances)}</td>
+            <td data-label="AB">${matchNum(row.at_bats)}</td>
+            <td data-label="H">${matchNum(row.hits)}</td>
+            <td data-label="2B">${matchNum(row.doubles)}</td>
+            <td data-label="3B">${matchNum(row.triples)}</td>
+            <td data-label="HR">${matchNum(row.home_runs)}</td>
+            <td data-label="RBI">${matchNum(row.rbi)}</td>
+            <td data-label="R">${matchNum(row.runs)}</td>
+            <td data-label="BB">${matchNum(row.walks)}</td>
+            <td data-label="SO">${matchNum(row.strikeouts)}</td>
+            <td data-label="SB">${matchNum(row.stolen_bases)}</td>
+            <td data-label="AVG">${Number(row.avg || 0).toFixed(3)}</td>
         </tr>
     `).join(''));
 }
@@ -94,15 +94,15 @@ function renderPitchingTable(containerId, rows) {
 
     matchHtml(containerId, rows.map((row) => `
         <tr>
-            <td><a class="boxscore-player-link" href="jugador.html?id=${row.jugador_id}">${matchEscape(row.jugador_nombre)}</a></td>
-            <td>${matchNum(row.innings_pitched).toFixed(1)}</td>
-            <td>${matchNum(row.hits_allowed)}</td>
-            <td>${matchNum(row.earned_runs)}</td>
-            <td>${matchNum(row.walks_allowed)}</td>
-            <td>${matchNum(row.strikeouts)}</td>
-            <td>${matchNum(row.home_runs_allowed)}</td>
-            <td>${Number(row.era || 0).toFixed(2)}</td>
-            <td>${Number(row.whip || 0).toFixed(2)}</td>
+            <td class="boxscore-name-cell" data-label="Jugador"><a class="boxscore-player-link" href="jugador.html?id=${row.jugador_id}">${matchEscape(row.jugador_nombre)}</a></td>
+            <td data-label="IP">${matchNum(row.innings_pitched).toFixed(1)}</td>
+            <td data-label="H">${matchNum(row.hits_allowed)}</td>
+            <td data-label="ER">${matchNum(row.earned_runs)}</td>
+            <td data-label="BB">${matchNum(row.walks_allowed)}</td>
+            <td data-label="SO">${matchNum(row.strikeouts)}</td>
+            <td data-label="HR">${matchNum(row.home_runs_allowed)}</td>
+            <td data-label="ERA">${Number(row.era || 0).toFixed(2)}</td>
+            <td data-label="WHIP">${Number(row.whip || 0).toFixed(2)}</td>
         </tr>
     `).join(''));
 }
@@ -115,14 +115,14 @@ function renderDefenseTable(containerId, rows) {
 
     matchHtml(containerId, rows.map((row) => `
         <tr>
-            <td><a class="boxscore-player-link" href="jugador.html?id=${row.jugador_id}">${matchEscape(row.jugador_nombre)}</a></td>
-            <td>${matchEscape(row.posicion || '--')}</td>
-            <td>${matchNum(row.putouts)}</td>
-            <td>${matchNum(row.assists)}</td>
-            <td>${matchNum(row.errors)}</td>
-            <td>${matchNum(row.double_plays)}</td>
-            <td>${matchNum(row.chances)}</td>
-            <td>${Number(row.fielding_percentage || 0).toFixed(3)}</td>
+            <td class="boxscore-name-cell" data-label="Jugador"><a class="boxscore-player-link" href="jugador.html?id=${row.jugador_id}">${matchEscape(row.jugador_nombre)}</a></td>
+            <td data-label="Pos">${matchEscape(row.posicion || '--')}</td>
+            <td data-label="PO">${matchNum(row.putouts)}</td>
+            <td data-label="A">${matchNum(row.assists)}</td>
+            <td data-label="E">${matchNum(row.errors)}</td>
+            <td data-label="DP">${matchNum(row.double_plays)}</td>
+            <td data-label="CH">${matchNum(row.chances)}</td>
+            <td data-label="FPCT">${Number(row.fielding_percentage || 0).toFixed(3)}</td>
         </tr>
     `).join(''));
 }

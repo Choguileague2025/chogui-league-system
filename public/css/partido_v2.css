@@ -221,13 +221,43 @@
 .compact-table td {
     font-size: 0.9rem;
     white-space: nowrap;
+    color: #f7f1dc;
 }
 
 .compact-table td:first-child,
 .compact-table th:first-child {
     position: sticky;
     left: 0;
-    background: inherit;
+    z-index: 1;
+    background: linear-gradient(90deg, rgba(12, 18, 30, 0.98) 0%, rgba(12, 18, 30, 0.94) 82%, rgba(12, 18, 30, 0) 100%);
+}
+
+.table-responsive-v2 {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.table-responsive-v2::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive-v2::-webkit-scrollbar-thumb {
+    background: rgba(255, 193, 7, 0.45);
+    border-radius: 999px;
+}
+
+.compact-table {
+    min-width: 780px;
+}
+
+.team-boxscore-section:nth-of-type(1) .compact-table {
+    min-width: 1060px;
+}
+
+.boxscore-name-cell {
+    min-width: 220px;
 }
 
 .boxscore-player-link {
@@ -288,5 +318,140 @@
         align-items: flex-start;
         flex-direction: row;
         flex-wrap: wrap;
+    }
+
+    .team-boxscore-section {
+        overflow: hidden;
+    }
+
+    .team-boxscore-section h4 {
+        margin-bottom: 10px;
+    }
+
+    .table-responsive-v2 {
+        border-radius: 16px;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .compact-table {
+        min-width: 820px;
+    }
+
+    .team-boxscore-section:nth-of-type(1) .compact-table {
+        min-width: 1120px;
+    }
+}
+
+@media (max-width: 640px) {
+    .team-boxscore-card {
+        padding: 16px 12px;
+        border-radius: 20px;
+    }
+
+    .team-boxscore-header h3 {
+        font-size: 1.35rem;
+    }
+
+    .team-boxscore-header p {
+        font-size: 0.92rem;
+        line-height: 1.45;
+    }
+
+    .team-boxscore-totals span {
+        font-size: 0.8rem;
+        padding: 7px 10px;
+    }
+
+    .table-responsive-v2 {
+        overflow: visible;
+        border: none;
+        background: transparent;
+    }
+
+    .compact-table,
+    .compact-table thead,
+    .compact-table tbody,
+    .compact-table tr,
+    .compact-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .compact-table {
+        min-width: 100%;
+        border: none;
+        background: transparent;
+    }
+
+    .compact-table thead {
+        display: none;
+    }
+
+    .compact-table tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    .compact-table tbody tr {
+        margin: 0;
+        padding: 12px;
+        border: 1px solid rgba(255, 193, 7, 0.16);
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(18, 26, 42, 0.96), rgba(11, 16, 28, 0.98));
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+    }
+
+    .compact-table td,
+    .compact-table td:first-child {
+        position: static;
+        left: auto;
+        min-width: 0;
+        white-space: normal;
+        padding: 8px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        background: transparent;
+        color: #f7f1dc;
+    }
+
+    .compact-table td:last-child {
+        border-bottom: none;
+    }
+
+    .compact-table td:not(.boxscore-name-cell) {
+        display: grid;
+        grid-template-columns: minmax(72px, 90px) 1fr;
+        align-items: center;
+        gap: 10px;
+        text-align: left;
+    }
+
+    .compact-table td:not(.boxscore-name-cell)::before {
+        content: attr(data-label);
+        color: rgba(255, 193, 7, 0.82);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .boxscore-name-cell {
+        padding: 4px 2px 10px;
+        margin-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 193, 7, 0.16);
+    }
+
+    .boxscore-player-link {
+        display: block;
+        font-size: 1rem;
+        line-height: 1.35;
+    }
+
+    .loading-cell,
+    .boxscore-empty {
+        display: block !important;
+        text-align: center !important;
+        padding: 16px !important;
+        border-bottom: none !important;
     }
 }
