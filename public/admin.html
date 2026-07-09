@@ -1407,7 +1407,7 @@
                             <input type="text" id="ciudadEquipo" required>
                         </div>
                         <div class="form-group">
-                            <button type="button" id="btn-agregar-equipo" class="btn-primary" onclick="agregarEquipo()">🏆 Agregar Equipo</button>
+                            <button type="button" id="btn-agregar-equipo" class="btn-primary" data-mode="create" data-edit-id="">🏆 Agregar Equipo</button>
                         </div>
                     </div>
                 </div>
@@ -1503,10 +1503,12 @@
                             <input type="text" id="lugarPartido" placeholder="Ej: Estadio Municipal">
                         </div>
                         <div class="form-group">
-                            <button type="button" class="btn-primary" onclick="programarPartido()">📅 Programar Partido</button>
+                            <button type="button" id="btn-programar-partido" class="btn-primary" data-mode="create" data-edit-id="">📅 Programar Partido</button>
                         </div>
                     </div>
                 </div>
+                <div id="partidoProgramadoMessage" class="success-message"></div>
+                <div id="partidoProgramadoError" class="error-message"></div>
             </div>
 
             <div class="card">
@@ -1548,7 +1550,7 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" id="btn-registrar-partido" class="btn-primary" onclick="registrarPartido()">🎯 Registrar Partido</button>
+                <button type="button" id="btn-registrar-partido" class="btn-primary" data-mode="create" data-edit-id="">🎯 Registrar Partido</button>
                 <div id="partidoMessage" class="success-message"></div>
                 <div id="partidoError" class="error-message"></div>
             </div>
@@ -1802,7 +1804,7 @@
                         </div>
                     </div>
             
-                    <button type="button" id="btn-agregar-jugador" class="btn-primary" onclick="agregarJugador()">👤 Agregar Jugador</button>
+                    <button type="button" id="btn-agregar-jugador" class="btn-primary" data-mode="create" data-edit-id="">👤 Agregar Jugador</button>
                 </form>
                 <div id="jugadorMessage" class="success-message"></div>
                 <div id="jugadorError" class="error-message"></div>
@@ -2030,7 +2032,7 @@
                         <input type="number" id="sacrificeFlies" min="0" value="0">
                     </div>
                 </div>
-                <button type="button" class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
+                <button type="button" class="btn-primary" id="btnRegistrarOfensiva">📊 Registrar Estadísticas (Sumar)</button>
                 <div id="statsMessage" class="success-message"></div>
                 <div id="statsError" class="error-message"></div>
                 </div>
@@ -2083,7 +2085,7 @@
                         <input type="number" id="saves" min="0" value="0">
                     </div>
                 </div>
-                <button type="button" class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
+                <button type="button" class="btn-primary" id="btnRegistrarPitcheo">⚾ Registrar Estadísticas (Sumar)</button>
                 <div id="pitcheoMessage" class="success-message"></div>
                 <div id="pitcheoError" class="error-message"></div>
                 </div>
@@ -2120,7 +2122,7 @@
                         <small style="color: #ffc107; font-size: 0.8rem;">Solo para catchers</small>
                     </div>
                 </div>
-                <button type="button" class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
+                <button type="button" class="btn-primary" id="btnRegistrarDefensa">🛡 Registrar Estadísticas (Sumar)</button>
                 <div id="defensivaMessage" class="success-message"></div>
                 <div id="defensivaError" class="error-message"></div>
                 </div>
@@ -2459,7 +2461,7 @@
             if (payload) {
                 if (Array.isArray(payload.errors) && payload.errors.length > 0) {
                     const details = payload.errors
-                        .map(err => err.message || err.msg || err.code)
+                        .map(err => typeof err === 'string' ? err : (err?.message || err?.msg || err?.code || ''))
                         .filter(Boolean)
                         .join(' | ');
                     if (details) {
@@ -2477,6 +2479,21 @@
             }
 
             return `${fallbackMessage} (${response.status})`;
+        }
+
+        function setFormFeedback(successId, errorId, type, message) {
+            const successEl = successId ? document.getElementById(successId) : null;
+            const errorEl = errorId ? document.getElementById(errorId) : null;
+
+            if (successEl) {
+                successEl.textContent = type === 'success' ? message : '';
+                successEl.style.display = type === 'success' && message ? 'block' : 'none';
+            }
+
+            if (errorEl) {
+                errorEl.textContent = type === 'error' ? message : '';
+                errorEl.style.display = type === 'error' && message ? 'block' : 'none';
+            }
         }
 
         // ===== SISTEMA DE PAGINACIÓN PARA TABLAS DE ESTADÍSTICAS =====
@@ -2733,6 +2750,76 @@
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.addEventListener('click', () => mostrarPestana(tab.dataset.tab));
             });
+
+            const equipoBtn = document.getElementById('btn-agregar-equipo');
+            if (equipoBtn && !equipoBtn.dataset.bound) {
+                equipoBtn.addEventListener('click', () => {
+                    const editId = parseInt(equipoBtn.dataset.editId || '', 10);
+                    if (equipoBtn.dataset.mode === 'edit' && Number.isInteger(editId)) {
+                        actualizarEquipo(editId);
+                        return;
+                    }
+                    agregarEquipo();
+                });
+                equipoBtn.dataset.bound = 'true';
+            }
+
+            const programarBtn = document.getElementById('btn-programar-partido');
+            if (programarBtn && !programarBtn.dataset.bound) {
+                programarBtn.addEventListener('click', () => {
+                    const editId = parseInt(programarBtn.dataset.editId || '', 10);
+                    if (programarBtn.dataset.mode === 'edit' && Number.isInteger(editId)) {
+                        actualizarPartido(editId);
+                        return;
+                    }
+                    programarPartido();
+                });
+                programarBtn.dataset.bound = 'true';
+            }
+
+            const registrarBtn = document.getElementById('btn-registrar-partido');
+            if (registrarBtn && !registrarBtn.dataset.bound) {
+                registrarBtn.addEventListener('click', () => {
+                    const editId = parseInt(registrarBtn.dataset.editId || '', 10);
+                    if (registrarBtn.dataset.mode === 'edit' && Number.isInteger(editId)) {
+                        actualizarPartido(editId);
+                        return;
+                    }
+                    registrarPartido();
+                });
+                registrarBtn.dataset.bound = 'true';
+            }
+
+            const jugadorBtn = document.getElementById('btn-agregar-jugador');
+            if (jugadorBtn && !jugadorBtn.dataset.bound) {
+                jugadorBtn.addEventListener('click', () => {
+                    const editId = parseInt(jugadorBtn.dataset.editId || '', 10);
+                    if (jugadorBtn.dataset.mode === 'edit' && Number.isInteger(editId)) {
+                        actualizarJugador(editId);
+                        return;
+                    }
+                    agregarJugador();
+                });
+                jugadorBtn.dataset.bound = 'true';
+            }
+
+            const ofensivaBtn = document.getElementById('btnRegistrarOfensiva');
+            if (ofensivaBtn && !ofensivaBtn.dataset.bound) {
+                ofensivaBtn.addEventListener('click', registrarEstadisticas);
+                ofensivaBtn.dataset.bound = 'true';
+            }
+
+            const pitcheoBtn = document.getElementById('btnRegistrarPitcheo');
+            if (pitcheoBtn && !pitcheoBtn.dataset.bound) {
+                pitcheoBtn.addEventListener('click', registrarEstadisticasPitcheo);
+                pitcheoBtn.dataset.bound = 'true';
+            }
+
+            const defensaBtn = document.getElementById('btnRegistrarDefensa');
+            if (defensaBtn && !defensaBtn.dataset.bound) {
+                defensaBtn.addEventListener('click', registrarEstadisticasDefensivas);
+                defensaBtn.dataset.bound = 'true';
+            }
         }
         
         function mostrarPestana(nombrePestana) {
@@ -2822,13 +2909,16 @@
             const posicion = document.getElementById('posicionJugador')?.value || null;
             const numeroInput = document.getElementById('numeroJugador')?.value;
             const numero = numeroInput ? parseInt(numeroInput) : null;
+            setFormFeedback('jugadorMessage', 'jugadorError', null, '');
         
             // Validaciones
             if (!nombre) {
+                setFormFeedback('jugadorMessage', 'jugadorError', 'error', 'El nombre del jugador es obligatorio.');
                 toast.warning('El nombre del jugador es obligatorio');
                 return;
             }
             if (nombre.length < 3) {
+                setFormFeedback('jugadorMessage', 'jugadorError', 'error', 'El nombre debe tener al menos 3 caracteres.');
                 toast.warning('El nombre debe tener al menos 3 caracteres');
                 return;
             }
@@ -2856,8 +2946,9 @@
         
                 const resultado = await response.json();
                 console.log('✅ Jugador creado:', resultado);
-        
+
                 toast.success('Jugador agregado exitosamente');
+                setFormFeedback('jugadorMessage', 'jugadorError', 'success', 'Jugador agregado exitosamente.');
                 document.getElementById('jugadorForm').reset();
         
                 // Limpiar validación visual
@@ -2870,6 +2961,7 @@
         
             } catch (error) {
                 console.error('❌ Error agregando jugador:', error);
+                setFormFeedback('jugadorMessage', 'jugadorError', 'error', error.message || 'No se pudo agregar el jugador.');
                 toast.error(error.message || 'No se pudo agregar el jugador.');
             }
         }
@@ -4464,7 +4556,9 @@
             const nombre = document.getElementById('nombreEquipo').value.trim();
             const manager = document.getElementById('managerEquipo').value.trim();
             const ciudad = document.getElementById('ciudadEquipo').value.trim();
+            setFormFeedback('equipoMessage', 'equipoError', null, '');
             if(!nombre || !manager || !ciudad) {
+                setFormFeedback('equipoMessage', 'equipoError', 'error', 'Todos los campos del equipo son obligatorios.');
                 toast.warning('Todos los campos son obligatorios');
                 return;
             }
@@ -4477,6 +4571,7 @@
                 });
                 if(res.ok) {
                     toast.success('Equipo agregado exitosamente.');
+                    setFormFeedback('equipoMessage', 'equipoError', 'success', 'Equipo agregado exitosamente.');
                     document.getElementById('nombreEquipo').value = '';
                     document.getElementById('managerEquipo').value = '';
                     document.getElementById('ciudadEquipo').value = '';
@@ -4484,10 +4579,12 @@
                     actualizarSelectores();
                 } else {
                     const errorMessage = await parseApiError(res, 'No se pudo agregar el equipo.');
+                    setFormFeedback('equipoMessage', 'equipoError', 'error', errorMessage);
                     toast.error(errorMessage);
                 }
             } catch(e) {
                 console.error('Error agregando equipo:', e);
+                setFormFeedback('equipoMessage', 'equipoError', 'error', e.message || 'Error de red.');
                 toast.error(e.message || 'Error de red.');
             }
         }
@@ -4498,24 +4595,30 @@
             const fecha_partido = document.getElementById('fechaPartidoFuturo').value;
             const hora = document.getElementById('horaPartidoFuturo').value;
             const torneoId = getCurrentTournamentId();
+            setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', null, '');
             // Validaciones
             if (!equipo_local_id || !equipo_visitante_id) {
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', 'Debes seleccionar ambos equipos.');
                 toast.warning('Debes seleccionar ambos equipos');
                 return;
             }
             if (equipo_local_id === equipo_visitante_id) {
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', 'Un equipo no puede jugar contra sí mismo.');
                 toast.warning('Un equipo no puede jugar contra sí mismo');
                 return;
             }
             if (!fecha_partido) {
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', 'La fecha del partido es obligatoria.');
                 toast.warning('La fecha del partido es obligatoria');
                 return;
             }
             if (!hora) {
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', 'La hora del partido es obligatoria.');
                 toast.warning('La hora del partido es obligatoria');
                 return;
             }
             if (!torneoId) {
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', 'No hay torneo activo seleccionado para programar el partido.');
                 toast.warning('No hay torneo activo seleccionado para programar el partido.');
                 return;
             }
@@ -4539,6 +4642,7 @@
                         
                 if (res.ok) {
                     toast.success('Partido programado exitosamente');
+                    setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'success', 'Partido programado exitosamente.');
                     // Limpiar formulario
                     document.getElementById('equipoLocalFuturo').value = '';
                     document.getElementById('equipoVisitanteFuturo').value = '';
@@ -4549,10 +4653,12 @@
                     await cargarPartidos();
                 } else {
                     const errorMessage = await parseApiError(res, 'No se pudo programar el partido.');
+                    setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', errorMessage);
                     toast.error(errorMessage);
                 }
             } catch (e) {
                 console.error('Error:', e);
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', e.message || 'Error de conexión con el servidor');
                 toast.error(e.message || 'Error de conexión con el servidor');
             }
         }
@@ -4564,16 +4670,20 @@
             const carreras_visitante = document.getElementById('carrerasVisitante').value;
             const fecha_partido = document.getElementById('fechaPartido').value;
             const torneoId = getCurrentTournamentId();
+            setFormFeedback('partidoMessage', 'partidoError', null, '');
 
             if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
+                setFormFeedback('partidoMessage', 'partidoError', 'error', 'Equipos y fecha son obligatorios.');
                 toast.warning('Equipos y fecha son obligatorios.');
                 return;
             }
             if (equipo_local_id === equipo_visitante_id) {
+                setFormFeedback('partidoMessage', 'partidoError', 'error', 'Un equipo no puede jugar contra sí mismo.');
                 toast.warning('Un equipo no puede jugar contra sí mismo.');
                 return;
             }
             if (!torneoId) {
+                setFormFeedback('partidoMessage', 'partidoError', 'error', 'No hay torneo activo seleccionado para registrar el partido.');
                 toast.warning('No hay torneo activo seleccionado para registrar el partido.');
                 return;
             }
@@ -4597,6 +4707,7 @@
                 });
                 if (res.ok) {
                     toast.success('Partido registrado exitosamente.');
+                    setFormFeedback('partidoMessage', 'partidoError', 'success', 'Partido registrado exitosamente.');
                     await cargarPartidos();
                     calcularPosiciones();
                     document.getElementById('equipoLocal').value = '';
@@ -4605,23 +4716,28 @@
                     document.getElementById('carrerasVisitante').value = '';
                 } else {
                     const errorMessage = await parseApiError(res, 'No se pudo registrar el partido.');
+                    setFormFeedback('partidoMessage', 'partidoError', 'error', errorMessage);
                     toast.error(errorMessage);
                 }
             } catch (e) {
                 console.error('Error registrando partido:', e);
+                setFormFeedback('partidoMessage', 'partidoError', 'error', e.message || 'Error de red.');
                 toast.error(e.message || 'Error de red.');
             }
         }
 
         async function registrarEstadisticas() {
             const jugador_id = document.getElementById('jugadorStats').value;
+            setFormFeedback('statsMessage', 'statsError', null, '');
             if (!jugador_id) {
+                setFormFeedback('statsMessage', 'statsError', 'error', 'Selecciona un jugador.');
                 toast.warning('Selecciona un jugador.');
                 return;
             }
 
             const torneoId = getCurrentTournamentId();
             if (!torneoId) {
+                setFormFeedback('statsMessage', 'statsError', 'error', 'No hay torneo activo seleccionado para guardar estadísticas.');
                 toast.warning('No hay torneo activo seleccionado para guardar estadísticas.');
                 return;
             }
@@ -4655,13 +4771,16 @@
                 });
                 if (res.ok) {
                     toast.success('Estadísticas registradas exitosamente.');
+                    setFormFeedback('statsMessage', 'statsError', 'success', 'Estadísticas ofensivas guardadas correctamente.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#plateAppearances, #atBats, #hits, #singles, #doubles, #triples, #homeRuns, #rbi, #runs, #walks, #strikeouts, #stolenBases, #caughtStealing, #sacrificeFlies').forEach(el => el.value = 0);
                 } else {
-                    const error = await res.json().catch(() => ({}));
-                    toast.error(error.error || error.message || 'Error al registrar estadísticas.');
+                    const errorMessage = await parseApiError(res, 'Error al registrar estadísticas.');
+                    setFormFeedback('statsMessage', 'statsError', 'error', errorMessage);
+                    toast.error(errorMessage);
                 }
             } catch(e) {
+                setFormFeedback('statsMessage', 'statsError', 'error', 'Error de red.');
                 toast.error('Error de red.');
             }
         }
@@ -4705,15 +4824,19 @@
             document.getElementById('nombreEquipo').value = equipo.nombre;
             document.getElementById('managerEquipo').value = equipo.manager;
             document.getElementById('ciudadEquipo').value = equipo.ciudad;
-            document.getElementById('btn-agregar-equipo').textContent = '✅ Actualizar';
-            document.getElementById('btn-agregar-equipo').onclick = () => actualizarEquipo(id);
+            const button = document.getElementById('btn-agregar-equipo');
+            button.textContent = '✅ Actualizar';
+            button.dataset.mode = 'edit';
+            button.dataset.editId = String(id);
         }
 
         async function actualizarEquipo(id) {
             const nombre = document.getElementById('nombreEquipo').value.trim();
             const manager = document.getElementById('managerEquipo').value.trim();
             const ciudad = document.getElementById('ciudadEquipo').value.trim();
+            setFormFeedback('equipoMessage', 'equipoError', null, '');
             if(!nombre || !manager || !ciudad) {
+                setFormFeedback('equipoMessage', 'equipoError', 'error', 'Todos los campos del equipo son obligatorios.');
                 toast.warning('Todos los campos son obligatorios');
                 return;
             }
@@ -4726,16 +4849,22 @@
                 });
                 if(res.ok) {
                     toast.success('Equipo actualizado correctamente.');
+                    setFormFeedback('equipoMessage', 'equipoError', 'success', 'Equipo actualizado correctamente.');
                     document.getElementById('nombreEquipo').value = '';
                     document.getElementById('managerEquipo').value = '';
                     document.getElementById('ciudadEquipo').value = '';
-                    document.getElementById('btn-agregar-equipo').textContent = '🏆 Agregar Equipo';
-                    document.getElementById('btn-agregar-equipo').onclick = agregarEquipo;
+                    const button = document.getElementById('btn-agregar-equipo');
+                    button.textContent = '🏆 Agregar Equipo';
+                    button.dataset.mode = 'create';
+                    button.dataset.editId = '';
                     await cargarEquipos();
                 } else {
-                    toast.error('Error al actualizar equipo.');
+                    const errorMessage = await parseApiError(res, 'Error al actualizar equipo.');
+                    setFormFeedback('equipoMessage', 'equipoError', 'error', errorMessage);
+                    toast.error(errorMessage);
                 }
             } catch(e) {
+                setFormFeedback('equipoMessage', 'equipoError', 'error', 'Error de red.');
                 toast.error('Error de red.');
             }
         }
@@ -4747,8 +4876,10 @@
             document.getElementById('equipoJugador').value = jugador.equipo_id || '';
             document.getElementById('posicionJugador').value = jugador.posicion || '';
             document.getElementById('numeroJugador').value = jugador.numero || '';
-            document.getElementById('btn-agregar-jugador').textContent = '✅ Actualizar';
-            document.getElementById('btn-agregar-jugador').onclick = () => actualizarJugador(id);
+            const button = document.getElementById('btn-agregar-jugador');
+            button.textContent = '✅ Actualizar';
+            button.dataset.mode = 'edit';
+            button.dataset.editId = String(id);
         }
 
         async function actualizarJugador(id) {
@@ -4756,8 +4887,10 @@
             const equipo_id = document.getElementById('equipoJugador').value || null;
             const posicion = document.getElementById('posicionJugador').value || null;
             const numero = document.getElementById('numeroJugador').value || null;
+            setFormFeedback('jugadorMessage', 'jugadorError', null, '');
             
             if (!nombre || nombre.length < 3) {
+                setFormFeedback('jugadorMessage', 'jugadorError', 'error', 'El nombre debe tener al menos 3 caracteres.');
                 toast.warning('El nombre debe tener al menos 3 caracteres.');
                 return;
             }
@@ -4771,16 +4904,22 @@
                 
                 if (response.ok) {
                     toast.success('Jugador actualizado correctamente.');
+                    setFormFeedback('jugadorMessage', 'jugadorError', 'success', 'Jugador actualizado correctamente.');
                     document.getElementById('jugadorForm').reset();
-                    document.getElementById('btn-agregar-jugador').textContent = '👤 Agregar Jugador';
-                    document.getElementById('btn-agregar-jugador').onclick = agregarJugador;
+                    const button = document.getElementById('btn-agregar-jugador');
+                    button.textContent = '👤 Agregar Jugador';
+                    button.dataset.mode = 'create';
+                    button.dataset.editId = '';
                     await cargarJugadores();
                 } else {
-                    toast.error('Error al actualizar jugador.');
+                    const errorMessage = await parseApiError(response, 'Error al actualizar jugador.');
+                    setFormFeedback('jugadorMessage', 'jugadorError', 'error', errorMessage);
+                    toast.error(errorMessage);
                 }
             } catch (error) {
+                setFormFeedback('jugadorMessage', 'jugadorError', 'error', 'Error de conexión.');
                 toast.error('Error de conexión.');
-                }
+            }
         }
 
         async function eliminarJugador(id) {
@@ -4830,9 +4969,10 @@
                 document.getElementById('lugarPartido').value = partido.lugar || '';
                 
                 // Cambia el botón para actualizar
-                const btn = document.querySelector('#partidos .card:first-child .btn-primary');
+                const btn = document.getElementById('btn-programar-partido');
                 btn.textContent = '✅ Actualizar Partido Programado';
-                btn.onclick = () => actualizarPartido(id);
+                btn.dataset.mode = 'edit';
+                btn.dataset.editId = String(id);
 
                 toast.info('Editando partido programado. Puede añadir los resultados en el formulario de abajo.');
 
@@ -4843,8 +4983,10 @@
                 document.getElementById('carrerasLocal').value = partido.carreras_local || '';
                 document.getElementById('carrerasVisitante').value = partido.carreras_visitante || '';
                 document.getElementById('fechaPartido').value = partido.fecha_partido.split('T')[0];
-                document.getElementById('btn-registrar-partido').textContent = '✅ Actualizar Resultado';
-                document.getElementById('btn-registrar-partido').onclick = () => actualizarPartido(id);
+                const btn = document.getElementById('btn-registrar-partido');
+                btn.textContent = '✅ Actualizar Resultado';
+                btn.dataset.mode = 'edit';
+                btn.dataset.editId = String(id);
             }
         }
 
@@ -4859,10 +5001,14 @@
             const torneoId = getCurrentTournamentId();
 
             if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
+                setFormFeedback('partidoMessage', 'partidoError', 'error', 'Equipos y fecha son obligatorios.');
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', 'Equipos y fecha son obligatorios.');
                 toast.warning('Equipos y fecha son obligatorios.');
                 return;
             }
             if (!torneoId) {
+                setFormFeedback('partidoMessage', 'partidoError', 'error', 'No hay torneo activo seleccionado para actualizar el partido.');
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', 'No hay torneo activo seleccionado para actualizar el partido.');
                 toast.warning('No hay torneo activo seleccionado para actualizar el partido.');
                 return;
             }
@@ -4887,31 +5033,40 @@
                 });
                 if (res.ok) {
                     toast.success('Partido actualizado correctamente.');
+                    setFormFeedback('partidoMessage', 'partidoError', 'success', 'Partido actualizado correctamente.');
+                    setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'success', 'Partido actualizado correctamente.');
                     // Resetear ambos formularios y botones
                     document.getElementById('equipoLocal').value = '';
                     document.getElementById('equipoVisitante').value = '';
                     document.getElementById('carrerasLocal').value = '';
                     document.getElementById('carrerasVisitante').value = '';
-                    document.getElementById('btn-registrar-partido').textContent = '🎯 Registrar Partido';
-                    document.getElementById('btn-registrar-partido').onclick = registrarPartido;
+                    const resultadoBtn = document.getElementById('btn-registrar-partido');
+                    resultadoBtn.textContent = '🎯 Registrar Partido';
+                    resultadoBtn.dataset.mode = 'create';
+                    resultadoBtn.dataset.editId = '';
                     
                     document.getElementById('equipoLocalFuturo').value = '';
                     document.getElementById('equipoVisitanteFuturo').value = '';
                     document.getElementById('fechaPartidoFuturo').value = '';
                     document.getElementById('horaPartidoFuturo').value = '';
                     document.getElementById('lugarPartido').value = '';
-                    const btnProg = document.querySelector('#partidos .card:first-child .btn-primary');
+                    const btnProg = document.getElementById('btn-programar-partido');
                     btnProg.textContent = '📅 Programar Partido';
-                    btnProg.onclick = programarPartido;
+                    btnProg.dataset.mode = 'create';
+                    btnProg.dataset.editId = '';
 
                     await cargarPartidos();
                     calcularPosiciones();
                 } else {
                     const errorMessage = await parseApiError(res, 'No se pudo actualizar el partido.');
+                    setFormFeedback('partidoMessage', 'partidoError', 'error', errorMessage);
+                    setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', errorMessage);
                     toast.error(errorMessage);
                 }
             } catch (e) {
                 console.error('Error actualizando partido:', e);
+                setFormFeedback('partidoMessage', 'partidoError', 'error', e.message || 'Error de red.');
+                setFormFeedback('partidoProgramadoMessage', 'partidoProgramadoError', 'error', e.message || 'Error de red.');
                 toast.error(e.message || 'Error de red.');
             }
         }
@@ -4934,13 +5089,16 @@
 
         async function registrarEstadisticasPitcheo() {
             const jugador_id = document.getElementById('jugadorPitcheo').value;
+            setFormFeedback('pitcheoMessage', 'pitcheoError', null, '');
             if (!jugador_id) {
+                setFormFeedback('pitcheoMessage', 'pitcheoError', 'error', 'Selecciona un pitcher.');
                 toast.warning('Selecciona un pitcher.');
                 return;
             }
 
             const torneoId = getCurrentTournamentId();
             if (!torneoId) {
+                setFormFeedback('pitcheoMessage', 'pitcheoError', 'error', 'No hay torneo activo seleccionado para guardar estadísticas.');
                 toast.warning('No hay torneo activo seleccionado para guardar estadísticas.');
                 return;
             }
@@ -4967,26 +5125,32 @@
                 });
                 if (res.ok) {
                     toast.success('Estadísticas de pitcheo registradas.');
+                    setFormFeedback('pitcheoMessage', 'pitcheoError', 'success', 'Estadísticas de pitcheo guardadas correctamente.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#inningsPitched, #hitsAllowed, #earnedRuns, #strikeoutsP, #walksAllowed, #homeRunsAllowed, #wins, #losses, #saves').forEach(el => el.value = 0);
                 } else {
-                    const error = await res.json().catch(() => ({}));
-                    toast.error(error.error || error.message || 'Error al registrar estadísticas de pitcheo.');
+                    const errorMessage = await parseApiError(res, 'Error al registrar estadísticas de pitcheo.');
+                    setFormFeedback('pitcheoMessage', 'pitcheoError', 'error', errorMessage);
+                    toast.error(errorMessage);
                 }
             } catch(e) {
+                setFormFeedback('pitcheoMessage', 'pitcheoError', 'error', 'Error de red.');
                 toast.error('Error de red.');
             }
         }
 
         async function registrarEstadisticasDefensivas() {
             const jugador_id = document.getElementById('jugadorDefensivo').value;
+            setFormFeedback('defensivaMessage', 'defensivaError', null, '');
             if (!jugador_id) {
+                setFormFeedback('defensivaMessage', 'defensivaError', 'error', 'Selecciona un jugador.');
                 toast.warning('Selecciona un jugador.');
                 return;
             }
 
             const torneoId = getCurrentTournamentId();
             if (!torneoId) {
+                setFormFeedback('defensivaMessage', 'defensivaError', 'error', 'No hay torneo activo seleccionado para guardar estadísticas.');
                 toast.warning('No hay torneo activo seleccionado para guardar estadísticas.');
                 return;
             }
@@ -5009,13 +5173,16 @@
                 });
                 if (res.ok) {
                     toast.success('Estadísticas defensivas registradas.');
+                    setFormFeedback('defensivaMessage', 'defensivaError', 'success', 'Estadísticas defensivas guardadas correctamente.');
                     await cargarEstadisticas();
                     document.querySelectorAll('#putouts, #assists, #defensiveErrors, #doublePlays, #passedBalls').forEach(el => el.value = 0);
                 } else {
-                    const error = await res.json().catch(() => ({}));
-                    toast.error(error.error || error.message || 'Error al registrar estadísticas defensivas.');
+                    const errorMessage = await parseApiError(res, 'Error al registrar estadísticas defensivas.');
+                    setFormFeedback('defensivaMessage', 'defensivaError', 'error', errorMessage);
+                    toast.error(errorMessage);
                 }
             } catch(e) {
+                setFormFeedback('defensivaMessage', 'defensivaError', 'error', 'Error de red.');
                 toast.error('Error de red.');
             }
         }
@@ -5392,14 +5559,25 @@
 
         function resetearBoton(tipo) {
             if (tipo === 'equipo') {
-                document.getElementById('btn-agregar-equipo').textContent = '🏆 Agregar Equipo';
-                document.getElementById('btn-agregar-equipo').onclick = agregarEquipo;
+                const button = document.getElementById('btn-agregar-equipo');
+                button.textContent = '🏆 Agregar Equipo';
+                button.dataset.mode = 'create';
+                button.dataset.editId = '';
             } else if (tipo === 'jugador') {
-                document.getElementById('btn-agregar-jugador').textContent = '👤 Agregar Jugador';
-                document.getElementById('btn-agregar-jugador').onclick = agregarJugador;
+                const button = document.getElementById('btn-agregar-jugador');
+                button.textContent = '👤 Agregar Jugador';
+                button.dataset.mode = 'create';
+                button.dataset.editId = '';
             } else if (tipo === 'partido') {
-                document.getElementById('btn-registrar-partido').textContent = '🎯 Registrar Partido';
-                document.getElementById('btn-registrar-partido').onclick = registrarPartido;
+                const button = document.getElementById('btn-registrar-partido');
+                button.textContent = '🎯 Registrar Partido';
+                button.dataset.mode = 'create';
+                button.dataset.editId = '';
+            } else if (tipo === 'partidoProgramado') {
+                const button = document.getElementById('btn-programar-partido');
+                button.textContent = '📅 Programar Partido';
+                button.dataset.mode = 'create';
+                button.dataset.editId = '';
             }
         }
 
