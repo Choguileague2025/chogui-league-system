@@ -2751,6 +2751,12 @@
                 tab.addEventListener('click', () => mostrarPestana(tab.dataset.tab));
             });
 
+            if (!document.body.dataset.legacyAdminActionsBound) {
+                document.addEventListener('click', handleLegacyAdminInlineActions);
+                document.addEventListener('input', handleLegacyAdminInlineInputs);
+                document.body.dataset.legacyAdminActionsBound = 'true';
+            }
+
             const equipoBtn = document.getElementById('btn-agregar-equipo');
             if (equipoBtn && !equipoBtn.dataset.bound) {
                 equipoBtn.addEventListener('click', () => {
@@ -2819,6 +2825,142 @@
             if (defensaBtn && !defensaBtn.dataset.bound) {
                 defensaBtn.addEventListener('click', registrarEstadisticasDefensivas);
                 defensaBtn.dataset.bound = 'true';
+            }
+        }
+
+        function handleLegacyAdminInlineInputs(event) {
+            const trigger = event.target.closest('[oninput]');
+            if (!trigger) return;
+
+            const inline = String(trigger.getAttribute('oninput') || '').trim();
+            const autoCalcMatch = inline.match(/^autoCalcH\((\d+)\)$/);
+            if (!autoCalcMatch) return;
+
+            event.stopPropagation();
+            autoCalcH(Number(autoCalcMatch[1]));
+        }
+
+        function handleLegacyAdminInlineActions(event) {
+            const trigger = event.target.closest('[onclick]');
+            if (!trigger) return;
+
+            const inline = String(trigger.getAttribute('onclick') || '').trim();
+            if (!inline) return;
+
+            let handled = false;
+
+            try {
+                let match;
+
+                if (inline === 'logout()') {
+                    handled = true;
+                    logout();
+                } else if (inline === 'this.parentElement.remove()') {
+                    handled = true;
+                    trigger.parentElement?.remove();
+                } else if (inline === 'limpiarFiltrosEquipos()') {
+                    handled = true;
+                    limpiarFiltrosEquipos();
+                } else if (inline === 'limpiarFiltrosPartidos()') {
+                    handled = true;
+                    limpiarFiltrosPartidos();
+                } else if (inline === 'limpiarFiltrosJugadores()') {
+                    handled = true;
+                    limpiarFiltrosJugadores();
+                } else if (inline === 'limpiarFiltrosBateo()') {
+                    handled = true;
+                    limpiarFiltrosBateo();
+                } else if (inline === 'limpiarFiltrosPitcheo()') {
+                    handled = true;
+                    limpiarFiltrosPitcheo();
+                } else if (inline === 'limpiarFiltrosDefensa()') {
+                    handled = true;
+                    limpiarFiltrosDefensa();
+                } else if (inline === 'desactivarTodosLosTorneos()') {
+                    handled = true;
+                    desactivarTodosLosTorneos();
+                } else if (inline === 'inicializarPlayoffs()') {
+                    handled = true;
+                    inicializarPlayoffs();
+                } else if (inline === 'prefillBoxscoreFromScore()') {
+                    handled = true;
+                    prefillBoxscoreFromScore();
+                } else if (inline === 'guardarBoxscoreAdmin()') {
+                    handled = true;
+                    guardarBoxscoreAdmin();
+                } else if (inline === 'cerrarBoxscoreModal()') {
+                    handled = true;
+                    cerrarBoxscoreModal();
+                } else if ((match = inline.match(/^abrirBoxscoreModal\((\d+)\)$/))) {
+                    handled = true;
+                    abrirBoxscoreModal(Number(match[1]));
+                } else if ((match = inline.match(/^editarPartido\((\d+)\)$/))) {
+                    handled = true;
+                    editarPartido(Number(match[1]));
+                } else if ((match = inline.match(/^eliminarPartido\((\d+)\)$/))) {
+                    handled = true;
+                    eliminarPartido(Number(match[1]));
+                } else if ((match = inline.match(/^editarEquipo\((\d+)\)$/))) {
+                    handled = true;
+                    editarEquipo(Number(match[1]));
+                } else if ((match = inline.match(/^eliminarEquipo\((\d+)\)$/))) {
+                    handled = true;
+                    eliminarEquipo(Number(match[1]));
+                } else if ((match = inline.match(/^editarJugador\((\d+)\)$/))) {
+                    handled = true;
+                    editarJugador(Number(match[1]));
+                } else if ((match = inline.match(/^eliminarJugador\((\d+)\)$/))) {
+                    handled = true;
+                    eliminarJugador(Number(match[1]));
+                } else if ((match = inline.match(/^activarTorneo\((\d+)\)$/))) {
+                    handled = true;
+                    activarTorneo(Number(match[1]));
+                } else if ((match = inline.match(/^editarCriteriosTorneo\((\d+)\)$/))) {
+                    handled = true;
+                    editarCriteriosTorneo(Number(match[1]));
+                } else if ((match = inline.match(/^eliminarTorneo\((\d+)\)$/))) {
+                    handled = true;
+                    eliminarTorneo(Number(match[1]));
+                } else if ((match = inline.match(/^guardarJuegoPlayoff\((\d+)\)$/))) {
+                    handled = true;
+                    guardarJuegoPlayoff(Number(match[1]));
+                } else if ((match = inline.match(/^exportarTabla\('([^']+)',\s*'([^']+)'\)$/))) {
+                    handled = true;
+                    exportarTabla(match[1], match[2]);
+                } else if ((match = inline.match(/^ordenarTablaEquipos\('([^']+)'\)$/))) {
+                    handled = true;
+                    ordenarTablaEquipos(match[1]);
+                } else if ((match = inline.match(/^ordenarTablaJugadores\('([^']+)'\)$/))) {
+                    handled = true;
+                    ordenarTablaJugadores(match[1]);
+                } else if ((match = inline.match(/^actualizarEstadistica\('([^']+)',\s*(\d+),\s*this\)$/))) {
+                    handled = true;
+                    actualizarEstadistica(match[1], Number(match[2]), trigger);
+                } else if ((match = inline.match(/^editarTorneo\((\d+),\s*'((?:\\'|[^'])*)'\)$/))) {
+                    handled = true;
+                    editarTorneo(Number(match[1]), match[2].replace(/\\'/g, "'"));
+                } else if ((match = inline.match(/^(pagination[A-Za-z]+)\.(prevPage|nextPage)\(\)$/))) {
+                    const pagination = window[match[1]];
+                    if (pagination && typeof pagination[match[2]] === 'function') {
+                        handled = true;
+                        pagination[match[2]]();
+                    }
+                } else if ((match = inline.match(/^(pagination[A-Za-z]+)\.goToPage\((\d+)\)$/))) {
+                    const pagination = window[match[1]];
+                    if (pagination && typeof pagination.goToPage === 'function') {
+                        handled = true;
+                        pagination.goToPage(Number(match[2]));
+                    }
+                }
+            } catch (error) {
+                handled = true;
+                console.error('Error ejecutando acción legacy del admin:', inline, error);
+                toast.error(error.message || 'No se pudo ejecutar la acción.');
+            }
+
+            if (handled) {
+                event.preventDefault();
+                event.stopPropagation();
             }
         }
         
