@@ -2440,6 +2440,45 @@
         // Instancia global
         const toast = new ToastManager();
 
+        async function parseApiError(response, fallbackMessage = 'Error en la solicitud.') {
+            let payload = null;
+
+            try {
+                payload = await response.json();
+            } catch (jsonError) {
+                try {
+                    const text = await response.text();
+                    if (text) {
+                        return `${fallbackMessage} ${text}`.trim();
+                    }
+                } catch (textError) {
+                    // Ignorar y usar fallback.
+                }
+            }
+
+            if (payload) {
+                if (Array.isArray(payload.errors) && payload.errors.length > 0) {
+                    const details = payload.errors
+                        .map(err => err.message || err.msg || err.code)
+                        .filter(Boolean)
+                        .join(' | ');
+                    if (details) {
+                        return `${payload.message || fallbackMessage} ${details}`.trim();
+                    }
+                }
+
+                if (payload.message) {
+                    return payload.message;
+                }
+
+                if (payload.error) {
+                    return payload.error;
+                }
+            }
+
+            return `${fallbackMessage} (${response.status})`;
+        }
+
         // ===== SISTEMA DE PAGINACIÓN PARA TABLAS DE ESTADÍSTICAS =====
         class TablePagination {
             constructor(tableId, itemsPerPage = 20) {
@@ -2748,8 +2787,8 @@
                 });
         
                 if (!response.ok) {
-                    const errorData = await response.text();
-                    throw new Error(`Error ${response.status}: ${errorData}`);
+                    const errorMessage = await parseApiError(response, 'No se pudo agregar el jugador.');
+                    throw new Error(errorMessage);
                 }
         
                 const resultado = await response.json();
@@ -2768,7 +2807,7 @@
         
             } catch (error) {
                 console.error('❌ Error agregando jugador:', error);
-                toast.error(`Error: ${error.message}`);
+                toast.error(error.message || 'No se pudo agregar el jugador.');
             }
         }
         
@@ -4381,10 +4420,12 @@
                     await cargarEquipos();
                     actualizarSelectores();
                 } else {
-                    toast.error('No se pudo agregar el equipo');
+                    const errorMessage = await parseApiError(res, 'No se pudo agregar el equipo.');
+                    toast.error(errorMessage);
                 }
             } catch(e) {
-                toast.error('Error de red.');
+                console.error('Error agregando equipo:', e);
+                toast.error(e.message || 'Error de red.');
             }
         }
 
@@ -4393,7 +4434,7 @@
             const equipo_visitante_id = document.getElementById('equipoVisitanteFuturo').value;
             const fecha_partido = document.getElementById('fechaPartidoFuturo').value;
             const hora = document.getElementById('horaPartidoFuturo').value;
-            const lugar = document.getElementById('lugarPartido').value.trim();
+            const torneoId = getCurrentTournamentId();
             // Validaciones
             if (!equipo_local_id || !equipo_visitante_id) {
                 toast.warning('Debes seleccionar ambos equipos');
@@ -4411,17 +4452,19 @@
                 toast.warning('La hora del partido es obligatoria');
                 return;
             }
+            if (!torneoId) {
+                toast.warning('No hay torneo activo seleccionado para programar el partido.');
+                return;
+            }
             const body = {
                 equipo_local_id: parseInt(equipo_local_id),
                 equipo_visitante_id: parseInt(equipo_visitante_id),
                 fecha_partido,
                 hora,
-                torneo_id: getCurrentTournamentId(),
+                torneo_id: torneoId,
                 estado: 'programado',
-                lugar: lugar || null,
                 carreras_local: null,
-                carreras_visitante: null,
-                innings: null
+                carreras_visitante: null
             };
             console.log('📤 Programando partido:', body);
             try {
@@ -4442,12 +4485,12 @@
                     // Recargar tabla
                     await cargarPartidos();
                 } else {
-                    const error = await res.text();
-                    toast.error('Error al programar partido: ' + error);
+                    const errorMessage = await parseApiError(res, 'No se pudo programar el partido.');
+                    toast.error(errorMessage);
                 }
             } catch (e) {
                 console.error('Error:', e);
-                toast.error('Error de conexión con el servidor');
+                toast.error(e.message || 'Error de conexión con el servidor');
             }
         }
 
@@ -4457,6 +4500,7 @@
             const carreras_local = document.getElementById('carrerasLocal').value;
             const carreras_visitante = document.getElementById('carrerasVisitante').value;
             const fecha_partido = document.getElementById('fechaPartido').value;
+            const torneoId = getCurrentTournamentId();
 
             if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
                 toast.warning('Equipos y fecha son obligatorios.');
@@ -4466,12 +4510,16 @@
                 toast.warning('Un equipo no puede jugar contra sí mismo.');
                 return;
             }
+            if (!torneoId) {
+                toast.warning('No hay torneo activo seleccionado para registrar el partido.');
+                return;
+            }
 
             const body = {
-                equipo_local_id,
-                equipo_visitante_id,
+                equipo_local_id: parseInt(equipo_local_id),
+                equipo_visitante_id: parseInt(equipo_visitante_id),
                 fecha_partido,
-                torneo_id: getCurrentTournamentId(),
+                torneo_id: torneoId,
                 carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
                 carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
                 estado: 'finalizado'
@@ -4492,10 +4540,12 @@
                     document.getElementById('carrerasLocal').value = '';
                     document.getElementById('carrerasVisitante').value = '';
                 } else {
-                    toast.error('No se pudo registrar el partido');
+                    const errorMessage = await parseApiError(res, 'No se pudo registrar el partido.');
+                    toast.error(errorMessage);
                 }
             } catch (e) {
-                toast.error('Error de red.');
+                console.error('Error registrando partido:', e);
+                toast.error(e.message || 'Error de red.');
             }
         }
 
@@ -4742,20 +4792,23 @@
             const carreras_visitante = document.getElementById('carrerasVisitante').value;
             const fecha_partido = document.getElementById('fechaPartido').value || document.getElementById('fechaPartidoFuturo').value;
             const hora = document.getElementById('horaPartidoFuturo').value;
-            const lugar = document.getElementById('lugarPartido').value;
+            const torneoId = getCurrentTournamentId();
 
             if (!equipo_local_id || !equipo_visitante_id || !fecha_partido) {
                 toast.warning('Equipos y fecha son obligatorios.');
                 return;
             }
+            if (!torneoId) {
+                toast.warning('No hay torneo activo seleccionado para actualizar el partido.');
+                return;
+            }
 
             const body = {
-                equipo_local_id,
-                equipo_visitante_id,
+                equipo_local_id: parseInt(equipo_local_id),
+                equipo_visitante_id: parseInt(equipo_visitante_id),
                 fecha_partido,
                 hora: hora || null,
-                lugar: lugar || null,
-                torneo_id: getCurrentTournamentId(),
+                torneo_id: torneoId,
                 carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
                 carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
                 estado: (carreras_local !== "" && carreras_visitante !== "") ? 'finalizado' : 'programado'
@@ -4789,10 +4842,12 @@
                     await cargarPartidos();
                     calcularPosiciones();
                 } else {
-                    toast.error('Error al actualizar partido.');
+                    const errorMessage = await parseApiError(res, 'No se pudo actualizar el partido.');
+                    toast.error(errorMessage);
                 }
             } catch (e) {
-                toast.error('Error de red.');
+                console.error('Error actualizando partido:', e);
+                toast.error(e.message || 'Error de red.');
             }
         }
 
