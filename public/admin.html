@@ -2030,7 +2030,7 @@
                         <input type="number" id="sacrificeFlies" min="0" value="0">
                     </div>
                 </div>
-                <button class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
+                <button type="button" class="btn-primary" id="btnRegistrarOfensiva" onclick="registrarEstadisticas()">📊 Registrar Estadísticas (Sumar)</button>
                 <div id="statsMessage" class="success-message"></div>
                 <div id="statsError" class="error-message"></div>
                 </div>
@@ -2083,7 +2083,7 @@
                         <input type="number" id="saves" min="0" value="0">
                     </div>
                 </div>
-                <button class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
+                <button type="button" class="btn-primary" id="btnRegistrarPitcheo" onclick="registrarEstadisticasPitcheo()">⚾ Registrar Estadísticas (Sumar)</button>
                 <div id="pitcheoMessage" class="success-message"></div>
                 <div id="pitcheoError" class="error-message"></div>
                 </div>
@@ -2120,7 +2120,7 @@
                         <small style="color: #ffc107; font-size: 0.8rem;">Solo para catchers</small>
                     </div>
                 </div>
-                <button class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
+                <button type="button" class="btn-primary" id="btnRegistrarDefensa" onclick="registrarEstadisticasDefensivas()">🛡 Registrar Estadísticas (Sumar)</button>
                 <div id="defensivaMessage" class="success-message"></div>
                 <div id="defensivaError" class="error-message"></div>
                 </div>
@@ -4505,6 +4505,12 @@
                 toast.warning('Selecciona un jugador.');
                 return;
             }
+
+            const torneoId = getCurrentTournamentId();
+            if (!torneoId) {
+                toast.warning('No hay torneo activo seleccionado para guardar estadísticas.');
+                return;
+            }
             
             const singlesVal  = parseInt(document.getElementById('singles').value)  || 0;
             const doublesVal  = parseInt(document.getElementById('doubles').value)  || 0;
@@ -4512,10 +4518,8 @@
             const homeRunsVal = parseInt(document.getElementById('homeRuns').value) || 0;
             const data = {
                 jugador_id: parseInt(jugador_id),
-                torneo_id: getCurrentTournamentId(),
-                plate_appearances: parseInt(document.getElementById('plateAppearances').value) || 0,
+                torneo_id: torneoId,
                 at_bats: parseInt(document.getElementById('atBats').value) || 0,
-                singles: singlesVal,
                 doubles: doublesVal,
                 triples: triplesVal,
                 home_runs: homeRunsVal,
@@ -4540,7 +4544,8 @@
                     await cargarEstadisticas();
                     document.querySelectorAll('#plateAppearances, #atBats, #hits, #singles, #doubles, #triples, #homeRuns, #rbi, #runs, #walks, #strikeouts, #stolenBases, #caughtStealing, #sacrificeFlies').forEach(el => el.value = 0);
                 } else {
-                    toast.error('Error al registrar estadísticas.');
+                    const error = await res.json().catch(() => ({}));
+                    toast.error(error.error || error.message || 'Error al registrar estadísticas.');
                 }
             } catch(e) {
                 toast.error('Error de red.');
@@ -4813,10 +4818,16 @@
                 toast.warning('Selecciona un pitcher.');
                 return;
             }
+
+            const torneoId = getCurrentTournamentId();
+            if (!torneoId) {
+                toast.warning('No hay torneo activo seleccionado para guardar estadísticas.');
+                return;
+            }
             
             const data = {
                 jugador_id: parseInt(jugador_id),
-                torneo_id: getCurrentTournamentId(),
+                torneo_id: torneoId,
                 innings_pitched: parseFloat(document.getElementById('inningsPitched').value) || 0,
                 hits_allowed: parseInt(document.getElementById('hitsAllowed').value) || 0,
                 earned_runs: parseInt(document.getElementById('earnedRuns').value) || 0,
@@ -4839,7 +4850,8 @@
                     await cargarEstadisticas();
                     document.querySelectorAll('#inningsPitched, #hitsAllowed, #earnedRuns, #strikeoutsP, #walksAllowed, #homeRunsAllowed, #wins, #losses, #saves').forEach(el => el.value = 0);
                 } else {
-                    toast.error('Error al registrar estadísticas.');
+                    const error = await res.json().catch(() => ({}));
+                    toast.error(error.error || error.message || 'Error al registrar estadísticas de pitcheo.');
                 }
             } catch(e) {
                 toast.error('Error de red.');
@@ -4852,10 +4864,16 @@
                 toast.warning('Selecciona un jugador.');
                 return;
             }
+
+            const torneoId = getCurrentTournamentId();
+            if (!torneoId) {
+                toast.warning('No hay torneo activo seleccionado para guardar estadísticas.');
+                return;
+            }
             
             const data = {
                 jugador_id: parseInt(jugador_id),
-                torneo_id: getCurrentTournamentId(),
+                torneo_id: torneoId,
                 putouts: parseInt(document.getElementById('putouts').value) || 0,
                 assists: parseInt(document.getElementById('assists').value) || 0,
                 errors: parseInt(document.getElementById('defensiveErrors').value) || 0,
@@ -4874,7 +4892,8 @@
                     await cargarEstadisticas();
                     document.querySelectorAll('#putouts, #assists, #defensiveErrors, #doublePlays, #passedBalls').forEach(el => el.value = 0);
                 } else {
-                    toast.error('Error al registrar estadísticas.');
+                    const error = await res.json().catch(() => ({}));
+                    toast.error(error.error || error.message || 'Error al registrar estadísticas defensivas.');
                 }
             } catch(e) {
                 toast.error('Error de red.');
@@ -4962,7 +4981,7 @@
                                 <td><input type="number" id="sb-${s.jugador_id}" value="${s.stolen_bases || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="cs-${s.jugador_id}" value="${s.caught_stealing || 0}" style="width:50px;"></td>
                                 <td><input type="number" id="sf-${s.jugador_id}" value="${s.sacrifice_flies || 0}" style="width:50px;"></td>
-                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id})">💾</button></td>
+                                <td><button type="button" class="btn-actualizar" onclick="actualizarEstadistica('bateo', ${s.jugador_id}, this)">💾</button></td>
                             </tr>
                         `).join('');
                     }
@@ -5107,7 +5126,7 @@
                                 <td><input type="number" id="w-${s.jugador_id}" value="${s.wins || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="l-${s.jugador_id}" value="${s.losses || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="sv-${s.jugador_id}" value="${s.saves || 0}" style="width:60px;"></td>
-                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('pitcheo', ${s.jugador_id})">💾</button></td>
+                                <td><button type="button" class="btn-actualizar" onclick="actualizarEstadistica('pitcheo', ${s.jugador_id}, this)">💾</button></td>
                             </tr>
                         `).join('');
                     }
@@ -5193,7 +5212,7 @@
                                 <td><input type="number" id="a-${s.jugador_id}" value="${s.assists || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="e-${s.jugador_id}" value="${s.errors || 0}" style="width:60px;"></td>
                                 <td><input type="number" id="dp-${s.jugador_id}" value="${s.double_plays || 0}" style="width:60px;"></td>
-                                <td><button class="btn-actualizar" onclick="actualizarEstadistica('defensiva', ${s.jugador_id})">💾</button></td>
+                                <td><button type="button" class="btn-actualizar" onclick="actualizarEstadistica('defensiva', ${s.jugador_id}, this)">💾</button></td>
                             </tr>
                         `).join('');
                     }
@@ -5291,30 +5310,33 @@
             return jugador && jugador.equipo_id ? jugador.equipo_id : null;
         }
 
-        async function actualizarEstadistica(tipo, jugadorId) {
-            const saveButton = event.target;
+        async function actualizarEstadistica(tipo, jugadorId, buttonEl = null) {
+            const saveButton = buttonEl || document.activeElement || null;
             let endpoint = '';
             let payload = { jugador_id: jugadorId };
             const torneoId = getCurrentTournamentId();
-            const equipoId = obtenerEquipoDelJugador(jugadorId);
+            if (!torneoId) {
+                toast.warning('No hay torneo activo seleccionado para actualizar estadísticas.');
+                return;
+            }
             payload.torneo_id = torneoId;
-            payload.equipo_id = equipoId !== undefined && equipoId !== null ? equipoId : null;
 
             try {
-                saveButton.disabled = true;
-                saveButton.textContent = '⏳';
+                if (saveButton) {
+                    saveButton.disabled = true;
+                    saveButton.textContent = '⏳';
+                }
 
                 switch (tipo) {
                     case 'bateo':
                         endpoint = `/api/estadisticas-ofensivas/edit`;
                         payload.mode = 'replace';
-                        payload.plate_appearances = parseInt(document.getElementById(`pa-${jugadorId}`)?.value) || 0;
                         payload.at_bats    = parseInt(document.getElementById(`ab-${jugadorId}`)?.value) || 0;
-                        payload.singles    = parseInt(document.getElementById(`1b-${jugadorId}`)?.value) || 0;
+                        const singles = parseInt(document.getElementById(`1b-${jugadorId}`)?.value) || 0;
                         payload.doubles    = parseInt(document.getElementById(`doubles-${jugadorId}`)?.value) || 0;
                         payload.triples    = parseInt(document.getElementById(`triples-${jugadorId}`)?.value) || 0;
                         payload.home_runs  = parseInt(document.getElementById(`hr-${jugadorId}`)?.value) || 0;
-                        payload.hits       = payload.singles + payload.doubles + payload.triples + payload.home_runs;
+                        payload.hits       = singles + payload.doubles + payload.triples + payload.home_runs;
                         payload.rbi        = parseInt(document.getElementById(`rbi-${jugadorId}`)?.value) || 0;
                         payload.runs       = parseInt(document.getElementById(`r-${jugadorId}`)?.value) || 0;
                         payload.walks      = parseInt(document.getElementById(`bb-${jugadorId}`)?.value) || 0;
@@ -5355,9 +5377,9 @@
                 // Usamos POST para la lógica de UPSERT (INSERT ... ON CONFLICT) como se sugiere
                 // en la solución. Si el backend usa PUT para reemplazo, se puede cambiar el método.
                 const response = await fetch(endpoint, {
-                    method: 'POST', // Usamos POST para que coincida con la lógica de UPSERT.
+                    method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ ...payload, mode: 'replace' })
+                    body: JSON.stringify(payload)
                 });
 
                 if (response.ok) {
@@ -5365,16 +5387,18 @@
                     await cargarEstadisticas(); // Recargar todas las estadísticas para consistencia
                     actualizarLideres(); // Actualizar los líderes que pudieron cambiar
                 } else {
-                    const error = await response.json();
-                    throw new Error(error.message || `Error ${response.status} del servidor.`);
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.error || error.message || `Error ${response.status} del servidor.`);
                 }
 
             } catch(error) {
                 console.error(`❌ Error actualizando estadística de ${tipo}:`, error);
                 toast.error(`No se pudo actualizar: ${error.message}`);
             } finally {
-                saveButton.disabled = false;
-                saveButton.textContent = '💾';
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.textContent = '💾';
+                }
             }
         }
         // ✅ FIN CORRECCIÓN BUG #1
