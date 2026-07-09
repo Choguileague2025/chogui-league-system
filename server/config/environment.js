@@ -1,19 +1,28 @@
 require('dotenv').config();
 
 function parseOrigins(value) {
+    const defaultOrigins = [
+        'http://localhost:8080',
+        'http://127.0.0.1:8080',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'https://choguileague.site',
+        'https://www.choguileague.site',
+        'https://chogui-league.up.railway.app',
+        'https://chogui-league-system-production.up.railway.app'
+    ];
+
     if (!value) {
-        return [
-            'http://localhost:8080',
-            'http://127.0.0.1:8080',
-            'http://localhost:3000',
-            'http://127.0.0.1:3000'
-        ];
+        return defaultOrigins;
     }
 
-    return value
-        .split(',')
-        .map((origin) => origin.trim())
-        .filter(Boolean);
+    return Array.from(new Set([
+        ...defaultOrigins,
+        ...value
+            .split(',')
+            .map((origin) => origin.trim())
+            .filter(Boolean)
+    ]));
 }
 
 const config = {

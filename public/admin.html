@@ -1407,7 +1407,7 @@
                             <input type="text" id="ciudadEquipo" required>
                         </div>
                         <div class="form-group">
-                            <button id="btn-agregar-equipo" class="btn-primary" onclick="agregarEquipo()">🏆 Agregar Equipo</button>
+                            <button type="button" id="btn-agregar-equipo" class="btn-primary" onclick="agregarEquipo()">🏆 Agregar Equipo</button>
                         </div>
                     </div>
                 </div>
@@ -1503,7 +1503,7 @@
                             <input type="text" id="lugarPartido" placeholder="Ej: Estadio Municipal">
                         </div>
                         <div class="form-group">
-                            <button class="btn-primary" onclick="programarPartido()">📅 Programar Partido</button>
+                            <button type="button" class="btn-primary" onclick="programarPartido()">📅 Programar Partido</button>
                         </div>
                     </div>
                 </div>
@@ -1548,7 +1548,7 @@
                         </div>
                     </div>
                 </div>
-                <button id="btn-registrar-partido" class="btn-primary" onclick="registrarPartido()">🎯 Registrar Partido</button>
+                <button type="button" id="btn-registrar-partido" class="btn-primary" onclick="registrarPartido()">🎯 Registrar Partido</button>
                 <div id="partidoMessage" class="success-message"></div>
                 <div id="partidoError" class="error-message"></div>
             </div>
@@ -2558,56 +2558,119 @@
             return match ? decodeURIComponent(match.substring(prefix.length)) : '';
         }
 
-        async function bootstrapCsrf() {
-            await originalFetch('/api/csrf-token', {
-                method: 'GET',
-                credentials: 'same-origin'
-            });
+        const MUTATING_HTTP_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+        function resolveApiUrl(resource) {
+            if (resource instanceof Request) {
+                return resource.url;
+            }
+
+            if (typeof resource === 'string') {
+                return resource;
+            }
+
+            return resource?.url || '';
         }
 
-        window.fetch = function(resource, options = {}) {
-            const url = typeof resource === 'string' ? resource : resource.url;
-            const isApiRequest = Boolean(url && url.startsWith('/api'));
+        function isSameOriginApiRequest(resource) {
+            const rawUrl = resolveApiUrl(resource);
+            if (!rawUrl) return false;
+
+            try {
+                const parsed = new URL(rawUrl, window.location.origin);
+                return parsed.origin === window.location.origin && parsed.pathname.startsWith('/api');
+            } catch (error) {
+                return rawUrl.startsWith('/api');
+            }
+        }
+
+        async function ensureCsrfToken(forceRefresh = false) {
+            const currentToken = getCookieValue('chogui_csrf');
+            if (!forceRefresh && currentToken) {
+                return currentToken;
+            }
+
+            await originalFetch('/api/csrf-token', {
+                method: 'GET',
+                credentials: 'same-origin',
+                cache: 'no-store'
+            });
+
+            return getCookieValue('chogui_csrf');
+        }
+
+        async function bootstrapCsrf() {
+            await ensureCsrfToken(true);
+        }
+
+        window.fetch = async function(resource, options = {}) {
+            const isApiRequest = isSameOriginApiRequest(resource);
 
             if (!isApiRequest) {
                 return originalFetch(resource, options);
             }
 
-            const headers = new Headers(options.headers || {});
             const method = String(options.method || 'GET').toUpperCase();
+            const headers = new Headers(options.headers || {});
 
-            if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-                const csrfToken = getCookieValue('chogui_csrf');
+            if (MUTATING_HTTP_METHODS.has(method)) {
+                const csrfToken = await ensureCsrfToken();
                 if (csrfToken) {
                     headers.set('X-CSRF-Token', csrfToken);
                 }
             }
 
-            return originalFetch(resource, {
+            const requestOptions = {
                 ...options,
                 credentials: 'same-origin',
                 headers
-            }).then(async (response) => {
-                if (response.status === 401) {
-                    toast.error('Sesión expirada. Vuelve a iniciar sesión.');
-                    window.location.href = 'login.html';
-                    return response;
-                }
+            };
 
-                if (response.status === 403) {
-                    try {
-                        const clone = response.clone();
-                        const data = await clone.json();
-                        if (data?.message && data.message.toLowerCase().includes('csrf')) {
-                            toast.error('Sesión protegida: recarga la página e intenta de nuevo.');
+            let response = await originalFetch(resource, requestOptions);
+
+            if (response.status === 403 && MUTATING_HTTP_METHODS.has(method) && !options.__csrfRetried) {
+                try {
+                    const clone = response.clone();
+                    const data = await clone.json().catch(() => null);
+                    const message = String(data?.message || data?.error || '').toLowerCase();
+
+                    if (message.includes('csrf')) {
+                        const refreshedToken = await ensureCsrfToken(true);
+                        if (refreshedToken) {
+                            const retryHeaders = new Headers(options.headers || {});
+                            retryHeaders.set('X-CSRF-Token', refreshedToken);
+                            response = await originalFetch(resource, {
+                                ...options,
+                                __csrfRetried: true,
+                                credentials: 'same-origin',
+                                headers: retryHeaders
+                            });
                         }
-                    } catch (error) {
-                        // ignore
                     }
+                } catch (error) {
+                    console.warn('No se pudo refrescar el token CSRF automáticamente:', error);
                 }
+            }
 
+            if (response.status === 401) {
+                toast.error('Sesión expirada. Vuelve a iniciar sesión.');
+                window.location.href = 'login.html';
                 return response;
-            });
+            }
+
+            if (response.status === 403) {
+                try {
+                    const clone = response.clone();
+                    const data = await clone.json();
+                    if (data?.message && data.message.toLowerCase().includes('csrf')) {
+                        toast.error('La sesión protegida se renovó. Intenta guardar de nuevo.');
+                    }
+                } catch (error) {
+                    // ignore
+                }
+            }
+
+            return response;
         };
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -4520,6 +4583,7 @@
                 equipo_visitante_id: parseInt(equipo_visitante_id),
                 fecha_partido,
                 torneo_id: torneoId,
+                innings_jugados: parseInt(document.getElementById('inningsJugados').value, 10) || 9,
                 carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
                 carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
                 estado: 'finalizado'
@@ -4809,6 +4873,7 @@
                 fecha_partido,
                 hora: hora || null,
                 torneo_id: torneoId,
+                innings_jugados: parseInt(document.getElementById('inningsJugados').value, 10) || 9,
                 carreras_local: carreras_local !== "" ? parseInt(carreras_local) : null,
                 carreras_visitante: carreras_visitante !== "" ? parseInt(carreras_visitante) : null,
                 estado: (carreras_local !== "" && carreras_visitante !== "") ? 'finalizado' : 'programado'
