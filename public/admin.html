@@ -2833,11 +2833,29 @@
             if (!trigger) return;
 
             const inline = String(trigger.getAttribute('oninput') || '').trim();
+            if (inline === 'autoCalcHForm()') {
+                event.stopPropagation();
+                autoCalcHForm();
+                return;
+            }
             const autoCalcMatch = inline.match(/^autoCalcH\((\d+)\)$/);
             if (!autoCalcMatch) return;
 
             event.stopPropagation();
             autoCalcH(Number(autoCalcMatch[1]));
+        }
+
+        function getLegacyPaginationInstance(name) {
+            switch (name) {
+                case 'paginationBateo':
+                    return paginationBateo;
+                case 'paginationPitcheo':
+                    return paginationPitcheo;
+                case 'paginationDefensa':
+                    return paginationDefensa;
+                default:
+                    return null;
+            }
         }
 
         function handleLegacyAdminInlineActions(event) {
@@ -2879,6 +2897,9 @@
                 } else if (inline === 'desactivarTodosLosTorneos()') {
                     handled = true;
                     desactivarTodosLosTorneos();
+                } else if (inline === 'crearTorneo()') {
+                    handled = true;
+                    crearTorneo();
                 } else if (inline === 'inicializarPlayoffs()') {
                     handled = true;
                     inicializarPlayoffs();
@@ -2940,13 +2961,13 @@
                     handled = true;
                     editarTorneo(Number(match[1]), match[2].replace(/\\'/g, "'"));
                 } else if ((match = inline.match(/^(pagination[A-Za-z]+)\.(prevPage|nextPage)\(\)$/))) {
-                    const pagination = window[match[1]];
+                    const pagination = getLegacyPaginationInstance(match[1]) || window[match[1]];
                     if (pagination && typeof pagination[match[2]] === 'function') {
                         handled = true;
                         pagination[match[2]]();
                     }
                 } else if ((match = inline.match(/^(pagination[A-Za-z]+)\.goToPage\((\d+)\)$/))) {
-                    const pagination = window[match[1]];
+                    const pagination = getLegacyPaginationInstance(match[1]) || window[match[1]];
                     if (pagination && typeof pagination.goToPage === 'function') {
                         handled = true;
                         pagination.goToPage(Number(match[2]));
