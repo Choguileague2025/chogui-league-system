@@ -34,6 +34,12 @@ function registerTeamShareCard() {
         getData: () => {
             const tournamentName = document.getElementById('tournamentSelect')?.selectedOptions?.[0]?.textContent || '';
             const zoneText = document.getElementById('teamSignalZone')?.textContent || '';
+            const city = document.getElementById('teamLocation')?.textContent || teamData.ciudad || 'Liga';
+            const manager = document.getElementById('teamManager')?.textContent || teamData.manager || 'Sin manager';
+            const record = document.getElementById('teamRecord')?.textContent || '--';
+            const pct = document.getElementById('teamWinPct')?.textContent || '--';
+            const diff = document.getElementById('teamSignalDiff')?.textContent || '';
+            const position = document.getElementById('teamPositionStat')?.textContent || '--';
             let tone = 'default';
             if (/playoff|clasifica|adentro/i.test(zoneText)) tone = 'playoff';
             if (/persigue|corte|pelea|acecho/i.test(zoneText)) tone = 'chase';
@@ -44,21 +50,21 @@ function registerTeamShareCard() {
                 kicker: document.getElementById('teamHeroKicker')?.textContent || 'Perfil oficial del equipo',
                 tournamentName,
                 title: document.getElementById('teamHeroTitle')?.textContent || teamData.nombre || 'Perfil del equipo',
-                subtitle: document.getElementById('teamHeroSubtitle')?.textContent || '',
-                badge: document.getElementById('teamHeroBadgeMeta')?.textContent || 'Equipo oficial',
-                meta: `${document.getElementById('teamLocation')?.textContent || teamData.ciudad || 'Liga'} • ${document.getElementById('teamManager')?.textContent || teamData.manager || 'Sin manager'}`,
-                badgeLabel: document.getElementById('teamHeroBadgeLabel')?.textContent || 'Ciudad',
-                badgeValue: document.getElementById('teamHeroBadgeValue')?.textContent || '--',
-                badgeMeta: zoneText || document.getElementById('teamHeroBadgeMeta')?.textContent || 'Equipo oficial',
+                subtitle: `${city} • Manager ${manager}`,
+                badge: tournamentName || 'Perfil oficial',
+                meta: `Récord ${record}`,
+                badgeLabel: zoneText ? 'Estado' : 'Ciudad',
+                badgeValue: zoneText || city,
+                badgeMeta: `Posición ${position} • PCT ${pct}`,
                 logo: document.getElementById('heroTeamLogo')?.src || getTeamLogo(teamData.id, teamData.nombre),
                 initials: generarIniciales(teamData.nombre),
                 fileName: `equipo-${teamData.nombre || 'perfil'}`,
-                linkLabel: currentTorneoId ? 'Torneo seleccionado' : 'Todos los torneos',
+                linkLabel: diff ? `DIF ${diff}` : (currentTorneoId ? 'Torneo seleccionado' : 'Todos los torneos'),
                 brandText: tournamentName ? `${tournamentName} • choguileague.site` : 'choguileague.site',
                 metrics: [
-                    { label: 'Récord', value: document.getElementById('teamRecord')?.textContent || '--' },
-                    { label: 'Posición', value: document.getElementById('teamPositionStat')?.textContent || '--' },
-                    { label: 'PCT', value: document.getElementById('teamWinPct')?.textContent || '--' },
+                    { label: 'Récord', value: record },
+                    { label: 'Posición', value: position },
+                    { label: 'PCT', value: pct },
                     { label: 'Carreras', value: document.getElementById('teamRuns')?.textContent || '--' }
                 ]
             };

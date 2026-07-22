@@ -344,6 +344,23 @@
         ctx.fillText(cleanText(text || 'choguileague.site'), 78, height - 60);
     }
 
+    function drawBadgePanel(ctx, x, y, width, height, theme, label, value, meta) {
+        ctx.fillStyle = theme.panelSoft;
+        roundRect(ctx, x, y, width, height, 32);
+        ctx.fill();
+
+        ctx.fillStyle = '#b8c2d3';
+        ctx.font = '700 22px Arial';
+        ctx.fillText(cleanText(label || 'Resumen'), x + 26, y + 40);
+
+        ctx.fillStyle = theme.accent;
+        fitText(ctx, cleanText(value || '--'), x + 26, y + 102, width - 52, 48, 24);
+
+        ctx.fillStyle = theme.inverseText;
+        ctx.font = '700 20px Arial';
+        wrapText(ctx, cleanText(meta || ''), x + 26, y + 136, width - 52, 24, 2);
+    }
+
     async function drawSponsorsRow(ctx, x, y, width, theme, sponsors, compact = false) {
         const visibleSponsors = (sponsors || DEFAULT_SPONSORS).slice(0, compact ? 4 : 5);
         if (!visibleSponsors.length) return;
@@ -427,15 +444,16 @@
 
         ctx.fillStyle = theme.textSub;
         ctx.font = '700 34px Arial';
-        wrapText(ctx, data.subtitle || '', 268, 320, data.type === 'partido' ? 620 : 700, 44, 2);
+        const subtitleEndY = wrapText(ctx, data.subtitle || '', 268, 320, data.type === 'partido' ? 620 : 700, 44, 2);
 
         const pills = [data.badge, data.meta, data.linkLabel].filter(Boolean).slice(0, 3);
+        const pillsY = Math.max(data.type === 'partido' ? 392 : 382, subtitleEndY + 72);
         pills.forEach((pill, index) => {
-            drawPill(ctx, 268 + index * 248, 392, pill, theme, 220, data.type === 'partido' ? '#f4d37a' : theme.textMain);
+            drawPill(ctx, 268 + index * 248, pillsY, pill, theme, 220, data.type === 'partido' ? '#f4d37a' : theme.textMain);
         });
 
         drawBadgePanel(ctx, 938, data.type === 'partido' ? 252 : 92, 198, 170, theme, data.badgeLabel, data.badgeValue, data.badgeMeta);
-        drawMetricCards(ctx, data.metrics, 74, 444, width - 148, 116, theme, 4);
+        drawMetricCards(ctx, data.metrics, 74, Math.max(444, pillsY + 72), width - 148, 116, theme, 4);
 
         if (data.decisions?.length && data.type === 'partido') {
             drawDecisionStrip(ctx, 74, 432, 820, 72, data.decisions, theme);
@@ -491,22 +509,26 @@
 
         ctx.fillStyle = theme.textSub;
         ctx.font = '700 44px Arial';
-        wrapText(ctx, data.subtitle || '', 84, titleY + 86, 820, 56, 3);
+        const subtitleEndY = wrapText(ctx, data.subtitle || '', 84, titleY + 86, 820, 56, 3);
 
+        let mainBlockY = subtitleEndY + 90;
         if (data.type === 'partido' && data.scoreline) {
-            await drawMatchScoreboard(ctx, 84, 862, 912, 240, data, theme, true);
+            await drawMatchScoreboard(ctx, 84, mainBlockY, 912, 240, data, theme, true);
+            mainBlockY += 290;
         } else {
             drawBadgePanel(ctx, 774, 146, 230, 210, theme, data.badgeLabel, data.badgeValue, data.badgeMeta);
         }
 
-        drawPill(ctx, 84, 1140, data.badge, theme, 320, data.type === 'partido' ? '#f4d37a' : theme.textMain);
-        drawPill(ctx, 418, 1140, data.meta, theme, 320, data.type === 'partido' ? '#f4d37a' : theme.textMain);
-        drawPill(ctx, 752, 1140, data.linkLabel, theme, 244, data.type === 'partido' ? '#f4d37a' : theme.textMain);
+        const pillsY = Math.max(mainBlockY, 1120);
+        drawPill(ctx, 84, pillsY, data.badge, theme, 320, data.type === 'partido' ? '#f4d37a' : theme.textMain);
+        drawPill(ctx, 418, pillsY, data.meta, theme, 320, data.type === 'partido' ? '#f4d37a' : theme.textMain);
+        drawPill(ctx, 752, pillsY, data.linkLabel, theme, 244, data.type === 'partido' ? '#f4d37a' : theme.textMain);
 
-        drawMetricCards(ctx, data.metrics, 84, 1240, 912, data.type === 'partido' ? 350 : 300, theme, 2);
+        const metricsY = pillsY + 100;
+        drawMetricCards(ctx, data.metrics, 84, metricsY, 912, data.type === 'partido' ? 350 : 300, theme, 2);
 
         if (data.decisions?.length) {
-            drawStoryDecisions(ctx, 84, 1628, 912, 188, data.decisions, theme);
+            drawStoryDecisions(ctx, 84, metricsY + (data.type === 'partido' ? 390 : 340), 912, 188, data.decisions, theme);
         }
 
         await drawSponsorsRow(ctx, 84, 1830, 912, theme, data.sponsors, false);
@@ -546,19 +568,6 @@
             ctx.font = large ? '700 26px Arial' : '700 20px Arial';
             fitText(ctx, data.badgeMeta, x + width / 2 - 180, y + (large ? 198 : 126), 360, large ? 26 : 20, 16);
         }
-    }
-
-    function drawBadgePanel(ctx, x, y, width, height, theme, label, value, meta) {
-        ctx.fillStyle = theme.panelSoft;
-        roundRect(ctx, x, y, width, height, 32);
-        ctx.fill();
-        ctx.fillStyle = '#b8c2d3';
-        ctx.font = '700 22px Arial';
-        ctx.fillText(cleanText(label || 'Resumen'), x + 40, y + 42);
-        ctx.fillStyle = theme.accent;
-        fitText(ctx, cleanText(value || '--'), x + 40, y + 104, width - 80, 54, 28);
-        ctx.fillStyle = theme.inverseText;
-        fitText(ctx, cleanText(meta || ''), x + 40, y + 140, width - 80, 24, 18);
     }
 
     function drawDecisionStrip(ctx, x, y, width, height, decisions, theme) {
