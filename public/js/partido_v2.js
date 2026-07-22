@@ -146,6 +146,34 @@ function renderDecisionCard(nameId, metaId, entry, emptyName, emptyMeta) {
     matchText(metaId, pieces.length ? pieces.join(' • ') : emptyMeta);
 }
 
+function registerMatchShareCard(partido = {}, resumen = {}) {
+    if (!window.ChoguiShare) return;
+
+    window.ChoguiShare.registerPage({
+        getData: () => ({
+            type: 'partido',
+            kicker: document.getElementById('matchHeroKicker')?.textContent || 'Juego oficial',
+            title: document.getElementById('matchHeroTitle')?.textContent || 'Detalle del partido',
+            subtitle: document.getElementById('matchHeroSubtitle')?.textContent || '',
+            badge: partido.torneo_nombre || 'Resultado oficial',
+            meta: document.getElementById('matchBreadcrumb')?.textContent || '',
+            badgeLabel: document.getElementById('matchBadgeLabel')?.textContent || 'Estado',
+            badgeValue: document.getElementById('matchBadgeValue')?.textContent || '--',
+            badgeMeta: document.getElementById('matchBadgeMeta')?.textContent || '',
+            logo: '/images/logos/chogui-league.png',
+            initials: 'CL',
+            fileName: `partido-${partido.id || matchId || 'detalle'}`,
+            linkLabel: 'Boxscore oficial',
+            metrics: [
+                { label: 'Hits', value: document.getElementById('summaryHits')?.textContent || '--' },
+                { label: 'Errores', value: document.getElementById('summaryErrors')?.textContent || '--' },
+                { label: 'HR', value: document.getElementById('summaryHr')?.textContent || '--' },
+                { label: 'MVP', value: document.getElementById('summaryMvp')?.textContent || (resumen.mvp_proyectado?.jugador_nombre || '--') }
+            ]
+        })
+    });
+}
+
 async function loadBoxscore() {
     if (!matchId || Number.isNaN(Number(matchId))) {
         document.body.innerHTML = '<div class="container"><div class="match-highlights-card"><h2>Partido inválido</h2><p>Falta el ID del partido en la URL.</p></div></div>';
@@ -217,6 +245,7 @@ async function loadBoxscore() {
 
         renderTeamPanel('visitor', visitante);
         renderTeamPanel('local', local);
+        registerMatchShareCard(partido, resumen);
     } catch (error) {
         console.error('Error cargando detalle del partido:', error);
         document.querySelector('.partido-page').innerHTML = `

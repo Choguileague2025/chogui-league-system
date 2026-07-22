@@ -7,6 +7,7 @@
     <meta name="description" content="Planilla oficial, actuaciones destacadas y detalle completo del partido en Chogui League.">
     <link rel="stylesheet" href="css/brand_shell.css">
     <link rel="stylesheet" href="css/partido_v2.css">
+    <link rel="stylesheet" href="css/share_media.css">
 </head>
 <body class="brand-page-shell">
     <header class="brand-topbar">
@@ -37,6 +38,17 @@
                     <span class="brand-hero-kicker" id="matchHeroKicker">Juego oficial</span>
                     <h1 class="brand-hero-title" id="matchHeroTitle">Cargando partido...</h1>
                     <p class="brand-hero-subtitle" id="matchHeroSubtitle">Preparando la planilla completa del encuentro.</p>
+                    <div class="brand-hero-actions" aria-label="Acciones del juego">
+                        <button class="brand-action-btn" type="button" data-share-link>
+                            <span>🔗</span>
+                            <span>Compartir enlace</span>
+                        </button>
+                        <button class="brand-action-btn accent" type="button" data-download-card>
+                            <span>📸</span>
+                            <span>Descargar imagen</span>
+                        </button>
+                        <span class="brand-action-feedback" data-share-feedback aria-live="polite"></span>
+                    </div>
                 </div>
                 <div class="brand-hero-badge match-badge">
                     <span id="matchBadgeLabel">Estado</span>
@@ -261,6 +273,7 @@
     </div>
 
     <script src="js/analytics.js" defer></script>
+    <script src="js/share_media.js" defer></script>
     <script src="js/partido_v2.js" defer></script>
 </body>
 </html>

@@ -27,6 +27,34 @@ function setTextContentSafe(id, value) {
     if (el) el.textContent = value;
 }
 
+function registerTeamShareCard() {
+    if (!window.ChoguiShare || !teamData) return;
+
+    window.ChoguiShare.registerPage({
+        getData: () => ({
+            type: 'equipo',
+            kicker: document.getElementById('teamHeroKicker')?.textContent || 'Perfil oficial del equipo',
+            title: document.getElementById('teamHeroTitle')?.textContent || teamData.nombre || 'Perfil del equipo',
+            subtitle: document.getElementById('teamHeroSubtitle')?.textContent || '',
+            badge: document.getElementById('teamHeroBadgeMeta')?.textContent || 'Equipo oficial',
+            meta: document.getElementById('teamLocation')?.textContent || teamData.ciudad || 'Liga',
+            badgeLabel: document.getElementById('teamHeroBadgeLabel')?.textContent || 'Ciudad',
+            badgeValue: document.getElementById('teamHeroBadgeValue')?.textContent || '--',
+            badgeMeta: document.getElementById('teamHeroBadgeMeta')?.textContent || 'Equipo oficial',
+            logo: document.getElementById('heroTeamLogo')?.src || getTeamLogo(teamData.id, teamData.nombre),
+            initials: generarIniciales(teamData.nombre),
+            fileName: `equipo-${teamData.nombre || 'perfil'}`,
+            linkLabel: currentTorneoId ? 'Torneo seleccionado' : 'Todos los torneos',
+            metrics: [
+                { label: 'Récord', value: document.getElementById('teamRecord')?.textContent || '--' },
+                { label: 'Posición', value: document.getElementById('teamPositionStat')?.textContent || '--' },
+                { label: 'PCT', value: document.getElementById('teamWinPct')?.textContent || '--' },
+                { label: 'Carreras', value: document.getElementById('teamRuns')?.textContent || '--' }
+            ]
+        })
+    });
+}
+
 // ===================================
 // INICIALIZACIÓN
 // ===================================
@@ -225,6 +253,8 @@ function renderizarInformacionEquipo() {
     } else {
         setTextContent('teamFounded', 'N/A');
     }
+
+    registerTeamShareCard();
 }
 
 // ===================================

@@ -117,6 +117,48 @@ function setHtml(id, value) {
     if (el) el.innerHTML = value;
 }
 
+function registerPlayerShareCard() {
+    if (!window.ChoguiShare || !playerData) return;
+
+    window.ChoguiShare.registerPage({
+        getData: () => {
+            const labels = [
+                document.getElementById('headerLabel1')?.textContent || 'AVG',
+                document.getElementById('headerLabel2')?.textContent || 'HR',
+                document.getElementById('headerLabel3')?.textContent || 'RBI',
+                document.getElementById('headerLabel4')?.textContent || 'OPS'
+            ];
+
+            const values = [
+                document.getElementById('headerAVG')?.textContent || '---',
+                document.getElementById('headerHR')?.textContent || '---',
+                document.getElementById('headerRBI')?.textContent || '---',
+                document.getElementById('headerOPS')?.textContent || '---'
+            ];
+
+            return {
+                type: 'jugador',
+                kicker: document.getElementById('playerHeroKicker')?.textContent || 'Perfil oficial del jugador',
+                title: document.getElementById('playerHeroTitle')?.textContent || playerData.nombre || 'Perfil del jugador',
+                subtitle: document.getElementById('playerHeroSubtitle')?.textContent || '',
+                badge: document.getElementById('playerHeroBadgeMeta')?.textContent || playerData.equipo_nombre || 'Jugador oficial',
+                meta: document.getElementById('playerPosition')?.textContent || formatPos(playerData.posicion),
+                badgeLabel: document.getElementById('playerHeroBadgeLabel')?.textContent || 'Equipo',
+                badgeValue: document.getElementById('playerHeroBadgeValue')?.textContent || '--',
+                badgeMeta: document.getElementById('playerHeroBadgeMeta')?.textContent || playerData.equipo_nombre || '',
+                logo: document.getElementById('heroPlayerLogo')?.src || getPlayerAvatarByPosition(playerData.posicion),
+                initials: getInitials(playerData.nombre),
+                fileName: `jugador-${playerData.nombre || 'perfil'}`,
+                linkLabel: currentTournamentId ? 'Torneo activo' : 'Histórico oficial',
+                metrics: labels.map((label, index) => ({
+                    label,
+                    value: values[index]
+                }))
+            };
+        }
+    });
+}
+
 function isPitcherPrimary() {
     return String(playerData?.posicion || '').toUpperCase() === 'P';
 }
@@ -467,6 +509,8 @@ async function loadPlayerInfo() {
             heroLogo.alt = `Avatar de ${player.nombre}`;
         }
 
+        registerPlayerShareCard();
+
         // Navigation
         const backBtn = document.getElementById('backToTeamButton');
         if (backBtn) {
@@ -511,6 +555,8 @@ async function loadAllStats() {
             console.error(`Error cargando módulo de jugador #${index + 1}:`, result.reason);
         }
     });
+
+    registerPlayerShareCard();
 }
 
 async function loadHistoricalStats() {
