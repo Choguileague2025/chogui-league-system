@@ -1,0 +1,4 @@
+ALTER TABLE partidos
+    ADD COLUMN IF NOT EXISTS jugador_del_partido_id INTEGER REFERENCES jugadores(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS pitcher_ganador_id INTEGER REFERENCES jugadores(id) ON DELETE SET NULL,
+    ADD COLUMN IF NOT EXISTS pitcher_perdedor_id INTEGER REFERENCES jugadores(id) ON DELETE SET NULL;

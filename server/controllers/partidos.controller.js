@@ -496,14 +496,23 @@ async function obtenerBoxscore(req, res, next) {
     try {
         const { id } = req.params;
         const hasPartidosTorneo = await hasColumn('partidos', 'torneo_id');
+        const hasJugadorDelPartido = await hasColumn('partidos', 'jugador_del_partido_id');
+        const hasPitcherGanador = await hasColumn('partidos', 'pitcher_ganador_id');
+        const hasPitcherPerdedor = await hasColumn('partidos', 'pitcher_perdedor_id');
         const torneoJoin = hasPartidosTorneo ? 'LEFT JOIN torneos t ON t.id = p.torneo_id' : '';
         const torneoSelect = hasPartidosTorneo ? 't.nombre AS torneo_nombre' : 'NULL::TEXT AS torneo_nombre';
+        const metadataSelect = [
+            hasJugadorDelPartido ? null : 'NULL::INTEGER AS jugador_del_partido_id',
+            hasPitcherGanador ? null : 'NULL::INTEGER AS pitcher_ganador_id',
+            hasPitcherPerdedor ? null : 'NULL::INTEGER AS pitcher_perdedor_id'
+        ].filter(Boolean).join(',\n                       ');
         const [partidoResult, hasOffensiveBoxscore, hasPitchingBoxscore, hasDefensiveBoxscore] = await Promise.all([
             pool.query(`
                 SELECT p.*,
                        el.nombre AS equipo_local_nombre,
                        ev.nombre AS equipo_visitante_nombre,
-                       ${torneoSelect}
+                       ${torneoSelect}${metadataSelect ? `,
+                       ${metadataSelect}` : ''}
                 FROM partidos p
                 LEFT JOIN equipos el ON el.id = p.equipo_local_id
                 LEFT JOIN equipos ev ON ev.id = p.equipo_visitante_id
@@ -574,6 +583,55 @@ async function obtenerBoxscore(req, res, next) {
             pitchingRows: pitcheo,
             defensiveRows: defensa
         });
+        const metadata = {
+            jugador_del_partido: null,
+            pitcher_ganador: null,
+            pitcher_perdedor: null
+        };
+        const playerIndex = new Map();
+        [...ofensiva, ...pitcheo, ...defensa].forEach((row) => {
+            if (!row?.jugador_id || playerIndex.has(Number(row.jugador_id))) return;
+            playerIndex.set(Number(row.jugador_id), {
+                jugador_id: Number(row.jugador_id),
+                jugador_nombre: row.jugador_nombre,
+                equipo_id: row.equipo_id ? Number(row.equipo_id) : null,
+                equipo_nombre: row.equipo_nombre || null
+            });
+        });
+        const fallbackMeta = (playerId, defaultName, summary) => {
+            if (!playerId) return null;
+            return playerIndex.get(Number(playerId)) || {
+                jugador_id: Number(playerId),
+                jugador_nombre: defaultName,
+                equipo_id: null,
+                equipo_nombre: null,
+                summary: summary || null
+            };
+        };
+        metadata.jugador_del_partido = fallbackMeta(
+            partido.jugador_del_partido_id,
+            'Jugador del partido',
+            destacados.mvp_candidates[0]?.summary || null
+        );
+        metadata.pitcher_ganador = fallbackMeta(
+            partido.pitcher_ganador_id,
+            'Pitcher ganador',
+            'Decisión oficial'
+        );
+        metadata.pitcher_perdedor = fallbackMeta(
+            partido.pitcher_perdedor_id,
+            'Pitcher perdedor',
+            'Decisión oficial'
+        );
+        if (metadata.jugador_del_partido && !metadata.jugador_del_partido.summary) {
+            metadata.jugador_del_partido.summary = destacados.mvp_candidates[0]?.summary || null;
+        }
+        if (metadata.pitcher_ganador && !metadata.pitcher_ganador.summary) {
+            metadata.pitcher_ganador.summary = 'Decisión oficial';
+        }
+        if (metadata.pitcher_perdedor && !metadata.pitcher_perdedor.summary) {
+            metadata.pitcher_perdedor.summary = 'Decisión oficial';
+        }
 
         const resumen = {
             boxscore_cargado: Boolean(ofensiva.length || pitcheo.length || defensa.length),
@@ -583,12 +641,16 @@ async function obtenerBoxscore(req, res, next) {
             total_errors_visitante: equipos.visitante.totals.defense.errors,
             total_hr_local: equipos.local.totals.offense.home_runs,
             total_hr_visitante: equipos.visitante.totals.offense.home_runs,
-            mvp_proyectado: destacados.mvp_candidates[0] || null
+            mvp_proyectado: destacados.mvp_candidates[0] || null,
+            jugador_del_partido: metadata.jugador_del_partido,
+            pitcher_ganador: metadata.pitcher_ganador,
+            pitcher_perdedor: metadata.pitcher_perdedor
         };
 
         res.json({
             partido,
             resumen,
+            metadata,
             equipos,
             destacados,
             ofensiva,
@@ -605,82 +667,137 @@ async function guardarBoxscore(req, res, next) {
     const client = await pool.connect();
     try {
         const { id } = req.params;
-        const { ofensiva = [], pitcheo = [], defensa = [] } = req.body || {};
+        const {
+            jugador_del_partido_id = null,
+            pitcher_ganador_id = null,
+            pitcher_perdedor_id = null,
+            ofensiva = [],
+            pitcheo = [],
+            defensa = []
+        } = req.body || {};
         const hasOffensiveBoxscore = await hasTable('partido_jugador_ofensiva');
         const hasPitchingBoxscore = await hasTable('partido_jugador_pitcheo');
         const hasDefensiveBoxscore = await hasTable('partido_jugador_defensa');
+        const hasPartidosTorneo = await hasColumn('partidos', 'torneo_id');
+        const hasJugadorDelPartido = await hasColumn('partidos', 'jugador_del_partido_id');
+        const hasPitcherGanador = await hasColumn('partidos', 'pitcher_ganador_id');
+        const hasPitcherPerdedor = await hasColumn('partidos', 'pitcher_perdedor_id');
+        const hasOffensiveTorneo = await hasColumn('partido_jugador_ofensiva', 'torneo_id');
+        const hasPitchingTorneo = await hasColumn('partido_jugador_pitcheo', 'torneo_id');
+        const hasDefensiveTorneo = await hasColumn('partido_jugador_defensa', 'torneo_id');
 
         if (!hasOffensiveBoxscore || !hasPitchingBoxscore || !hasDefensiveBoxscore) {
             return res.status(400).json({ error: 'Las tablas de boxscore aún no existen. Ejecute la migración 006_boxscore_historico.sql.' });
         }
 
-        const partidoResult = await client.query('SELECT id, torneo_id FROM partidos WHERE id = $1 LIMIT 1', [id]);
+        const selectFields = ['id'];
+        if (hasPartidosTorneo) {
+            selectFields.push('torneo_id');
+        }
+        const partidoResult = await client.query(`SELECT ${selectFields.join(', ')} FROM partidos WHERE id = $1 LIMIT 1`, [id]);
         if (partidoResult.rows.length === 0) {
             return res.status(404).json({ error: 'Partido no encontrado' });
         }
 
         const torneoId = partidoResult.rows[0].torneo_id || null;
         await client.query('BEGIN');
+        const updateAssignments = [];
+        const updateValues = [];
+        if (hasJugadorDelPartido) {
+            updateAssignments.push(`jugador_del_partido_id = $${updateValues.length + 1}`);
+            updateValues.push(jugador_del_partido_id || null);
+        }
+        if (hasPitcherGanador) {
+            updateAssignments.push(`pitcher_ganador_id = $${updateValues.length + 1}`);
+            updateValues.push(pitcher_ganador_id || null);
+        }
+        if (hasPitcherPerdedor) {
+            updateAssignments.push(`pitcher_perdedor_id = $${updateValues.length + 1}`);
+            updateValues.push(pitcher_perdedor_id || null);
+        }
+        if (updateAssignments.length) {
+            updateValues.push(id);
+            await client.query(
+                `UPDATE partidos SET ${updateAssignments.join(', ')} WHERE id = $${updateValues.length}`,
+                updateValues
+            );
+        }
+
         await client.query('DELETE FROM partido_jugador_ofensiva WHERE partido_id = $1', [id]);
         await client.query('DELETE FROM partido_jugador_pitcheo WHERE partido_id = $1', [id]);
         await client.query('DELETE FROM partido_jugador_defensa WHERE partido_id = $1', [id]);
 
         for (const row of ofensiva) {
-            await client.query(`
-                INSERT INTO partido_jugador_ofensiva (
-                    partido_id, torneo_id, jugador_id, equipo_id, batting_order,
-                    plate_appearances, at_bats, hits, singles, doubles, triples, home_runs,
-                    rbi, runs, walks, strikeouts, stolen_bases, caught_stealing,
-                    hit_by_pitch, sacrifice_flies, sacrifice_hits, updated_at
-                ) VALUES (
-                    $1, $2, $3, $4, $5,
-                    $6, $7, $8, $9, $10, $11, $12,
-                    $13, $14, $15, $16, $17, $18,
-                    $19, $20, $21, CURRENT_TIMESTAMP
-                )
-            `, [
-                id, torneoId, row.jugador_id, row.equipo_id || null, row.batting_order || null,
+            const columns = [
+                'partido_id', 'jugador_id', 'equipo_id', 'batting_order',
+                'plate_appearances', 'at_bats', 'hits', 'singles', 'doubles', 'triples', 'home_runs',
+                'rbi', 'runs', 'walks', 'strikeouts', 'stolen_bases', 'caught_stealing',
+                'hit_by_pitch', 'sacrifice_flies', 'sacrifice_hits'
+            ];
+            const values = [
+                id, row.jugador_id, row.equipo_id || null, row.batting_order || null,
                 row.plate_appearances || 0, row.at_bats || 0, row.hits || 0, row.singles || 0,
                 row.doubles || 0, row.triples || 0, row.home_runs || 0, row.rbi || 0,
                 row.runs || 0, row.walks || 0, row.strikeouts || 0, row.stolen_bases || 0,
                 row.caught_stealing || 0, row.hit_by_pitch || 0, row.sacrifice_flies || 0,
                 row.sacrifice_hits || 0
-            ]);
+            ];
+            if (hasOffensiveTorneo) {
+                columns.splice(1, 0, 'torneo_id');
+                values.splice(1, 0, torneoId);
+            }
+            const placeholders = values.map((_, index) => `$${index + 1}`);
+            await client.query(
+                `INSERT INTO partido_jugador_ofensiva (${columns.join(', ')}, updated_at)
+                 VALUES (${placeholders.join(', ')}, CURRENT_TIMESTAMP)`,
+                values
+            );
         }
 
         for (const row of pitcheo) {
-            await client.query(`
-                INSERT INTO partido_jugador_pitcheo (
-                    partido_id, torneo_id, jugador_id, equipo_id, innings_pitched,
-                    hits_allowed, earned_runs, strikeouts, walks_allowed,
-                    home_runs_allowed, wins, losses, saves, updated_at
-                ) VALUES (
-                    $1, $2, $3, $4, $5,
-                    $6, $7, $8, $9,
-                    $10, $11, $12, $13, CURRENT_TIMESTAMP
-                )
-            `, [
-                id, torneoId, row.jugador_id, row.equipo_id || null, row.innings_pitched || 0,
+            const columns = [
+                'partido_id', 'jugador_id', 'equipo_id', 'innings_pitched',
+                'hits_allowed', 'earned_runs', 'strikeouts', 'walks_allowed',
+                'home_runs_allowed', 'wins', 'losses', 'saves'
+            ];
+            const values = [
+                id, row.jugador_id, row.equipo_id || null, row.innings_pitched || 0,
                 row.hits_allowed || 0, row.earned_runs || 0, row.strikeouts || 0,
                 row.walks_allowed || 0, row.home_runs_allowed || 0, row.wins || 0,
                 row.losses || 0, row.saves || 0
-            ]);
+            ];
+            if (hasPitchingTorneo) {
+                columns.splice(1, 0, 'torneo_id');
+                values.splice(1, 0, torneoId);
+            }
+            const placeholders = values.map((_, index) => `$${index + 1}`);
+            await client.query(
+                `INSERT INTO partido_jugador_pitcheo (${columns.join(', ')}, updated_at)
+                 VALUES (${placeholders.join(', ')}, CURRENT_TIMESTAMP)`,
+                values
+            );
         }
 
         for (const row of defensa) {
-            await client.query(`
-                INSERT INTO partido_jugador_defensa (
-                    partido_id, torneo_id, jugador_id, equipo_id, posicion,
-                    putouts, assists, errors, double_plays, passed_balls, chances, updated_at
-                ) VALUES (
-                    $1, $2, $3, $4, $5,
-                    $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP
-                )
-            `, [
-                id, torneoId, row.jugador_id, row.equipo_id || null, row.posicion || null,
+            const columns = [
+                'partido_id', 'jugador_id', 'equipo_id', 'posicion',
+                'putouts', 'assists', 'errors', 'double_plays', 'passed_balls', 'chances'
+            ];
+            const values = [
+                id, row.jugador_id, row.equipo_id || null, row.posicion || null,
                 row.putouts || 0, row.assists || 0, row.errors || 0, row.double_plays || 0,
                 row.passed_balls || 0, row.chances || 0
-            ]);
+            ];
+            if (hasDefensiveTorneo) {
+                columns.splice(1, 0, 'torneo_id');
+                values.splice(1, 0, torneoId);
+            }
+            const placeholders = values.map((_, index) => `$${index + 1}`);
+            await client.query(
+                `INSERT INTO partido_jugador_defensa (${columns.join(', ')}, updated_at)
+                 VALUES (${placeholders.join(', ')}, CURRENT_TIMESTAMP)`,
+                values
+            );
         }
 
         await client.query('COMMIT');

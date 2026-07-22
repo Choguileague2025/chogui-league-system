@@ -138,6 +138,14 @@ function renderTeamPanel(prefix, team) {
     renderDefenseTable(`${prefix}DefenseBody`, team.defense);
 }
 
+function renderDecisionCard(nameId, metaId, entry, emptyName, emptyMeta) {
+    matchText(nameId, entry?.jugador_nombre || emptyName);
+    const pieces = [];
+    if (entry?.equipo_nombre) pieces.push(entry.equipo_nombre);
+    if (entry?.summary) pieces.push(entry.summary);
+    matchText(metaId, pieces.length ? pieces.join(' • ') : emptyMeta);
+}
+
 async function loadBoxscore() {
     if (!matchId || Number.isNaN(Number(matchId))) {
         document.body.innerHTML = '<div class="container"><div class="match-highlights-card"><h2>Partido inválido</h2><p>Falta el ID del partido en la URL.</p></div></div>';
@@ -181,6 +189,27 @@ async function loadBoxscore() {
         matchText('summaryMvpMeta', resumen.mvp_proyectado
             ? `${resumen.mvp_proyectado.equipo_nombre || 'Sin equipo'} • ${resumen.mvp_proyectado.summary || ''}`
             : 'Carga la planilla para detectar la figura del juego');
+        renderDecisionCard(
+            'gameMvpName',
+            'gameMvpMeta',
+            data.metadata?.jugador_del_partido || resumen.jugador_del_partido,
+            'Por definir',
+            'Sin leyenda oficial cargada todavía'
+        );
+        renderDecisionCard(
+            'winningPitcherName',
+            'winningPitcherMeta',
+            data.metadata?.pitcher_ganador || resumen.pitcher_ganador,
+            'Por definir',
+            'Sin decisión oficial todavía'
+        );
+        renderDecisionCard(
+            'losingPitcherName',
+            'losingPitcherMeta',
+            data.metadata?.pitcher_perdedor || resumen.pitcher_perdedor,
+            'Por definir',
+            'Sin decisión oficial todavía'
+        );
 
         renderHighlightList('highlightOffense', data.destacados?.ofensiva, 'Todavía no hay figuras ofensivas cargadas.');
         renderHighlightList('highlightPitching', data.destacados?.pitcheo, 'Todavía no hay lectura de pitcheo para este juego.');

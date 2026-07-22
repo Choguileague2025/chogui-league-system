@@ -74,6 +74,9 @@ const boxscoreDefensaRowSchema = z.object({
 }).strict();
 
 const boxscoreSchema = z.object({
+    jugador_del_partido_id: z.union([z.coerce.number().int().positive(), z.literal(''), z.null()]).optional(),
+    pitcher_ganador_id: z.union([z.coerce.number().int().positive(), z.literal(''), z.null()]).optional(),
+    pitcher_perdedor_id: z.union([z.coerce.number().int().positive(), z.literal(''), z.null()]).optional(),
     ofensiva: z.array(boxscoreOfensivaRowSchema).optional(),
     pitcheo: z.array(boxscorePitcheoRowSchema).optional(),
     defensa: z.array(boxscoreDefensaRowSchema).optional()

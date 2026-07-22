@@ -1738,6 +1738,13 @@
                     </div>
                     <div class="boxscore-editor-grid">
                         <section class="boxscore-editor-card">
+                            <h4>🏅 Decisiones del juego</h4>
+                            <div id="boxscoreMetadataWrap">Cargando...</div>
+                            <p class="boxscore-editor-note">Completa la figura del partido y la decisión oficial del montículo para que el boxscore público se vea tipo MLB.</p>
+                        </section>
+                    </div>
+                    <div class="boxscore-editor-grid">
+                        <section class="boxscore-editor-card">
                             <h4>⚾ Ofensiva</h4>
                             <div id="boxscoreOffenseWrap">Cargando...</div>
                             <p class="boxscore-editor-note">Sugerencia: si no completas `PA`, el sistema usa `AB + BB + HBP + SF + SH`. Los sencillos se calculan desde H, 2B, 3B y HR.</p>
@@ -3529,6 +3536,48 @@
             return map;
         }
 
+        function renderBoxscoreMetadataEditor(partido, boxscore) {
+            const localRoster = getRosterByTeamId(partido.equipo_local_id);
+            const visitorRoster = getRosterByTeamId(partido.equipo_visitante_id);
+            const combinedRoster = [...visitorRoster, ...localRoster];
+            const pitchingRoster = combinedRoster.filter(jugador => String(jugador.posicion || '').toUpperCase() === 'P');
+            const selectedMvp = boxscore?.metadata?.jugador_del_partido?.jugador_id || boxscore?.resumen?.jugador_del_partido?.jugador_id || partido?.jugador_del_partido_id || '';
+            const selectedWinner = boxscore?.metadata?.pitcher_ganador?.jugador_id || boxscore?.resumen?.pitcher_ganador?.jugador_id || partido?.pitcher_ganador_id || '';
+            const selectedLoser = boxscore?.metadata?.pitcher_perdedor?.jugador_id || boxscore?.resumen?.pitcher_perdedor?.jugador_id || partido?.pitcher_perdedor_id || '';
+
+            const buildOptions = (roster, selectedValue, emptyLabel) => `
+                <option value="">${emptyLabel}</option>
+                ${roster.map(jugador => `
+                    <option value="${jugador.id}" ${Number(selectedValue) === Number(jugador.id) ? 'selected' : ''}>
+                        ${escapeAdminHTML(jugador.nombre)}${jugador.numero != null ? ` • #${jugador.numero}` : ''} • ${escapeAdminHTML(jugador.equipo_nombre || '')}
+                    </option>
+                `).join('')}
+            `;
+
+            return `
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="boxscoreGameMvp">Jugador del partido</label>
+                        <select id="boxscoreGameMvp">
+                            ${buildOptions(combinedRoster, selectedMvp, 'Seleccionar figura del juego')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="boxscoreWinningPitcher">Pitcher ganador</label>
+                        <select id="boxscoreWinningPitcher">
+                            ${buildOptions(pitchingRoster, selectedWinner, 'Seleccionar pitcher ganador')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="boxscoreLosingPitcher">Pitcher perdedor</label>
+                        <select id="boxscoreLosingPitcher">
+                            ${buildOptions(pitchingRoster, selectedLoser, 'Seleccionar pitcher perdedor')}
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+
         function renderOffenseEditor(team, map, sideKey) {
             const roster = getRosterByTeamId(team.id);
             if (!roster.length) {
@@ -3669,6 +3718,9 @@
             const pitchingMap = buildPlayerMap(boxscore?.pitcheo || []);
             const defenseMap = buildPlayerMap(boxscore?.defensa || []);
 
+            document.getElementById('boxscoreMetadataWrap').innerHTML =
+                renderBoxscoreMetadataEditor(partido, boxscore);
+
             document.getElementById('boxscoreOffenseWrap').innerHTML =
                 renderOffenseEditor(visitanteTeam, offenseMap, 'visitante') +
                 renderOffenseEditor(localTeam, offenseMap, 'local');
@@ -3695,6 +3747,7 @@
             document.getElementById('boxscoreOffenseWrap').innerHTML = 'Cargando...';
             document.getElementById('boxscorePitchingWrap').innerHTML = 'Cargando...';
             document.getElementById('boxscoreDefenseWrap').innerHTML = 'Cargando...';
+            document.getElementById('boxscoreMetadataWrap').innerHTML = 'Cargando...';
             document.getElementById('boxscoreModalMessage').style.display = 'none';
             document.getElementById('boxscoreModalError').style.display = 'none';
             document.getElementById('boxscoreModalOverlay').classList.add('active');
@@ -3790,6 +3843,9 @@
             }
 
             const body = {
+                jugador_del_partido_id: document.getElementById('boxscoreGameMvp')?.value || null,
+                pitcher_ganador_id: document.getElementById('boxscoreWinningPitcher')?.value || null,
+                pitcher_perdedor_id: document.getElementById('boxscoreLosingPitcher')?.value || null,
                 ofensiva: collectBoxscoreRows('ofensiva'),
                 pitcheo: collectBoxscoreRows('pitcheo'),
                 defensa: collectBoxscoreRows('defensa')
