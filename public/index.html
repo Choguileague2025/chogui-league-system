@@ -3264,6 +3264,14 @@
             margin-bottom: 5px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
+        .player-name-link {
+            color: inherit;
+            text-decoration: none;
+        }
+        .player-name-link:hover,
+        .player-name-link:focus-visible {
+            text-decoration: underline;
+        }
         .player-team {
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.7);
@@ -5394,9 +5402,9 @@
                 if (pulseLeaderTitle) pulseLeaderTitle.textContent = leader ? 'Impacto ofensivo del momento' : 'Líderes en preparación';
                 if (pulseLeaderRows) {
                     pulseLeaderRows.innerHTML = leader ? `
-                        <div class="pulse-leader-row" onclick="window.location.href='jugador.html?id=${leader.jugador_id}'" role="button" tabindex="0">
+                        <div class="pulse-leader-row" data-target-url="jugador.html?id=${leader.jugador_id}" role="link" tabindex="0">
                             <div>
-                                <div class="pulse-leader-name">${escapeHTML(leader.jugador_nombre)}</div>
+                                <div class="pulse-leader-name"><a class="player-name-link" href="jugador.html?id=${leader.jugador_id}">${escapeHTML(leader.jugador_nombre)}</a></div>
                                 <div class="pulse-leader-meta">${escapeHTML(leader.equipo_nombre)} • AVG ${Number(leader.avg || 0).toFixed(3)} • HR ${Number(leader.home_runs || 0)} • RBI ${Number(leader.rbi || 0)}</div>
                             </div>
                             <span class="pulse-leader-value">${Number(leader.ops || 0).toFixed(3)}</span>
@@ -6488,10 +6496,10 @@
                             <h3>${resultado.categoria}</h3>
                             <div class="lideres-lista">
                                 ${resultado.lideres.map((lider, index) => `
-                                    <div class="lider-item" onclick="window.open('jugador.html?id=${lider.jugador_id || lider.id}', '_blank')">
+                                    <div class="lider-item" data-target-url="jugador.html?id=${lider.jugador_id || lider.id}" role="link" tabindex="0">
                                         <span class="lider-posicion">${index + 1}</span>
                                         <span class="lider-info">
-                                            <strong>${lider.jugador_nombre || 'Desconocido'}</strong><br>
+                                            <strong><a class="player-name-link" href="jugador.html?id=${lider.jugador_id || lider.id}">${lider.jugador_nombre || 'Desconocido'}</a></strong><br>
                                             <small>${lider.equipo_nombre || 'Sin equipo'}</small>
                                         </span>
                                         <span class="lider-valor">${formatearValorLider(resultado.key, lider)}</span>
@@ -6829,10 +6837,10 @@
                     const st = allStats[index];
 
                     return `
-                        <div class="podio-card rank-${index + 1}" ${id ? `onclick="window.open('jugador.html?id=${id}','_blank')"` : ''} style="cursor:pointer;">
+                        <div class="podio-card rank-${index + 1}" ${id ? `data-target-url="jugador.html?id=${id}" role="link" tabindex="0"` : ''} style="cursor:pointer;">
                             <div class="podio-ranking">${medals[index]}</div>
                             <div class="badge-lider">${index === 0 ? '&#11088; ' : ''}${badgeLabels[index]}</div>
-                            <div class="podio-nombre">${nombre}</div>
+                            <div class="podio-nombre">${id ? `<a class="player-name-link" href="jugador.html?id=${id}">${nombre}</a>` : nombre}</div>
                             <div class="podio-equipo">${equipo}</div>
                             <div class="podio-posicion">${posicion}</div>
                             <div class="podio-stats">
@@ -6881,10 +6889,10 @@
                     }
 
                     return `
-                        <div class="lider-card" ${id ? `onclick="window.open('jugador.html?id=${id}','_blank')"` : ''}>
+                        <div class="lider-card" ${id ? `data-target-url="jugador.html?id=${id}" role="link" tabindex="0"` : ''}>
                             <div class="lider-ranking">#${index + 1}</div>
                             <div class="lider-header">
-                                <div class="lider-nombre">${nombre}</div>
+                                <div class="lider-nombre">${id ? `<a class="player-name-link" href="jugador.html?id=${id}">${nombre}</a>` : nombre}</div>
                                 <div class="lider-equipo">
                                     ${equipo}
                                     <span class="lider-posicion-badge">${posicion}</span>
@@ -8204,6 +8212,9 @@
             return `
                 <div class="player-card" 
                      data-player-id="${jugadorId}" 
+                     data-target-url="jugador.html?id=${jugadorId}"
+                     role="link"
+                     tabindex="0"
                      data-player-name="${nombreJugador.toLowerCase()}">
                    
                     <div class="player-rank" style="background: ${rankColor};">
@@ -8211,7 +8222,7 @@
                     </div>
                        
                     <div class="player-info">
-                        <h4 class="player-name">${nombreJugador}</h4>
+                        <h4 class="player-name"><a class="player-name-link" href="jugador.html?id=${jugadorId}">${nombreJugador}</a></h4>
                         <p class="player-team">${nombreEquipo}</p>
                         <p class="player-position" style="color: #ffc107; font-size: 0.9rem; margin: 5px 0;">
                             ${posicion || 'UTIL'}
@@ -8306,6 +8317,57 @@
                 }
             });
             console.log('✅ Buscador de jugadores inicializado');
+        }
+
+        function bindPublicCardNavigation() {
+            if (document.body.dataset.publicCardNavigationBound === 'true') return;
+
+            const resolveTargetUrl = (element) => {
+                if (!element) return null;
+
+                const direct = element.getAttribute('data-target-url');
+                if (direct) return direct;
+
+                const onclickAttr = element.getAttribute('onclick') || '';
+                let match = onclickAttr.match(/jugador\.html\?id=(\d+)/);
+                if (match) return `jugador.html?id=${match[1]}`;
+
+                match = onclickAttr.match(/equipo\.html\?id=(\d+)/);
+                if (match) return `equipo.html?id=${match[1]}`;
+
+                match = onclickAttr.match(/verJugador\((\d+)\)/);
+                if (match) return `jugador.html?id=${match[1]}`;
+
+                return null;
+            };
+
+            document.addEventListener('click', function(event) {
+                if (event.target.closest('a[href]')) return;
+
+                const clickable = event.target.closest('[data-target-url], [onclick*="jugador.html?id="], [onclick*="equipo.html?id="], [onclick*="verJugador("]');
+                if (!clickable) return;
+
+                const targetUrl = resolveTargetUrl(clickable);
+                if (!targetUrl) return;
+
+                event.preventDefault();
+                window.location.href = targetUrl;
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+
+                const clickable = event.target.closest('[data-target-url], [onclick*="jugador.html?id="], [onclick*="equipo.html?id="], [onclick*="verJugador("]');
+                if (!clickable) return;
+
+                const targetUrl = resolveTargetUrl(clickable);
+                if (!targetUrl) return;
+
+                event.preventDefault();
+                window.location.href = targetUrl;
+            });
+
+            document.body.dataset.publicCardNavigationBound = 'true';
         }
        
         function configurarTabsLideres() {
@@ -8500,6 +8562,7 @@
 
             initMobileNavigation();
             initStickyHeader();
+            bindPublicCardNavigation();
 
             // ✅ INICIO: CÓDIGO DEL BUSCADOR MODIFICADO
             // El código antiguo de 'buscarJugador' se elimina y se reemplaza por este bloque.
@@ -8567,9 +8630,9 @@
                 html += '<div class="search-category">🏆 EQUIPOS</div>';
                 equipos.forEach(equipo => {
                     html += `
-                        <div class="search-result-item" onclick="window.location.href='equipo.html?id=${equipo.id}'">
+                        <div class="search-result-item" data-target-url="equipo.html?id=${equipo.id}" role="link" tabindex="0">
                             <div class="player-info">
-                                <strong>${equipo.nombre}</strong>
+                                <strong><a class="player-name-link" href="equipo.html?id=${equipo.id}">${equipo.nombre}</a></strong>
                                 <span class="team-badge">${equipo.ciudad || 'Sin ciudad'}</span>
                             </div>
                         </div>
@@ -8582,9 +8645,9 @@
                 html += '<div class="search-category">👤 JUGADORES</div>';
                 jugadores.forEach(jugador => {
                     html += `
-                        <div class="search-result-item" onclick="window.location.href='jugador.html?id=${jugador.id}'">
+                        <div class="search-result-item" data-target-url="jugador.html?id=${jugador.id}" role="link" tabindex="0">
                             <div class="player-info">
-                                <strong>${jugador.nombre}</strong>
+                                <strong><a class="player-name-link" href="jugador.html?id=${jugador.id}">${jugador.nombre}</a></strong>
                                 <span class="team-badge">${jugador.equipo_nombre || 'Sin equipo'}</span>
                             </div>
                             <div class="player-stats">

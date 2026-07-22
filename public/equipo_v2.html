@@ -239,6 +239,42 @@
 
     <script src="js/equipo_v2.js" defer></script>
     <script>
+    document.addEventListener('click', function(event) {
+        if (event.target.closest('a[href]')) return;
+
+        const clickable = event.target.closest('[onclick*="verJugador("]');
+        if (!clickable) return;
+
+        const inline = clickable.getAttribute('onclick') || '';
+        const match = inline.match(/verJugador\((\d+)\)/);
+        if (!match) return;
+
+        event.preventDefault();
+        if (typeof verJugador === 'function') {
+            verJugador(Number(match[1]));
+            return;
+        }
+        window.location.href = `jugador.html?id=${match[1]}`;
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+
+        const clickable = event.target.closest('[onclick*="verJugador("]');
+        if (!clickable) return;
+
+        const inline = clickable.getAttribute('onclick') || '';
+        const match = inline.match(/verJugador\((\d+)\)/);
+        if (!match) return;
+
+        event.preventDefault();
+        if (typeof verJugador === 'function') {
+            verJugador(Number(match[1]));
+            return;
+        }
+        window.location.href = `jugador.html?id=${match[1]}`;
+    });
+
     window.addEventListener('scroll', function() {
         var header = document.querySelector('.header');
         if (header) {
