@@ -156,10 +156,18 @@ function renderDecisionCard(nameId, metaId, entry, emptyName, emptyMeta) {
 function registerMatchShareCard(partido = {}, resumen = {}) {
     if (!window.ChoguiShare) return;
 
+    const stateValue = String(partido.estado || '').toLowerCase();
+    let tone = 'default';
+    if (stateValue === 'finalizado' || (partido.carreras_local != null && partido.carreras_visitante != null)) tone = 'final';
+    else if (stateValue === 'en_vivo') tone = 'live';
+    else if (stateValue === 'programado') tone = 'upcoming';
+
     window.ChoguiShare.registerPage({
         getData: () => ({
             type: 'partido',
+            tone,
             kicker: document.getElementById('matchHeroKicker')?.textContent || 'Juego oficial',
+            tournamentName: partido.torneo_nombre || '',
             title: document.getElementById('matchHeroTitle')?.textContent || 'Detalle del partido',
             subtitle: document.getElementById('matchHeroSubtitle')?.textContent || '',
             badge: partido.torneo_nombre || 'Resultado oficial',
@@ -171,6 +179,7 @@ function registerMatchShareCard(partido = {}, resumen = {}) {
             initials: 'CL',
             fileName: `partido-${partido.id || matchId || 'detalle'}`,
             linkLabel: 'Boxscore oficial',
+            brandText: partido.torneo_nombre ? `${partido.torneo_nombre} • choguileague.site` : 'choguileague.site',
             scoreline: `${partido.carreras_visitante ?? '-'} - ${partido.carreras_local ?? '-'}`,
             sideAName: partido.equipo_visitante_nombre || 'Visitante',
             sideBName: partido.equipo_local_nombre || 'Local',
@@ -178,6 +187,23 @@ function registerMatchShareCard(partido = {}, resumen = {}) {
             sideBLogo: partido.equipo_local_id ? `/api/equipos/${partido.equipo_local_id}/logo` : '',
             sideAInitials: initialsFromName(partido.equipo_visitante_nombre, 'VI'),
             sideBInitials: initialsFromName(partido.equipo_local_nombre, 'LO'),
+            decisions: [
+                {
+                    label: 'Jugador del partido',
+                    name: document.getElementById('gameMvpName')?.textContent || 'Por definir',
+                    meta: document.getElementById('gameMvpMeta')?.textContent || ''
+                },
+                {
+                    label: 'Pitcher ganador',
+                    name: document.getElementById('winningPitcherName')?.textContent || 'Por definir',
+                    meta: document.getElementById('winningPitcherMeta')?.textContent || ''
+                },
+                {
+                    label: 'Pitcher perdedor',
+                    name: document.getElementById('losingPitcherName')?.textContent || 'Por definir',
+                    meta: document.getElementById('losingPitcherMeta')?.textContent || ''
+                }
+            ],
             metrics: [
                 { label: 'Hits', value: document.getElementById('summaryHits')?.textContent || '--' },
                 { label: 'Errores', value: document.getElementById('summaryErrors')?.textContent || '--' },

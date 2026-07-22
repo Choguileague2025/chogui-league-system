@@ -122,6 +122,12 @@ function registerPlayerShareCard() {
 
     window.ChoguiShare.registerPage({
         getData: () => {
+            const tournamentName = document.getElementById('tournamentSelect')?.selectedOptions?.[0]?.textContent || '';
+            const statusText = document.getElementById('insightStatus')?.textContent || '';
+            const isPitcher = isPitcherPrimary();
+            let tone = isPitcher ? 'pitcher' : 'default';
+            if (/encendido|elite|dominante|hot/i.test(statusText)) tone = 'hot';
+
             const labels = [
                 document.getElementById('headerLabel1')?.textContent || 'AVG',
                 document.getElementById('headerLabel2')?.textContent || 'HR',
@@ -138,20 +144,23 @@ function registerPlayerShareCard() {
 
             return {
                 type: 'jugador',
+                tone,
                 kicker: document.getElementById('playerHeroKicker')?.textContent || 'Perfil oficial del jugador',
+                tournamentName,
                 title: document.getElementById('playerHeroTitle')?.textContent || playerData.nombre || 'Perfil del jugador',
                 subtitle: document.getElementById('playerHeroSubtitle')?.textContent || '',
                 badge: document.getElementById('playerHeroBadgeMeta')?.textContent || playerData.equipo_nombre || 'Jugador oficial',
                 meta: document.getElementById('playerPosition')?.textContent || formatPos(playerData.posicion),
                 badgeLabel: document.getElementById('playerHeroBadgeLabel')?.textContent || 'Equipo',
                 badgeValue: document.getElementById('playerHeroBadgeValue')?.textContent || '--',
-                badgeMeta: document.getElementById('playerHeroBadgeMeta')?.textContent || playerData.equipo_nombre || '',
+                badgeMeta: statusText || document.getElementById('playerHeroBadgeMeta')?.textContent || playerData.equipo_nombre || '',
                 logo: document.getElementById('heroPlayerLogo')?.src || getPlayerAvatarByPosition(playerData.posicion),
                 secondaryLogo: playerData.equipo_id ? `/api/equipos/${playerData.equipo_id}/logo` : '',
                 secondaryInitials: getInitials(playerData.equipo_nombre || 'Equipo'),
                 initials: getInitials(playerData.nombre),
                 fileName: `jugador-${playerData.nombre || 'perfil'}`,
                 linkLabel: currentTournamentId ? 'Torneo activo' : 'Histórico oficial',
+                brandText: tournamentName ? `${tournamentName} • choguileague.site` : 'choguileague.site',
                 metrics: labels.map((label, index) => ({
                     label,
                     value: values[index]

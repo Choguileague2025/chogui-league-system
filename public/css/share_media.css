@@ -41,6 +41,11 @@
     background: linear-gradient(135deg, rgba(17, 23, 34, 0.96), rgba(32, 42, 62, 0.94));
 }
 
+.brand-action-btn.subtle {
+    background: rgba(255, 255, 255, 0.2);
+    color: #17120f;
+}
+
 .brand-action-btn[disabled] {
     opacity: 0.72;
     cursor: wait;
