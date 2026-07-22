@@ -74,6 +74,37 @@
         ctx.restore();
     }
 
+    function getTheme(type) {
+        if (type === 'jugador') {
+            return {
+                gradient: ['#ff9f0a', '#ffca28', '#fff0a8'],
+                overlay: ['rgba(9, 18, 34, 0.24)', 'rgba(255, 255, 255, 0.05)'],
+                panel: 'rgba(8, 14, 26, 0.92)',
+                panelSoft: 'rgba(12, 18, 31, 0.84)',
+                accent: '#3ec7ff',
+                accentSoft: 'rgba(62, 199, 255, 0.18)'
+            };
+        }
+        if (type === 'partido') {
+            return {
+                gradient: ['#0f1726', '#122038', '#1f3b64'],
+                overlay: ['rgba(255, 193, 7, 0.16)', 'rgba(255, 255, 255, 0.03)'],
+                panel: 'rgba(8, 12, 20, 0.94)',
+                panelSoft: 'rgba(13, 19, 30, 0.9)',
+                accent: '#ffc107',
+                accentSoft: 'rgba(255, 193, 7, 0.16)'
+            };
+        }
+        return {
+            gradient: ['#ffad0f', '#ffc72e', '#fff0a8'],
+            overlay: ['rgba(8, 12, 20, 0.18)', 'rgba(255, 255, 255, 0.1)'],
+            panel: 'rgba(10, 15, 26, 0.88)',
+            panelSoft: 'rgba(14, 20, 32, 0.84)',
+            accent: '#0f1726',
+            accentSoft: 'rgba(15, 23, 38, 0.14)'
+        };
+    }
+
     function drawMetricCard(ctx, metric, index, startX, startY, width) {
         const gap = 18;
         const boxWidth = (width - gap * 3) / 4;
@@ -114,6 +145,85 @@
         ctx.closePath();
     }
 
+    async function drawLogoBlock(ctx, x, y, size, src, initials, theme, radius = 28) {
+        ctx.fillStyle = theme.panel;
+        roundRect(ctx, x, y, size, size, radius);
+        ctx.fill();
+
+        try {
+            const logo = await loadImage(src);
+            ctx.save();
+            ctx.beginPath();
+            roundRect(ctx, x, y, size, size, radius);
+            ctx.clip();
+            ctx.drawImage(logo, x, y, size, size);
+            ctx.restore();
+        } catch (error) {
+            ctx.fillStyle = '#0f1726';
+            roundRect(ctx, x, y, size, size, radius);
+            ctx.fill();
+            ctx.fillStyle = '#ffc107';
+            ctx.font = `900 ${Math.max(34, Math.floor(size * 0.36))}px Arial`;
+            ctx.fillText((initials || 'CL').slice(0, 2), x + size * 0.23, y + size * 0.62);
+        }
+    }
+
+    function drawTopPill(ctx, x, y, text, theme) {
+        const content = escapePlain(text).slice(0, 26);
+        if (!content) return;
+        const pillWidth = Math.max(170, Math.min(260, ctx.measureText(content).width + 36));
+        ctx.fillStyle = theme.accentSoft;
+        roundRect(ctx, x, y, pillWidth, 46, 22);
+        ctx.fill();
+        ctx.fillStyle = theme.accent === '#ffc107' ? '#f4d37a' : '#2f2411';
+        ctx.font = '800 22px Arial';
+        ctx.fillText(content, x + 18, y + 30);
+    }
+
+    function drawScoreStrip(ctx, data, theme) {
+        if (data.type !== 'partido' || !data.scoreline) return;
+
+        const y = 78;
+        ctx.fillStyle = theme.panel;
+        roundRect(ctx, 714, y, 422, 150, 32);
+        ctx.fill();
+
+        ctx.fillStyle = '#b8c2d3';
+        ctx.font = '700 18px Arial';
+        ctx.fillText('VISITANTE', 760, y + 28);
+        ctx.fillText('LOCAL', 1000, y + 28);
+
+        ctx.fillStyle = '#f7f1dc';
+        ctx.font = '800 26px Arial';
+        fitText(ctx, data.sideAName || 'Visitante', 740, y + 68, 150, 26, 18);
+        fitText(ctx, data.sideBName || 'Local', 980, y + 68, 130, 26, 18);
+
+        ctx.fillStyle = theme.accent;
+        ctx.font = '900 58px Arial';
+        ctx.fillText(data.scoreline, 842, y + 98);
+
+        if (data.sideALogo) {
+            ctx.save();
+            ctx.globalAlpha = 0.98;
+            roundRect(ctx, 738, y + 78, 58, 58, 18);
+            ctx.clip();
+            loadImage(data.sideALogo).then((logo) => {
+                ctx.drawImage(logo, 738, y + 78, 58, 58);
+                ctx.restore();
+            }).catch(() => ctx.restore());
+        }
+        if (data.sideBLogo) {
+            ctx.save();
+            ctx.globalAlpha = 0.98;
+            roundRect(ctx, 1048, y + 78, 58, 58, 18);
+            ctx.clip();
+            loadImage(data.sideBLogo).then((logo) => {
+                ctx.drawImage(logo, 1048, y + 78, 58, 58);
+                ctx.restore();
+            }).catch(() => ctx.restore());
+        }
+    }
+
     async function buildCardImage(data) {
         const width = 1200;
         const height = 630;
@@ -121,17 +231,18 @@
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
+        const theme = getTheme(data.type);
 
         const gradient = ctx.createLinearGradient(0, 0, width, height);
-        gradient.addColorStop(0, '#ffad0f');
-        gradient.addColorStop(0.4, '#ffc72e');
-        gradient.addColorStop(1, '#fff0a8');
+        gradient.addColorStop(0, theme.gradient[0]);
+        gradient.addColorStop(0.45, theme.gradient[1]);
+        gradient.addColorStop(1, theme.gradient[2]);
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, width, height);
 
         const overlay = ctx.createLinearGradient(0, 0, width, 0);
-        overlay.addColorStop(0, 'rgba(8, 12, 20, 0.18)');
-        overlay.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+        overlay.addColorStop(0, theme.overlay[0]);
+        overlay.addColorStop(1, theme.overlay[1]);
         ctx.fillStyle = overlay;
         ctx.fillRect(0, 0, width, height);
 
@@ -141,66 +252,51 @@
         roundRect(ctx, 48, 48, width - 96, height - 96, 36);
         ctx.fill();
 
-        ctx.fillStyle = 'rgba(10, 15, 26, 0.86)';
-        roundRect(ctx, 58, 58, 168, 168, 34);
-        ctx.fill();
+        await drawLogoBlock(ctx, 58, 58, 168, 168, data.logo, data.initials, theme, 34);
 
-        try {
-            const logo = await loadImage(data.logo);
-            ctx.save();
-            ctx.beginPath();
-            roundRect(ctx, 76, 76, 132, 132, 28);
-            ctx.clip();
-            ctx.drawImage(logo, 76, 76, 132, 132);
-            ctx.restore();
-        } catch (error) {
-            ctx.fillStyle = '#0f1726';
-            roundRect(ctx, 76, 76, 132, 132, 28);
-            ctx.fill();
-            ctx.fillStyle = '#ffc107';
-            ctx.font = '900 52px Arial';
-            ctx.fillText((data.initials || 'CL').slice(0, 2), 106, 155);
+        if (data.secondaryLogo) {
+            await drawLogoBlock(ctx, 188, 178, 82, 82, data.secondaryLogo, data.secondaryInitials || data.initials, theme, 24);
         }
 
-        ctx.fillStyle = 'rgba(21, 16, 12, 0.14)';
-        roundRect(ctx, 270, 78, 250, 52, 26);
-        ctx.fill();
-        ctx.fillStyle = '#2f2411';
-        ctx.font = '800 26px Arial';
-        ctx.fillText((data.kicker || 'Chogui League').toUpperCase(), 292, 112);
+        drawTopPill(ctx, 270, 78, (data.kicker || 'Chogui League').toUpperCase(), theme);
 
-        ctx.fillStyle = '#0c0f17';
+        if (data.type === 'partido') {
+            await drawScoreStripAsync(ctx, data, theme);
+        }
+
+        ctx.fillStyle = data.type === 'partido' ? '#f7f1dc' : '#0c0f17';
         ctx.font = '900 76px Arial';
-        wrapText(ctx, data.title || 'Chogui League', 268, 210, 650, 88);
+        const titleWidth = data.type === 'partido' ? 620 : 650;
+        wrapText(ctx, data.title || 'Chogui League', 268, 210, titleWidth, 88);
 
-        ctx.fillStyle = '#2b2418';
+        ctx.fillStyle = data.type === 'partido' ? '#d3d8e2' : '#2b2418';
         ctx.font = '700 34px Arial';
-        wrapText(ctx, data.subtitle || '', 268, 286, 680, 44);
+        wrapText(ctx, data.subtitle || '', 268, 286, data.type === 'partido' ? 620 : 680, 44);
 
         const pills = [data.badge, data.meta, data.linkLabel].filter(Boolean).slice(0, 3);
         pills.forEach((pill, index) => {
             const x = 268 + index * 250;
-            ctx.fillStyle = 'rgba(21, 16, 12, 0.14)';
+            ctx.fillStyle = data.type === 'partido' ? 'rgba(255, 193, 7, 0.12)' : 'rgba(21, 16, 12, 0.14)';
             roundRect(ctx, x, 356, 220, 46, 22);
             ctx.fill();
-            ctx.fillStyle = '#2f2411';
+            ctx.fillStyle = data.type === 'partido' ? '#f4d37a' : '#2f2411';
             ctx.font = '800 22px Arial';
             ctx.fillText(String(pill).slice(0, 22), x + 18, 386);
         });
 
-        ctx.fillStyle = 'rgba(10, 15, 26, 0.88)';
-        roundRect(ctx, 938, 92, 198, 170, 32);
+        ctx.fillStyle = theme.panelSoft;
+        roundRect(ctx, 938, data.type === 'partido' ? 252 : 92, 198, 170, 32);
         ctx.fill();
         ctx.fillStyle = '#b8c2d3';
         ctx.font = '700 22px Arial';
-        ctx.fillText(escapePlain(data.badgeLabel || 'Resumen'), 978, 134);
-        ctx.fillStyle = '#ffc107';
+        ctx.fillText(escapePlain(data.badgeLabel || 'Resumen'), 978, data.type === 'partido' ? 294 : 134);
+        ctx.fillStyle = theme.accent;
         ctx.font = '900 54px Arial';
         const badgeValue = String(data.badgeValue ?? '--');
-        fitText(ctx, badgeValue, 978, 196, 120, 54, 28);
+        fitText(ctx, badgeValue, 978, data.type === 'partido' ? 356 : 196, 120, 54, 28);
         ctx.fillStyle = '#f7f1dc';
         ctx.font = '700 24px Arial';
-        fitText(ctx, escapePlain(data.badgeMeta || ''), 978, 232, 120, 24, 18);
+        fitText(ctx, escapePlain(data.badgeMeta || ''), 978, data.type === 'partido' ? 392 : 232, 120, 24, 18);
 
         const metrics = Array.isArray(data.metrics) ? data.metrics.filter((item) => item && item.label) : [];
         const visibleMetrics = metrics.slice(0, 4);
@@ -211,6 +307,36 @@
         ctx.fillText('choguileague.site', 78, 602);
 
         return canvas;
+    }
+
+    async function drawScoreStripAsync(ctx, data, theme) {
+        if (data.type !== 'partido' || !data.scoreline) return;
+
+        const y = 78;
+        ctx.fillStyle = theme.panel;
+        roundRect(ctx, 714, y, 422, 150, 32);
+        ctx.fill();
+
+        if (data.sideALogo) {
+            await drawLogoBlock(ctx, 732, y + 66, 58, 58, data.sideALogo, data.sideAInitials || 'V', theme, 18);
+        }
+        if (data.sideBLogo) {
+            await drawLogoBlock(ctx, 1048, y + 66, 58, 58, data.sideBLogo, data.sideBInitials || 'L', theme, 18);
+        }
+
+        ctx.fillStyle = '#b8c2d3';
+        ctx.font = '700 18px Arial';
+        ctx.fillText('VISITANTE', 748, y + 28);
+        ctx.fillText('LOCAL', 990, y + 28);
+
+        ctx.fillStyle = '#f7f1dc';
+        ctx.font = '800 26px Arial';
+        fitText(ctx, data.sideAName || 'Visitante', 802, y + 98, 170, 26, 18);
+        fitText(ctx, data.sideBName || 'Local', 828, y + 132, 170, 26, 18);
+
+        ctx.fillStyle = theme.accent;
+        ctx.font = '900 58px Arial';
+        fitText(ctx, data.scoreline, 862, y + 86, 120, 58, 34);
     }
 
     function escapePlain(value) {
@@ -271,10 +397,19 @@
             badgeValue: escapePlain(raw.badgeValue || '--'),
             badgeMeta: escapePlain(raw.badgeMeta || ''),
             logo: raw.logo || '/images/logos/chogui-league.png',
+            secondaryLogo: raw.secondaryLogo || '',
+            secondaryInitials: escapePlain(raw.secondaryInitials || ''),
             initials: escapePlain(raw.initials || 'CL'),
             fileName: escapePlain(raw.fileName || raw.title || 'chogui-league'),
             linkLabel: escapePlain(raw.linkLabel || 'Liga oficial'),
             shareUrl: raw.shareUrl || window.location.href,
+            scoreline: escapePlain(raw.scoreline || ''),
+            sideAName: escapePlain(raw.sideAName || ''),
+            sideBName: escapePlain(raw.sideBName || ''),
+            sideALogo: raw.sideALogo || '',
+            sideBLogo: raw.sideBLogo || '',
+            sideAInitials: escapePlain(raw.sideAInitials || ''),
+            sideBInitials: escapePlain(raw.sideBInitials || ''),
             metrics: (raw.metrics || []).map((metric) => normalizeMetric(metric.label, metric.value))
         };
     }

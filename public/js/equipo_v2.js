@@ -37,7 +37,7 @@ function registerTeamShareCard() {
             title: document.getElementById('teamHeroTitle')?.textContent || teamData.nombre || 'Perfil del equipo',
             subtitle: document.getElementById('teamHeroSubtitle')?.textContent || '',
             badge: document.getElementById('teamHeroBadgeMeta')?.textContent || 'Equipo oficial',
-            meta: document.getElementById('teamLocation')?.textContent || teamData.ciudad || 'Liga',
+            meta: `${document.getElementById('teamLocation')?.textContent || teamData.ciudad || 'Liga'} • ${document.getElementById('teamManager')?.textContent || teamData.manager || 'Sin manager'}`,
             badgeLabel: document.getElementById('teamHeroBadgeLabel')?.textContent || 'Ciudad',
             badgeValue: document.getElementById('teamHeroBadgeValue')?.textContent || '--',
             badgeMeta: document.getElementById('teamHeroBadgeMeta')?.textContent || 'Equipo oficial',

@@ -147,6 +147,8 @@ function registerPlayerShareCard() {
                 badgeValue: document.getElementById('playerHeroBadgeValue')?.textContent || '--',
                 badgeMeta: document.getElementById('playerHeroBadgeMeta')?.textContent || playerData.equipo_nombre || '',
                 logo: document.getElementById('heroPlayerLogo')?.src || getPlayerAvatarByPosition(playerData.posicion),
+                secondaryLogo: playerData.equipo_id ? `/api/equipos/${playerData.equipo_id}/logo` : '',
+                secondaryInitials: getInitials(playerData.equipo_nombre || 'Equipo'),
                 initials: getInitials(playerData.nombre),
                 fileName: `jugador-${playerData.nombre || 'perfil'}`,
                 linkLabel: currentTournamentId ? 'Torneo activo' : 'Histórico oficial',

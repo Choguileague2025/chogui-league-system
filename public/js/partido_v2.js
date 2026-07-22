@@ -45,6 +45,13 @@ function statusLabel(partido) {
     return 'Programado';
 }
 
+function initialsFromName(name, fallback = '--') {
+    const words = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return fallback;
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return (words[0][0] + words[1][0]).toUpperCase();
+}
+
 function renderHighlightList(containerId, items, emptyMessage) {
     if (!items?.length) {
         matchHtml(containerId, `<div class="highlight-empty">${emptyMessage}</div>`);
@@ -164,6 +171,13 @@ function registerMatchShareCard(partido = {}, resumen = {}) {
             initials: 'CL',
             fileName: `partido-${partido.id || matchId || 'detalle'}`,
             linkLabel: 'Boxscore oficial',
+            scoreline: `${partido.carreras_visitante ?? '-'} - ${partido.carreras_local ?? '-'}`,
+            sideAName: partido.equipo_visitante_nombre || 'Visitante',
+            sideBName: partido.equipo_local_nombre || 'Local',
+            sideALogo: partido.equipo_visitante_id ? `/api/equipos/${partido.equipo_visitante_id}/logo` : '',
+            sideBLogo: partido.equipo_local_id ? `/api/equipos/${partido.equipo_local_id}/logo` : '',
+            sideAInitials: initialsFromName(partido.equipo_visitante_nombre, 'VI'),
+            sideBInitials: initialsFromName(partido.equipo_local_nombre, 'LO'),
             metrics: [
                 { label: 'Hits', value: document.getElementById('summaryHits')?.textContent || '--' },
                 { label: 'Errores', value: document.getElementById('summaryErrors')?.textContent || '--' },
