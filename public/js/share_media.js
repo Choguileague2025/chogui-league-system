@@ -3,6 +3,14 @@
         provider: null,
         initialized: false
     };
+    const DEFAULT_SPONSORS = [
+        { src: '/images/sponsors/deportes-bd.png', alt: 'Deportes BD' },
+        { src: '/images/sponsors/la-santa-barbershop.png', alt: 'La Santa Barbershop' },
+        { src: '/images/sponsors/ag.png', alt: 'AG' },
+        { src: '/images/sponsors/ap-import.png', alt: 'AP Import' },
+        { src: '/images/sponsors/western-union.png', alt: 'Western Union' },
+        { src: '/images/sponsors/iphone-go.png', alt: 'iPhone Go' }
+    ];
 
     function slugify(value) {
         return String(value || 'chogui-league')
@@ -114,6 +122,19 @@
             ctx.arc(ball.x + ball.r * 0.24, ball.y, ball.r * 0.82, Math.PI - 0.92, Math.PI + 0.92);
             ctx.stroke();
         });
+        ctx.restore();
+    }
+
+    function drawTournamentWatermark(ctx, width, height, text, theme, vertical = false) {
+        const content = cleanText(text);
+        if (!content) return;
+        ctx.save();
+        ctx.globalAlpha = vertical ? 0.07 : 0.06;
+        ctx.fillStyle = theme.inverseText;
+        ctx.font = vertical ? '900 90px Arial' : '900 72px Arial';
+        ctx.translate(vertical ? width * 0.9 : width * 0.74, vertical ? height * 0.56 : height * 0.24);
+        ctx.rotate(vertical ? Math.PI / 2.9 : -Math.PI / 7.5);
+        ctx.fillText(content.slice(0, 28).toUpperCase(), 0, 0);
         ctx.restore();
     }
 
@@ -323,6 +344,39 @@
         ctx.fillText(cleanText(text || 'choguileague.site'), 78, height - 60);
     }
 
+    async function drawSponsorsRow(ctx, x, y, width, theme, sponsors, compact = false) {
+        const visibleSponsors = (sponsors || DEFAULT_SPONSORS).slice(0, compact ? 4 : 5);
+        if (!visibleSponsors.length) return;
+
+        ctx.fillStyle = 'rgba(10, 15, 26, 0.74)';
+        roundRect(ctx, x, y, width, compact ? 78 : 86, 24);
+        ctx.fill();
+
+        ctx.fillStyle = '#b8c2d3';
+        ctx.font = compact ? '700 14px Arial' : '700 16px Arial';
+        ctx.fillText('Patrocinado por', x + 20, y + 24);
+
+        const cardY = y + 30;
+        const gap = 10;
+        const logoBox = compact ? 74 : 82;
+        for (let i = 0; i < visibleSponsors.length; i += 1) {
+            const cardX = x + 18 + i * (logoBox + gap);
+            ctx.fillStyle = 'rgba(255,255,255,0.07)';
+            roundRect(ctx, cardX, cardY, logoBox, compact ? 34 : 40, 12);
+            ctx.fill();
+            try {
+                const img = await loadImage(visibleSponsors[i].src);
+                const drawW = compact ? 56 : 62;
+                const drawH = compact ? 22 : 24;
+                ctx.drawImage(img, cardX + (logoBox - drawW) / 2, cardY + ((compact ? 34 : 40) - drawH) / 2, drawW, drawH);
+            } catch (error) {
+                ctx.fillStyle = theme.inverseText;
+                ctx.font = compact ? '700 10px Arial' : '700 11px Arial';
+                ctx.fillText((visibleSponsors[i].alt || 'Sponsor').slice(0, 8), cardX + 8, cardY + 22);
+            }
+        }
+    }
+
     async function buildLandscapeCanvas(data) {
         const width = 1200;
         const height = 630;
@@ -346,6 +400,7 @@
         ctx.fillRect(0, 0, width, height);
 
         drawSoftballArt(ctx, width, height, '#8f5f00');
+        drawTournamentWatermark(ctx, width, height, data.tournamentName || data.title, theme);
 
         ctx.fillStyle = 'rgba(11, 15, 25, 0.18)';
         roundRect(ctx, 48, 48, width - 96, height - 96, 36);
@@ -386,6 +441,7 @@
             drawDecisionStrip(ctx, 74, 432, 820, 72, data.decisions, theme);
         }
 
+        await drawSponsorsRow(ctx, 802, 534, 330, theme, data.sponsors, true);
         drawBrandStamp(ctx, width, height, theme, data.brandText || 'choguileague.site');
         return canvas;
     }
@@ -413,6 +469,7 @@
         ctx.fillRect(0, 0, width, height);
 
         drawSoftballArt(ctx, width, height, '#8f5f00', 0.1);
+        drawTournamentWatermark(ctx, width, height, data.tournamentName || data.title, theme, true);
 
         ctx.fillStyle = 'rgba(11, 15, 25, 0.18)';
         roundRect(ctx, 42, 42, width - 84, height - 84, 48);
@@ -452,6 +509,7 @@
             drawStoryDecisions(ctx, 84, 1628, 912, 188, data.decisions, theme);
         }
 
+        await drawSponsorsRow(ctx, 84, 1830, 912, theme, data.sponsors, false);
         drawBrandStamp(ctx, width, height, theme, data.brandText || 'choguileague.site');
         return canvas;
     }
@@ -575,6 +633,7 @@
             linkLabel: cleanText(raw.linkLabel || 'Liga oficial'),
             shareUrl: raw.shareUrl || window.location.href,
             brandText: cleanText(raw.brandText || 'choguileague.site'),
+            sponsors: Array.isArray(raw.sponsors) ? raw.sponsors : DEFAULT_SPONSORS,
             scoreline: cleanText(raw.scoreline || ''),
             sideAName: cleanText(raw.sideAName || ''),
             sideBName: cleanText(raw.sideBName || ''),
