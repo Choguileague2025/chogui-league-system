@@ -1429,7 +1429,7 @@ function renderBattingTablePage() {
     if (!tbody) return;
 
     if (!teamBattingRows.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Sin estadísticas disponibles</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="14" class="empty-cell">Sin estadísticas disponibles</td></tr>';
         renderBattingPagination();
         return;
     }
@@ -1441,11 +1441,18 @@ function renderBattingTablePage() {
         <tr>
             <td class="rank-cell">${startIndex + index + 1}</td>
             <td class="player-name-cell"><a href="jugador.html?id=${p.id}&equipo=${currentTeamId}">${p.nombre}</a></td>
-            <td>${p.avg.toFixed(3)}</td>
+            <td>${p.ab}</td>
+            <td>${p.h}</td>
+            <td>${p.d2}</td>
+            <td>${p.d3}</td>
             <td>${p.hr}</td>
             <td>${p.rbi}</td>
-            <td>${p.h}</td>
-            <td>${p.ops.toFixed(3)}</td>
+            <td>${p.r}</td>
+            <td>${p.bb}</td>
+            <td>${p.so}</td>
+            <td>${p.sb}</td>
+            <td>${p.hbp}</td>
+            <td>${p.sf}</td>
         </tr>
     `).join('');
 
@@ -1458,7 +1465,7 @@ async function cargarTopBateadores() {
         const torneoQuery = currentTorneoId ? `&torneo_id=${currentTorneoId}` : '';
 
         if (rosterData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">No hay jugadores</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="14" class="empty-cell">No hay jugadores</td></tr>';
             return;
         }
 
@@ -1475,7 +1482,10 @@ async function cargarTopBateadores() {
             const d3 = toNumber(s.triples);
             const hr = toNumber(s.home_runs);
             const rbi = toNumber(s.rbi);
+            const r = toNumber(s.runs);
             const bb = toNumber(s.walks);
+            const so = toNumber(s.strikeouts);
+            const sb = toNumber(s.stolen_bases);
             const hbp = toNumber(s.hit_by_pitch);
             const sf = toNumber(s.sacrifice_flies);
 
@@ -1489,7 +1499,20 @@ async function cargarTopBateadores() {
             playerAggs.push({
                 id: s.jugador_id || s.id,
                 nombre: s.jugador_nombre || 'N/A',
-                avg, hr, rbi, h, ops
+                avg,
+                ab,
+                h,
+                d2,
+                d3,
+                hr,
+                rbi,
+                r,
+                bb,
+                so,
+                sb,
+                hbp,
+                sf,
+                ops
             });
         });
 
@@ -1501,7 +1524,7 @@ async function cargarTopBateadores() {
     } catch (error) {
         console.error('Error cargando top bateadores:', error);
         teamBattingRows = [];
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Error cargando datos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="14" class="empty-cell">Error cargando datos</td></tr>';
         renderBattingPagination();
     }
 }
