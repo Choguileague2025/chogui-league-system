@@ -18,6 +18,9 @@ let currentTorneoId = null;
 let allTorneos = [];
 let sseConnection = null;
 let teamGamesWithBoxscore = [];
+let teamBattingRows = [];
+let currentBattingPage = 1;
+const TEAM_BATTING_PAGE_SIZE = 10;
 
 function setTextContentSafe(id, value) {
     const el = document.getElementById(id);
@@ -1385,6 +1388,70 @@ function resetCollectiveStats() {
 // TOP 5 BATTERS
 // ===================================
 
+function renderBattingPagination() {
+    const container = document.getElementById('topBattersPagination');
+    const meta = document.getElementById('topBattersPaginationMeta');
+    if (!container) return;
+
+    const totalRows = teamBattingRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / TEAM_BATTING_PAGE_SIZE));
+    currentBattingPage = Math.min(Math.max(currentBattingPage, 1), totalPages);
+
+    if (meta) {
+        const start = totalRows === 0 ? 0 : ((currentBattingPage - 1) * TEAM_BATTING_PAGE_SIZE) + 1;
+        const end = Math.min(currentBattingPage * TEAM_BATTING_PAGE_SIZE, totalRows);
+        meta.textContent = totalRows > 0
+            ? `Mostrando ${start}-${end} de ${totalRows} bateadores • Página ${currentBattingPage} de ${totalPages}`
+            : 'Sin bateadores para mostrar';
+    }
+
+    if (totalRows <= TEAM_BATTING_PAGE_SIZE) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = `
+        <button type="button" class="page-quicknav-link" ${currentBattingPage === 1 ? 'disabled' : ''} data-batting-page-action="prev">← Anterior</button>
+        <span class="page-quicknav-link" style="cursor:default; opacity:0.9;">Página ${currentBattingPage} / ${totalPages}</span>
+        <button type="button" class="page-quicknav-link" ${currentBattingPage === totalPages ? 'disabled' : ''} data-batting-page-action="next">Siguiente →</button>
+    `;
+
+    container.querySelectorAll('[data-batting-page-action]').forEach(button => {
+        button.addEventListener('click', () => {
+            currentBattingPage += button.dataset.battingPageAction === 'prev' ? -1 : 1;
+            renderBattingTablePage();
+        });
+    });
+}
+
+function renderBattingTablePage() {
+    const tbody = document.getElementById('topBattersBody');
+    if (!tbody) return;
+
+    if (!teamBattingRows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Sin estadísticas disponibles</td></tr>';
+        renderBattingPagination();
+        return;
+    }
+
+    const startIndex = (currentBattingPage - 1) * TEAM_BATTING_PAGE_SIZE;
+    const pageRows = teamBattingRows.slice(startIndex, startIndex + TEAM_BATTING_PAGE_SIZE);
+
+    tbody.innerHTML = pageRows.map((p, index) => `
+        <tr>
+            <td class="rank-cell">${startIndex + index + 1}</td>
+            <td class="player-name-cell"><a href="jugador.html?id=${p.id}&equipo=${currentTeamId}">${p.nombre}</a></td>
+            <td>${p.avg.toFixed(3)}</td>
+            <td>${p.hr}</td>
+            <td>${p.rbi}</td>
+            <td>${p.h}</td>
+            <td>${p.ops.toFixed(3)}</td>
+        </tr>
+    `).join('');
+
+    renderBattingPagination();
+}
+
 async function cargarTopBateadores() {
     const tbody = document.getElementById('topBattersBody');
     try {
@@ -1400,12 +1467,9 @@ async function cargarTopBateadores() {
         const allPlayerStats = response.ok ? await response.json() : [];
         const stats = Array.isArray(allPlayerStats) ? allPlayerStats : [];
 
-        // Each row is already per-player (the API returns one row per jugador)
         const playerAggs = [];
         stats.forEach(s => {
             const ab = toNumber(s.at_bats);
-            if (ab === 0) return;
-
             const h = toNumber(s.hits);
             const d2 = toNumber(s.doubles);
             const d3 = toNumber(s.triples);
@@ -1415,11 +1479,11 @@ async function cargarTopBateadores() {
             const hbp = toNumber(s.hit_by_pitch);
             const sf = toNumber(s.sacrifice_flies);
 
-            const avg = h / ab;
+            const avg = ab > 0 ? h / ab : 0;
             const obp = (ab + bb + hbp + sf) > 0
                 ? (h + bb + hbp) / (ab + bb + hbp + sf) : 0;
             const singles = h - d2 - d3 - hr;
-            const slg = (singles + d2 * 2 + d3 * 3 + hr * 4) / ab;
+            const slg = ab > 0 ? (singles + d2 * 2 + d3 * 3 + hr * 4) / ab : 0;
             const ops = obp + slg;
 
             playerAggs.push({
@@ -1429,29 +1493,16 @@ async function cargarTopBateadores() {
             });
         });
 
-        // Sort by AVG desc, show ALL players
         playerAggs.sort((a, b) => b.avg - a.avg);
-
-        if (playerAggs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Sin estadísticas disponibles</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = playerAggs.map((p, i) => `
-            <tr onclick="verJugador(${p.id})">
-                <td class="rank-cell">${i + 1}</td>
-                <td class="player-name-cell"><a href="jugador.html?id=${p.id}&equipo=${currentTeamId}">${p.nombre}</a></td>
-                <td>${p.avg.toFixed(3)}</td>
-                <td>${p.hr}</td>
-                <td>${p.rbi}</td>
-                <td>${p.h}</td>
-                <td>${p.ops.toFixed(3)}</td>
-            </tr>
-        `).join('');
+        teamBattingRows = playerAggs;
+        currentBattingPage = 1;
+        renderBattingTablePage();
 
     } catch (error) {
         console.error('Error cargando top bateadores:', error);
+        teamBattingRows = [];
         tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Error cargando datos</td></tr>';
+        renderBattingPagination();
     }
 }
 

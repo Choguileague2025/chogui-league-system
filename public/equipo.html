@@ -450,6 +450,10 @@
                     </tbody>
                 </table>
             </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-top:14px;">
+                <div id="topBattersPaginationMeta" style="color:rgba(255,255,255,0.72); font-size:0.92rem;">Cargando bateadores...</div>
+                <div id="topBattersPagination" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+            </div>
         </section>
 
         <!-- ESTADÍSTICAS DE PITCHEO -->
@@ -578,7 +582,7 @@
     </footer>
 
     <script src="js/analytics.js" defer></script>
-    <script src="js/equipo_v2.min.js" defer></script>
+    <script src="js/equipo_v2.js?v=batting-pages-20260722" defer></script>
     <script>
     document.addEventListener('click', function(event) {
         if (event.target.closest('a[href]')) return;
