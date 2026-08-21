@@ -5940,6 +5940,14 @@
             return parts.slice(0, 2).map(part => part[0]).join('').toUpperCase();
         }
 
+        function normalizeName(name) {
+            return String(name || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]/g, '');
+        }
+
         function getEquipoLogoUrlById(equipoId) {
             const numericId = Number(equipoId);
             if (!numericId) return '';
