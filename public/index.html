@@ -225,6 +225,418 @@
             z-index: 2;
         }
 
+        .sunday-event-shell {
+            margin: 10px 0 32px;
+            background:
+                radial-gradient(circle at top right, rgba(255, 193, 7, 0.18), transparent 28%),
+                linear-gradient(135deg, rgba(255, 193, 7, 0.08), rgba(255, 255, 255, 0.02)),
+                #161b22;
+            border: 2px solid rgba(255, 193, 7, 0.22);
+            border-radius: 28px;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+            overflow: hidden;
+        }
+
+        .sunday-event-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 28px 28px 16px;
+            align-items: flex-start;
+        }
+
+        .sunday-event-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 193, 7, 0.12);
+            color: #ffc107;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .sunday-event-header h2 {
+            font-size: clamp(1.7rem, 3vw, 2.6rem);
+            color: #fff4cf;
+            margin-bottom: 10px;
+        }
+
+        .sunday-event-header p {
+            color: rgba(255, 255, 255, 0.76);
+            max-width: 760px;
+            line-height: 1.55;
+        }
+
+        .sunday-event-status {
+            min-width: 240px;
+            background: rgba(8, 12, 20, 0.78);
+            border: 1px solid rgba(255, 193, 7, 0.16);
+            border-radius: 22px;
+            padding: 18px 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sunday-event-status-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.58);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 700;
+        }
+
+        .sunday-event-status strong {
+            color: #ffc107;
+            font-size: 1.7rem;
+            line-height: 1.1;
+        }
+
+        .sunday-event-status small {
+            color: rgba(255, 255, 255, 0.72);
+            line-height: 1.45;
+        }
+
+        .sunday-event-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 18px;
+            padding: 0 28px 28px;
+        }
+
+        .sunday-featured-card,
+        .sunday-schedule-card {
+            background: rgba(12, 16, 26, 0.82);
+            border: 1px solid rgba(255, 193, 7, 0.16);
+            border-radius: 26px;
+            padding: 22px;
+        }
+
+        .sunday-featured-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .sunday-featured-top h3,
+        .sunday-schedule-card h3 {
+            margin: 0;
+            color: #ffc107;
+            font-size: 1.15rem;
+        }
+
+        .sunday-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .sunday-live-badge.live {
+            background: rgba(34, 197, 94, 0.18);
+            color: #86efac;
+        }
+
+        .sunday-live-badge.upcoming {
+            background: rgba(255, 193, 7, 0.14);
+            color: #ffd76c;
+        }
+
+        .sunday-live-badge.final {
+            background: rgba(59, 130, 246, 0.16);
+            color: #93c5fd;
+        }
+
+        .sunday-matchup {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 18px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sunday-team {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .sunday-team--right {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        .sunday-team-mark {
+            width: 62px;
+            height: 62px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.07);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid rgba(255, 193, 7, 0.14);
+            flex-shrink: 0;
+        }
+
+        .sunday-team-mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 8px;
+        }
+
+        .sunday-team-mark-fallback {
+            font-weight: 900;
+            color: #ffc107;
+            font-size: 1.1rem;
+        }
+
+        .sunday-team-copy {
+            min-width: 0;
+        }
+
+        .sunday-team-name {
+            display: block;
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: #fff4cf;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sunday-team-seed {
+            display: block;
+            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 0.88rem;
+        }
+
+        .sunday-score-center {
+            min-width: 160px;
+            text-align: center;
+        }
+
+        .sunday-scoreline {
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            font-weight: 900;
+            color: #ffc107;
+            line-height: 1;
+        }
+
+        .sunday-score-meta {
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.92rem;
+        }
+
+        .sunday-featured-insight {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .sunday-insight-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 193, 7, 0.12);
+            border-radius: 18px;
+            padding: 14px;
+        }
+
+        .sunday-insight-card span {
+            display: block;
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 0.82rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sunday-insight-card strong {
+            display: block;
+            color: #fff6db;
+            font-size: 1rem;
+            line-height: 1.35;
+        }
+
+        .sunday-insight-card small {
+            display: block;
+            margin-top: 6px;
+            color: rgba(255, 255, 255, 0.58);
+            line-height: 1.4;
+        }
+
+        .sunday-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .sunday-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 170px;
+            padding: 12px 18px;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 800;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .sunday-action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .sunday-action-btn.primary {
+            background: linear-gradient(135deg, #ffc107, #ffb300);
+            color: #111827;
+            box-shadow: 0 12px 28px rgba(255, 193, 7, 0.22);
+        }
+
+        .sunday-action-btn.secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff4cf;
+            border: 1px solid rgba(255, 193, 7, 0.16);
+        }
+
+        .sunday-schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .sunday-schedule-item {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 193, 7, 0.12);
+            padding: 14px 16px;
+        }
+
+        .sunday-schedule-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .sunday-schedule-slot {
+            color: #ffc107;
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .sunday-schedule-time {
+            color: rgba(255, 255, 255, 0.68);
+            font-size: 0.85rem;
+        }
+
+        .sunday-schedule-match {
+            color: #fff6db;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .sunday-schedule-meta {
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.64);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
+        .sunday-empty {
+            padding: 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.68);
+            line-height: 1.55;
+            border: 1px dashed rgba(255, 193, 7, 0.18);
+        }
+
+        .sse-dot {
+            transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .sse-dot.live {
+            background: #22c55e;
+            box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.18);
+            transform: scale(1.05);
+        }
+
+        .sse-dot.error {
+            background: #ef4444;
+            box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.16);
+        }
+
+        @media (max-width: 980px) {
+            .sunday-event-header,
+            .sunday-event-grid {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .sunday-event-header {
+                padding-bottom: 10px;
+            }
+
+            .sunday-event-status {
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sunday-event-header,
+            .sunday-event-grid {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .sunday-matchup {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .sunday-team,
+            .sunday-team--right {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .sunday-featured-insight {
+                grid-template-columns: 1fr;
+            }
+
+            .sunday-actions {
+                flex-direction: column;
+            }
+
+            .sunday-action-btn {
+                width: 100%;
+            }
+        }
+
         .records-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -4034,6 +4446,38 @@
             </aside>
         </section>
 
+        <section class="sunday-event-shell" id="sundayEventCoverage" aria-label="Cobertura especial de semifinal y final">
+            <div class="sunday-event-header">
+                <div>
+                    <span class="sunday-event-kicker">Cobertura especial</span>
+                    <h2>Domingo de semifinales y final</h2>
+                    <p>Seguimiento premium para el cierre del torneo: juego destacado, ruta a la final, resultado en vivo y acceso directo al boxscore oficial.</p>
+                </div>
+                <div class="sunday-event-status">
+                    <span class="sunday-event-status-label">Modo jornada</span>
+                    <strong id="sundayEventStatusValue">Esperando bracket</strong>
+                    <small id="sundayEventStatusCopy">Cuando estén listos los cruces, aquí verás el partido principal y el mapa del domingo.</small>
+                </div>
+            </div>
+            <div class="sunday-event-grid">
+                <article class="sunday-featured-card">
+                    <div class="sunday-featured-top">
+                        <h3>Juego central</h3>
+                        <span class="sunday-live-badge" id="sundayFeaturedBadge">Cargando</span>
+                    </div>
+                    <div id="sundayFeaturedGame">
+                        <div class="sunday-empty">Todavía no hay cruces de semifinal o final listos para mostrar.</div>
+                    </div>
+                </article>
+                <aside class="sunday-schedule-card">
+                    <h3>Camino del domingo</h3>
+                    <div id="sundayScheduleList" class="sunday-schedule-list">
+                        <div class="sunday-empty">El bracket aparecerá aquí apenas se definan las semifinales y la final.</div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
         <section class="sponsors-strip" aria-labelledby="sponsorsTitle">
             <div class="sponsors-strip-header">
                 <span class="sponsors-kicker">Patrocinio oficial</span>
@@ -5478,6 +5922,8 @@
         }
 
         let playoffCountdownTimer = null;
+        let homeSseSource = null;
+        let homeSseRefreshTimer = null;
 
         function getTeamId(game, side) {
             return Number(game?.[`equipo_${side}_id`] || game?.[`team_${side}_id`] || 0);
@@ -5770,6 +6216,304 @@
             } catch (error) {
                 console.error('Error cargando bracket:', error);
                 grid.innerHTML = '<div class="scoreboard-empty"><h3>No se pudo cargar el bracket</h3><p>Intenta recargar la página.</p></div>';
+            }
+        }
+
+        function getPlayoffRoundLabel(round) {
+            const labels = {
+                quarterfinal: 'Cuartos de final',
+                semifinal: 'Semifinal',
+                final: 'Final'
+            };
+            return labels[round] || 'Playoffs';
+        }
+
+        function getSundayBadgeConfig(game) {
+            if (!game) {
+                return { text: 'Sin juego', className: '' };
+            }
+
+            if (game.estado === 'en_vivo') {
+                return { text: 'En vivo', className: 'live' };
+            }
+
+            if (game.estado === 'finalizado') {
+                return { text: 'Finalizado', className: 'final' };
+            }
+
+            return { text: 'Programado', className: 'upcoming' };
+        }
+
+        function renderSundayTeamBlock(name, equipoId, seed, alignRight = false) {
+            const logoUrl = getEquipoLogoUrlById(equipoId) || getPlayoffLogoUrl(name);
+            const initials = escapeHTML(getInitials(name));
+            const safeName = escapeHTML(name || 'Ganador pendiente');
+
+            return `
+                <div class="sunday-team ${alignRight ? 'sunday-team--right' : ''}">
+                    ${alignRight ? '' : `
+                        <span class="sunday-team-mark">
+                            ${logoUrl
+                                ? `<img src="${escapeHTML(logoUrl)}" alt="${safeName}" loading="lazy" onerror="this.remove(); this.parentElement.innerHTML='<span class=&quot;sunday-team-mark-fallback&quot;>${initials}</span>';">`
+                                : `<span class="sunday-team-mark-fallback">${initials}</span>`}
+                        </span>
+                    `}
+                    <div class="sunday-team-copy">
+                        <span class="sunday-team-name">${safeName}</span>
+                        <span class="sunday-team-seed">Seed #${seed || '-'}</span>
+                    </div>
+                    ${alignRight ? `
+                        <span class="sunday-team-mark">
+                            ${logoUrl
+                                ? `<img src="${escapeHTML(logoUrl)}" alt="${safeName}" loading="lazy" onerror="this.remove(); this.parentElement.innerHTML='<span class=&quot;sunday-team-mark-fallback&quot;>${initials}</span>';">`
+                                : `<span class="sunday-team-mark-fallback">${initials}</span>`}
+                        </span>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function normalizePlayoffGameDate(game) {
+            const parsed = parseGameDateTime(game);
+            return parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
+        }
+
+        function pickFeaturedSundayGame(games) {
+            if (!games.length) return null;
+
+            const sortable = games.map((game) => ({
+                game,
+                date: normalizePlayoffGameDate(game)
+            }));
+
+            const live = sortable.find(({ game }) => game.estado === 'en_vivo');
+            if (live) return live.game;
+
+            const upcoming = sortable
+                .filter(({ game, date }) => game.estado !== 'finalizado' && date)
+                .sort((a, b) => a.date - b.date)[0];
+            if (upcoming) return upcoming.game;
+
+            const recentFinal = sortable
+                .filter(({ game, date }) => game.estado === 'finalizado' && date)
+                .sort((a, b) => b.date - a.date)[0];
+            return recentFinal ? recentFinal.game : games[0];
+        }
+
+        function findOfficialGameForPlayoff(playoffGame, officialGames) {
+            if (!playoffGame) return null;
+
+            const playoffDate = playoffGame.fecha ? String(playoffGame.fecha).split('T')[0] : '';
+            const localName = normalizeName(playoffGame.equipo_local_nombre);
+            const visitorName = normalizeName(playoffGame.equipo_visitante_nombre);
+
+            return officialGames.find((game) => {
+                const gameDate = String(game.fecha_partido || game.fecha || '').split('T')[0];
+                const sameDate = !playoffDate || playoffDate === gameDate;
+                const sameLocal = normalizeName(game.equipo_local_nombre) === localName;
+                const sameVisitor = normalizeName(game.equipo_visitante_nombre) === visitorName;
+                return sameDate && sameLocal && sameVisitor;
+            }) || null;
+        }
+
+        function renderSundaySchedule(roundGames, officialGames) {
+            const container = document.getElementById('sundayScheduleList');
+            if (!container) return;
+
+            if (!roundGames.length) {
+                container.innerHTML = '<div class="sunday-empty">El torneo todavía no tiene semifinales o final listas para cobertura especial.</div>';
+                return;
+            }
+
+            container.innerHTML = roundGames.map((game) => {
+                const dateText = game.fecha
+                    ? parseApiDate(game.fecha).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
+                    : 'Por definir';
+                const timeText = game.hora ? String(game.hora).slice(0, 5) : 'TBD';
+                const badge = getSundayBadgeConfig(game);
+                const officialGame = findOfficialGameForPlayoff(game, officialGames);
+                const history = getMatchupHistory(game, officialGames);
+                const cta = officialGame ? `<a class="sunday-action-btn secondary" href="partido.html?id=${officialGame.id}">📦 Boxscore</a>` : '';
+
+                return `
+                    <div class="sunday-schedule-item">
+                        <div class="sunday-schedule-top">
+                            <span class="sunday-schedule-slot">${escapeHTML(getPlayoffRoundLabel(game.ronda))} • ${escapeHTML(game.slot || '--')}</span>
+                            <span class="sunday-live-badge ${badge.className}">${escapeHTML(badge.text)}</span>
+                        </div>
+                        <div class="sunday-schedule-match">${escapeHTML(getTeamName(game, 'local'))} vs ${escapeHTML(getTeamName(game, 'visitante'))}</div>
+                        <div class="sunday-schedule-meta">${escapeHTML(dateText)} • ${escapeHTML(timeText)} • ${escapeHTML(history.text)}</div>
+                        ${cta ? `<div class="sunday-actions" style="margin-top: 12px;">${cta}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function cargarCoberturaDomingo() {
+            const featuredContainer = document.getElementById('sundayFeaturedGame');
+            const scheduleContainer = document.getElementById('sundayScheduleList');
+            const badgeEl = document.getElementById('sundayFeaturedBadge');
+            const statusValueEl = document.getElementById('sundayEventStatusValue');
+            const statusCopyEl = document.getElementById('sundayEventStatusCopy');
+
+            if (!featuredContainer || !scheduleContainer || !badgeEl || !statusValueEl || !statusCopyEl) return;
+
+            try {
+                const [bracketData, partidosData] = await Promise.all([
+                    fetchJSON('/api/playoffs/bracket'),
+                    fetchJSON(withTournament('/api/partidos?limit=1000')).catch(() => [])
+                ]);
+
+                const rounds = bracketData?.rounds || {};
+                const bracket = bracketData?.bracket || {};
+                const officialGames = normalizePartidosResponse(partidosData);
+                const sundayGames = [
+                    ...(rounds.semifinal || []),
+                    ...(rounds.final || [])
+                ];
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const hasUpcomingOrLiveSunday = sundayGames.some((game) => {
+                    if (game.estado === 'en_vivo') return true;
+                    const gameDate = normalizePlayoffGameDate(game);
+                    return gameDate && gameDate.getTime() >= today.getTime();
+                });
+
+                renderSundaySchedule(sundayGames, officialGames);
+
+                if (!sundayGames.length || !hasUpcomingOrLiveSunday) {
+                    badgeEl.className = 'sunday-live-badge';
+                    badgeEl.textContent = 'Sin cruces';
+                    statusValueEl.textContent = 'Esperando jornada decisiva';
+                    statusCopyEl.textContent = 'Esta sección se activa cuando el torneo tenga semifinales o final vigentes para cobertura especial en vivo.';
+                    featuredContainer.innerHTML = '<div class="sunday-empty">Todavía no hay una semifinal o final activa/próxima para encender esta cobertura especial.</div>';
+                    scheduleContainer.innerHTML = '<div class="sunday-empty">Cuando carguen los cruces del domingo, aquí aparecerán la semifinal, la final y el acceso rápido al boxscore.</div>';
+                    return;
+                }
+
+                const featuredGame = pickFeaturedSundayGame(sundayGames);
+                const badge = getSundayBadgeConfig(featuredGame);
+                const featuredDate = featuredGame?.fecha
+                    ? parseApiDate(featuredGame.fecha).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+                    : 'Fecha por definir';
+                const featuredTime = featuredGame?.hora ? String(featuredGame.hora).slice(0, 5) : 'TBD';
+                const officialGame = findOfficialGameForPlayoff(featuredGame, officialGames);
+                const history = getMatchupHistory(featuredGame, officialGames);
+
+                let boxscoreMeta = {
+                    jugador: featuredGame?.mvp_nombre || 'Por definirse',
+                    ganador: featuredGame?.ganador_nombre || 'Se define al cerrar el juego',
+                    perdedor: 'Se define al cerrar el juego'
+                };
+
+                if (officialGame?.id) {
+                    try {
+                        const boxscoreData = await fetchJSON(`/api/partidos/${officialGame.id}/boxscore`);
+                        const resumen = boxscoreData?.resumen || {};
+                        boxscoreMeta = {
+                            jugador: resumen.jugador_del_partido || resumen.mvp_proyectado || featuredGame?.mvp_nombre || 'Por definirse',
+                            ganador: resumen.pitcher_ganador || featuredGame?.ganador_nombre || 'Se define al cerrar el juego',
+                            perdedor: resumen.pitcher_perdedor || 'Se define al cerrar el juego'
+                        };
+                    } catch (boxscoreError) {
+                        console.warn('No se pudo cargar metadata avanzada del boxscore:', boxscoreError);
+                    }
+                }
+
+                badgeEl.className = `sunday-live-badge ${badge.className}`.trim();
+                badgeEl.textContent = badge.text;
+
+                statusValueEl.textContent = bracket?.campeon_nombre
+                    ? `${bracket.campeon_nombre} campeón`
+                    : `${getPlayoffRoundLabel(featuredGame.ronda)} destacada`;
+                statusCopyEl.textContent = bracket?.campeon_nombre
+                    ? 'La jornada ya cerró y el campeón quedó definido en el bracket oficial.'
+                    : `${featuredDate} • ${featuredTime} • Cobertura enfocada en el juego que mueve la ruta al campeonato.`;
+
+                const localRuns = featuredGame?.carreras_local;
+                const visitorRuns = featuredGame?.carreras_visitante;
+                const hasScore = localRuns !== null && localRuns !== undefined && visitorRuns !== null && visitorRuns !== undefined;
+
+                featuredContainer.innerHTML = `
+                    <div class="sunday-matchup">
+                        ${renderSundayTeamBlock(featuredGame.equipo_local_nombre, featuredGame.equipo_local_id, featuredGame.seed_local)}
+                        <div class="sunday-score-center">
+                            <div class="sunday-scoreline">${hasScore ? `${Number(localRuns)} - ${Number(visitorRuns)}` : 'VS'}</div>
+                            <div class="sunday-score-meta">${escapeHTML(featuredDate)} • ${escapeHTML(featuredTime)} • ${escapeHTML(getPlayoffRoundLabel(featuredGame.ronda))}</div>
+                        </div>
+                        ${renderSundayTeamBlock(featuredGame.equipo_visitante_nombre, featuredGame.equipo_visitante_id, featuredGame.seed_visitante, true)}
+                    </div>
+                    <div class="sunday-featured-insight">
+                        <div class="sunday-insight-card">
+                            <span>Jugador del juego</span>
+                            <strong>${escapeHTML(boxscoreMeta.jugador)}</strong>
+                            <small>${escapeHTML(featuredGame.mvp_nombre ? 'Definido en bracket oficial' : 'Se actualiza con el boxscore oficial.')}</small>
+                        </div>
+                        <div class="sunday-insight-card">
+                            <span>Pitcher ganador</span>
+                            <strong>${escapeHTML(boxscoreMeta.ganador)}</strong>
+                            <small>${escapeHTML(hasScore ? 'Impacto directo en la ruta a la final.' : 'Se confirma al cerrar el partido.')}</small>
+                        </div>
+                        <div class="sunday-insight-card">
+                            <span>Pitcher perdedor</span>
+                            <strong>${escapeHTML(boxscoreMeta.perdedor)}</strong>
+                            <small>${escapeHTML(history.text)}</small>
+                        </div>
+                    </div>
+                    <div class="sunday-actions">
+                        ${officialGame?.id ? `<a class="sunday-action-btn primary" href="partido.html?id=${officialGame.id}">📦 Abrir boxscore</a>` : ''}
+                        <a class="sunday-action-btn secondary" href="#partidos" onclick="mostrarPestana('partidos')">🎯 Ver centro de partidos</a>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error cargando cobertura del domingo:', error);
+                badgeEl.className = 'sunday-live-badge';
+                badgeEl.textContent = 'Error';
+                statusValueEl.textContent = 'No se pudo cargar';
+                statusCopyEl.textContent = 'Revisa el bracket o vuelve a intentar en unos segundos.';
+                featuredContainer.innerHTML = '<div class="sunday-empty">No se pudo cargar la cobertura especial del domingo.</div>';
+                scheduleContainer.innerHTML = '<div class="sunday-empty">No se pudo cargar la ruta de semifinal y final.</div>';
+            }
+        }
+
+        function refreshHomeLiveSurface() {
+            clearTimeout(homeSseRefreshTimer);
+            homeSseRefreshTimer = setTimeout(() => {
+                cargarPulsoLiga().catch(() => {});
+                cargarGameCenter().catch(() => {});
+                cargarCoberturaDomingo().catch(() => {});
+                cargarTablaPosiciones().catch(() => {});
+                cargarUltimosPartidos().catch(() => {});
+            }, 350);
+        }
+
+        function updateSseIndicator(state = 'idle') {
+            const dot = document.getElementById('sseDot');
+            if (!dot) return;
+            dot.classList.remove('live', 'error');
+            if (state === 'live') dot.classList.add('live');
+            if (state === 'error') dot.classList.add('error');
+        }
+
+        function conectarHomeSSE() {
+            if (homeSseSource) return;
+
+            try {
+                const source = new EventSource(getApiUrl('/api/sse/updates'));
+                homeSseSource = source;
+
+                source.onopen = () => updateSseIndicator('live');
+                source.onerror = () => updateSseIndicator('error');
+
+                ['stats-update', 'tournament-change', 'general-update'].forEach((eventName) => {
+                    source.addEventListener(eventName, () => {
+                        updateSseIndicator('live');
+                        refreshHomeLiveSurface();
+                    });
+                });
+            } catch (error) {
+                console.warn('No se pudo iniciar SSE en portada:', error);
+                updateSseIndicator('error');
             }
         }
        
@@ -8543,6 +9287,7 @@
             mostrarDepartamentoStats('resumen');
             safeRun('pulso de liga', () => cargarPulsoLiga());
             safeRun('game center', () => cargarGameCenter());
+            safeRun('cobertura domingo', () => cargarCoberturaDomingo());
             safeRun('tabla de posiciones', () => cargarTablaPosiciones());
             safeRun('últimos partidos', () => cargarUltimosPartidos());
             await safeRun('líderes', () => cargarLideres()); 
@@ -8563,6 +9308,18 @@
             initMobileNavigation();
             initStickyHeader();
             bindPublicCardNavigation();
+            conectarHomeSSE();
+
+            const indexTournamentSelect = document.getElementById('indexTournamentSelect');
+            if (indexTournamentSelect) {
+                indexTournamentSelect.addEventListener('change', function() {
+                    safeRun('pulso de liga por cambio de torneo', () => cargarPulsoLiga());
+                    safeRun('cobertura domingo por cambio de torneo', () => cargarCoberturaDomingo());
+                    safeRun('tabla de posiciones por cambio de torneo', () => cargarTablaPosiciones());
+                    safeRun('estadísticas completas por cambio de torneo', () => cargarEstadisticasCompletas());
+                    safeRun('próximos partidos por cambio de torneo', () => cargarProximosPartidos());
+                });
+            }
 
             // ✅ INICIO: CÓDIGO DEL BUSCADOR MODIFICADO
             // El código antiguo de 'buscarJugador' se elimina y se reemplaza por este bloque.
