@@ -4204,6 +4204,16 @@
         }
 
         function renderPlayoffAdminGame(game) {
+            const equiposOptions = (equipos || []).map(equipo => `
+                <option value="${equipo.id}" ${Number(game.equipo_local_id) === Number(equipo.id) ? 'selected' : ''}>
+                    ${escapeAdminHTML(equipo.nombre)}
+                </option>
+            `).join('');
+            const equiposVisitanteOptions = (equipos || []).map(equipo => `
+                <option value="${equipo.id}" ${Number(game.equipo_visitante_id) === Number(equipo.id) ? 'selected' : ''}>
+                    ${escapeAdminHTML(equipo.nombre)}
+                </option>
+            `).join('');
             const jugadoresOptions = (jugadores || []).map(jugador => `
                 <option value="${jugador.id}" ${Number(game.mvp_jugador_id) === Number(jugador.id) ? 'selected' : ''}>
                     ${escapeAdminHTML(jugador.nombre)}
@@ -4211,6 +4221,8 @@
             `).join('');
             const hora = game.hora ? String(game.hora).slice(0, 5) : 'TBD';
             const fecha = game.fecha ? parseAdminDate(game.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : 'Por definir';
+            const fechaInput = game.fecha ? String(game.fecha).slice(0, 10) : '';
+            const horaInput = game.hora ? String(game.hora).slice(0, 5) : '';
 
             return `
                 <div class="playoff-admin-game" data-game-id="${game.id}">
@@ -4218,19 +4230,49 @@
                         <span>${escapeAdminHTML(game.slot)} • ${fecha}</span>
                         <span>${hora}</span>
                     </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>Equipo local</label>
+                        <select data-field="equipo_local_id">
+                            <option value="">Pendiente</option>
+                            ${equiposOptions}
+                        </select>
+                    </div>
                     <div class="playoff-score-row">
-                        <span>${game.seed_local ? `#${game.seed_local} ` : ''}${escapeAdminHTML(game.equipo_local_nombre || 'Ganador pendiente')}</span>
+                        <span>${escapeAdminHTML(game.equipo_local_nombre || 'Ganador pendiente')}</span>
+                        <input type="number" min="1" max="32" inputmode="numeric" data-field="seed_local" value="${game.seed_local ?? ''}" placeholder="Seed">
+                    </div>
+                    <div class="form-group">
+                        <label>Equipo visitante</label>
+                        <select data-field="equipo_visitante_id">
+                            <option value="">Pendiente</option>
+                            ${equiposVisitanteOptions}
+                        </select>
+                    </div>
+                    <div class="playoff-score-row">
+                        <span>${escapeAdminHTML(game.equipo_visitante_nombre || 'Ganador pendiente')}</span>
+                        <input type="number" min="1" max="32" inputmode="numeric" data-field="seed_visitante" value="${game.seed_visitante ?? ''}" placeholder="Seed">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" data-field="fecha" value="${fechaInput}">
+                    </div>
+                    <div class="form-group">
+                        <label>Hora</label>
+                        <input type="time" data-field="hora" value="${horaInput}">
+                    </div>
+                    <div class="playoff-score-row">
+                        <span>Carreras local</span>
                         <input type="number" min="0" inputmode="numeric" data-field="carreras_local" value="${game.carreras_local ?? ''}" placeholder="-">
                     </div>
                     <div class="playoff-score-row">
-                        <span>${game.seed_visitante ? `#${game.seed_visitante} ` : ''}${escapeAdminHTML(game.equipo_visitante_nombre || 'Ganador pendiente')}</span>
+                        <span>Carreras visitante</span>
                         <input type="number" min="0" inputmode="numeric" data-field="carreras_visitante" value="${game.carreras_visitante ?? ''}" placeholder="-">
                     </div>
                     <div class="form-group" style="margin-top: 10px;">
                         <label>Estado</label>
                         <select data-field="estado">
                             <option value="programado" ${game.estado === 'programado' ? 'selected' : ''}>Programado</option>
-                            <option value="en_vivo" ${game.estado === 'en_vivo' ? 'selected' : ''}>En vivo</option>
+                            <option value="en_curso" ${game.estado === 'en_curso' || game.estado === 'en_vivo' ? 'selected' : ''}>En vivo</option>
                             <option value="finalizado" ${game.estado === 'finalizado' ? 'selected' : ''}>Finalizado</option>
                         </select>
                     </div>

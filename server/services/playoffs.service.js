@@ -368,10 +368,45 @@ async function updateGame(gameId, data) {
 
         const carrerasLocal = data.carreras_local === '' || data.carreras_local == null ? null : parseInt(data.carreras_local, 10);
         const carrerasVisitante = data.carreras_visitante === '' || data.carreras_visitante == null ? null : parseInt(data.carreras_visitante, 10);
-        const estado = data.estado || 'programado';
+        const estado = data.estado === 'en_vivo' ? 'en_curso' : (data.estado || 'programado');
         const innings = data.innings_jugados ? parseInt(data.innings_jugados, 10) : 7;
         const mvpJugadorId = data.mvp_jugador_id ? parseInt(data.mvp_jugador_id, 10) : null;
         const resumen = data.resumen || null;
+        const equipoLocalId = data.equipo_local_id === '' || data.equipo_local_id == null ? null : parseInt(data.equipo_local_id, 10);
+        const equipoVisitanteId = data.equipo_visitante_id === '' || data.equipo_visitante_id == null ? null : parseInt(data.equipo_visitante_id, 10);
+        const seedLocal = data.seed_local === '' || data.seed_local == null ? null : parseInt(data.seed_local, 10);
+        const seedVisitante = data.seed_visitante === '' || data.seed_visitante == null ? null : parseInt(data.seed_visitante, 10);
+        const fecha = data.fecha === '' || data.fecha == null ? null : data.fecha;
+        const hora = data.hora === '' || data.hora == null ? null : data.hora;
+
+        let equipoLocalNombre = null;
+        let equipoVisitanteNombre = null;
+
+        if (equipoLocalId) {
+            const localResult = await client.query('SELECT id, nombre FROM equipos WHERE id = $1 LIMIT 1', [equipoLocalId]);
+            if (!localResult.rows.length) {
+                const error = new Error('Equipo local no encontrado');
+                error.statusCode = 400;
+                throw error;
+            }
+            equipoLocalNombre = localResult.rows[0].nombre;
+        }
+
+        if (equipoVisitanteId) {
+            const visitanteResult = await client.query('SELECT id, nombre FROM equipos WHERE id = $1 LIMIT 1', [equipoVisitanteId]);
+            if (!visitanteResult.rows.length) {
+                const error = new Error('Equipo visitante no encontrado');
+                error.statusCode = 400;
+                throw error;
+            }
+            equipoVisitanteNombre = visitanteResult.rows[0].nombre;
+        }
+
+        if (equipoLocalId && equipoVisitanteId && equipoLocalId === equipoVisitanteId) {
+            const error = new Error('El equipo local y visitante no pueden ser el mismo');
+            error.statusCode = 400;
+            throw error;
+        }
 
         if (estado === 'finalizado' && carrerasLocal === carrerasVisitante) {
             const error = new Error('Un juego finalizado no puede quedar empatado');
@@ -387,10 +422,34 @@ async function updateGame(gameId, data) {
                 innings_jugados = $4,
                 mvp_jugador_id = $5,
                 resumen = $6,
+                equipo_local_id = $7,
+                equipo_local_nombre = $8,
+                equipo_visitante_id = $9,
+                equipo_visitante_nombre = $10,
+                seed_local = $11,
+                seed_visitante = $12,
+                fecha = $13,
+                hora = $14,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $7
+            WHERE id = $15
             RETURNING *
-        `, [carrerasLocal, carrerasVisitante, estado, innings, mvpJugadorId, resumen, gameId]);
+        `, [
+            carrerasLocal,
+            carrerasVisitante,
+            estado,
+            innings,
+            mvpJugadorId,
+            resumen,
+            equipoLocalId,
+            equipoLocalNombre,
+            equipoVisitanteId,
+            equipoVisitanteNombre,
+            seedLocal,
+            seedVisitante,
+            fecha,
+            hora,
+            gameId
+        ]);
 
         if (result.rows.length === 0) {
             const error = new Error('Juego de playoff no encontrado');

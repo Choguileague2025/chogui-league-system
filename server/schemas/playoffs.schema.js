@@ -14,7 +14,13 @@ const playoffGameUpdateSchema = z.object({
     innings_jugados: z.coerce.number().int().min(1).max(20).optional(),
     mvp_jugador_id: z.union([z.coerce.number().int().positive(), z.literal(''), z.null()]).optional(),
     resumen: z.union([z.string().trim().max(1000), z.literal(''), z.null()]).optional(),
-    torneo_id: optionalTournamentSchema
+    torneo_id: optionalTournamentSchema,
+    equipo_local_id: z.union([z.coerce.number().int().positive(), z.literal(''), z.null()]).optional(),
+    equipo_visitante_id: z.union([z.coerce.number().int().positive(), z.literal(''), z.null()]).optional(),
+    seed_local: z.union([z.coerce.number().int().min(1).max(32), z.literal(''), z.null()]).optional(),
+    seed_visitante: z.union([z.coerce.number().int().min(1).max(32), z.literal(''), z.null()]).optional(),
+    fecha: z.union([z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/), z.literal(''), z.null()]).optional(),
+    hora: z.union([z.string().trim().regex(/^\d{2}:\d{2}$/), z.literal(''), z.null()]).optional()
 }).strict();
 
 module.exports = {
