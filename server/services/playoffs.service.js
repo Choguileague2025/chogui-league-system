@@ -1,18 +1,17 @@
 const pool = require('../config/database');
 const { resolveTorneoId } = require('./torneos.service');
+const { normalizePlayoffFormat } = require('../utils/playoffFormat');
 
 const DEFAULT_BRACKET = {
-    nombre: 'Chogui League Playoffs 2026',
-    fecha_inicio: '2026-04-19',
-    fecha_final: '2026-04-26',
+    nombre: 'Playoffs',
     games: [
-        { slot: 'QF1', ronda: 'quarterfinal', orden: 1, seed_local: 1, local: 'Dominican Powers', seed_visitante: 8, visitante: 'Venarstone', fecha: '2026-04-19', hora: '14:15' },
-        { slot: 'QF2', ronda: 'quarterfinal', orden: 2, seed_local: 4, local: 'Impulse', seed_visitante: 5, visitante: 'Team RD', fecha: '2026-04-19', hora: '10:45' },
-        { slot: 'QF3', ronda: 'quarterfinal', orden: 3, seed_local: 2, local: 'Royals', seed_visitante: 7, visitante: 'Los Emilia', fecha: '2026-04-19', hora: '09:00' },
-        { slot: 'QF4', ronda: 'quarterfinal', orden: 4, seed_local: 3, local: 'Tricolor', seed_visitante: 6, visitante: 'Llaneros', fecha: '2026-04-19', hora: '12:30' },
-        { slot: 'SF1', ronda: 'semifinal', orden: 5, fecha: '2026-04-25', hora: '10:00' },
-        { slot: 'SF2', ronda: 'semifinal', orden: 6, fecha: '2026-04-25', hora: '12:00' },
-        { slot: 'F', ronda: 'final', orden: 7, fecha: '2026-04-26', hora: '11:00' }
+        { slot: 'QF1', ronda: 'quarterfinal', orden: 1, seed_local: 1, seed_visitante: 8, hora: '14:15' },
+        { slot: 'QF2', ronda: 'quarterfinal', orden: 2, seed_local: 4, seed_visitante: 5, hora: '10:45' },
+        { slot: 'QF3', ronda: 'quarterfinal', orden: 3, seed_local: 2, seed_visitante: 7, hora: '09:00' },
+        { slot: 'QF4', ronda: 'quarterfinal', orden: 4, seed_local: 3, seed_visitante: 6, hora: '12:30' },
+        { slot: 'SF1', ronda: 'semifinal', orden: 5, hora: '10:00' },
+        { slot: 'SF2', ronda: 'semifinal', orden: 6, hora: '12:00' },
+        { slot: 'F', ronda: 'final', orden: 7, hora: '11:00' }
     ]
 };
 
@@ -85,9 +84,128 @@ async function findTeamByName(client, name) {
     return rows.find(team => normalizeName(team.nombre) === target) || null;
 }
 
-async function getActiveBracket(client = pool) {
+function normalizeTournamentIdInput(torneoId) {
+    const parsed = Number(torneoId);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+async function getTournamentMeta(client, torneoId) {
+    if (!torneoId) return null;
+    const { rows } = await client.query(`
+        SELECT id, nombre, fecha_inicio, total_juegos, cupos_playoffs
+        FROM torneos
+        WHERE id = $1
+        LIMIT 1
+    `, [torneoId]);
+    return rows[0] || null;
+}
+
+async function getTournamentSeeds(client, torneoId, slotCount = 8) {
+    if (!torneoId) return [];
+    const normalizedSlots = Number.isFinite(Number(slotCount)) && Number(slotCount) > 0
+        ? Number(slotCount)
+        : 8;
+    const { rows } = await client.query(`
+        WITH torneo_teams AS (
+            SELECT DISTINCT equipo_id
+            FROM (
+                SELECT equipo_local_id AS equipo_id
+                FROM partidos
+                WHERE torneo_id = $1
+                UNION
+                SELECT equipo_visitante_id AS equipo_id
+                FROM partidos
+                WHERE torneo_id = $1
+            ) teams
+            WHERE equipo_id IS NOT NULL
+        ),
+        resultados AS (
+            SELECT
+                p.equipo_local_id AS equipo_id,
+                CASE WHEN p.estado = 'finalizado' AND p.carreras_local > p.carreras_visitante THEN 1 ELSE 0 END AS win,
+                CASE WHEN p.estado = 'finalizado' AND p.carreras_local < p.carreras_visitante THEN 1 ELSE 0 END AS loss,
+                CASE WHEN p.estado = 'finalizado' THEN COALESCE(p.carreras_local, 0) ELSE 0 END AS cf,
+                CASE WHEN p.estado = 'finalizado' THEN COALESCE(p.carreras_visitante, 0) ELSE 0 END AS ce
+            FROM partidos p
+            WHERE p.torneo_id = $1
+            UNION ALL
+            SELECT
+                p.equipo_visitante_id AS equipo_id,
+                CASE WHEN p.estado = 'finalizado' AND p.carreras_visitante > p.carreras_local THEN 1 ELSE 0 END AS win,
+                CASE WHEN p.estado = 'finalizado' AND p.carreras_visitante < p.carreras_local THEN 1 ELSE 0 END AS loss,
+                CASE WHEN p.estado = 'finalizado' THEN COALESCE(p.carreras_visitante, 0) ELSE 0 END AS cf,
+                CASE WHEN p.estado = 'finalizado' THEN COALESCE(p.carreras_local, 0) ELSE 0 END AS ce
+            FROM partidos p
+            WHERE p.torneo_id = $1
+        )
+        SELECT
+            e.id,
+            e.nombre,
+            COALESCE(SUM(r.win), 0)::int AS wins,
+            COALESCE(SUM(r.loss), 0)::int AS losses,
+            COALESCE(SUM(r.cf), 0)::int AS cf,
+            COALESCE(SUM(r.ce), 0)::int AS ce
+        FROM torneo_teams tt
+        JOIN equipos e ON e.id = tt.equipo_id
+        LEFT JOIN resultados r ON r.equipo_id = e.id
+        GROUP BY e.id, e.nombre
+        ORDER BY
+            COALESCE(SUM(r.win), 0) DESC,
+            (COALESCE(SUM(r.cf), 0) - COALESCE(SUM(r.ce), 0)) DESC,
+            COALESCE(SUM(r.cf), 0) DESC,
+            e.nombre ASC
+        LIMIT $2
+    `, [torneoId, normalizedSlots]);
+
+    return rows.map((row, index) => ({
+        id: row.id,
+        nombre: row.nombre,
+        seed: index + 1
+    }));
+}
+
+function buildBracketTemplate({ torneo, seeds = [] } = {}) {
+    const normalized = normalizePlayoffFormat({
+        totalJuegos: torneo?.total_juegos,
+        cuposPlayoffs: torneo?.cupos_playoffs,
+        teamCount: seeds.length,
+        tournamentName: torneo?.nombre
+    });
+    const slotCount = normalized.cuposPlayoffs || 8;
+    const quarterDate = torneo?.fecha_inicio
+        ? String(torneo.fecha_inicio).slice(0, 10)
+        : new Date().toISOString().slice(0, 10);
+    const semifinalDate = quarterDate;
+    const finalDate = quarterDate;
+    const teamBySeed = new Map(seeds.map(team => [team.seed, team]));
+
+    return {
+        nombre: torneo?.nombre ? `${torneo.nombre} - Playoffs` : DEFAULT_BRACKET.nombre,
+        fecha_inicio: quarterDate,
+        fecha_final: finalDate,
+        games: DEFAULT_BRACKET.games.map((game) => {
+            const localTeam = teamBySeed.get(game.seed_local);
+            const visitorTeam = teamBySeed.get(game.seed_visitante);
+            const fecha = game.ronda === 'quarterfinal'
+                ? quarterDate
+                : game.ronda === 'semifinal'
+                    ? semifinalDate
+                    : finalDate;
+
+            return {
+                ...game,
+                fecha,
+                local: localTeam?.nombre || null,
+                visitante: visitorTeam?.nombre || null
+            };
+        }),
+        slotCount
+    };
+}
+
+async function getActiveBracket(client = pool, torneoIdInput = null) {
     await ensureSchema(client);
-    const torneoId = await resolveTorneoId(null);
+    const torneoId = normalizeTournamentIdInput(torneoIdInput) || await resolveTorneoId(null);
     const params = [];
     let query = 'SELECT * FROM playoff_brackets';
 
@@ -101,29 +219,38 @@ async function getActiveBracket(client = pool) {
     return rows[0] || null;
 }
 
-async function initializeDefaultBracket() {
+async function initializeDefaultBracket(torneoIdInput = null, options = {}) {
     const client = await pool.connect();
 
     try {
         await client.query('BEGIN');
         await ensureSchema(client);
 
-        const torneoId = await resolveTorneoId(null);
-        const existing = await getActiveBracket(client);
+        const torneoId = normalizeTournamentIdInput(torneoIdInput) || await resolveTorneoId(null);
+        const force = options && options.force === true;
+        const existing = await getActiveBracket(client, torneoId);
         if (existing) {
-            await client.query('COMMIT');
-            return existing;
+            if (force) {
+                await client.query('DELETE FROM playoff_brackets WHERE id = $1', [existing.id]);
+            } else {
+                await client.query('COMMIT');
+                return existing;
+            }
         }
+
+        const torneo = await getTournamentMeta(client, torneoId);
+        const seeds = await getTournamentSeeds(client, torneoId, torneo?.cupos_playoffs || 8);
+        const bracketTemplate = buildBracketTemplate({ torneo, seeds });
 
         const bracketResult = await client.query(`
             INSERT INTO playoff_brackets (torneo_id, nombre, fecha_inicio, fecha_final, estado)
             VALUES ($1, $2, $3, $4, 'programado')
             RETURNING *
-        `, [torneoId, DEFAULT_BRACKET.nombre, DEFAULT_BRACKET.fecha_inicio, DEFAULT_BRACKET.fecha_final]);
+        `, [torneoId, bracketTemplate.nombre, bracketTemplate.fecha_inicio, bracketTemplate.fecha_final]);
 
         const bracket = bracketResult.rows[0];
 
-        for (const game of DEFAULT_BRACKET.games) {
+        for (const game of bracketTemplate.games) {
             const localTeam = await findTeamByName(client, game.local);
             const visitorTeam = await findTeamByName(client, game.visitante);
 
@@ -152,10 +279,11 @@ async function initializeDefaultBracket() {
     }
 }
 
-async function getBracket() {
-    let bracket = await getActiveBracket();
+async function getBracket(torneoIdInput = null) {
+    const torneoId = normalizeTournamentIdInput(torneoIdInput) || await resolveTorneoId(null);
+    let bracket = await getActiveBracket(pool, torneoId);
     if (!bracket) {
-        bracket = await initializeDefaultBracket();
+        bracket = await initializeDefaultBracket(torneoId);
     }
 
     const { rows: games } = await pool.query(`

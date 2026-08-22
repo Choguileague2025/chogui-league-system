@@ -4251,10 +4251,15 @@
         async function cargarPlayoffsAdmin() {
             const grid = document.getElementById('playoffsAdminGrid');
             if (!grid) return;
+            const torneoId = getCurrentTournamentId();
 
             try {
+                if (!torneoId) {
+                    grid.innerHTML = '<div class="empty-state">Selecciona un torneo activo para cargar el bracket.</div>';
+                    return;
+                }
                 grid.innerHTML = '<div class="loading">Cargando bracket...</div>';
-                const response = await fetch('/api/playoffs/bracket');
+                const response = await fetch(`/api/playoffs/bracket?torneo_id=${torneoId}`);
                 if (!response.ok) throw new Error('No se pudo cargar el bracket');
                 const data = await response.json();
                 const rounds = data.rounds || {};
@@ -4278,7 +4283,16 @@
 
         async function inicializarPlayoffs() {
             try {
-                const response = await fetch('/api/playoffs/initialize', { method: 'POST' });
+                const torneoId = getCurrentTournamentId();
+                if (!torneoId) {
+                    toast.warning('No hay torneo activo seleccionado para crear el bracket.');
+                    return;
+                }
+                const response = await fetch('/api/playoffs/initialize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ torneo_id: torneoId, force: true })
+                });
                 if (!response.ok) throw new Error('No se pudo inicializar el bracket');
                 toast.success('Bracket de playoffs listo.');
                 await cargarPlayoffsAdmin();
@@ -4290,11 +4304,17 @@
         async function guardarJuegoPlayoff(gameId) {
             const card = document.querySelector(`.playoff-admin-game[data-game-id="${gameId}"]`);
             if (!card) return;
+            const torneoId = getCurrentTournamentId();
+            if (!torneoId) {
+                toast.warning('No hay torneo activo seleccionado para guardar este resultado.');
+                return;
+            }
 
             const payload = {};
             card.querySelectorAll('[data-field]').forEach(input => {
                 payload[input.dataset.field] = input.value;
             });
+            payload.torneo_id = torneoId;
 
             try {
                 const response = await fetch(`/api/playoffs/games/${gameId}`, {
