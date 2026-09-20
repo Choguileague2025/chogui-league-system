@@ -30,6 +30,9 @@ const ligasRoutes = require('./routes/ligas.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
 
 const app = express();
+// Railway termina TLS y reenvía la IP real en X-Forwarded-For.
+// Confiar solo en el primer proxy mantiene correcto el rate limiting.
+app.set('trust proxy', 1);
 const contentSecurityPolicyDirectives = {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
