@@ -37,13 +37,18 @@ const TournamentModule = {
                 const option = document.createElement('option');
                 option.value = torneo.id;
                 option.textContent = torneo.nombre + (torneo.activo ? ' (Activo)' : '');
-                if (torneo.activo) {
+                if (torneo.activo && !this.currentTournamentId) {
                     option.selected = true;
                     this.currentTournamentId = String(torneo.id);
                 }
                 select.appendChild(option);
             });
 
+            const saved = new URLSearchParams(location.search).get('torneo_id') || sessionStorage.getItem('publicTorneoId');
+            if (this.allTorneos.some(t => String(t.id) === saved)) {
+                this.currentTournamentId = saved;
+                select.value = saved;
+            }
             if (!this.currentTournamentId && this.allTorneos[0]) {
                 this.currentTournamentId = String(this.allTorneos[0].id);
                 select.value = this.currentTournamentId;
@@ -76,6 +81,7 @@ const TournamentModule = {
 
     onTournamentChange(options = {}) {
         const { notify = true } = options;
+        sessionStorage.setItem('publicTorneoId', this.currentTournamentId || '');
         console.log('[Torneos] Cambiado a:', this.currentTournamentId);
         // Reload leaders and stats with new tournament filter
         if (typeof cargarLideres === 'function') cargarLideres();
@@ -85,6 +91,8 @@ const TournamentModule = {
         if (typeof cargarTablaPosiciones === 'function') cargarTablaPosiciones();
         if (typeof cargarCarreraPlayoffsHome === 'function') cargarCarreraPlayoffsHome();
         if (typeof cargarPulsoLiga === 'function') cargarPulsoLiga();
+        if (typeof cargarGameCenter === 'function') cargarGameCenter();
+        if (typeof cargarProximosPartidos === 'function') cargarProximosPartidos();
         if (notify) {
             NotificationModule.show('Torneo actualizado', 'info');
         }
@@ -96,7 +104,7 @@ function getTournamentQueryParam() {
         return '';
     }
     const currentId = TournamentModule.getCurrentId();
-    if (!currentId || currentId === 'todos') {
+    if (!currentId) {
         return '';
     }
     return `torneo_id=${encodeURIComponent(currentId)}`;
@@ -238,6 +246,8 @@ const SSEModule = {
                 if (typeof cargarCampeonesPosicionales === 'function') cargarCampeonesPosicionales();
                 if (typeof cargarCarreraPlayoffsHome === 'function') cargarCarreraPlayoffsHome();
                 if (typeof cargarPulsoLiga === 'function') cargarPulsoLiga();
+        if (typeof cargarGameCenter === 'function') cargarGameCenter();
+        if (typeof cargarProximosPartidos === 'function') cargarProximosPartidos();
             });
 
             this.connection.addEventListener('tournament-change', (e) => {
@@ -249,6 +259,8 @@ const SSEModule = {
                 if (typeof cargarCampeonesPosicionales === 'function') cargarCampeonesPosicionales();
                 if (typeof cargarCarreraPlayoffsHome === 'function') cargarCarreraPlayoffsHome();
                 if (typeof cargarPulsoLiga === 'function') cargarPulsoLiga();
+        if (typeof cargarGameCenter === 'function') cargarGameCenter();
+        if (typeof cargarProximosPartidos === 'function') cargarProximosPartidos();
             });
 
             this.connection.addEventListener('general-update', (e) => {
@@ -259,6 +271,8 @@ const SSEModule = {
                 if (typeof cargarGameCenter === 'function') cargarGameCenter();
                 if (typeof cargarCarreraPlayoffsHome === 'function') cargarCarreraPlayoffsHome();
                 if (typeof cargarPulsoLiga === 'function') cargarPulsoLiga();
+        if (typeof cargarGameCenter === 'function') cargarGameCenter();
+        if (typeof cargarProximosPartidos === 'function') cargarProximosPartidos();
             });
 
             this.connection.onopen = () => {

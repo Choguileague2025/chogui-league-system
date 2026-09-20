@@ -5874,8 +5874,8 @@
 
             try {
                 const [proximosData, recientesData] = await Promise.all([
-                    fetchJSON('/api/proximos-partidos'),
-                    fetchJSON('/api/partidos?limit=4')
+                    fetchJSON(withTournament('/api/proximos-partidos')),
+                    fetchJSON(withTournament('/api/partidos?limit=4'))
                 ]);
                 const proximos = normalizePartidosResponse(proximosData);
                 const recientes = normalizePartidosResponse(recientesData);
@@ -9530,7 +9530,7 @@
                 console.log('📅 Cargando próximos partidos...');
                
                 // ✅ CAMBIO: Usar endpoint correcto
-                const response = await fetch(getApiUrl('/api/proximos-partidos'));
+                const response = await fetch(getApiUrl(withTournament('/api/proximos-partidos')));
                
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);

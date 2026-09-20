@@ -24,7 +24,7 @@ async function obtenerOfensivas(filtros = {}) {
             SELECT * FROM (
                 SELECT
                     eo.jugador_id,
-                    j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
+                    j.nombre as jugador_nombre, tj.posicion, tj.equipo_id, e.nombre as equipo_nombre,
                     SUM(eo.at_bats)::INT as at_bats,
                     SUM(eo.hits)::INT as hits,
                     SUM(eo.doubles)::INT as doubles,
@@ -59,9 +59,10 @@ async function obtenerOfensivas(filtros = {}) {
                     END as slg
                 FROM estadisticas_ofensivas eo
                 JOIN jugadores j ON eo.jugador_id = j.id
-                JOIN equipos e ON j.equipo_id = e.id
+                JOIN torneo_jugadores tj ON tj.jugador_id = j.id AND tj.torneo_id = eo.torneo_id
+                JOIN equipos e ON tj.equipo_id = e.id
                 WHERE 1=1
-                GROUP BY eo.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
+                GROUP BY eo.jugador_id, j.nombre, tj.posicion, tj.equipo_id, e.nombre
             ) sub
             WHERE at_bats >= $1
         `;
@@ -97,7 +98,7 @@ async function obtenerOfensivas(filtros = {}) {
         SELECT
                eo.*,
                COALESCE(eo.strikeouts, 0)::INT as strikeouts,
-               j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
+               j.nombre as jugador_nombre, tj.posicion, tj.equipo_id, e.nombre as equipo_nombre,
                CASE
                    WHEN eo.at_bats > 0 THEN ROUND(eo.hits::DECIMAL / eo.at_bats, 3)
                    ELSE 0.000
@@ -118,7 +119,8 @@ async function obtenerOfensivas(filtros = {}) {
                END as slg
         FROM estadisticas_ofensivas eo
         JOIN jugadores j ON eo.jugador_id = j.id
-        JOIN equipos e ON j.equipo_id = e.id
+                JOIN torneo_jugadores tj ON tj.jugador_id = j.id AND tj.torneo_id = eo.torneo_id
+        JOIN equipos e ON tj.equipo_id = e.id
         WHERE eo.at_bats >= $1
     `;
     const params = [min_at_bats];
@@ -137,7 +139,7 @@ async function obtenerOfensivas(filtros = {}) {
     }
 
     if (equipo_id) {
-        query += ` AND j.equipo_id = $${paramIndex}`;
+        query += ` AND tj.equipo_id = $${paramIndex}`;
         params.push(equipo_id);
     }
 
@@ -217,6 +219,8 @@ async function actualizarOfensivas(jugadorId, torneoId, stats, mode = 'sum') {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
+        await require('./planteles.service').editable(client, torneoId);
+        await require('./planteles.service').requireJugador(client, torneoId, jugadorId);
 
         // Leer valores existentes
         const existing = await client.query(
@@ -314,7 +318,7 @@ async function obtenerPitcheo(filtros = {}) {
         let query = `
             SELECT
                 ep.jugador_id,
-                j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre,
+                j.nombre as jugador_nombre, tj.equipo_id, e.nombre as equipo_nombre,
                 SUM(ep.innings_pitched)::NUMERIC as innings_pitched,
                 SUM(ep.hits_allowed)::INT as hits_allowed,
                 SUM(ep.earned_runs)::INT as earned_runs,
@@ -334,7 +338,8 @@ async function obtenerPitcheo(filtros = {}) {
                 END as whip
             FROM estadisticas_pitcheo ep
             JOIN jugadores j ON ep.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
+                JOIN torneo_jugadores tj ON tj.jugador_id = j.id AND tj.torneo_id = ep.torneo_id
+            JOIN equipos e ON tj.equipo_id = e.id
             WHERE 1=1
         `;
         const params = [];
@@ -347,13 +352,13 @@ async function obtenerPitcheo(filtros = {}) {
         }
 
         if (equipo_id) {
-            query += ` AND j.equipo_id = $${paramIndex}`;
+            query += ` AND tj.equipo_id = $${paramIndex}`;
             params.push(equipo_id);
             paramIndex++;
         }
 
         query += `
-            GROUP BY ep.jugador_id, j.nombre, j.equipo_id, e.nombre
+            GROUP BY ep.jugador_id, j.nombre, tj.equipo_id, e.nombre
             ORDER BY era ASC, strikeouts DESC
         `;
         const result = await pool.query(query, params);
@@ -366,7 +371,7 @@ async function obtenerPitcheo(filtros = {}) {
     const params = [];
 
     let query = `
-        SELECT ep.*, j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre,
+        SELECT ep.*, j.nombre as jugador_nombre, tj.equipo_id, e.nombre as equipo_nombre,
                CASE
                    WHEN ep.innings_pitched > 0 THEN ROUND((ep.earned_runs * 9.0) / ep.innings_pitched, 2)
                    ELSE 0.00
@@ -377,7 +382,8 @@ async function obtenerPitcheo(filtros = {}) {
                END as whip
         FROM estadisticas_pitcheo ep
         JOIN jugadores j ON ep.jugador_id = j.id
-        JOIN equipos e ON j.equipo_id = e.id
+                JOIN torneo_jugadores tj ON tj.jugador_id = j.id AND tj.torneo_id = ep.torneo_id
+        JOIN equipos e ON tj.equipo_id = e.id
         WHERE 1=1
     `;
 
@@ -394,7 +400,7 @@ async function obtenerPitcheo(filtros = {}) {
     }
 
     if (equipo_id) {
-        query += ` AND j.equipo_id = $${paramIndex}`;
+        query += ` AND tj.equipo_id = $${paramIndex}`;
         params.push(equipo_id);
     }
 
@@ -414,10 +420,11 @@ async function obtenerPitcheoPorJugador(jugadorId, torneoId) {
     const torneoIdResolved = torneoId || await resolveTorneoId(null);
 
     let query = `
-        SELECT ep.*, j.nombre as jugador_nombre, j.equipo_id, e.nombre as equipo_nombre
+        SELECT ep.*, j.nombre as jugador_nombre, tj.equipo_id, e.nombre as equipo_nombre
         FROM estadisticas_pitcheo ep
         JOIN jugadores j ON ep.jugador_id = j.id
-        JOIN equipos e ON j.equipo_id = e.id
+                JOIN torneo_jugadores tj ON tj.jugador_id = j.id AND tj.torneo_id = ep.torneo_id
+        JOIN equipos e ON tj.equipo_id = e.id
         WHERE ep.jugador_id = $1
     `;
     const params = [jugadorId];
@@ -481,6 +488,8 @@ async function actualizarPitcheo(jugadorId, torneoId, stats, mode = 'sum') {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
+        await require('./planteles.service').editable(client, torneoId);
+        await require('./planteles.service').requireJugador(client, torneoId, jugadorId);
 
         // Leer valores existentes
         const existing = await client.query(
@@ -570,7 +579,7 @@ async function obtenerDefensivas(filtros = {}) {
         let query = `
             SELECT
                 ed.jugador_id,
-                j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
+                j.nombre as jugador_nombre, tj.posicion, tj.equipo_id, e.nombre as equipo_nombre,
                 SUM(ed.putouts)::INT as putouts,
                 SUM(ed.assists)::INT as assists,
                 SUM(ed.errors)::INT as errors,
@@ -583,7 +592,8 @@ async function obtenerDefensivas(filtros = {}) {
                 END as fielding_percentage
             FROM estadisticas_defensivas ed
             JOIN jugadores j ON ed.jugador_id = j.id
-            JOIN equipos e ON j.equipo_id = e.id
+                JOIN torneo_jugadores tj ON tj.jugador_id = j.id AND tj.torneo_id = ed.torneo_id
+            JOIN equipos e ON tj.equipo_id = e.id
             WHERE 1=1
         `;
         const params = [];
@@ -596,13 +606,13 @@ async function obtenerDefensivas(filtros = {}) {
         }
 
         if (equipo_id) {
-            query += ` AND j.equipo_id = $${paramIndex}`;
+            query += ` AND tj.equipo_id = $${paramIndex}`;
             params.push(equipo_id);
             paramIndex++;
         }
 
         query += `
-            GROUP BY ed.jugador_id, j.nombre, j.posicion, j.equipo_id, e.nombre
+            GROUP BY ed.jugador_id, j.nombre, tj.posicion, tj.equipo_id, e.nombre
             ORDER BY fielding_percentage DESC, chances DESC
         `;
         const result = await pool.query(query, params);
@@ -615,14 +625,15 @@ async function obtenerDefensivas(filtros = {}) {
     const params = [];
 
     let query = `
-        SELECT ed.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre,
+        SELECT ed.*, j.nombre as jugador_nombre, tj.posicion, tj.equipo_id, e.nombre as equipo_nombre,
                CASE
                    WHEN ed.chances > 0 THEN ROUND((ed.putouts + ed.assists)::DECIMAL / ed.chances, 3)
                    ELSE 0.000
                END as fielding_percentage
         FROM estadisticas_defensivas ed
         JOIN jugadores j ON ed.jugador_id = j.id
-        JOIN equipos e ON j.equipo_id = e.id
+                JOIN torneo_jugadores tj ON tj.jugador_id = j.id AND tj.torneo_id = ed.torneo_id
+        JOIN equipos e ON tj.equipo_id = e.id
         WHERE 1=1
     `;
 
@@ -639,7 +650,7 @@ async function obtenerDefensivas(filtros = {}) {
     }
 
     if (equipo_id) {
-        query += ` AND j.equipo_id = $${paramIndex}`;
+        query += ` AND tj.equipo_id = $${paramIndex}`;
         params.push(equipo_id);
     }
 
@@ -656,10 +667,11 @@ async function obtenerDefensivasPorJugador(jugadorId, torneoId) {
     const torneoIdResolved = torneoId || await resolveTorneoId(null);
 
     let query = `
-        SELECT ed.*, j.nombre as jugador_nombre, j.posicion, j.equipo_id, e.nombre as equipo_nombre
+        SELECT ed.*, j.nombre as jugador_nombre, tj.posicion, tj.equipo_id, e.nombre as equipo_nombre
         FROM estadisticas_defensivas ed
         JOIN jugadores j ON ed.jugador_id = j.id
-        JOIN equipos e ON j.equipo_id = e.id
+                JOIN torneo_jugadores tj ON tj.jugador_id = j.id AND tj.torneo_id = ed.torneo_id
+        JOIN equipos e ON tj.equipo_id = e.id
         WHERE ed.jugador_id = $1
     `;
     const params = [jugadorId];
@@ -714,6 +726,8 @@ async function actualizarDefensivas(jugadorId, torneoId, stats, mode = 'sum') {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
+        await require('./planteles.service').editable(client, torneoId);
+        await require('./planteles.service').requireJugador(client, torneoId, jugadorId);
 
         // Leer valores existentes
         const existing = await client.query(

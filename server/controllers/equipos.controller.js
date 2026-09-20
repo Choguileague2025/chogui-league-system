@@ -112,6 +112,7 @@ async function construirCarreraPlayoffs({ teamId, torneoIdResolved, torneoIdPara
                     e.nombre ASC
             ) AS ranking
         FROM equipos e
+        ${shouldFilterByTournament && torneo.id ? 'JOIN torneo_equipos te ON te.equipo_id=e.id AND te.torneo_id=$1' : ''}
         LEFT JOIN juegos j ON j.equipo_id = e.id
         GROUP BY e.id, e.nombre
         ORDER BY porcentaje DESC, dif DESC, e.nombre ASC
@@ -157,6 +158,9 @@ async function construirCarreraPlayoffs({ teamId, torneoIdResolved, torneoIdPara
 // GET /api/equipos
 async function obtenerTodos(req, res, next) {
     try {
+        if (req.query.torneo_id && req.query.torneo_id !== 'todos') {
+            return res.json(await require('../services/planteles.service').equipos(req.query.torneo_id));
+        }
         const result = await pool.query('SELECT * FROM equipos ORDER BY nombre ASC');
         res.json(result.rows);
     } catch (error) {
@@ -192,6 +196,9 @@ async function obtenerDetalles(req, res, next) {
             return res.status(404).json({ message: 'Equipo no encontrado' });
         }
 
+        if (req.query.torneo_id && req.query.torneo_id !== 'todos') {
+            return res.json({ equipo: teamResult.rows[0], roster: await require('../services/planteles.service').jugadores(req.query.torneo_id, id) });
+        }
         const rosterResult = await pool.query(
             'SELECT * FROM jugadores WHERE equipo_id = $1 ORDER BY numero ASC, nombre ASC',
             [id]
@@ -209,37 +216,8 @@ async function obtenerDetalles(req, res, next) {
 
 // GET /api/equipos/:id/estadisticas/ofensivas
 async function obtenerEstadisticasOfensivas(req, res, next) {
-    try {
-        const { id } = req.params;
-
-        const result = await pool.query(`
-            SELECT
-                j.nombre as jugador_nombre,
-                j.posicion,
-                j.numero,
-                COALESCE(eo.at_bats, 0) as at_bats,
-                COALESCE(eo.hits, 0) as hits,
-                COALESCE(eo.home_runs, 0) as home_runs,
-                COALESCE(eo.rbi, 0) as rbi,
-                COALESCE(eo.runs, 0) as runs,
-                COALESCE(eo.walks, 0) as walks,
-                COALESCE(eo.stolen_bases, 0) as stolen_bases,
-                COALESCE(eo.strikeouts, 0) as strikeouts,
-                CASE
-                    WHEN COALESCE(eo.at_bats, 0) > 0 THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / eo.at_bats, 3)
-                    ELSE 0.000
-                END as avg
-            FROM jugadores j
-            LEFT JOIN estadisticas_ofensivas eo ON j.id = eo.jugador_id
-            WHERE j.equipo_id = $1
-            ORDER BY j.numero ASC, j.nombre ASC
-        `, [id]);
-
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error obteniendo estadísticas ofensivas del equipo:', error);
-        next(error);
-    }
+    try { res.json(await require('../services/estadisticas.service').obtenerOfensivas({ equipo_id: req.params.id, torneo_id:req.query.torneo_id })); }
+    catch(err) { next(err); }
 }
 
 // GET /api/equipos/:id/historico

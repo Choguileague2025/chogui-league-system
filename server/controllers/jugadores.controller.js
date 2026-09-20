@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const planteles = require('../services/planteles.service');
 const { validarCrearJugador, validarActualizarJugador } = require('../validators/jugadores.validator');
 const { resolveTorneoId } = require('../services/torneos.service');
 const campeonesService = require('../services/campeones.service');
@@ -65,6 +66,12 @@ async function obtenerTodos(req, res, next) {
     try {
         const { page = 1, limit = 50, equipo_id, posicion, search } = req.query;
         const offset = (page - 1) * limit;
+        if (req.query.torneo_id && req.query.torneo_id !== 'todos') {
+            let rows = await planteles.jugadores(req.query.torneo_id, equipo_id);
+            if (posicion) rows = rows.filter(j => j.posicion === posicion);
+            if (search) rows = rows.filter(j => j.nombre.toLowerCase().includes(String(search).toLowerCase()));
+            return res.json({ jugadores: rows.slice(offset, Number(offset) + Number(limit)), pagination: { page: Number(page), limit: Number(limit), total: rows.length, pages: Math.ceil(rows.length / limit) } });
+        }
 
         let query = `
             SELECT j.*, e.nombre as equipo_nombre
@@ -221,6 +228,10 @@ async function obtenerPorId(req, res, next) {
             return res.status(404).json({ error: 'Jugador no encontrado' });
         }
 
+        if (req.query.torneo_id && req.query.torneo_id !== 'todos') {
+            const membership = await pool.query('SELECT tj.*, e.nombre AS equipo_nombre FROM torneo_jugadores tj JOIN equipos e ON e.id=tj.equipo_id WHERE tj.torneo_id=$1 AND tj.jugador_id=$2', [planteles.id(req.query.torneo_id),id]);
+            return res.json({ ...result.rows[0], equipo_id:null, equipo_nombre:null, numero:null, posicion:null, ...membership.rows[0], id:Number(id) });
+        }
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error obteniendo jugador:', error);
@@ -231,55 +242,16 @@ async function obtenerPorId(req, res, next) {
 // GET /api/jugadores/:id/partidos
 async function obtenerPartidos(req, res, next) {
     try {
-        const { id } = req.params;
-        const { torneo_id } = req.query;
-        const hasPartidosTorneo = await hasColumn('partidos', 'torneo_id');
-        const shouldFilterByTournament = hasPartidosTorneo && torneo_id !== 'todos';
-        const torneoIdResolved = shouldFilterByTournament ? await resolveTorneoId(torneo_id || null) : null;
-
-        const jugadorQuery = await pool.query(
-            'SELECT equipo_id FROM jugadores WHERE id = $1',
-            [id]
-        );
-
-        if (jugadorQuery.rows.length === 0) {
-            return res.status(404).json({ error: 'Jugador no encontrado' });
-        }
-
-        const equipoId = jugadorQuery.rows[0].equipo_id;
-
-        if (!equipoId) {
-            return res.json([]);
-        }
-
-        const params = [equipoId];
-        let torneoFilter = '';
-        if (shouldFilterByTournament && torneoIdResolved) {
-            params.push(torneoIdResolved);
-            torneoFilter = ` AND p.torneo_id = $${params.length}`;
-        }
-
-        const partidosQuery = await pool.query(`
-            SELECT
-                p.id, p.fecha_partido, p.carreras_local, p.carreras_visitante,
-                p.equipo_local_id, p.equipo_visitante_id,
-                el.nombre as equipo_local_nombre,
-                ev.nombre as equipo_visitante_nombre
-            FROM partidos p
-            LEFT JOIN equipos el ON p.equipo_local_id = el.id
-            LEFT JOIN equipos ev ON p.equipo_visitante_id = ev.id
-            WHERE (p.equipo_local_id = $1 OR p.equipo_visitante_id = $1)
-                AND p.estado = 'finalizado'
-                ${torneoFilter}
-            ORDER BY p.fecha_partido DESC
-            LIMIT 10
-        `, params);
-
-        res.json(partidosQuery.rows);
-    } catch (error) {
-        console.error('Error obteniendo partidos del jugador:', error);
-        next(error);
-    }
+        const playerId = planteles.id(req.params.id);
+        const torneoId = req.query.torneo_id === 'todos' ? null : await resolveTorneoId(req.query.torneo_id);
+        const result = await pool.query(`SELECT p.*, el.nombre AS equipo_local_nombre, ev.nombre AS equipo_visitante_nombre
+            FROM partidos p JOIN torneo_jugadores tj ON tj.torneo_id=p.torneo_id AND tj.jugador_id=$1
+            JOIN equipos el ON el.id=p.equipo_local_id JOIN equipos ev ON ev.id=p.equipo_visitante_id
+            WHERE (p.equipo_local_id=tj.equipo_id OR p.equipo_visitante_id=tj.equipo_id)
+            AND p.estado='finalizado' AND ($2::int IS NULL OR p.torneo_id=$2)
+            ORDER BY p.fecha_partido DESC LIMIT 10`,[playerId,torneoId]);
+        res.json(result.rows);
+    } catch(err) { next(err); }
 }
 
 // GET /api/jugadores/:id/historico
@@ -357,6 +329,7 @@ async function obtenerHistorico(req, res, next) {
             SELECT
                 t.id AS torneo_id,
                 t.nombre AS torneo_nombre,
+                tj.equipo_id, e.nombre AS equipo_nombre, tj.numero, tj.posicion,
                 COALESCE(eo.at_bats, 0)::INT AS at_bats,
                 COALESCE(eo.hits, 0)::INT AS hits,
                 COALESCE(eo.home_runs, 0)::INT AS home_runs,
@@ -372,13 +345,15 @@ async function obtenerHistorico(req, res, next) {
                 COALESCE(ed.chances, 0)::INT AS chances,
                 COALESCE(ed.errors, 0)::INT AS errors
             FROM torneos t
+            LEFT JOIN torneo_jugadores tj ON tj.torneo_id=t.id AND tj.jugador_id=$1
+            LEFT JOIN equipos e ON e.id=tj.equipo_id
             LEFT JOIN estadisticas_ofensivas eo
                 ON eo.torneo_id = t.id AND eo.jugador_id = $1
             LEFT JOIN estadisticas_pitcheo ep
                 ON ep.torneo_id = t.id AND ep.jugador_id = $1
             LEFT JOIN estadisticas_defensivas ed
                 ON ed.torneo_id = t.id AND ed.jugador_id = $1
-            WHERE eo.jugador_id IS NOT NULL
+            WHERE tj.jugador_id IS NOT NULL OR eo.jugador_id IS NOT NULL
                OR ep.jugador_id IS NOT NULL
                OR ed.jugador_id IS NOT NULL
             ORDER BY t.fecha_inicio DESC NULLS LAST, t.id DESC
@@ -893,105 +868,24 @@ async function obtenerComparativa(req, res, next) {
 }
 
 // GET /api/jugadores/:id/similares
-async function obtenerSimilares(req, res, next) {
+async function relacionados(req, res, next, sameTeam) {
     try {
-        const { id } = req.params;
-        const limit = parseInt(req.query.limit) || 5;
-
-        const jugadorQuery = await pool.query(
-            'SELECT posicion, equipo_id FROM jugadores WHERE id = $1',
-            [id]
-        );
-
-        if (jugadorQuery.rows.length === 0) {
-            return res.status(404).json({ error: 'Jugador no encontrado' });
-        }
-
-        const { posicion } = jugadorQuery.rows[0];
-
-        if (!posicion) {
-            return res.json([]);
-        }
-
-        const similaresQuery = await pool.query(`
-            SELECT
-                j.id, j.nombre, j.numero, j.posicion,
-                e.nombre as equipo_nombre,
-                COALESCE(eo.at_bats, 0) as at_bats,
-                COALESCE(eo.hits, 0) as hits,
-                COALESCE(eo.home_runs, 0) as home_runs,
-                COALESCE(eo.rbi, 0) as rbi,
-                CASE
-                    WHEN COALESCE(eo.at_bats, 0) > 0
-                    THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / COALESCE(eo.at_bats, 1), 3)
-                    ELSE 0.000
-                END as avg
-            FROM jugadores j
-            LEFT JOIN equipos e ON j.equipo_id = e.id
-            LEFT JOIN estadisticas_ofensivas eo ON j.id = eo.jugador_id
-            WHERE j.posicion = $1
-                AND j.id != $2
-                AND j.equipo_id IS NOT NULL
-            ORDER BY avg DESC, eo.hits DESC
-            LIMIT $3
-        `, [posicion, id, limit]);
-
-        res.json(similaresQuery.rows);
-    } catch (error) {
-        console.error('Error obteniendo jugadores similares:', error);
-        next(error);
-    }
+        const torneoId = await resolveTorneoId(req.query.torneo_id === 'todos' ? null : req.query.torneo_id);
+        const playerId = planteles.id(req.params.id);
+        const result = await pool.query(`SELECT j.id, j.nombre, tj.numero, tj.posicion, tj.equipo_id, e.nombre AS equipo_nombre,
+            COALESCE(eo.at_bats,0) AS at_bats, COALESCE(eo.hits,0) AS hits, COALESCE(eo.home_runs,0) AS home_runs, COALESCE(eo.rbi,0) AS rbi,
+            CASE WHEN eo.at_bats>0 THEN ROUND(eo.hits::numeric/eo.at_bats,3) ELSE 0 END AS avg
+            FROM torneo_jugadores own JOIN torneo_jugadores tj ON tj.torneo_id=own.torneo_id
+                AND ${sameTeam ? 'tj.equipo_id=own.equipo_id' : 'tj.posicion=own.posicion'}
+            JOIN jugadores j ON j.id=tj.jugador_id JOIN equipos e ON e.id=tj.equipo_id
+            LEFT JOIN estadisticas_ofensivas eo ON eo.jugador_id=tj.jugador_id AND eo.torneo_id=tj.torneo_id
+            WHERE own.torneo_id=$1 AND own.jugador_id=$2 AND tj.jugador_id<>$2
+            ORDER BY avg DESC, j.nombre LIMIT $3`,[torneoId,playerId,Math.min(100,Math.max(1,parseInt(req.query.limit)||5))]);
+        res.json(result.rows);
+    } catch(err) { next(err); }
 }
-
-// GET /api/jugadores/:id/companeros
-async function obtenerCompaneros(req, res, next) {
-    try {
-        const { id } = req.params;
-        const limit = parseInt(req.query.limit) || 5;
-
-        const jugadorQuery = await pool.query(
-            'SELECT equipo_id FROM jugadores WHERE id = $1',
-            [id]
-        );
-
-        if (jugadorQuery.rows.length === 0) {
-            return res.status(404).json({ error: 'Jugador no encontrado' });
-        }
-
-        const { equipo_id } = jugadorQuery.rows[0];
-
-        if (!equipo_id) {
-            return res.json([]);
-        }
-
-        const companerosQuery = await pool.query(`
-            SELECT
-                j.id, j.nombre, j.numero, j.posicion,
-                e.nombre as equipo_nombre,
-                COALESCE(eo.at_bats, 0) as at_bats,
-                COALESCE(eo.hits, 0) as hits,
-                COALESCE(eo.home_runs, 0) as home_runs,
-                COALESCE(eo.rbi, 0) as rbi,
-                CASE
-                    WHEN COALESCE(eo.at_bats, 0) > 0
-                    THEN ROUND(COALESCE(eo.hits, 0)::DECIMAL / COALESCE(eo.at_bats, 1), 3)
-                    ELSE 0.000
-                END as avg
-            FROM jugadores j
-            LEFT JOIN equipos e ON j.equipo_id = e.id
-            LEFT JOIN estadisticas_ofensivas eo ON j.id = eo.jugador_id
-            WHERE j.equipo_id = $1
-                AND j.id != $2
-            ORDER BY avg DESC, eo.hits DESC
-            LIMIT $3
-        `, [equipo_id, id, limit]);
-
-        res.json(companerosQuery.rows);
-    } catch (error) {
-        console.error('Error obteniendo compañeros de equipo:', error);
-        next(error);
-    }
-}
+async function obtenerSimilares(req,res,next) { return relacionados(req,res,next,false); }
+async function obtenerCompaneros(req,res,next) { return relacionados(req,res,next,true); }
 
 // POST /api/jugadores
 async function crear(req, res, next) {
@@ -1003,6 +897,16 @@ async function crear(req, res, next) {
 
         const { nombre, equipo_id, posicion, numero } = validation.sanitized;
 
+        if (equipo_id !== null) {
+            const torneoId = await require('../services/torneos.service').resolveTorneoEscritura(req.body.torneo_id);
+            const created = await planteles.transaction(async client => {
+                await planteles.editable(client, torneoId);
+                const result = await client.query('INSERT INTO jugadores(nombre, equipo_id, posicion, numero) VALUES ($1,NULL,$2,$3) RETURNING *', [nombre,posicion,numero]);
+                const member = await planteles.guardarJugador(client, torneoId, result.rows[0].id, { equipo_id, posicion, numero });
+                return { ...result.rows[0], ...member, id:result.rows[0].id };
+            });
+            return res.status(201).json(created);
+        }
         // Verificar que el equipo existe (si se proporcionó)
         if (equipo_id !== null) {
             const eq = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipo_id]);
@@ -1037,51 +941,17 @@ async function crear(req, res, next) {
 // PUT /api/jugadores/:id
 async function actualizar(req, res, next) {
     try {
-        const { id } = req.params;
-
         const validation = validarActualizarJugador(req.body);
-        if (!validation.isValid) {
-            return res.status(400).json({ error: validation.errors[0] });
-        }
-
+        if (!validation.isValid) return res.status(400).json({ error: validation.errors[0] });
+        const torneoId = await require('../services/torneos.service').resolveTorneoEscritura(req.body.torneo_id);
         const { nombre, equipo_id, posicion, numero } = validation.sanitized;
-
-        // Verificar que el equipo existe
-        const equipoExists = await pool.query('SELECT id FROM equipos WHERE id = $1', [equipo_id]);
-        if (equipoExists.rows.length === 0) {
-            return res.status(400).json({ error: 'El equipo especificado no existe' });
-        }
-
-        // Verificar número duplicado
-        if (numero) {
-            const numeroExists = await pool.query(
-                'SELECT id FROM jugadores WHERE equipo_id = $1 AND numero = $2 AND id != $3',
-                [equipo_id, numero, id]
-            );
-            if (numeroExists.rows.length > 0) {
-                return res.status(409).json({
-                    error: 'Ya existe otro jugador con ese número en el equipo'
-                });
-            }
-        }
-
-        const result = await pool.query(
-            'UPDATE jugadores SET nombre = $1, equipo_id = $2, posicion = $3, numero = $4 WHERE id = $5 RETURNING *',
-            [nombre, equipo_id, posicion, numero, id]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Jugador no encontrado' });
-        }
-
-        // SSE placeholder
-        // notifyAllClients('player-updated', { category: 'general', jugadorId: parseInt(id), equipoId: equipo_id || null });
-
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error actualizando jugador:', error);
-        next(error);
-    }
+        const result = await planteles.transaction(async client => {
+            const member = await planteles.guardarJugador(client, torneoId, planteles.id(req.params.id), { equipo_id, posicion, numero });
+            const updated = await client.query('UPDATE jugadores SET nombre=$1 WHERE id=$2 RETURNING *', [nombre,req.params.id]);
+            return { ...updated.rows[0], ...member, id:Number(req.params.id) };
+        });
+        res.json(result);
+    } catch (err) { next(err); }
 }
 
 // DELETE /api/jugadores/:id

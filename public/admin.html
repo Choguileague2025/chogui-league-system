@@ -1203,7 +1203,7 @@
 
         <!-- Admin Tournament Bar -->
         <div class="admin-tournament-bar">
-            <label>🏆 Torneo activo:</label>
+            <label>🏆 Torneo seleccionado:</label>
             <select id="adminTournamentDisplay">
                 <option value="">Cargando...</option>
             </select>
@@ -2308,7 +2308,7 @@
 
             <div class="card">
                 <h3>🗓️ Torneos Existentes</h3>
-                <p style="font-size: 0.9rem; color: #ffc107; margin-bottom: 15px;">Selecciona el torneo que estará **activo**. Todas las nuevas estadísticas se guardarán en este torneo.</p>
+                <p style="font-size: 0.9rem; color: #ffc107; margin-bottom: 15px;">Puede haber varios torneos en curso. El selector superior indica en cuál estás trabajando. Inscribe sus equipos y arma los planteles antes de cargar partidos.</p>
                 <button class="btn-secondary" onclick="desactivarTodosLosTorneos()" style="background: #ff9800; margin-bottom: 15px; font-weight: bold;">⚪ Desactivar Todos</button>
                 <div class="table-container">
                     <table id="torneosTable">
@@ -3095,6 +3095,7 @@
         
             const jugadorData = {
                 nombre: nombre,
+                torneo_id: getCurrentTournamentId() || undefined,
                 equipo_id: equipoId ? parseInt(equipoId) : null,
                 posicion: posicion,
                 numero: numero
@@ -3195,7 +3196,7 @@
         async function cargarEquipos() {
             try {
                 console.log('🔄 Cargando equipos...');
-                const response = await fetch('/api/equipos');
+                const response = await fetch(`/api/equipos${buildTournamentQuery()}`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -3270,7 +3271,7 @@
         async function cargarJugadores() {
             try {
                 console.log('🔄 Cargando jugadores...');
-                const response = await fetch('/api/jugadores?limit=1000');
+                const response = await fetch(`/api/jugadores?limit=1000&torneo_id=${getCurrentTournamentId() || ''}`);
                         
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -4132,17 +4133,13 @@
         
         async function cargarTorneoActivo() {
             try {
-                const response = await fetch('/api/torneos/activo');
-                if (response.ok) {
-                    const data = await response.json();
-                    torneoActivo = (data && data.id) ? data : { id: null, nombre: 'NINGUNO' };
-                } else {
-                    torneoActivo = { id: null, nombre: 'NINGUNO' };
-                }
-            } catch (error) {
-                console.error('Error al cargar torneo activo:', error);
-                torneoActivo = { id: null, nombre: 'NINGUNO' };
-            }
+                const response = await fetch('/api/torneos');
+                if (!response.ok) throw new Error('No se pudieron cargar torneos');
+                const list = await response.json();
+                const saved = sessionStorage.getItem('adminTorneoId');
+                torneoActivo = list.find(t => String(t.id) === saved) || list.find(t => t.activo) || list[0] || {id:null,nombre:'NINGUNO'};
+                if (torneoActivo.id) sessionStorage.setItem('adminTorneoId', torneoActivo.id);
+            } catch (error) { console.error(error); torneoActivo = {id:null,nombre:'NINGUNO'}; }
         }
 
         async function cargarTorneos() {
@@ -4164,13 +4161,14 @@
                         <td>${new Date(torneo.fecha_creacion).toLocaleDateString('es-AR')}</td>
                         <td>
                             <span style="color: ${torneo.activo ? '#4CAF50' : '#ff9800'}; font-weight: bold;">
-                                ${torneo.activo ? '✅ ACTIVO' : '⚪ Inactivo'}
+                                ${escapeAdminHTML(torneo.estado || (torneo.activo ? 'activo' : 'preparacion'))}
                             </span>
                         </td>
                         <td>
                             <button class="btn-activar" onclick="activarTorneo(${torneo.id})" ${torneo.activo ? 'disabled' : ''}>
                                 Activar
                             </button>
+                            <button class="btn-secondary" data-finalizar-torneo="${torneo.id}">Finalizar</button>
                             <button class="btn-secondary" onclick="editarCriteriosTorneo(${torneo.id})">⚙️ Criterios</button>
                             <button class="btn-edit" onclick="editarTorneo(${torneo.id}, '${torneo.nombre.replace(/'/g, "\\'")}')">✏️</button>
                             <button class="btn-secondary" onclick="eliminarTorneo(${torneo.id})">🗑️</button>
@@ -4392,6 +4390,8 @@
                 });
                 if (response.ok) {
                     toast.success('Torneo creado exitosamente.');
+                    await AdminTournamentModule.init();
+                    window.dispatchEvent(new Event('planteles-refresh'));
                     nombreInput.value = '';
                     await cargarTorneos();
                 } else {
@@ -4851,6 +4851,11 @@
                     body: JSON.stringify({ nombre, manager, ciudad })
                 });
                 if(res.ok) {
+                    const createdTeam = await res.json();
+                    if (getCurrentTournamentId()) {
+                        const enrolled = await fetch(`/api/torneos/${getCurrentTournamentId()}/equipos`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({equipo_id:createdTeam.id})});
+                        if (!enrolled.ok) throw new Error('Equipo creado en el catálogo. Inscríbelo desde la pestaña Torneos.');
+                    }
                     toast.success('Equipo agregado exitosamente.');
                     setFormFeedback('equipoMessage', 'equipoError', 'success', 'Equipo agregado exitosamente.');
                     document.getElementById('nombreEquipo').value = '';
@@ -5180,7 +5185,7 @@
                 const response = await fetch(`/api/jugadores/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, equipo_id, posicion, numero: numero ? parseInt(numero) : null })
+                    body: JSON.stringify({ nombre, equipo_id, posicion, numero: numero ? parseInt(numero) : null, torneo_id:getCurrentTournamentId() || undefined })
                 });
                 
                 if (response.ok) {
@@ -6230,6 +6235,7 @@
     </script>
     
     <script src="js/admin_modules.min.js" defer></script>
+    <script src="js/planteles_admin.js" defer></script>
     <script>
     window.addEventListener('scroll', function() {
         var header = document.querySelector('.header');

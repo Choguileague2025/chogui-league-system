@@ -58,21 +58,6 @@ async function obtenerPosiciones(req, res, next) {
         const cached = cache.get(cacheKey);
         if (cached) return res.json(cached);
 
-        if (shouldFilterByTournament && torneoIdResolved) {
-            const matchesCheck = await pool.query(`
-                SELECT
-                    COUNT(*)::INT AS total_partidos,
-                    COUNT(*) FILTER (WHERE estado = 'finalizado')::INT AS finalizados
-                FROM partidos
-                WHERE torneo_id = $1
-            `, [torneoIdResolved]);
-            const totals = matchesCheck.rows[0] || {};
-            if (!toNumber(totals.total_partidos) || !toNumber(totals.finalizados)) {
-                cache.set(cacheKey, []);
-                return res.json([]);
-            }
-        }
-
         const params = [];
         const finalizadosWhere = [`estado = 'finalizado'`];
 
@@ -116,6 +101,7 @@ async function obtenerPosiciones(req, res, next) {
                         e.nombre ASC
                    ) AS ranking
             FROM equipos e
+            ${shouldFilterByTournament && torneoIdResolved ? 'JOIN torneo_equipos te ON te.equipo_id=e.id AND te.torneo_id=$1' : ''}
             LEFT JOIN juegos j ON j.equipo_id = e.id
             GROUP BY e.id, e.nombre
             ORDER BY porcentaje DESC, dif DESC, e.nombre ASC;
@@ -351,7 +337,7 @@ async function obtenerRecordsHistoricos(req, res, next) {
                     j.id AS jugador_id,
                     j.nombre AS jugador_nombre,
                     j.posicion,
-                    MAX(e.nombre) AS equipo_nombre,
+                    string_agg(DISTINCT e.nombre, ', ' ORDER BY e.nombre) AS equipo_nombre,
                     COALESCE(SUM(eo.at_bats), 0)::INT AS at_bats,
                     COALESCE(SUM(eo.hits), 0)::INT AS hits,
                     COALESCE(SUM(eo.home_runs), 0)::INT AS home_runs,
@@ -390,7 +376,8 @@ async function obtenerRecordsHistoricos(req, res, next) {
                     END AS slg
                 FROM jugadores j
                 JOIN estadisticas_ofensivas eo ON eo.jugador_id = j.id
-                LEFT JOIN equipos e ON e.id = j.equipo_id
+                LEFT JOIN torneo_jugadores tj ON tj.jugador_id=j.id AND tj.torneo_id=eo.torneo_id
+                LEFT JOIN equipos e ON e.id=tj.equipo_id
                 GROUP BY j.id, j.nombre, j.posicion
                 HAVING COALESCE(SUM(eo.at_bats), 0) >= 20
                 ORDER BY home_runs DESC, rbi DESC, avg DESC, hits DESC, j.nombre ASC
@@ -401,7 +388,7 @@ async function obtenerRecordsHistoricos(req, res, next) {
                     j.id AS jugador_id,
                     j.nombre AS jugador_nombre,
                     j.posicion,
-                    MAX(e.nombre) AS equipo_nombre,
+                    string_agg(DISTINCT e.nombre, ', ' ORDER BY e.nombre) AS equipo_nombre,
                     ROUND(COALESCE(SUM(ep.innings_pitched), 0)::numeric, 1) AS innings_pitched,
                     COALESCE(SUM(ep.wins), 0)::INT AS wins,
                     COALESCE(SUM(ep.losses), 0)::INT AS losses,
@@ -421,7 +408,8 @@ async function obtenerRecordsHistoricos(req, res, next) {
                     END AS whip
                 FROM jugadores j
                 JOIN estadisticas_pitcheo ep ON ep.jugador_id = j.id
-                LEFT JOIN equipos e ON e.id = j.equipo_id
+                LEFT JOIN torneo_jugadores tj ON tj.jugador_id=j.id AND tj.torneo_id=ep.torneo_id
+                LEFT JOIN equipos e ON e.id=tj.equipo_id
                 GROUP BY j.id, j.nombre, j.posicion
                 HAVING COALESCE(SUM(ep.innings_pitched), 0) >= 10
                 ORDER BY wins DESC, era ASC, strikeouts DESC, j.nombre ASC
@@ -547,7 +535,7 @@ async function obtenerRecordsHistoricos(req, res, next) {
                 FROM jugadores j
                 LEFT JOIN ofensiva o ON o.jugador_id = j.id
                 LEFT JOIN pitcheo p ON p.jugador_id = j.id
-                LEFT JOIN equipos e ON e.id = j.equipo_id
+                LEFT JOIN LATERAL (SELECT string_agg(DISTINCT eq.nombre, ', ' ORDER BY eq.nombre) AS nombre FROM torneo_jugadores tj JOIN equipos eq ON eq.id=tj.equipo_id WHERE tj.jugador_id=j.id) e ON true
                 WHERE COALESCE(o.at_bats, 0) >= 12 OR COALESCE(p.innings_pitched, 0) >= 5
                 ORDER BY legacy_score DESC, COALESCE(o.hits, 0) DESC, COALESCE(o.home_runs, 0) DESC, j.nombre ASC
                 LIMIT 10
@@ -609,8 +597,8 @@ async function obtenerRecordsHistoricos(req, res, next) {
                     t.nombre AS torneo_nombre,
                     j.id AS jugador_id,
                     j.nombre AS jugador_nombre,
-                    j.posicion,
-                    MAX(e.nombre) AS equipo_nombre,
+                    tj.posicion,
+                    string_agg(DISTINCT e.nombre, ', ' ORDER BY e.nombre) AS equipo_nombre,
                     COALESCE(SUM(eo.at_bats), 0)::INT AS at_bats,
                     COALESCE(SUM(eo.hits), 0)::INT AS hits,
                     COALESCE(SUM(eo.home_runs), 0)::INT AS home_runs,
@@ -647,9 +635,10 @@ async function obtenerRecordsHistoricos(req, res, next) {
                     END AS slg
                 FROM estadisticas_ofensivas eo
                 JOIN jugadores j ON j.id = eo.jugador_id
-                LEFT JOIN equipos e ON e.id = j.equipo_id
+                LEFT JOIN torneo_jugadores tj ON tj.jugador_id=j.id AND tj.torneo_id=eo.torneo_id
+                LEFT JOIN equipos e ON e.id=tj.equipo_id
                 LEFT JOIN torneos t ON t.id = eo.torneo_id
-                GROUP BY eo.torneo_id, t.nombre, j.id, j.nombre, j.posicion
+                GROUP BY eo.torneo_id, t.nombre, j.id, j.nombre, tj.posicion
                 HAVING COALESCE(SUM(eo.at_bats), 0) >= 8
                 ORDER BY
                     (

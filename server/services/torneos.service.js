@@ -27,7 +27,7 @@ async function resolveTorneoId(torneo_id) {
     const result = await pool.query(`
         SELECT id
         FROM torneos
-        WHERE activo = true
+        WHERE activo = true AND estado = 'activo'
         ORDER BY fecha_inicio DESC NULLS LAST, id DESC
         LIMIT 1
     `);
@@ -54,6 +54,17 @@ async function resolveTorneoId(torneo_id) {
     return fallback.rows.length > 0 ? fallback.rows[0].id : null;
 }
 
+async function resolveTorneoEscritura(torneoId) {
+    if (torneoId) {
+        const parsed = Number(torneoId);
+        if (!Number.isSafeInteger(parsed) || parsed <= 0) throw Object.assign(new Error('Torneo inválido'), { statusCode: 400 });
+        return parsed;
+    }
+    const result = await pool.query("SELECT id FROM torneos WHERE activo = true AND estado = 'activo' ORDER BY id");
+    if (result.rows.length !== 1) throw Object.assign(new Error('Seleccione el torneo antes de guardar'), { statusCode: 400 });
+    return result.rows[0].id;
+}
+
 // ============================================================
 // CRUD DE TORNEOS
 // ============================================================
@@ -66,7 +77,7 @@ async function obtenerTorneoActivo() {
     const result = await pool.query(`
         SELECT *
         FROM torneos
-        WHERE activo = true
+        WHERE activo = true AND estado = 'activo'
         ORDER BY fecha_inicio DESC NULLS LAST, id DESC
         LIMIT 1
     `);
@@ -170,12 +181,12 @@ async function crear(nombre, opciones = {}) {
 
     const result = await pool.query(
         `INSERT INTO torneos (
-            nombre, fecha_inicio, activo, total_juegos, cupos_playoffs,
+            nombre, fecha_inicio, activo, estado, total_juegos, cupos_playoffs,
             min_ab_rate_stats, min_ab_counting_stats, min_ab_mvp,
             min_ip_rate_stats, min_ip_counting_stats, min_ip_pitcher_award,
             min_chances_defense
          )
-         VALUES ($1, $2, false, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         VALUES ($1, $2, false, 'preparacion', $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
             nombre,
@@ -199,7 +210,7 @@ async function crear(nombre, opciones = {}) {
 // ============================================================
 
 /**
- * Activa un torneo (desactiva todos los demás) e inicializa
+ * Activa un torneo sin modificar las otras ediciones e inicializa
  * estadísticas en 0 para todos los jugadores con equipo
  * @param {number} torneoId
  * @returns {object} - Torneo activado
@@ -210,12 +221,11 @@ async function activarTorneo(torneoId) {
     try {
         await client.query('BEGIN');
 
-        // Desactivar todos
-        await client.query('UPDATE torneos SET activo = false');
+        // Cada edición puede estar en curso de forma independiente.
 
         // Activar el seleccionado
         const result = await client.query(
-            'UPDATE torneos SET activo = true WHERE id = $1 RETURNING *',
+            "UPDATE torneos SET activo = true, estado = 'activo' WHERE id = $1 RETURNING *",
             [torneoId]
         );
 
@@ -248,7 +258,7 @@ async function activarTorneo(torneoId) {
 async function inicializarEstadisticas(client, torneoId) {
     // Obtener todos los jugadores que tienen equipo (considerados "activos")
     const jugadores = await client.query(
-        'SELECT id FROM jugadores WHERE equipo_id IS NOT NULL'
+        'SELECT jugador_id AS id FROM torneo_jugadores WHERE torneo_id = $1', [torneoId]
     );
 
     if (jugadores.rows.length === 0) {
@@ -355,6 +365,7 @@ async function contarEstadisticasAsociadas(torneoId) {
 
 module.exports = {
     resolveTorneoId,
+    resolveTorneoEscritura,
     obtenerTorneoActivo,
     obtenerTodos,
     obtenerPorId,

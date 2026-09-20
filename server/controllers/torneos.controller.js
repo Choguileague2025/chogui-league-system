@@ -127,7 +127,7 @@ async function activar(req, res, next) {
 // PUT /api/torneos/desactivar-todos
 async function desactivarTodos(req, res, next) {
     try {
-        await pool.query('UPDATE torneos SET activo = false');
+        await pool.query("UPDATE torneos SET activo = false, estado = CASE WHEN estado = 'activo' THEN 'preparacion' ELSE estado END");
         res.json({ message: 'Todos los torneos desactivados' });
     } catch (error) {
         console.error('Error desactivando torneos:', error);
@@ -146,6 +146,10 @@ async function actualizar(req, res, next) {
         }
 
         const { fields, values } = validation;
+        if (req.body.estado !== undefined) {
+            fields.push('activo');
+            values.push(req.body.estado === 'activo');
+        }
 
         // Construir query dinámico
         const setClauses = fields.map((field, idx) => `${field} = $${idx + 1}`);
@@ -158,6 +162,8 @@ async function actualizar(req, res, next) {
             return res.status(404).json({ error: 'Torneo no encontrado' });
         }
 
+        require('../utils/cache').clear();
+        sseService.notifyTournamentChange(result.rows[0]);
         res.json(result.rows[0]);
     } catch (error) {
         if (error.code === '23505') {
