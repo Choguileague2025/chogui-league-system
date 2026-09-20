@@ -10,8 +10,8 @@ function errorHandler(err, req, res, next) {
         error: err.message || 'Error interno del servidor'
     });
 
-    const statusCode = err.statusCode || 500;
-    const message = err.message || 'Error interno del servidor';
+    const statusCode = err.statusCode || (['23503','23505'].includes(err.code) ? 409 : 500);
+    const message = err.code === '23503' ? 'La operación afectaría inscripciones o historial que deben conservarse' : err.message || 'Error interno del servidor';
 
     res.status(statusCode).json({
         success: false,

@@ -77,9 +77,12 @@ function normalizeName(name) {
         .replace(/[^a-z0-9]/g, '');
 }
 
-async function findTeamByName(client, name) {
+async function findTeamByName(client, name, torneoId) {
     if (!name) return null;
-    const { rows } = await client.query('SELECT id, nombre FROM equipos');
+    const { rows } = await client.query(
+        'SELECT e.id, e.nombre FROM equipos e JOIN torneo_equipos te ON te.equipo_id = e.id WHERE te.torneo_id = $1',
+        [torneoId]
+    );
     const target = normalizeName(name);
     return rows.find(team => normalizeName(team.nombre) === target) || null;
 }
@@ -107,17 +110,7 @@ async function getTournamentSeeds(client, torneoId, slotCount = 8) {
         : 8;
     const { rows } = await client.query(`
         WITH torneo_teams AS (
-            SELECT DISTINCT equipo_id
-            FROM (
-                SELECT equipo_local_id AS equipo_id
-                FROM partidos
-                WHERE torneo_id = $1
-                UNION
-                SELECT equipo_visitante_id AS equipo_id
-                FROM partidos
-                WHERE torneo_id = $1
-            ) teams
-            WHERE equipo_id IS NOT NULL
+            SELECT equipo_id FROM torneo_equipos WHERE torneo_id = $1
         ),
         resultados AS (
             SELECT
@@ -173,7 +166,7 @@ function buildBracketTemplate({ torneo, seeds = [] } = {}) {
     });
     const slotCount = normalized.cuposPlayoffs || 8;
     const quarterDate = torneo?.fecha_inicio
-        ? String(torneo.fecha_inicio).slice(0, 10)
+        ? (torneo.fecha_inicio instanceof Date ? torneo.fecha_inicio.toISOString() : String(torneo.fecha_inicio)).slice(0, 10)
         : new Date().toISOString().slice(0, 10);
     const semifinalDate = quarterDate;
     const finalDate = quarterDate;
@@ -226,7 +219,8 @@ async function initializeDefaultBracket(torneoIdInput = null, options = {}) {
         await client.query('BEGIN');
         await ensureSchema(client);
 
-        const torneoId = normalizeTournamentIdInput(torneoIdInput) || await resolveTorneoId(null);
+        const torneoId = await require('./torneos.service').resolveTorneoEscritura(torneoIdInput);
+        await require('./planteles.service').editable(client, torneoId);
         const force = options && options.force === true;
         const existing = await getActiveBracket(client, torneoId);
         if (existing) {
@@ -251,8 +245,8 @@ async function initializeDefaultBracket(torneoIdInput = null, options = {}) {
         const bracket = bracketResult.rows[0];
 
         for (const game of bracketTemplate.games) {
-            const localTeam = await findTeamByName(client, game.local);
-            const visitorTeam = await findTeamByName(client, game.visitante);
+            const localTeam = await findTeamByName(client, game.local, torneoId);
+            const visitorTeam = await findTeamByName(client, game.visitante, torneoId);
 
             await client.query(`
                 INSERT INTO playoff_games (
@@ -283,7 +277,7 @@ async function getBracket(torneoIdInput = null) {
     const torneoId = normalizeTournamentIdInput(torneoIdInput) || await resolveTorneoId(null);
     let bracket = await getActiveBracket(pool, torneoId);
     if (!bracket) {
-        bracket = await initializeDefaultBracket(torneoId);
+        return null;
     }
 
     const { rows: games } = await pool.query(`
@@ -366,6 +360,13 @@ async function updateGame(gameId, data) {
         await client.query('BEGIN');
         await ensureSchema(client);
 
+        const stored = await client.query(
+            'SELECT pg.*, pb.torneo_id FROM playoff_games pg JOIN playoff_brackets pb ON pb.id = pg.bracket_id WHERE pg.id = $1',
+            [gameId]
+        );
+        if (!stored.rows.length) require('./planteles.service').fail('Juego de playoff no encontrado', 404);
+        const original = stored.rows[0];
+        await require('./planteles.service').editable(client, original.torneo_id);
         const carrerasLocal = data.carreras_local === '' || data.carreras_local == null ? null : parseInt(data.carreras_local, 10);
         const carrerasVisitante = data.carreras_visitante === '' || data.carreras_visitante == null ? null : parseInt(data.carreras_visitante, 10);
         const estado = data.estado === 'en_vivo' ? 'en_curso' : (data.estado || 'programado');
@@ -406,6 +407,19 @@ async function updateGame(gameId, data) {
             const error = new Error('El equipo local y visitante no pueden ser el mismo');
             error.statusCode = 400;
             throw error;
+        }
+
+        const planteles = require('./planteles.service');
+        if (equipoLocalId) await planteles.requireEquipo(client, original.torneo_id, equipoLocalId);
+        if (equipoVisitanteId) await planteles.requireEquipo(client, original.torneo_id, equipoVisitanteId);
+        if (mvpJugadorId) {
+            const member = await planteles.requireJugador(client, original.torneo_id, mvpJugadorId);
+            const equiposDelJuego = [equipoLocalId, equipoVisitanteId]
+                .filter(Boolean)
+                .map(Number);
+            if (!equiposDelJuego.includes(Number(member.equipo_id))) {
+                planteles.fail('El MVP no pertenece a los equipos del partido', 409);
+            }
         }
 
         if (estado === 'finalizado' && carrerasLocal === carrerasVisitante) {

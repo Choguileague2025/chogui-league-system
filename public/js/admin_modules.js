@@ -11,37 +11,22 @@ const AdminTournamentModule = {
     async init() {
         const select = document.getElementById('adminTournamentDisplay');
         if (!select) return;
-
         try {
             const response = await fetch('/api/torneos');
-            if (!response.ok) throw new Error('Error');
-            const data = await response.json();
-            const torneos = Array.isArray(data) ? data : (data.torneos || []);
-
-            select.innerHTML = '<option value="">Sin torneo activo</option>';
-            const activo = torneos.find(t => t.activo);
-
-            torneos.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.id;
-                opt.textContent = t.nombre + (t.activo ? ' ✅' : '');
-                if (t.activo) opt.selected = true;
-                select.appendChild(opt);
-            });
-
-            // This is display-only; to change tournaments, use the Torneos tab
-            select.addEventListener('change', () => {
-                if (typeof toast !== 'undefined') {
-                    toast.info('Para cambiar el torneo activo, usa la pestaña Torneos');
-                }
-                // Reset to active
-                if (activo) select.value = activo.id;
-            });
-
-            console.log('[Admin Torneos] Display actualizado');
-        } catch (e) {
-            console.warn('[Admin Torneos] Error:', e);
-        }
+            if (!response.ok) throw new Error('No se pudieron cargar torneos');
+            const torneos = await response.json();
+            const saved = sessionStorage.getItem('adminTorneoId');
+            const current = torneos.find(t => String(t.id) === saved) || torneos.find(t => t.activo) || torneos[0];
+            select.replaceChildren(new Option('Selecciona un torneo', ''));
+            torneos.forEach(t => select.add(new Option(`${t.nombre} · ${t.estado || 'preparacion'}`, t.id)));
+            if (current) { select.value = current.id; sessionStorage.setItem('adminTorneoId', current.id); }
+            select.onchange = async () => {
+                if (!select.value) return;
+                sessionStorage.setItem('adminTorneoId', select.value);
+                // Recargar descarta formularios de la edición previa y evita guardar su contenido en otra.
+                window.location.reload();
+            };
+        } catch (err) { console.warn(err); }
     }
 };
 

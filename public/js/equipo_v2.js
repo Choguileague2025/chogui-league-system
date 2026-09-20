@@ -136,7 +136,8 @@ async function cargarTorneos() {
 
         select.disabled = false;
         select.innerHTML = '<option value="">Todos los torneos</option>';
-        const activo = allTorneos.find(t => t.activo);
+        const selected = new URLSearchParams(location.search).get('torneo_id') || sessionStorage.getItem('publicTorneoId');
+        const activo = allTorneos.find(t => String(t.id) === selected) || allTorneos.find(t => t.activo) || allTorneos[0];
 
         allTorneos.forEach(t => {
             const opt = document.createElement('option');
@@ -1650,7 +1651,7 @@ async function cargarTopLanzadores() {
 async function cargarRosterEquipo() {
     const container = document.getElementById('rosterContainer');
     try {
-        const response = await fetch(`/api/jugadores?equipo_id=${currentTeamId}`);
+        const response = await fetch(`/api/jugadores?limit=1000&equipo_id=${currentTeamId}&torneo_id=${currentTorneoId || "todos"}`);
         if (!response.ok) throw new Error(`Error cargando roster: ${response.status}`);
 
         const data = await response.json();

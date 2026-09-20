@@ -390,7 +390,7 @@ async function obtenerRowsHistoricosPosicionales() {
                 t.nombre AS torneo_nombre,
                 j.id AS jugador_id,
                 j.nombre AS jugador_nombre,
-                j.posicion,
+                tj.posicion,
                 COALESCE(e.nombre, 'Sin equipo') AS equipo_nombre,
                 COALESCE(eo.at_bats, 0)::INT AS at_bats,
                 COALESCE(eo.hits, 0)::INT AS hits,
@@ -424,10 +424,11 @@ async function obtenerRowsHistoricosPosicionales() {
                 END AS slg
             FROM estadisticas_ofensivas eo
             JOIN jugadores j ON j.id = eo.jugador_id
-            LEFT JOIN equipos e ON e.id = j.equipo_id
+            LEFT JOIN torneo_jugadores tj ON tj.jugador_id=j.id AND tj.torneo_id=eo.torneo_id
+            LEFT JOIN equipos e ON e.id = tj.equipo_id
             LEFT JOIN torneos t ON t.id = eo.torneo_id
             WHERE eo.torneo_id IS NOT NULL
-              AND COALESCE(TRIM(j.posicion), '') <> ''
+              AND COALESCE(TRIM(tj.posicion), '') <> ''
         `),
         pool.query(`
             SELECT
@@ -435,7 +436,7 @@ async function obtenerRowsHistoricosPosicionales() {
                 t.nombre AS torneo_nombre,
                 j.id AS jugador_id,
                 j.nombre AS jugador_nombre,
-                j.posicion,
+                tj.posicion,
                 COALESCE(e.nombre, 'Sin equipo') AS equipo_nombre,
                 COALESCE(ed.putouts, 0)::INT AS putouts,
                 COALESCE(ed.assists, 0)::INT AS assists,
@@ -448,10 +449,11 @@ async function obtenerRowsHistoricosPosicionales() {
                 END AS fielding_percentage
             FROM estadisticas_defensivas ed
             JOIN jugadores j ON j.id = ed.jugador_id
-            LEFT JOIN equipos e ON e.id = j.equipo_id
+            LEFT JOIN torneo_jugadores tj ON tj.jugador_id=j.id AND tj.torneo_id=ed.torneo_id
+            LEFT JOIN equipos e ON e.id = tj.equipo_id
             LEFT JOIN torneos t ON t.id = ed.torneo_id
             WHERE ed.torneo_id IS NOT NULL
-              AND COALESCE(TRIM(j.posicion), '') <> ''
+              AND COALESCE(TRIM(tj.posicion), '') <> ''
         `)
     ]);
 
@@ -484,7 +486,7 @@ function construirPremiosHistoricos(offensiveRows, defensiveRows) {
 
     const registerAward = (winner, side, tournamentName) => {
         if (!winner?.jugador_id) return;
-        const key = `${side}:${winner.posicion}:${winner.jugador_id}`;
+        const key = JSON.stringify([side, winner.posicion, winner.jugador_id, winner.equipo_nombre]);
         if (!awardsMap.has(key)) {
             awardsMap.set(key, {
                 jugador_id: winner.jugador_id,
@@ -561,7 +563,7 @@ async function obtenerLideresHistoricosCategorias() {
             SELECT
                 j.id AS jugador_id,
                 j.nombre AS jugador_nombre,
-                j.posicion,
+                tj.posicion,
                 COALESCE(e.nombre, 'Sin equipo') AS equipo_nombre,
                 COALESCE(SUM(eo.at_bats), 0)::INT AS at_bats,
                 COALESCE(SUM(eo.hits), 0)::INT AS hits,
@@ -598,15 +600,16 @@ async function obtenerLideresHistoricosCategorias() {
                 END AS slg
             FROM jugadores j
             JOIN estadisticas_ofensivas eo ON eo.jugador_id = j.id
-            LEFT JOIN equipos e ON e.id = j.equipo_id
-            GROUP BY j.id, j.nombre, j.posicion, e.nombre
+            LEFT JOIN torneo_jugadores tj ON tj.jugador_id=j.id AND tj.torneo_id=eo.torneo_id
+            LEFT JOIN equipos e ON e.id = tj.equipo_id
+            GROUP BY j.id, j.nombre, tj.posicion, e.nombre
             HAVING COALESCE(SUM(eo.at_bats), 0) > 0
         `),
         pool.query(`
             SELECT
                 j.id AS jugador_id,
                 j.nombre AS jugador_nombre,
-                j.posicion,
+                tj.posicion,
                 COALESCE(e.nombre, 'Sin equipo') AS equipo_nombre,
                 COALESCE(SUM(ep.innings_pitched), 0)::NUMERIC AS innings_pitched,
                 COALESCE(SUM(ep.wins), 0)::INT AS wins,
@@ -624,15 +627,16 @@ async function obtenerLideresHistoricosCategorias() {
                 END AS whip
             FROM jugadores j
             JOIN estadisticas_pitcheo ep ON ep.jugador_id = j.id
-            LEFT JOIN equipos e ON e.id = j.equipo_id
-            GROUP BY j.id, j.nombre, j.posicion, e.nombre
+            LEFT JOIN torneo_jugadores tj ON tj.jugador_id=j.id AND tj.torneo_id=ep.torneo_id
+            LEFT JOIN equipos e ON e.id = tj.equipo_id
+            GROUP BY j.id, j.nombre, tj.posicion, e.nombre
             HAVING COALESCE(SUM(ep.innings_pitched), 0) > 0
         `),
         pool.query(`
             SELECT
                 j.id AS jugador_id,
                 j.nombre AS jugador_nombre,
-                j.posicion,
+                tj.posicion,
                 COALESCE(e.nombre, 'Sin equipo') AS equipo_nombre,
                 COALESCE(SUM(ed.putouts), 0)::INT AS putouts,
                 COALESCE(SUM(ed.assists), 0)::INT AS assists,
@@ -645,8 +649,9 @@ async function obtenerLideresHistoricosCategorias() {
                 END AS fielding_percentage
             FROM jugadores j
             JOIN estadisticas_defensivas ed ON ed.jugador_id = j.id
-            LEFT JOIN equipos e ON e.id = j.equipo_id
-            GROUP BY j.id, j.nombre, j.posicion, e.nombre
+            LEFT JOIN torneo_jugadores tj ON tj.jugador_id=j.id AND tj.torneo_id=ed.torneo_id
+            LEFT JOIN equipos e ON e.id = tj.equipo_id
+            GROUP BY j.id, j.nombre, tj.posicion, e.nombre
             HAVING COALESCE(SUM(ed.chances), 0) > 0
         `)
     ]);

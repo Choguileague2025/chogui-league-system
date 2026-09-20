@@ -7,6 +7,7 @@ const { validarCrearJugador, validarActualizarJugador, POSICIONES_VALIDAS } = re
 const { validarCrearPartido, validarActualizarPartido, ESTADOS_VALIDOS } = require('../../server/validators/partidos.validator');
 const { validarJugadorId, validarStatsOfensivas, validarStatsPitcheo, validarStatsDefensivas } = require('../../server/validators/estadisticas.validator');
 const { validarCrearTorneo, validarActualizarTorneo } = require('../../server/validators/torneos.validator');
+const { DEFAULT_TOTAL_GAMES, DEFAULT_PLAYOFF_SLOTS } = require('../../server/utils/playoffFormat');
 
 // =============================================
 // EQUIPOS VALIDATOR
@@ -419,8 +420,8 @@ describe('Torneos Validator', () => {
             });
             expect(result.isValid).toBe(true);
             expect(result.sanitized.nombre).toBe('Copa Verano 2025');
-            expect(result.sanitized.total_juegos).toBe(22); // default
-            expect(result.sanitized.cupos_playoffs).toBe(6); // default
+            expect(result.sanitized.total_juegos).toBe(DEFAULT_TOTAL_GAMES); // default
+            expect(result.sanitized.cupos_playoffs).toBe(DEFAULT_PLAYOFF_SLOTS); // default
         });
 
         test('debe rechazar nombre corto (< 3 chars)', () => {

@@ -1,4 +1,4 @@
-const { resolveTorneoId } = require('../services/torneos.service');
+const { resolveTorneoId, resolveTorneoEscritura } = require('../services/torneos.service');
 const estadisticasService = require('../services/estadisticas.service');
 const { validarStatsOfensivas, validarStatsPitcheo, validarStatsDefensivas } = require('../validators/estadisticas.validator');
 const sseService = require('../services/sse.service');
@@ -44,7 +44,7 @@ async function upsertOfensivas(req, res, next) {
         }
 
         // Resolver torneo_id: directo, o desde torneo activo
-        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+        const torneoIdFinal = await resolveTorneoEscritura(torneo_id);
 
         if (!torneoIdFinal) {
             return res.status(400).json({ error: 'No se pudo determinar el torneo. Envie torneo_id o active un torneo.' });
@@ -130,7 +130,7 @@ async function crearPitcheo(req, res, next) {
             return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
         }
 
-        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+        const torneoIdFinal = await resolveTorneoEscritura(torneo_id);
 
         if (!torneoIdFinal) {
             return res.status(400).json({ error: 'No se pudo determinar el torneo.' });
@@ -174,7 +174,7 @@ async function actualizarPitcheo(req, res, next) {
             return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
         }
 
-        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+        const torneoIdFinal = await resolveTorneoEscritura(torneo_id);
 
         const result = await estadisticasService.actualizarPitcheo(jugador_id, torneoIdFinal, stats, mode);
 
@@ -255,7 +255,7 @@ async function crearDefensivas(req, res, next) {
             return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
         }
 
-        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+        const torneoIdFinal = await resolveTorneoEscritura(torneo_id);
 
         if (!torneoIdFinal) {
             return res.status(400).json({ error: 'No se pudo determinar el torneo.' });
@@ -299,7 +299,7 @@ async function actualizarDefensivas(req, res, next) {
             return res.status(400).json({ error: 'Modo inválido. Use "sum" o "replace".' });
         }
 
-        const torneoIdFinal = torneo_id || await resolveTorneoId(null);
+        const torneoIdFinal = await resolveTorneoEscritura(torneo_id);
 
         const result = await estadisticasService.actualizarDefensivas(jugador_id, torneoIdFinal, stats, mode);
 

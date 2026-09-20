@@ -175,7 +175,7 @@ function isPitcherPrimary() {
 }
 
 function getTournamentParam() {
-    if (!currentTournamentId || currentTournamentId === 'todos') return '';
+    if (!currentTournamentId) return '';
     return `&torneo_id=${currentTournamentId}`;
 }
 
@@ -446,15 +446,19 @@ async function loadTournaments() {
             const option = document.createElement('option');
             option.value = torneo.id;
             option.textContent = torneo.nombre + (torneo.activo ? ' (Activo)' : '');
-            if (torneo.activo) {
+            if (torneo.activo && !currentTournamentId) {
                 option.selected = true;
                 currentTournamentId = torneo.id;
             }
             select.appendChild(option);
         });
 
+        const saved = new URLSearchParams(location.search).get('torneo_id') || sessionStorage.getItem('publicTorneoId');
+        if (torneos.some(t => String(t.id) === saved)) { currentTournamentId = saved; select.value = saved; }
+        if (!currentTournamentId && torneos[0]) { currentTournamentId = torneos[0].id; select.value = currentTournamentId; }
         select.addEventListener('change', (e) => {
             currentTournamentId = e.target.value === 'todos' ? 'todos' : parseInt(e.target.value);
+            loadPlayerInfo();
             loadAllStats();
         });
     } catch (error) {
@@ -467,7 +471,7 @@ async function loadTournaments() {
 // ===================================
 async function loadPlayerInfo() {
     try {
-        const player = await fetchSafe(`/api/jugadores/${jugadorId}`);
+        const player = await fetchSafe(`/api/jugadores/${jugadorId}?torneo_id=${currentTournamentId || "todos"}`);
         if (!player) {
             showError('Jugador no encontrado');
             return;
@@ -948,7 +952,7 @@ async function loadComparison(torneoParam) {
     const allOffensive = await fetchSafe(`/api/estadisticas-ofensivas?min_at_bats=1${torneoParam}`);
     const [vsEquipos, similares] = await Promise.all([
         fetchSafe(`/api/jugadores/${jugadorId}/vs-equipos${directQuery}`),
-        fetchSafe(`/api/jugadores/${jugadorId}/similares?limit=6`)
+        fetchSafe(`/api/jugadores/${jugadorId}/similares?limit=6${getTournamentParam()}`)
     ]);
 
     if (!allOffensive || !Array.isArray(allOffensive) || allOffensive.length === 0) {

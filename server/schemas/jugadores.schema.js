@@ -13,6 +13,7 @@ const optionalTeamId = z.union([z.coerce.number().int().positive(), z.literal(''
 
 const jugadorCreateSchema = z.object({
     nombre: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres').max(100, 'El nombre no puede exceder 100 caracteres'),
+    torneo_id: z.coerce.number().int().positive().optional(),
     equipo_id: optionalTeamId,
     posicion: optionalPosition,
     numero: optionalNumber
@@ -20,6 +21,7 @@ const jugadorCreateSchema = z.object({
 
 const jugadorUpdateSchema = z.object({
     nombre: z.string().trim().min(2, 'El nombre debe tener al menos 2 caracteres').max(100, 'El nombre no puede exceder 100 caracteres'),
+    torneo_id: z.coerce.number().int().positive().optional(),
     equipo_id: z.coerce.number().int().positive('Equipo inválido'),
     posicion: optionalPosition,
     numero: optionalNumber

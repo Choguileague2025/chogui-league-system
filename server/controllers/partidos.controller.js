@@ -1,6 +1,7 @@
 const pool = require('../config/database');
+const planteles = require('../services/planteles.service');
 const { validarCrearPartido, validarActualizarPartido } = require('../validators/partidos.validator');
-const { resolveTorneoId } = require('../services/torneos.service');
+const { resolveTorneoId, resolveTorneoEscritura } = require('../services/torneos.service');
 const { hasColumn, hasTable } = require('../utils/schema');
 
 // GET /api/partidos
@@ -690,7 +691,7 @@ async function guardarBoxscore(req, res, next) {
             return res.status(400).json({ error: 'Las tablas de boxscore aún no existen. Ejecute la migración 006_boxscore_historico.sql.' });
         }
 
-        const selectFields = ['id'];
+        const selectFields = ['id', 'equipo_local_id', 'equipo_visitante_id'];
         if (hasPartidosTorneo) {
             selectFields.push('torneo_id');
         }
@@ -701,6 +702,23 @@ async function guardarBoxscore(req, res, next) {
 
         const torneoId = partidoResult.rows[0].torneo_id || null;
         await client.query('BEGIN');
+        await planteles.editable(client, torneoId);
+        const matchTeams = [Number(partidoResult.rows[0].equipo_local_id), Number(partidoResult.rows[0].equipo_visitante_id)];
+        for (const rows of [ofensiva, pitcheo, defensa]) {
+            const seen = new Set();
+            for (const row of rows) {
+                const playerId = planteles.id(row.jugador_id);
+                if (seen.has(playerId)) planteles.fail('Jugador duplicado en el boxscore');
+                seen.add(playerId);
+                const member = await planteles.requireJugador(client, torneoId, playerId, row.equipo_id);
+                if (!matchTeams.includes(Number(member.equipo_id))) planteles.fail('El jugador no pertenece a los equipos del partido',409);
+                row.equipo_id = member.equipo_id;
+            }
+        }
+        for (const playerId of [jugador_del_partido_id, pitcher_ganador_id, pitcher_perdedor_id].filter(Boolean)) {
+            const member = await planteles.requireJugador(client, torneoId, playerId);
+            if (!matchTeams.includes(Number(member.equipo_id))) planteles.fail('El jugador premiado no pertenece a los equipos del partido',409);
+        }
         const updateAssignments = [];
         const updateValues = [];
         if (hasJugadorDelPartido) {
@@ -825,8 +843,11 @@ async function crear(req, res, next) {
             innings_jugados, fecha_partido, hora, estado, torneo_id
         } = validation.sanitized;
         const hasPartidosTorneo = await hasColumn('partidos', 'torneo_id');
-        const torneoIdFinal = hasPartidosTorneo ? await resolveTorneoId(torneo_id || null) : null;
+        const torneoIdFinal = await resolveTorneoEscritura(torneo_id);
 
+        await planteles.editable(pool, torneoIdFinal);
+        await planteles.requireEquipo(pool, torneoIdFinal, equipo_local_id);
+        await planteles.requireEquipo(pool, torneoIdFinal, equipo_visitante_id);
         // Verificar que ambos equipos existen
         const equiposCheck = await pool.query(
             'SELECT id FROM equipos WHERE id IN ($1, $2)',
@@ -880,8 +901,16 @@ async function actualizar(req, res, next) {
             innings_jugados, fecha_partido, estado, torneo_id
         } = validation.sanitized;
         const hasPartidosTorneo = await hasColumn('partidos', 'torneo_id');
-        const torneoIdFinal = hasPartidosTorneo ? await resolveTorneoId(torneo_id || null) : null;
+        const original = await pool.query('SELECT * FROM partidos WHERE id=$1', [id]);
+        if (!original.rows.length) return res.status(404).json({ error:'Partido no encontrado' });
+        const torneoIdFinal = original.rows[0].torneo_id;
+        if ((torneo_id && Number(torneo_id) !== Number(torneoIdFinal)) || Number(equipo_local_id) !== Number(original.rows[0].equipo_local_id) || Number(equipo_visitante_id) !== Number(original.rows[0].equipo_visitante_id)) {
+            return res.status(409).json({error:'No se puede reasignar el torneo o los equipos de un partido existente'});
+        }
 
+        await planteles.editable(pool, torneoIdFinal);
+        await planteles.requireEquipo(pool, torneoIdFinal, equipo_local_id);
+        await planteles.requireEquipo(pool, torneoIdFinal, equipo_visitante_id);
         // Verificar que ambos equipos existen
         const equiposCheck = await pool.query(
             'SELECT id FROM equipos WHERE id IN ($1, $2)',
@@ -932,6 +961,9 @@ async function eliminar(req, res, next) {
     try {
         const { id } = req.params;
 
+        const original = await pool.query('SELECT torneo_id FROM partidos WHERE id=$1',[id]);
+        if (!original.rows.length) return res.status(404).json({error:'Partido no encontrado'});
+        await planteles.editable(pool, original.rows[0].torneo_id);
         const result = await pool.query(
             'DELETE FROM partidos WHERE id = $1 RETURNING *',
             [id]
