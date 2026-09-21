@@ -3974,23 +3974,13 @@
     <div class="container">
         <div id="inicio" class="tab-content active">
         <section class="brand-hero">
-            <div class="brand-hero-art" aria-hidden="true">
-                <span class="hero-art hero-art-ball hero-art-ball-a"></span>
-                <span class="hero-art hero-art-ball hero-art-ball-b"></span>
-                <span class="hero-art hero-art-ball hero-art-ball-c"></span>
-                <span class="hero-art hero-art-bats hero-art-bats-a"></span>
-                <span class="hero-art hero-art-bats hero-art-bats-b"></span>
-                <span class="hero-art hero-art-diamond hero-art-diamond-a"></span>
-                <span class="hero-art hero-art-diamond hero-art-diamond-b"></span>
-                <span class="hero-art hero-art-diamond hero-art-diamond-c"></span>
-            </div>
+            <div class="hero-side-notes hero-side-notes-left" aria-hidden="true">JUEGOS<br>EQUIPOS<br>AMIGOS<br>GRANDES MOMENTOS</div>
             <div class="brand-hero-inner">
                 <div class="brand-hero-logo">
                     <img src="/images/logos/chogui-league.png" alt="Escudo Chogui League">
                 </div>
                 <div class="brand-hero-copy">
-                    <span class="brand-hero-kicker">Chogui League · Softbol competitivo</span>
-                    <h1 class="brand-hero-title">Toda la liga en <span class="accent">un solo lugar</span></h1>
+                    <h1 class="brand-hero-title">Toda la liga en<br><span class="accent">un solo lugar</span></h1>
                     <p class="brand-hero-subtitle" id="brandHeroSubtitle">Posiciones, partidos, líderes y estadísticas de todos los equipos. Vive el softball. Vive CHOGUI LEAGUE.</p>
                     <button class="hero-explore-button" type="button" onclick="mostrarPestana('posiciones')">Explorar la liga <span aria-hidden="true">→</span></button>
                     <div class="brand-hero-meta">
@@ -3999,12 +3989,14 @@
                         <span class="brand-hero-pill" id="brandHeroChasePill">Cargando panorama</span>
                     </div>
                 </div>
-                <div class="brand-hero-badge">
+                <div class="hero-status-data" aria-live="polite">
                     <span id="brandHeroBadgeLabel">Pulso live</span>
                     <strong id="brandHeroBadgeValue">--</strong>
                     <span id="brandHeroBadgeSubvalue">Esperando datos del torneo</span>
                 </div>
             </div>
+            <div class="hero-signature" aria-hidden="true">Más que un juego,<br>una familia.</div>
+            <div class="hero-side-notes hero-side-notes-right" aria-hidden="true">SOFTBALL<br>PERSONAS<br>HISTORIAS<br>COMUNIDAD</div>
         </section>
 
         <section class="home-kpi-grid" aria-label="Resumen de la liga">
@@ -5403,7 +5395,6 @@
 
                     if (pulseTitle) pulseTitle.textContent = 'Preparando la próxima portada de torneo';
                     if (pulseCopy) pulseCopy.textContent = 'Cuando exista un torneo público activo, aquí aparecerán el líder real, la carrera a playoffs y el contexto premium de la liga.';
-                    if (brandHeroSubtitle) brandHeroSubtitle.textContent = 'Portada premium lista para encenderse apenas arranque el próximo torneo público.';
                     if (brandHeroBadgeLabel) brandHeroBadgeLabel.textContent = 'Estado liga';
                     if (brandHeroBadgeValue) brandHeroBadgeValue.textContent = 'Stand by';
                     if (brandHeroBadgeSubvalue) brandHeroBadgeSubvalue.textContent = 'Esperando apertura oficial';
@@ -5483,11 +5474,6 @@
                     }
                 }
 
-                if (brandHeroSubtitle) {
-                    brandHeroSubtitle.textContent = cutoff
-                        ? `${selectedTournamentLabel} mueve a ${standings.length || '--'} equipos en un formato de ${totalJuegos} juegos por club y ${cupos} boletos a playoffs.`
-                        : `${selectedTournamentLabel} ya está listo para mostrar tabla, líderes, premios y presión real del torneo en una sola portada.`;
-                }
 
                 if (brandHeroBadgeLabel) brandHeroBadgeLabel.textContent = topTeam ? 'Equipo al mando' : 'Estado torneo';
                 if (brandHeroBadgeValue) {

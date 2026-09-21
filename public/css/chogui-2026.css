@@ -488,6 +488,165 @@ body.brand-page-shell .container {
     text-transform: uppercase;
 }
 
+/* Home banner: the photograph is decorative; copy and tournament state remain live HTML. */
+.brand-page-shell #inicio > .brand-hero {
+    min-height: 520px;
+    margin: 0 0 14px;
+    isolation: isolate;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background-image:
+        linear-gradient(90deg, rgba(4, 10, 17, 0.78) 0%, rgba(4, 10, 17, 0.43) 35%, rgba(4, 10, 17, 0.10) 60%, rgba(4, 10, 17, 0.02) 100%),
+        url('../images/chogui-hero-cinematic.jpg');
+    background-position: center;
+    background-size: cover;
+    box-shadow: none;
+}
+
+.brand-page-shell #inicio > .brand-hero::before {
+    inset: 0;
+    height: auto;
+    background: linear-gradient(0deg, rgba(4, 10, 17, 0.30), transparent 30%);
+    opacity: 1;
+}
+
+.brand-page-shell #inicio > .brand-hero .brand-hero-inner {
+    min-height: 520px;
+    width: 100%;
+    padding: 48px 5% 48px 22%;
+    align-items: center;
+}
+
+.brand-page-shell #inicio > .brand-hero .brand-hero-copy {
+    position: relative;
+    z-index: 2;
+    width: min(600px, 61%);
+    max-width: none;
+}
+
+.brand-page-shell #inicio > .brand-hero .brand-hero-title {
+    max-width: none;
+    margin: 0 0 18px;
+    color: #fff;
+    font-size: clamp(48px, 5vw, 76px);
+    font-weight: 850;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    text-transform: none;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.18);
+}
+
+.brand-page-shell #inicio > .brand-hero .brand-hero-subtitle {
+    max-width: 610px;
+    color: #d4d8dc;
+    font-size: clamp(17px, 1.45vw, 20px);
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.brand-page-shell #inicio .hero-explore-button {
+    min-height: 56px;
+    margin-top: 24px;
+    padding: 0 30px;
+    border-radius: 13px;
+    background: var(--gold);
+    color: #171100;
+    font-size: 1rem;
+    font-weight: 800;
+    transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.brand-page-shell #inicio .hero-explore-button:hover {
+    background: #ffcf35;
+    box-shadow: 0 9px 20px rgba(0, 0, 0, 0.24);
+    transform: translateY(-2px);
+}
+
+.brand-page-shell #inicio .brand-hero-meta {
+    margin-top: 20px;
+    gap: 8px;
+}
+
+.brand-page-shell #inicio .brand-hero-pill {
+    padding: 8px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9px;
+    background: rgba(7, 19, 28, 0.70);
+    color: #f1f2f3;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    box-shadow: none;
+}
+
+.brand-page-shell #inicio .hero-status-data {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.brand-page-shell #inicio .hero-side-notes {
+    position: absolute;
+    z-index: 2;
+    color: rgba(245, 248, 250, 0.82);
+    font-size: 0.69rem;
+    font-weight: 700;
+    line-height: 2.3;
+    letter-spacing: 0.28em;
+    white-space: nowrap;
+}
+
+.brand-page-shell #inicio .hero-side-notes::after,
+.brand-page-shell #inicio .hero-signature::after {
+    content: '';
+    display: block;
+    width: 39px;
+    height: 3px;
+    margin-top: 9px;
+    border-radius: 3px;
+    background: var(--gold);
+    transform: rotate(-12deg);
+}
+
+.brand-page-shell #inicio .hero-side-notes-left {
+    bottom: 15%;
+    left: 3%;
+}
+
+.brand-page-shell #inicio .hero-side-notes-right {
+    top: 44%;
+    right: 2.3%;
+}
+
+.brand-page-shell #inicio .hero-side-notes-right::after {
+    margin-left: auto;
+}
+
+.brand-page-shell #inicio .hero-signature {
+    position: absolute;
+    z-index: 2;
+    right: 34%;
+    bottom: 24%;
+    color: #f5f3ed;
+    font-family: 'Brush Script MT', 'Segoe Script', cursive;
+    font-size: clamp(1.45rem, 2.15vw, 2rem);
+    font-style: italic;
+    line-height: 0.95;
+    text-align: center;
+    transform: rotate(-8deg);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.brand-page-shell #inicio .hero-signature::after {
+    width: 80%;
+    margin: 17px auto 0;
+}
+
 /* Dashboard surfaces */
 .home-kpi-grid,
 .positions-kpi-grid {
@@ -1516,6 +1675,14 @@ body.brand-page-shell .container {
     .directory-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+
+    .brand-page-shell #inicio .hero-signature {
+        display: none;
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-inner {
+        padding-left: 20%;
+    }
 }
 
 .brand-page-shell #mobileNavigation {
@@ -1594,6 +1761,18 @@ body.brand-page-shell .container {
     .brand-page-shell .brand-hero-badge {
         right: 5%;
         opacity: 0.72;
+    }
+
+    .brand-page-shell #inicio .hero-side-notes {
+        display: none;
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-inner {
+        padding-left: 9%;
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-copy {
+        width: min(580px, 66%);
     }
 }
 
@@ -1694,6 +1873,45 @@ body.brand-page-shell .container {
         width: 170px;
         height: 170px;
         opacity: 0.25;
+    }
+
+    .brand-page-shell #inicio > .brand-hero {
+        min-height: 480px;
+        background-image:
+            linear-gradient(90deg, rgba(4, 10, 17, 0.91) 0%, rgba(4, 10, 17, 0.72) 58%, rgba(4, 10, 17, 0.43) 100%),
+            url('../images/chogui-hero-cinematic.jpg');
+        background-position: 65% center;
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-inner {
+        min-height: 480px;
+        padding: 38px 24px;
+        align-items: center;
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-copy {
+        width: min(580px, 100%);
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-title {
+        margin-bottom: 16px;
+        font-size: clamp(38px, 5.5vw, 44px);
+        line-height: 1;
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-subtitle {
+        max-width: 500px;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .brand-page-shell #inicio .brand-hero-meta {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .brand-page-shell #inicio .brand-hero-pill {
+        font-size: 0.64rem;
     }
 
     .brand-page-shell .nav-tabs {
@@ -1804,6 +2022,29 @@ body.brand-page-shell .container {
     .brand-page-shell .collective-stats-grid,
     .brand-page-shell .match-summary-grid {
         grid-template-columns: 1fr;
+    }
+
+    .brand-page-shell #inicio > .brand-hero {
+        min-height: 470px;
+        background-position: 69% center;
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-inner {
+        min-height: 470px;
+        padding: 32px 22px;
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-title {
+        font-size: clamp(34px, 10vw, 40px);
+    }
+
+    .brand-page-shell #inicio > .brand-hero .brand-hero-subtitle {
+        font-size: 14px;
+    }
+
+    .brand-page-shell #inicio .hero-explore-button {
+        min-height: 52px;
+        margin-top: 22px;
     }
 }
 
