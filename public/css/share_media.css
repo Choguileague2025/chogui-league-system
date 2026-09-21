@@ -16,7 +16,7 @@
     min-height: 48px;
     padding: 0 18px;
     border: 1px solid rgba(21, 16, 12, 0.16);
-    border-radius: 999px;
+    border-radius: 10px;
     background: rgba(10, 14, 24, 0.82);
     color: #f7f1dc;
     font-size: 0.95rem;
@@ -38,12 +38,15 @@
 }
 
 .brand-action-btn.accent {
-    background: linear-gradient(135deg, rgba(17, 23, 34, 0.96), rgba(32, 42, 62, 0.94));
+    border-color: transparent;
+    background: linear-gradient(135deg, #ffc107, #ffb300);
+    color: #171100;
 }
 
 .brand-action-btn.subtle {
-    background: rgba(255, 255, 255, 0.2);
-    color: #17120f;
+    border-color: rgba(255, 255, 255, 0.15);
+    background: #0d1821;
+    color: #ffffff;
 }
 
 .brand-action-btn[disabled] {

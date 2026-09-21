@@ -3921,6 +3921,7 @@
         /* (professional-player-card styles removed — Phase 4 uses podio-card and lider-card) */
     </style>
     <link rel="stylesheet" href="css/brand_shell.css?v=premium-home-20260613">
+    <link rel="stylesheet" href="css/chogui-2026.css?v=20260920">
 </head>
 <body class="brand-page-shell">
     <header class="brand-topbar">
@@ -3935,37 +3936,43 @@
                     <span class="brand-subcopy">Liga, historial, líderes y espectáculo en un solo sistema</span>
                 </span>
             </a>
-            <nav class="brand-nav">
-                <a href="#posiciones" class="brand-nav-link">Posiciones</a>
-                <a href="#partidos" class="brand-nav-link">Partidos</a>
-                <a href="#estadisticas" class="brand-nav-link">Líderes</a>
-                <a href="#premios" class="brand-nav-link">Premios</a>
-                <a href="#records" class="brand-nav-link">Récords</a>
-                <a href="login.html" class="brand-admin-link">Admin</a>
+            <nav class="brand-nav" aria-label="Navegación principal">
+                <a href="#inicio" class="brand-nav-link active" data-section="inicio">Inicio</a>
+                <a href="#posiciones" class="brand-nav-link" data-section="posiciones">Posiciones</a>
+                <a href="#partidos" class="brand-nav-link" data-section="partidos">Partidos</a>
+                <a href="#equipos" class="brand-nav-link" data-section="equipos">Equipos</a>
+                <a href="#jugadores" class="brand-nav-link" data-section="jugadores">Jugadores</a>
+                <a href="#estadisticas" class="brand-nav-link" data-section="estadisticas">Estadísticas</a>
             </nav>
+            <div class="brand-tools">
+                <div class="header-search-host" id="globalSearchHost"></div>
+                <div class="header-tournament-host" id="globalTournamentHost"></div>
+                <a href="login.html" class="brand-admin-link">Admin</a>
+                <button class="mobile-menu-toggle" type="button" aria-label="Abrir menú" onclick="toggleMobileMenu()">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                </button>
+            </div>
         </div>
     </header>
 
-    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">☰</button>
     <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
     <div class="mobile-menu">
-        <h3 style="color: #ffc107; margin-bottom: 20px; text-align: center;">📱 CHOGUI LEAGUE</h3>
-        <a href="#posiciones" class="mobile-menu-item" onclick="mostrarPestana('posiciones'); closeMobileMenu();">🏆 Posiciones</a>
-        <a href="#partidos" class="mobile-menu-item" onclick="mostrarPestana('partidos'); closeMobileMenu();">🎯 Partidos</a>
-        <a href="#estadisticas" class="mobile-menu-item" onclick="mostrarPestana('estadisticas'); closeMobileMenu();">📊 Estadísticas</a>
-        <a href="#premios" class="mobile-menu-item" onclick="mostrarPestana('premios'); closeMobileMenu();">🏅 Premios</a>
-        <a href="#records" class="mobile-menu-item" onclick="mostrarPestana('records'); closeMobileMenu();">📚 Récords</a>
-        <div style="border-top: 1px solid rgba(255, 193, 7, 0.3); margin: 20px 0; padding-top: 20px;">
-            <a href="login.html" class="mobile-menu-item">⚙️ Panel Admin</a>
-            <a href="https://wa.me/5491126880792" class="mobile-menu-item" target="_blank">💬 Soporte</a>
+        <h3>CHOGUI LEAGUE</h3>
+        <a href="#inicio" class="mobile-menu-item" onclick="mostrarPestana('inicio'); closeMobileMenu();">Inicio</a>
+        <a href="#posiciones" class="mobile-menu-item" onclick="mostrarPestana('posiciones'); closeMobileMenu();">Posiciones</a>
+        <a href="#partidos" class="mobile-menu-item" onclick="mostrarPestana('partidos'); closeMobileMenu();">Partidos</a>
+        <a href="#equipos" class="mobile-menu-item" onclick="mostrarPestana('equipos'); closeMobileMenu();">Equipos</a>
+        <a href="#jugadores" class="mobile-menu-item" onclick="mostrarPestana('jugadores'); closeMobileMenu();">Jugadores</a>
+        <a href="#estadisticas" class="mobile-menu-item" onclick="mostrarPestana('estadisticas'); closeMobileMenu();">Estadísticas</a>
+        <div class="mobile-menu-secondary">
+            <a href="#premios" class="mobile-menu-item" onclick="mostrarPestana('premios'); closeMobileMenu();">Premios</a>
+            <a href="#records" class="mobile-menu-item" onclick="mostrarPestana('records'); closeMobileMenu();">Récords</a>
+            <a href="login.html" class="mobile-menu-item">Panel Admin</a>
         </div>
-    </div>
-
-    <div class="swipe-indicator">
-        ← Desliza para navegar →
     </div>
    
     <div class="container">
+        <div id="inicio" class="tab-content active">
         <section class="brand-hero">
             <div class="brand-hero-art" aria-hidden="true">
                 <span class="hero-art hero-art-ball hero-art-ball-a"></span>
@@ -3982,9 +3989,10 @@
                     <img src="/images/logos/chogui-league.png" alt="Escudo Chogui League">
                 </div>
                 <div class="brand-hero-copy">
-                    <span class="brand-hero-kicker">Liga Oficial • Softbol Competitivo</span>
-                    <h1 class="brand-hero-title">Chogui League</h1>
-                    <p class="brand-hero-subtitle" id="brandHeroSubtitle">Una portada viva con tabla, líderes, corte playoff y contexto real de torneo en cada jornada.</p>
+                    <span class="brand-hero-kicker">Chogui League · Softbol competitivo</span>
+                    <h1 class="brand-hero-title">Toda la liga en <span class="accent">un solo lugar</span></h1>
+                    <p class="brand-hero-subtitle" id="brandHeroSubtitle">Posiciones, partidos, líderes y estadísticas de todos los equipos. Vive el softball. Vive CHOGUI LEAGUE.</p>
+                    <button class="hero-explore-button" type="button" onclick="mostrarPestana('posiciones')">Explorar la liga <span aria-hidden="true">→</span></button>
                     <div class="brand-hero-meta">
                         <span class="brand-hero-pill" id="brandHeroTournamentPill">Torneo premium</span>
                         <span class="brand-hero-pill" id="brandHeroFormatPill">Formato oficial</span>
@@ -3997,6 +4005,45 @@
                     <span id="brandHeroBadgeSubvalue">Esperando datos del torneo</span>
                 </div>
             </div>
+        </section>
+
+        <section class="home-kpi-grid" aria-label="Resumen de la liga">
+            <article class="home-kpi">
+                <span class="kpi-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19v-7l8-6 8 6v7M8 19v-5h8v5M3 19h18"/></svg></span>
+                <div><strong id="homeTeamsKpi">--</strong><span>Equipos</span></div><small>Comunidad activa</small>
+            </article>
+            <article class="home-kpi">
+                <span class="kpi-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span>
+                <div><strong id="homeGamesKpi">--</strong><span>Partidos</span></div><small id="homeSeasonKpi">Torneo actual</small>
+            </article>
+            <article class="home-kpi">
+                <span class="kpi-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <div><strong id="homePlayersKpi">--</strong><span>Jugadores</span></div><small>Talento registrado</small>
+            </article>
+            <article class="home-kpi">
+                <span class="kpi-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3M2 19h22"/></svg></span>
+                <div><strong id="homeRunsKpi">--</strong><span>Carreras</span></div><small>Producción total</small>
+            </article>
+        </section>
+
+        <section class="home-dashboard-grid" aria-label="Resumen competitivo">
+            <article class="home-dashboard-panel home-featured-panel">
+                <div class="panel-heading"><h2>Juego destacado</h2><button type="button" onclick="mostrarPestana('partidos')">Ver todos →</button></div>
+                <div id="homeFeaturedGame" class="home-featured-game"><div class="directory-empty">Cargando partido destacado…</div></div>
+            </article>
+            <article class="home-dashboard-panel">
+                <div class="panel-heading"><h2>Tabla rápida</h2><button type="button" onclick="mostrarPestana('posiciones')">Ver posiciones →</button></div>
+                <div class="table-container"><table class="home-mini-table"><thead><tr><th>#</th><th>Equipo</th><th>G</th><th>P</th><th>PCT</th></tr></thead><tbody id="homeStandingsBody"><tr><td colspan="5">Cargando…</td></tr></tbody></table></div>
+            </article>
+            <article class="home-dashboard-panel" id="homeUpcomingSlot">
+                <div class="panel-heading"><h2>Próximos partidos</h2><button type="button" onclick="mostrarPestana('partidos')">Ver calendario →</button></div>
+                <div id="homeUpcomingGames" class="home-upcoming-list"><div class="directory-empty">Cargando calendario…</div></div>
+            </article>
+        </section>
+
+        <section class="home-leaders-panel">
+            <div class="panel-heading"><h2>Líderes de la liga</h2><button type="button" onclick="mostrarPestana('estadisticas')">Ver estadísticas →</button></div>
+            <div class="home-leaders-grid" id="homeLeadersGrid"><div class="directory-empty">Cargando líderes…</div></div>
         </section>
 
         <section class="league-pulse" aria-label="Radar premium del torneo">
@@ -4192,18 +4239,22 @@
                 <span>En vivo</span>
             </div>
         </div>
+        </div>
 
         <nav class="nav-tabs" id="mobileNavigation">
-            <a href="#posiciones" class="nav-tab active" data-section="posiciones" data-icon="🏆">Posiciones</a>
-            <a href="#partidos" class="nav-tab" data-section="partidos" data-icon="🎯">Partidos</a>
-            <a href="#estadisticas" class="nav-tab" data-section="estadisticas" data-icon="📊">Estadísticas</a>
-            <a href="#premios" class="nav-tab" data-section="premios" data-icon="🏅">Premios</a>
-            <a href="#records" class="nav-tab" data-section="records" data-icon="📚">Récords</a>
+            <a href="#inicio" class="nav-tab active" data-section="inicio">Inicio</a>
+            <a href="#posiciones" class="nav-tab" data-section="posiciones">Posiciones</a>
+            <a href="#partidos" class="nav-tab" data-section="partidos">Partidos</a>
+            <a href="#equipos" class="nav-tab" data-section="equipos">Equipos</a>
+            <a href="#jugadores" class="nav-tab" data-section="jugadores">Jugadores</a>
+            <a href="#estadisticas" class="nav-tab" data-section="estadisticas">Estadísticas</a>
+            <a href="#premios" class="nav-tab" data-section="premios">Premios</a>
+            <a href="#records" class="nav-tab" data-section="records">Récords</a>
         </nav>
 
         <section class="proximos-partidos" id="proximos-partidos">
             <div class="section-header">
-                <h2>⚾ Próximos Partidos</h2>
+                <h2>Próximos Partidos</h2>
                 <p class="section-subtitle">No te pierdas la acción en el diamante</p>
             </div>
             <div class="scoreboard-grid" id="proximosPartidosContainer">
@@ -4214,9 +4265,22 @@
             </div>
         </section>
 
-        <div id="posiciones" class="tab-content active">
-             <div class="card feature-card positions-card" id="tablaPosiciones">
-                 <h3>🏆 Tabla de Posiciones</h3>
+        <div id="posiciones" class="tab-content">
+            <section class="screen-intro">
+                <span class="section-eyebrow">Temporada seleccionada</span>
+                <h1 class="screen-title">Tabla de <span class="accent">Posiciones</span></h1>
+                <p class="screen-copy">Consulta la clasificación general, el corte de playoffs y el progreso competitivo del torneo.</p>
+            </section>
+            <section class="positions-kpi-grid" aria-label="Resumen de posiciones">
+                <article class="positions-kpi"><span class="kpi-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19v-7l8-6 8 6v7M8 19v-5h8v5M3 19h18"/></svg></span><div><strong id="positionsTeamsKpi">--</strong><span>Equipos</span></div></article>
+                <article class="positions-kpi"><span class="kpi-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></span><div><strong id="positionsGamesKpi">--</strong><span>Juegos jugados</span></div></article>
+                <article class="positions-kpi"><span class="kpi-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4ZM7 6H4v1a4 4 0 0 0 4 4M17 6h3v1a4 4 0 0 1-4 4"/></svg></span><div><strong id="positionsLeaderKpi">--</strong><span>Líder actual</span></div></article>
+                <article class="positions-kpi"><span class="kpi-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3M2 19h22"/></svg></span><div><strong id="positionsRunsKpi">--</strong><span>Carreras totales</span></div></article>
+            </section>
+            <div class="positions-layout">
+              <div>
+              <div class="card feature-card positions-card" id="tablaPosiciones">
+                 <h3>Tabla General</h3>
                  <div data-loader>Cargando...</div>
                  <div data-empty></div>
                  <div class="table-container">
@@ -4244,7 +4308,7 @@
                  <section class="playoff-race-shell" id="playoffRaceHome">
                      <div class="playoff-race-header">
                          <div>
-                             <h4>🛣️ Carrera a Playoffs</h4>
+                             <h4>Carrera a Playoffs</h4>
                              <p id="playoffRaceHeadline">Así se mueve el corte jornada tras jornada.</p>
                          </div>
                          <div class="playoff-race-meta" id="playoffRaceMeta">Cargando formato del torneo...</div>
@@ -4260,9 +4324,25 @@
                      </div>
                  </section>
              </div>
+              </div>
+              <aside class="section-side" id="positionsSide"></aside>
+            </div>
         </div>
 
         <div id="partidos" class="tab-content">
+            <section class="screen-intro">
+                <span class="section-eyebrow">Game Center</span>
+                <h1 class="screen-title">Calendario y <span class="accent">Resultados</span></h1>
+                <p class="screen-copy">Partidos del torneo, marcadores oficiales y accesos al detalle de cada encuentro.</p>
+            </section>
+            <div class="game-filter-bar" role="group" aria-label="Filtrar partidos">
+                <button class="game-filter active" type="button" data-game-filter="all">Todos los partidos</button>
+                <button class="game-filter" type="button" data-game-filter="en_vivo">En vivo</button>
+                <button class="game-filter" type="button" data-game-filter="proximo">Próximos</button>
+                <button class="game-filter" type="button" data-game-filter="finalizado">Finalizados</button>
+            </div>
+            <div class="games-layout">
+              <div>
              <div class="game-center-card" id="gameCenter">
                  <div class="game-center-kicker">Game Center</div>
                  <h3>Centro de partidos</h3>
@@ -4277,14 +4357,42 @@
                  </div>
              </div>
              <div class="card feature-card games-card" id="ultimosPartidos">
-                 <h3>🎯 Últimos Partidos</h3>
+                 <h3>Últimos Partidos</h3>
                  <div data-loader>Cargando...</div>
                  <div data-empty></div>
                  <div class="scoreboard-grid" id="ultimosPartidosGrid"></div>
              </div>
+              </div>
+              <aside class="section-side" id="gamesSide"></aside>
+            </div>
+        </div>
+
+        <div id="equipos" class="tab-content">
+            <section class="screen-intro">
+                <span class="section-eyebrow">Clubes de la liga</span>
+                <h1 class="screen-title">Todos los <span class="accent">Equipos</span></h1>
+                <p class="screen-copy">Consulta planteles, récords, calendarios y estadísticas oficiales de cada equipo.</p>
+            </section>
+            <div class="directory-toolbar"><input id="teamsDirectorySearch" type="search" placeholder="Buscar equipo…" autocomplete="off"><span id="teamsDirectoryCount" class="directory-count">-- equipos</span></div>
+            <div class="directory-grid" id="teamsDirectoryGrid"><div class="directory-empty">Cargando equipos…</div></div>
+        </div>
+
+        <div id="jugadores" class="tab-content">
+            <section class="screen-intro">
+                <span class="section-eyebrow">Talento Chogui</span>
+                <h1 class="screen-title">Directorio de <span class="accent">Jugadores</span></h1>
+                <p class="screen-copy">Encuentra perfiles, posiciones y producción estadística de los jugadores registrados.</p>
+            </section>
+            <div class="directory-toolbar"><input id="playersDirectorySearch" type="search" placeholder="Buscar jugador o equipo…" autocomplete="off"><select id="playersPositionFilter"><option value="">Todas las posiciones</option></select><span id="playersDirectoryCount" class="directory-count">-- jugadores</span></div>
+            <div class="directory-grid" id="playersDirectoryGrid"><div class="directory-empty">Cargando jugadores…</div></div>
         </div>
 
         <div id="estadisticas" class="tab-content">
+            <section class="screen-intro">
+                <span class="section-eyebrow">Rendimiento oficial</span>
+                <h1 class="screen-title">Líderes y <span class="accent">Estadísticas</span></h1>
+                <p class="screen-copy">Bateo, pitcheo y defensa con todas las métricas registradas en el sistema.</p>
+            </section>
             <div class="card feature-card stats-card-shell">
                 <div class="stats-shell-header">
                     <h3>📊 Estadísticas de la Liga</h3>
@@ -6040,7 +6148,7 @@
                     <td>${t.pj ?? 0}</td>
                     <td>${t.pg ?? 0}</td>
                     <td>${t.pp ?? 0}</td>
-                    <td><strong>${(t.porcentaje != null) ? Number(t.porcentaje).toFixed(3) : '0.000'}</strong></td>
+                    <td><strong>${(t.porcentaje != null) ? (Number(t.porcentaje) > 1 ? Number(t.porcentaje) / 100 : Number(t.porcentaje)).toFixed(3) : '0.000'}</strong></td>
                     <td>${t.cf ?? 0}</td>
                     <td>${t.ce ?? 0}</td>
                     <td class="${getDiffClass(dif)}">${dif >= 0 ? '+' : ''}${dif}</td>
@@ -6522,7 +6630,7 @@
                 // Cargar todos los líderes de forma paralela
                 const promesasLideres = lideresOfensivos.map(async (categoria) => {
                     try {
-                        const response = await fetch(getApiUrl(categoria.endpoint));
+                        const response = await fetch(getApiUrl(withTournament(categoria.endpoint)));
                         if (!response.ok) throw new Error(`HTTP ${response.status}`);
                         const data = await response.json();
                         // Devolver hasta 5 líderes por categoría
@@ -8978,5 +9086,6 @@
     
     <script src="js/analytics.js" defer></script>
     <script src="js/index_modules.min.js?v=premium-home-20260613" defer></script>
+    <script src="js/chogui_2026.js?v=20260920" defer></script>
 </body>
 </html>
