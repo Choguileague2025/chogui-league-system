@@ -3921,7 +3921,7 @@
         /* (professional-player-card styles removed — Phase 4 uses podio-card and lider-card) */
     </style>
     <link rel="stylesheet" href="css/brand_shell.css?v=premium-home-20260613">
-    <link rel="stylesheet" href="css/chogui-2026.css?v=20260920">
+    <link rel="stylesheet" href="css/chogui-2026.css?v=20260921">
 </head>
 <body class="brand-page-shell">
     <header class="brand-topbar">
@@ -3980,7 +3980,7 @@
                     <img src="/images/logos/chogui-league.png" alt="Escudo Chogui League">
                 </div>
                 <div class="brand-hero-copy">
-                    <h1 class="brand-hero-title">Toda la liga en<br><span class="accent">un solo lugar</span></h1>
+                    <h1 class="brand-hero-title">Toda la liga en <span class="accent">un solo lugar</span></h1>
                     <p class="brand-hero-subtitle" id="brandHeroSubtitle">Posiciones, partidos, líderes y estadísticas de todos los equipos. Vive el softball. Vive CHOGUI LEAGUE.</p>
                     <button class="hero-explore-button" type="button" onclick="mostrarPestana('posiciones')">Explorar la liga <span aria-hidden="true">→</span></button>
                     <div class="brand-hero-meta">
@@ -4020,24 +4020,30 @@
 
         <section class="home-dashboard-grid" aria-label="Resumen competitivo">
             <article class="home-dashboard-panel home-featured-panel">
-                <div class="panel-heading"><h2>Juego destacado</h2><button type="button" onclick="mostrarPestana('partidos')">Ver todos →</button></div>
+                <div class="panel-heading"><h2><svg class="panel-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.4 7.1 1-5.1 5 .9 7-6-3.3-6 3.3.9-7-5.1-5 7.1-1z"/></svg>Juego destacado</h2><button type="button" onclick="mostrarPestana('partidos')">Ver todos →</button></div>
                 <div id="homeFeaturedGame" class="home-featured-game"><div class="directory-empty">Cargando partido destacado…</div></div>
             </article>
             <article class="home-dashboard-panel">
-                <div class="panel-heading"><h2>Tabla rápida</h2><button type="button" onclick="mostrarPestana('posiciones')">Ver posiciones →</button></div>
+                <div class="panel-heading"><h2><svg class="panel-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8v4h4v4a5 5 0 0 1-5 5h-1v3h3v2H7v-2h3v-3H9a5 5 0 0 1-5-5V7h4V3Zm0 6H6v2a3 3 0 0 0 2 2.8V9Zm8 0v4.8a3 3 0 0 0 2-2.8V9h-2Z"/></svg>Tabla rápida</h2><button type="button" onclick="mostrarPestana('posiciones')">Ver posiciones →</button></div>
                 <div class="table-container"><table class="home-mini-table"><thead><tr><th>#</th><th>Equipo</th><th>G</th><th>P</th><th>PCT</th></tr></thead><tbody id="homeStandingsBody"><tr><td colspan="5">Cargando…</td></tr></tbody></table></div>
             </article>
             <article class="home-dashboard-panel" id="homeUpcomingSlot">
-                <div class="panel-heading"><h2>Próximos partidos</h2><button type="button" onclick="mostrarPestana('partidos')">Ver calendario →</button></div>
+                <div class="panel-heading"><h2><svg class="panel-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 2v6m10-6v6M3 11h18" fill="none" stroke="currentColor" stroke-width="2"/></svg><span id="homeUpcomingTitle">Próximos partidos</span></h2><button type="button" onclick="mostrarPestana('partidos')">Ver calendario →</button></div>
+                <p class="home-upcoming-note" id="homeUpcomingNote" hidden></p>
                 <div id="homeUpcomingGames" class="home-upcoming-list"><div class="directory-empty">Cargando calendario…</div></div>
             </article>
         </section>
 
-        <section class="home-leaders-panel">
-            <div class="panel-heading"><h2>Líderes de la liga</h2><button type="button" onclick="mostrarPestana('estadisticas')">Ver estadísticas →</button></div>
-            <div class="home-leaders-grid" id="homeLeadersGrid"><div class="directory-empty">Cargando líderes…</div></div>
-        </section>
-
+        <section class="home-lower-grid" aria-label="Líderes y actualidad">
+            <section class="home-leaders-panel">
+                <div class="panel-heading"><h2><svg class="panel-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14h4v7H3zm7-5h4v12h-4zm7-6h4v18h-4z"/></svg>Líderes del torneo</h2><button type="button" onclick="mostrarPestana('estadisticas')">Ver estadísticas →</button></div>
+                <div class="home-leaders-grid" id="homeLeadersGrid"><div class="directory-empty">Cargando líderes…</div></div>
+            </section>
+            <aside class="home-brief-panel" aria-label="Actualidad de la liga">
+                <div class="panel-heading"><h2><svg class="panel-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h4l10-5v14L7 14H3v-4Zm4 4 2 6h3l-2-5"/></svg><span id="homeBriefTitle">Actualidad de la liga</span></h2><button type="button" id="homeBriefAction" hidden>Ver todas →</button></div>
+                <div class="home-brief-list" id="homeNewsEntries"><div class="directory-empty">Cargando actualidad…</div></div>
+                <details class="home-analysis-details">
+                    <summary>Ver análisis del torneo</summary>
         <section class="league-pulse" aria-label="Radar premium del torneo">
             <article class="pulse-feature pulse-feature--premium">
                 <span class="pulse-kicker">Radar del torneo</span>
@@ -4087,11 +4093,14 @@
                 </div>
             </aside>
         </section>
+                </details>
+            </aside>
+        </section>
 
         <section class="sponsors-strip" aria-labelledby="sponsorsTitle">
             <div class="sponsors-strip-header">
                 <span class="sponsors-kicker">Patrocinio oficial</span>
-                <h2 id="sponsorsTitle">Torneo patrocinado por</h2>
+                <h2 id="sponsorsTitle">Nuestros patrocinadores</h2>
             </div>
             <div class="sponsors-grid">
                 <article class="sponsor-card sponsor-card--deportes">
@@ -9072,6 +9081,6 @@
     
     <script src="js/analytics.js" defer></script>
     <script src="js/index_modules.min.js?v=premium-home-20260613" defer></script>
-    <script src="js/chogui_2026.js?v=20260920" defer></script>
+    <script src="js/chogui_2026.js?v=20260921" defer></script>
 </body>
 </html>

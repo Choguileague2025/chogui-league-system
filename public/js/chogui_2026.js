@@ -8,7 +8,8 @@
         games: [],
         upcoming: [],
         batting: [],
-        pitching: []
+        pitching: [],
+        news: []
     };
     let dashboardRequestToken = 0;
     let loadedTournamentKey = null;
@@ -68,9 +69,28 @@
         return date.toLocaleDateString('es-ES', options);
     };
 
+    const recentFinals = () => [...state.games]
+        .filter((game) => game.estado === 'finalizado')
+        .sort((a, b) => {
+            const date = (value) => Date.parse(value.fecha_partido || value.fecha || '') || 0;
+            return (date(b) - date(a)) || (Number(b.id || 0) - Number(a.id || 0));
+        });
+
+    const teamRecord = (teamId) => {
+        const standing = state.standings.find((item) => String(item.equipo_id) === String(teamId));
+        return standing ? `${Number(standing.pg || 0)} - ${Number(standing.pp || 0)}` : '';
+    };
+
+    const avatarForPosition = (position) => {
+        const code = String(position || '').toUpperCase();
+        return code === 'P' ? 'player-pitcher.svg'
+            : /^(LF|CF|RF|SF|OF)$/.test(code) ? 'player-outfield.svg'
+                : 'player-infield.svg';
+    };
+
     const logoMarkup = (teamId, teamName, className) => {
         if (!teamId) return `<span class="${className}">${escapeHtml(initials(teamName))}</span>`;
-        return `<img class="${className}" src="/api/equipos/${encodeURIComponent(teamId)}/logo" alt="" loading="lazy" onerror="this.outerHTML='<span class=&quot;${className}&quot;>${escapeHtml(initials(teamName))}</span>'">`;
+        return `<img class="${className}" src="/api/equipos/${encodeURIComponent(teamId)}/logo" alt="" loading="lazy" data-team-initials="${escapeHtml(initials(teamName))}">`;
     };
 
     function moveSharedControls() {
@@ -157,7 +177,7 @@
         if (!container) return;
         const live = state.games.find((game) => game.estado === 'en_vivo');
         const next = state.upcoming[0];
-        const latestFinal = [...state.games].reverse().find((game) => game.estado === 'finalizado');
+        const latestFinal = recentFinals()[0];
         const game = live || next || latestFinal;
         if (!game) {
             container.innerHTML = '<div class="directory-empty">No hay partidos cargados para el torneo seleccionado.</div>';
@@ -179,9 +199,9 @@
             <div class="featured-match-card">
                 <div class="featured-match-meta">${escapeHtml(date)} · ${escapeHtml(time)} · ${escapeHtml(field)}</div>
                 <div class="featured-match-versus">
-                    <div class="featured-match-team">${logoMarkup(game.equipo_local_id, localName, 'featured-match-mark')}<strong>${escapeHtml(localName)}</strong><small>Local</small></div>
+                    <div class="featured-match-team">${logoMarkup(game.equipo_local_id, localName, 'featured-match-mark')}<strong>${escapeHtml(localName)}</strong><small>${escapeHtml(teamRecord(game.equipo_local_id) || 'Local')}</small></div>
                     <div class="featured-match-vs">${escapeHtml(center)}</div>
-                    <div class="featured-match-team">${logoMarkup(game.equipo_visitante_id, visitorName, 'featured-match-mark')}<strong>${escapeHtml(visitorName)}</strong><small>Visitante</small></div>
+                    <div class="featured-match-team">${logoMarkup(game.equipo_visitante_id, visitorName, 'featured-match-mark')}<strong>${escapeHtml(visitorName)}</strong><small>${escapeHtml(teamRecord(game.equipo_visitante_id) || 'Visitante')}</small></div>
                 </div>
                 ${game.id ? `<a class="featured-match-link" href="partido.html?id=${encodeURIComponent(game.id)}">Ver detalles del partido →</a>` : ''}
             </div>`;
@@ -204,12 +224,26 @@
     function renderUpcoming() {
         const container = document.getElementById('homeUpcomingGames');
         if (!container) return;
-        container.innerHTML = state.upcoming.length ? state.upcoming.slice(0, 3).map((game) => {
+        const upcoming = state.upcoming.length > 0;
+        const games = upcoming ? state.upcoming.slice(0, 3) : recentFinals().slice(0, 3);
+        const title = document.getElementById('homeUpcomingTitle');
+        const note = document.getElementById('homeUpcomingNote');
+        if (title) title.textContent = upcoming || !games.length ? 'Próximos partidos' : 'Últimos resultados';
+        if (note) {
+            note.hidden = upcoming || !games.length;
+            note.textContent = upcoming || !games.length ? '' : 'No hay partidos futuros programados.';
+        }
+        container.innerHTML = games.length ? games.map((game) => {
             const dateValue = game.fecha_partido || game.fecha;
             const day = formatDate(dateValue, { day: '2-digit' });
             const month = formatDate(dateValue, { month: 'short' }).replace('.', '').toUpperCase();
-            const names = `${game.equipo_visitante_nombre || 'Visitante'} vs ${game.equipo_local_nombre || 'Local'}`;
-            return `<a class="home-upcoming-game" href="partido.html?id=${encodeURIComponent(game.id)}"><span class="home-upcoming-date"><span>${escapeHtml(month)}</span><strong>${escapeHtml(day)}</strong></span><span class="home-upcoming-copy"><strong>${escapeHtml(names)}</strong><small>${escapeHtml(String(game.hora || '').slice(0, 5) || 'Hora por definir')} · ${escapeHtml(game.campo || game.ubicacion || 'Campo por definir')}</small></span></a>`;
+            const local = game.equipo_local_nombre || 'Local';
+            const visitor = game.equipo_visitante_nombre || 'Visitante';
+            const time = String(game.hora || '').slice(0, 5);
+            const field = game.campo || game.ubicacion;
+            const meta = [time, field].filter(Boolean).join(' · ') || (upcoming ? 'Horario y campo por definir' : 'Finalizado');
+            const score = upcoming ? 'vs' : `${Number(game.carreras_visitante || 0)} - ${Number(game.carreras_local || 0)}`;
+            return `<a class="home-upcoming-game" href="partido.html?id=${encodeURIComponent(game.id)}"><span class="home-upcoming-date"><span>${escapeHtml(month)}</span><strong>${escapeHtml(day)}</strong></span><span class="home-upcoming-copy"><strong>${escapeHtml(meta)}</strong><small>${escapeHtml(upcoming ? 'Próximo' : 'Final')}</small></span><span class="home-upcoming-match">${logoMarkup(game.equipo_visitante_id, visitor, 'home-match-mark')}<span>${escapeHtml(visitor)}</span><b>${escapeHtml(score)}</b>${logoMarkup(game.equipo_local_id, local, 'home-match-mark')}<span>${escapeHtml(local)}</span></span></a>`;
         }).join('') : '<div class="directory-empty">No hay próximos partidos programados.</div>';
     }
 
@@ -222,15 +256,44 @@
             { label: 'Promedio de bateo', key: 'AVG', item: [...batting].sort((a, b) => Number(b.avg || 0) - Number(a.avg || 0))[0], value: (item) => Number(item?.avg || 0).toFixed(3).replace(/^0/, '') },
             { label: 'Cuadrangulares', key: 'HR', item: [...batting].sort((a, b) => Number(b.home_runs || 0) - Number(a.home_runs || 0))[0], value: (item) => Number(item?.home_runs || 0) },
             { label: 'Impulsadas', key: 'RBI', item: [...batting].sort((a, b) => Number(b.rbi || 0) - Number(a.rbi || 0))[0], value: (item) => Number(item?.rbi || 0) },
-            { label: 'Efectividad', key: 'ERA', item: [...pitching].filter((item) => Number(item.innings_pitched || item.ip || 0) > 0).sort((a, b) => Number(a.era || 999) - Number(b.era || 999))[0], value: (item) => Number(item?.era || 0).toFixed(2) }
+            { label: 'Efectividad', key: 'ERA', item: [...pitching].filter((item) => Number(item.innings_pitched || item.ip || 0) > 0).sort((a, b) => Number(a.era ?? 999) - Number(b.era ?? 999))[0], value: (item) => Number(item?.era || 0).toFixed(2) }
         ];
         container.innerHTML = categories.map(({ label, key, item, value }) => {
-            if (!item) return `<article class="home-leader-card"><span class="home-leader-avatar">${key}</span><div><span>${label}</span><strong>Sin datos</strong></div><div class="home-leader-value">--</div></article>`;
+            if (!item) return `<article class="home-leader-card"><span class="home-leader-label">${escapeHtml(label)} (${key})</span><div class="home-leader-main"><span class="home-leader-avatar home-leader-avatar-empty">--</span><span class="home-leader-info"><strong>Sin datos</strong><b class="home-leader-value">--</b></span></div></article>`;
             const playerId = item.jugador_id || item.id;
             const playerName = item.jugador_nombre || item.nombre || 'Jugador';
-            const card = `<span class="home-leader-avatar">${escapeHtml(initials(playerName))}</span><div><span>${escapeHtml(label)} (${key})</span><strong>${escapeHtml(playerName)}</strong><small>${escapeHtml(item.equipo_nombre || '')}</small></div><div class="home-leader-value">${escapeHtml(value(item))}</div>`;
+            const card = `<span class="home-leader-label">${escapeHtml(label)} (${key})</span><div class="home-leader-main"><img class="home-leader-avatar" src="/images/avatars/${avatarForPosition(item.posicion)}" alt="" loading="lazy"><span class="home-leader-info"><strong>${escapeHtml(playerName)}</strong><small>${escapeHtml(item.equipo_nombre || '')}</small><b class="home-leader-value">${escapeHtml(value(item))}</b></span></div>`;
             return playerId ? `<a class="home-leader-card" href="jugador.html?id=${encodeURIComponent(playerId)}">${card}</a>` : `<article class="home-leader-card">${card}</article>`;
         }).join('');
+    }
+
+    function renderHomeBrief() {
+        const container = document.getElementById('homeNewsEntries');
+        if (!container) return;
+        const title = document.getElementById('homeBriefTitle');
+        const action = document.getElementById('homeBriefAction');
+        if (state.news.length) {
+            if (title) title.textContent = 'Noticias / Avisos';
+            if (action) { action.hidden = state.news.length <= 2; action.textContent = 'Ver todas →'; }
+            container.innerHTML = state.news.map((article, index) => `<article class="home-brief-item" ${index > 1 ? 'hidden' : ''}><span class="home-brief-mark home-brief-category">${escapeHtml(article.categoria === 'aviso' ? 'AVISO' : 'LIGA')}</span><span><strong>${escapeHtml(article.titulo)}</strong><small>${escapeHtml(article.resumen)}</small><small class="home-brief-date">${escapeHtml(formatDate(article.fecha_publicacion, { day: 'numeric', month: 'long', year: 'numeric' }))}</small></span></article>`).join('');
+            return;
+        }
+        if (title) title.textContent = 'Actualidad de la liga';
+        if (action) action.hidden = true;
+        const rows = [];
+        const next = state.upcoming[0];
+        if (next) {
+            const date = formatDate(next.fecha_partido || next.fecha, { day: 'numeric', month: 'long' });
+            rows.push({ title: 'Próximo encuentro', copy: `${next.equipo_visitante_nombre || 'Visitante'} vs ${next.equipo_local_nombre || 'Local'} · ${date}`, teamId: next.equipo_local_id, team: next.equipo_local_nombre, href: next.id ? `partido.html?id=${encodeURIComponent(next.id)}` : '#partidos' });
+        } else {
+            const last = recentFinals()[0];
+            if (last) {
+                rows.push({ title: 'Último resultado', copy: `${last.equipo_visitante_nombre || 'Visitante'} ${Number(last.carreras_visitante || 0)} - ${Number(last.carreras_local || 0)} ${last.equipo_local_nombre || 'Local'}`, teamId: last.equipo_local_id, team: last.equipo_local_nombre, href: `partido.html?id=${encodeURIComponent(last.id)}` });
+            }
+        }
+        const leader = [...state.standings].sort((a, b) => Number(a.ranking || 999) - Number(b.ranking || 999))[0];
+        if (leader) rows.push({ title: 'Líder de la tabla', copy: `${leader.equipo_nombre} · ${Number(leader.pg || 0)} G - ${Number(leader.pp || 0)} P · PCT ${formatPct(leader.porcentaje)}`, teamId: leader.equipo_id, team: leader.equipo_nombre, href: `equipo.html?id=${encodeURIComponent(leader.equipo_id)}` });
+        container.innerHTML = rows.length ? rows.map((row) => `<a class="home-brief-item" href="${row.href}">${logoMarkup(row.teamId, row.team, 'home-brief-mark')}<span><strong>${escapeHtml(row.title)}</strong><small>${escapeHtml(row.copy)}</small></span><span class="home-brief-arrow" aria-hidden="true">→</span></a>`).join('') : '<div class="directory-empty">La actualidad aparecerá cuando haya partidos o posiciones oficiales.</div>';
     }
 
     function renderPositionKpis() {
@@ -366,17 +429,19 @@
                 withTournament('/api/partidos?limit=1000'),
                 withTournament('/api/proximos-partidos'),
                 withTournament('/api/estadisticas-ofensivas?min_at_bats=1'),
-                withTournament('/api/estadisticas-pitcheo')
+                withTournament('/api/estadisticas-pitcheo'),
+                withTournament('/api/noticias')
             ];
             const responses = await Promise.all(paths.map((path) => getJson(path).catch(() => [])));
             if (requestToken !== dashboardRequestToken) return;
-            [state.teams, state.players, state.standings, state.games, state.upcoming, state.batting, state.pitching] = responses.map(normalizeArray);
+            [state.teams, state.players, state.standings, state.games, state.upcoming, state.batting, state.pitching, state.news] = responses.map(normalizeArray);
             loadedTournamentKey = tournamentKey;
             renderHomeKpis();
             renderHomeFeatured();
             renderHomeStandings();
             renderUpcoming();
             renderHomeLeaders();
+            renderHomeBrief();
             renderPositionKpis();
             populatePositionFilter();
             renderTeamsDirectory(document.getElementById('teamsDirectorySearch')?.value || '');
@@ -387,6 +452,14 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('error', (event) => {
+            const image = event.target;
+            if (!(image instanceof HTMLImageElement) || !image.dataset.teamInitials) return;
+            const fallback = document.createElement('span');
+            fallback.className = image.className;
+            fallback.textContent = image.dataset.teamInitials;
+            image.replaceWith(fallback);
+        }, true);
         moveSharedControls();
         placeTournamentControl();
         window.addEventListener('resize', placeTournamentControl);
@@ -394,6 +467,13 @@
         bindNavigation();
         bindDirectoryFilters();
         bindGameFilters();
+        document.getElementById('homeBriefAction')?.addEventListener('click', (event) => {
+            const button = event.currentTarget;
+            const expanded = button.getAttribute('aria-expanded') !== 'true';
+            button.setAttribute('aria-expanded', String(expanded));
+            button.textContent = expanded ? 'Ver menos ↑' : 'Ver todas →';
+            document.querySelectorAll('#homeNewsEntries .home-brief-item').forEach((item, index) => { item.hidden = !expanded && index > 1; });
+        });
         if (selectedTournamentId()) loadPublicDashboard();
 
         const tournament = document.getElementById('indexTournamentSelect');

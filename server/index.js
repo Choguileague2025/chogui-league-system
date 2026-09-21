@@ -28,6 +28,7 @@ const sseRoutes = require('./routes/sse.routes');
 const playoffsRoutes = require('./routes/playoffs.routes');
 const ligasRoutes = require('./routes/ligas.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
+const noticiasRoutes = require('./routes/noticias.routes');
 
 const app = express();
 // Railway termina TLS y reenvía la IP real en X-Forwarded-For.
@@ -98,6 +99,7 @@ app.use('/api', apiLimiter);
 app.use('/api', authRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/torneos', torneosRoutes);
+app.use('/api/noticias', noticiasRoutes);
 
 // Overrides productivos para histórico/scouting.
 app.get('/api/jugadores/:id/historico', require('./controllers/jugadores.controller').obtenerHistorico);

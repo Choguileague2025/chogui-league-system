@@ -1222,6 +1222,7 @@
             <button class="nav-tab" data-tab="posiciones">📊 Posiciones</button>
             <button class="nav-tab" data-tab="playoffs">🔥 Playoffs</button>
             <button class="nav-tab" data-tab="torneos">🗓️ Torneos</button>
+            <button class="nav-tab" data-tab="noticias">Noticias</button>
         </div>
 
         <div id="dashboard" class="tab-content active">
@@ -2328,6 +2329,27 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <div id="noticias" class="tab-content">
+            <div class="card">
+                <h3>Noticias y avisos</h3>
+                <p>Publica información oficial para el torneo elegido o para toda la liga. Los borradores no aparecen en la portada.</p>
+                <form id="newsAdminForm" class="news-admin-form">
+                    <input type="hidden" id="newsAdminId">
+                    <label>Título <input id="newsAdminTitle" maxlength="180" required></label>
+                    <label>Resumen <textarea id="newsAdminSummary" maxlength="800" rows="4" required></textarea></label>
+                    <label>Categoría <select id="newsAdminCategory"><option value="noticia">Noticia</option><option value="aviso">Aviso</option></select></label>
+                    <label>Torneo <select id="newsAdminTournament"><option value="">Toda la liga</option></select></label>
+                    <label class="news-admin-check"><input type="checkbox" id="newsAdminPublished"> Publicar en la portada</label>
+                    <div><button class="btn-primary" type="submit">Guardar artículo</button> <button class="btn-secondary" type="button" id="newsAdminReset">Nuevo borrador</button></div>
+                    <p id="newsAdminMessage" role="status" aria-live="polite"></p>
+                </form>
+            </div>
+            <div class="card">
+                <h3>Publicaciones</h3>
+                <div id="newsAdminList" class="news-admin-list">Cargando publicaciones…</div>
             </div>
         </div>
 
@@ -6236,6 +6258,20 @@
     
     <script src="js/admin_modules.min.js" defer></script>
     <script src="js/planteles_admin.js" defer></script>
+    <script src="js/noticias_admin.js?v=20260921" defer></script>
+    <style>
+        .news-admin-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+        .news-admin-form label { display: grid; gap: 6px; font-weight: 700; }
+        .news-admin-form label:nth-of-type(2), .news-admin-form .news-admin-check, .news-admin-form > div, #newsAdminMessage { grid-column: 1 / -1; }
+        .news-admin-form input:not([type=checkbox]), .news-admin-form select, .news-admin-form textarea { width: 100%; padding: 10px; border: 1px solid #394754; border-radius: 8px; color: #fff; background: #111824; }
+        .news-admin-form .news-admin-check { display: flex; align-items: center; gap: 8px; }
+        .news-admin-list { display: grid; gap: 10px; }
+        .news-admin-row { display: flex; justify-content: space-between; gap: 16px; padding: 15px; border: 1px solid #394754; border-radius: 10px; background: #111824; }
+        .news-admin-row p { margin: 7px 0; overflow-wrap: anywhere; }
+        .news-admin-row small { color: #aab4bd; }
+        .news-admin-row button { margin: 3px; min-height: 36px; }
+        @media (max-width: 680px) { .news-admin-form { grid-template-columns: 1fr; } .news-admin-row { flex-direction: column; } }
+    </style>
     <script>
     window.addEventListener('scroll', function() {
         var header = document.querySelector('.header');
