@@ -598,7 +598,7 @@
         bindNavigation();
         bindDirectoryFilters();
         bindGameFilters();
-        document.getElementById('positionsNextAction')?.addEventListener('click', () => window.mostrarPestana?.('partidos'));
+        document.getElementById('positionsNextAction')?.addEventListener('click', () => document.querySelector('.brand-nav-link[data-section="partidos"]')?.click());
         document.getElementById('homeBriefAction')?.addEventListener('click', (event) => {
             const button = event.currentTarget;
             const expanded = button.getAttribute('aria-expanded') !== 'true';
