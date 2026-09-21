@@ -26,6 +26,7 @@ function addClient(res) {
 
     // Enviar comentario inicial para mantener conexión
     res.write(':ok\n\n');
+    res.flush?.();
 
     // Agregar cliente al set
     clients.add(res);
@@ -44,6 +45,7 @@ setInterval(() => {
     clients.forEach(client => {
         try {
             client.write(':ping\n\n');
+            client.flush?.();
         } catch (error) {
             clients.delete(client);
         }
@@ -64,6 +66,7 @@ function notifyAll(event, data) {
     clients.forEach(client => {
         try {
             client.write(message);
+            client.flush?.();
         } catch (error) {
             console.error('[SSE] Error al enviar a cliente:', error.message);
             clients.delete(client);
