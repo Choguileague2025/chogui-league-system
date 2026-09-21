@@ -2398,6 +2398,221 @@ body.brand-page-shell .container {
     }
 }
 
+/* Posiciones: same broadcast composition as the approved league screen. */
+.brand-page-shell #posiciones > .positions-hero {
+    position: relative;
+    min-height: 190px;
+    margin: 0 0 10px;
+    padding: 38px 25% 32px 18%;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+    background: linear-gradient(90deg, rgba(5, 13, 19, .58), rgba(5, 13, 19, .3)), url('/images/chogui-hero-cinematic.jpg') center 51% / cover no-repeat;
+}
+.brand-page-shell #posiciones .positions-hero .screen-title {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 3px;
+    color: #fff;
+    font-size: clamp(2rem, 3.15vw, 3rem);
+    line-height: 1.08;
+    text-shadow: 0 2px 10px rgba(0,0,0,.8);
+}
+.brand-page-shell #posiciones .positions-hero-line {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    color: #f1f3f5;
+    font-size: clamp(.95rem, 1.35vw, 1.25rem);
+}
+.brand-page-shell #posiciones .positions-hero .screen-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 650px;
+    margin: 3px 0 0;
+    color: #d9dfe3;
+    font-size: .88rem;
+}
+.brand-page-shell #posiciones .positions-hero-signature {
+    position: absolute;
+    right: 32%;
+    top: 32%;
+    color: #fff;
+    font-family: 'Brush Script MT', 'Segoe Script', cursive;
+    font-size: 1.45rem;
+    font-style: italic;
+    line-height: 1;
+    text-align: center;
+    transform: rotate(-8deg);
+    text-shadow: 0 2px 8px #000;
+}
+.brand-page-shell #posiciones .positions-hero-signature::after {
+    content: '';
+    display: block;
+    width: 80%;
+    height: 2px;
+    margin: 10px auto 0;
+    background: var(--gold);
+}
+.brand-page-shell #posiciones .positions-kpi-grid { gap: 11px; margin: 0 0 11px; }
+.brand-page-shell #posiciones .positions-kpi {
+    min-width: 0;
+    min-height: 70px;
+    padding: 10px 14px;
+    gap: 12px;
+    border-radius: 9px;
+    background: #17232c;
+}
+.brand-page-shell #posiciones .positions-kpi .kpi-glyph {
+    width: 60px;
+    height: 42px;
+    border-right: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+}
+.brand-page-shell #posiciones .positions-kpi .kpi-glyph svg { width: 25px; height: 25px; stroke-width: 2.2; }
+.brand-page-shell #posiciones .positions-kpi strong { font-size: 1.55rem; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-page-shell #posiciones .positions-kpi span { font-size: .77rem; }
+.brand-page-shell #posiciones .positions-kpi small { max-width: 95px; font-size: .66rem; }
+.brand-page-shell #posiciones .positions-layout { grid-template-columns: minmax(0, 1.53fr) minmax(390px, 1fr); gap: 11px; align-items: start; }
+.brand-page-shell #posiciones #tablaPosiciones,
+.brand-page-shell #posiciones #playoffRaceHome,
+.brand-page-shell #posiciones .positions-next-panel {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: #17232c;
+    box-shadow: none;
+}
+.brand-page-shell #posiciones #tablaPosiciones { min-height: 510px; }
+.brand-page-shell #posiciones .positions-panel-title,
+.brand-page-shell #posiciones .playoff-race-header h4,
+.brand-page-shell #posiciones .positions-next-head h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 9px;
+    font-size: 1rem;
+    color: #fff;
+    text-shadow: none;
+}
+.brand-page-shell #posiciones .positions-panel-title svg { width: 22px; height: 22px; fill: var(--gold); }
+.brand-page-shell #posiciones #tablaPosiciones .table-container {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow-x: auto;
+    background: #101c25;
+}
+.brand-page-shell #posiciones .standings-table { width: 100%; min-width: 650px; table-layout: auto; }
+.brand-page-shell #posiciones .standings-table th {
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+    background: #101c25;
+    color: #d1d9df;
+    font-size: .64rem;
+    font-weight: 800;
+    text-shadow: none;
+}
+.brand-page-shell #posiciones .standings-table td {
+    height: 39px;
+    padding: 4px 6px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    background: transparent;
+    font-size: .73rem;
+    text-align: center;
+}
+.brand-page-shell #posiciones .standings-table td:nth-child(2),
+.brand-page-shell #posiciones .standings-table th:nth-child(2) { text-align: left; }
+.brand-page-shell #posiciones .standings-table tbody tr { background: #13212a; }
+.brand-page-shell #posiciones .standings-table tbody tr:hover td { background: rgba(255,255,255,.035); }
+.brand-page-shell #posiciones .standings-table tr.standings-tier-gold td:first-child { border-left-color: #3ccf78; }
+.brand-page-shell #posiciones .standings-table tr.standings-tier-green td:first-child { border-left-color: var(--gold); }
+.brand-page-shell #posiciones .standings-table tr.standings-tier-neutral td:first-child { border-left-color: var(--danger); }
+.brand-page-shell #posiciones .standings-table tr.standings-cutoff-row td { border-bottom: 1px dashed var(--gold); }
+.brand-page-shell #posiciones .standings-pos-badge { width: 24px; height: 24px; border: 0; border-radius: 5px; background: transparent; box-shadow: none; color: #fff; font-size: .86rem; }
+.brand-page-shell #posiciones .standings-team-cell { display: flex; align-items: center; gap: 6px; min-width: 0; color: #fff; text-decoration: none; }
+.brand-page-shell #posiciones .standings-team-mark { width: 29px; height: 29px; flex: 0 0 auto; border: 0; background: transparent; }
+.brand-page-shell #posiciones .standings-team-mark img { width: 29px; height: 29px; object-fit: contain; }
+.brand-page-shell #posiciones .standings-team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .74rem; font-weight: 800; }
+.brand-page-shell #posiciones .standings-table .standings-diff-positive { color: #3ccf78; }
+.brand-page-shell #posiciones .standings-table .standings-diff-negative { color: #ef5350; }
+.brand-page-shell #posiciones .positions-form { display: flex; justify-content: center; gap: 3px; }
+.brand-page-shell #posiciones .positions-form-dot { width: 19px; height: 19px; border-radius: 50%; display: inline-grid; place-items: center; color: white; font-size: .61rem; font-weight: 900; }
+.brand-page-shell #posiciones .positions-form-dot.win { background: #188d55; }
+.brand-page-shell #posiciones .positions-form-dot.loss { background: #dc4951; }
+.brand-page-shell #posiciones .positions-form-dot.draw { background: #657783; }
+.brand-page-shell #posiciones .standings-legend { margin: 8px 0 0; padding: 0; color: var(--text-muted); font-size: .68rem; }
+.brand-page-shell #posiciones .standings-legend summary { width: fit-content; cursor: pointer; }
+.brand-page-shell #posiciones .standings-legend p { margin: 5px 0 0; }
+.brand-page-shell #posiciones #positionsSide { display: grid; gap: 9px; min-width: 0; }
+.brand-page-shell #posiciones #playoffRaceHome { padding: 12px; }
+.brand-page-shell #posiciones .playoff-race-header { display: flex; align-items: start; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.brand-page-shell #posiciones .playoff-race-header h4 { margin-bottom: 2px; }
+.brand-page-shell #posiciones .playoff-race-header p { margin: 0; color: var(--text-secondary); font-size: .68rem; }
+.brand-page-shell #posiciones .playoff-race-meta { flex: 0 0 auto; max-width: 130px; color: var(--gold); font-size: .64rem; text-align: right; }
+.brand-page-shell #posiciones .positions-race-content { display: grid; grid-template-columns: minmax(0, 1fr) 124px; gap: 8px; }
+.brand-page-shell #posiciones .playoff-race-list { display: grid; gap: 5px; max-height: none; overflow: visible; }
+.brand-page-shell #posiciones .positions-race-group { overflow: hidden; border: 1px solid var(--border); border-radius: 7px; background: #13212a; }
+.brand-page-shell #posiciones .positions-race-group h5 { margin: 0; padding: 4px 7px; color: var(--gold); font-size: .66rem; }
+.brand-page-shell #posiciones .positions-race-group.direct h5 { color: #ffc107; }
+.brand-page-shell #posiciones .positions-race-group.outside h5 { color: #ef5350; }
+.brand-page-shell #posiciones .positions-race-group h5 small { font-size: .61rem; }
+.brand-page-shell #posiciones .positions-race-row { display: grid; grid-template-columns: 20px minmax(0,1fr) 17px 17px 34px 23px; align-items: center; gap: 3px; min-height: 22px; padding: 1px 5px; border-top: 1px solid rgba(255,255,255,.06); color: #e8edf0; font-size: .59rem; text-align: center; text-decoration: none; }
+.brand-page-shell #posiciones .positions-race-row:hover { background: rgba(255,255,255,.04); }
+.brand-page-shell #posiciones .positions-race-labels { min-height: 18px; color: var(--text-muted); font-size: .52rem; }
+.brand-page-shell #posiciones .positions-race-team { display: flex; min-width: 0; align-items: center; gap: 4px; text-align: left; }
+.brand-page-shell #posiciones .positions-race-team b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brand-page-shell #posiciones .positions-race-mark { width: 19px; height: 19px; flex: 0 0 auto; object-fit: contain; }
+.brand-page-shell #posiciones .playoff-race-summary { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; padding: 8px 4px; border: 1px solid var(--border); border-radius: 7px; background: #101c25; color: var(--text-secondary); font-size: .62rem; text-align: center; }
+.brand-page-shell #posiciones .positions-progress-caption { margin-bottom: 12px; color: #e7eaed; font-family: 'Brush Script MT','Segoe Script',cursive; font-size: 1.25rem; font-style: italic; transform: rotate(-7deg); }
+.brand-page-shell #posiciones .positions-progress-ring { display: grid; place-items: center; width: 75px; height: 75px; margin-bottom: 8px; border-radius: 50%; background: radial-gradient(closest-side, #101c25 72%, transparent 74%), conic-gradient(var(--gold) var(--progress), #27343e 0); color: #fff; }
+.brand-page-shell #posiciones .positions-progress-ring strong { font-size: 1rem; }
+.brand-page-shell #posiciones .playoff-race-summary b { display: block; margin-top: 5px; color: var(--gold); font-size: .7rem; }
+.brand-page-shell #posiciones .playoff-race-summary small { display: block; margin-top: 4px; color: var(--text-muted); font-size: .56rem; }
+.brand-page-shell #posiciones .positions-next-head { display: flex; justify-content: space-between; gap: 8px; }
+.brand-page-shell #posiciones .positions-next-head h3 { margin: 0 0 2px; }
+.brand-page-shell #posiciones .positions-next-head p { margin: 0 0 7px; color: var(--text-secondary); font-size: .67rem; }
+.brand-page-shell #posiciones .positions-next-head button { align-self: start; border: 0; background: transparent; color: var(--gold); font-size: .65rem; font-weight: 800; white-space: nowrap; cursor: pointer; }
+.brand-page-shell #posiciones .positions-next-list { display: grid; gap: 3px; }
+.brand-page-shell #posiciones .positions-next-game { display: grid; grid-template-columns: 54px 90px minmax(0,1fr); align-items: center; gap: 5px; min-height: 40px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 6px; background: #13212a; color: #fff; text-decoration: none; font-size: .61rem; }
+.brand-page-shell #posiciones .positions-next-date { color: #f3f5f6; font-weight: 900; text-transform: uppercase; }
+.brand-page-shell #posiciones .positions-next-meta { overflow: hidden; color: var(--text-secondary); text-overflow: ellipsis; white-space: nowrap; }
+.brand-page-shell #posiciones .positions-next-match { display: flex; align-items: center; justify-content: flex-end; gap: 3px; min-width: 0; }
+.brand-page-shell #posiciones .positions-next-match b { overflow: hidden; max-width: 70px; text-overflow: ellipsis; white-space: nowrap; }
+.brand-page-shell #posiciones .positions-next-match i { color: var(--gold); font-style: normal; white-space: nowrap; }
+.brand-page-shell #posiciones .positions-next-mark { width: 22px; height: 22px; flex: 0 0 auto; object-fit: contain; }
+
+@media (max-width: 1100px) {
+    .brand-page-shell #posiciones .positions-layout { grid-template-columns: minmax(0, 1fr); }
+    .brand-page-shell #posiciones .positions-layout > div,
+    .brand-page-shell #posiciones #positionsSide,
+    .brand-page-shell #posiciones .playoff-race-list { min-width: 0; }
+    .brand-page-shell #posiciones .positions-race-content { grid-template-columns: minmax(0,1fr) 150px; }
+}
+@media (max-width: 768px) {
+    .brand-page-shell #posiciones > .positions-hero { min-height: 225px; padding: 35px 23% 30px 9%; background-position: 62% center; }
+    .brand-page-shell #posiciones .positions-hero-signature { display: none; }
+    .brand-page-shell #posiciones .positions-kpi-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .brand-page-shell #posiciones .positions-kpi small { display: none; }
+}
+@media (max-width: 430px) {
+    .brand-page-shell #posiciones > .positions-hero { min-height: 265px; padding: 35px 20px; background-position: 68% center; }
+    .brand-page-shell #posiciones .positions-hero .screen-title { font-size: 2rem; }
+    .brand-page-shell #posiciones .positions-hero-line { font-size: .95rem; }
+    .brand-page-shell #posiciones .positions-hero .screen-copy { font-size: .75rem; }
+    .brand-page-shell #posiciones .positions-kpi { min-height: 76px; padding: 8px; gap: 6px; }
+    .brand-page-shell #posiciones .positions-kpi .kpi-glyph { width: 34px; height: 35px; }
+    .brand-page-shell #posiciones .positions-kpi strong { font-size: 1.2rem; }
+    .brand-page-shell #posiciones .positions-race-content { grid-template-columns: 1fr; }
+    .brand-page-shell #posiciones .positions-race-row { min-height: 27px; grid-template-columns: 22px minmax(0,1fr) 20px 20px 37px 25px; gap: 2px; font-size: .7rem; }
+    .brand-page-shell #posiciones .positions-race-labels { min-height: 19px; font-size: .57rem; }
+    .brand-page-shell #posiciones .positions-next-game { font-size: .7rem; }
+    .brand-page-shell #posiciones .playoff-race-summary { min-height: 128px; }
+    .brand-page-shell #posiciones .positions-next-game { grid-template-columns: 46px minmax(0,1fr); }
+    .brand-page-shell #posiciones .positions-next-match { grid-column: 1 / -1; justify-content: start; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         scroll-behavior: auto;

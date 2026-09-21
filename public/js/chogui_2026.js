@@ -56,6 +56,34 @@
         return response.json();
     };
 
+    const getTournamentConfig = () => {
+        const id = selectedTournamentId();
+        const source = typeof TournamentModule !== 'undefined' ? TournamentModule.allTorneos : [];
+        const tournament = Array.isArray(source) ? source.find((item) => String(item.id) === String(id)) : null;
+        if (!tournament) return null;
+        const teamCount = state.standings.length || state.teams.length;
+        let totalGames = Number(tournament.total_juegos) || 8;
+        let slots = Number(tournament.cupos_playoffs) || 8;
+        // Match the normalization already used by the playoff API for historic short tournaments.
+        if (totalGames === 22 && slots === 6 && (teamCount === 9 || /(joey|otoño|otono|aprendiendo)/i.test(tournament.nombre))) {
+            totalGames = 8;
+            slots = 8;
+        }
+        return { ...tournament, totalGames, slots: Math.min(slots, teamCount || slots) };
+    };
+
+    const getAllGames = async () => {
+        const first = await getJson(withTournament('/api/partidos?page=1'));
+        const games = normalizeArray(first);
+        const pages = Math.min(10, Number(first?.pagination?.pages || 1));
+        if (pages > 1) {
+            const remaining = await Promise.all(Array.from({ length: pages - 1 }, (_, index) =>
+                getJson(withTournament(`/api/partidos?page=${index + 2}`)).catch(() => ({ partidos: [] }))));
+            remaining.forEach((page) => games.push(...normalizeArray(page)));
+        }
+        return games;
+    };
+
     const formatPct = (value) => {
         const number = Number(value) || 0;
         return (number > 1 ? number / 100 : number).toFixed(3).replace(/^0/, '');
@@ -81,6 +109,70 @@
         return standing ? `${Number(standing.pg || 0)} - ${Number(standing.pp || 0)}` : '';
     };
 
+    window.choguiPositionCutoff = () => selectedTournamentId() ? (getTournamentConfig()?.slots || 8) : 0;
+    window.choguiPositionRecentForm = (teamId) => {
+        const games = recentFinals().filter((game) => String(game.equipo_local_id) === String(teamId) || String(game.equipo_visitante_id) === String(teamId)).slice(0, 5);
+        if (!games.length) return '<span class="positions-form-empty">—</span>';
+        return `<span class="positions-form">${games.map((game) => {
+            const local = String(game.equipo_local_id) === String(teamId);
+            const scored = Number(local ? game.carreras_local : game.carreras_visitante);
+            const conceded = Number(local ? game.carreras_visitante : game.carreras_local);
+            const result = scored > conceded ? 'G' : scored < conceded ? 'P' : 'E';
+            const label = result === 'G' ? 'Victoria' : result === 'P' ? 'Derrota' : 'Empate';
+            return `<span class="positions-form-dot ${result === 'G' ? 'win' : result === 'P' ? 'loss' : 'draw'}" title="${label} ${scored}-${conceded}" aria-label="${label} ${scored}-${conceded}">${result}</span>`;
+        }).join('')}</span>`;
+    };
+
+    window.choguiRenderPositionsRace = (payload, forcedMessage = null) => {
+        const headline = document.getElementById('playoffRaceHeadline');
+        const meta = document.getElementById('playoffRaceMeta');
+        const summary = document.getElementById('playoffRaceSummary');
+        const list = document.getElementById('playoffRaceList');
+        if (!headline || !meta || !summary || !list) return;
+        const config = getTournamentConfig();
+        if (!selectedTournamentId()) {
+            headline.textContent = 'Selecciona un torneo para ver su corte de playoffs.';
+            meta.textContent = '';
+            list.innerHTML = '<div class="directory-empty">La clasificación a playoffs se calcula por torneo.</div>';
+            summary.innerHTML = '';
+            return;
+        }
+        const standings = [...state.standings].sort((a, b) => Number(a.ranking || 999) - Number(b.ranking || 999));
+        const source = standings.length ? standings.map((team, index) => ({
+            ...team, posicion: Number(team.ranking || index + 1), porcentaje: Number(team.porcentaje || 0) > 1 ? Number(team.porcentaje) / 100 : Number(team.porcentaje || 0)
+        })) : (Array.isArray(payload?.equipos) ? payload.equipos : []);
+        if (!source.length) {
+            headline.textContent = forcedMessage || 'La clasificación aparecerá cuando se registren resultados.';
+            meta.textContent = '';
+            list.innerHTML = '<div class="directory-empty">Sin posiciones oficiales todavía.</div>';
+            summary.innerHTML = '';
+            return;
+        }
+        const slots = Math.min(source.length, Number(payload?.configuracion?.cupos_playoffs || config?.slots || 8));
+        const direct = Math.max(1, Math.ceil(slots / 2));
+        const totalGames = Number(payload?.configuracion?.total_juegos || config?.totalGames || 0);
+        const played = Math.round(source.reduce((sum, item) => sum + Number(item.pj || 0), 0) / 2);
+        const planned = totalGames > 0 ? Math.round(source.length * totalGames / 2) : 0;
+        const percent = planned ? Math.min(100, Math.round(played / planned * 100)) : 0;
+        const leader = source[0];
+        headline.textContent = 'Así va la lucha por un lugar en la postemporada.';
+        meta.textContent = `${slots} cupos · ${totalGames || '—'} juegos por equipo`;
+        const renderGroup = (name, className, teams, range) => {
+            if (!teams.length) return '';
+            const rows = teams.map((team) => {
+                const pct = Number(team.porcentaje || 0);
+                const gamesBack = (Number(leader.pg || 0) - Number(team.pg || 0) + Number(team.pp || 0) - Number(leader.pp || 0)) / 2;
+                const gb = gamesBack ? gamesBack.toFixed(1) : '—';
+                return `<a class="positions-race-row" href="equipo.html?id=${encodeURIComponent(team.equipo_id)}"><span>${Number(team.posicion || 0)}</span><span class="positions-race-team">${logoMarkup(team.equipo_id, team.equipo_nombre, 'positions-race-mark')}<b>${escapeHtml(team.equipo_nombre)}</b></span><span>${Number(team.pg || 0)}</span><span>${Number(team.pp || 0)}</span><span>${formatPct(pct)}</span><span>${gb}</span></a>`;
+            }).join('');
+            return `<section class="positions-race-group ${className}"><h5>${escapeHtml(name)} <small>${escapeHtml(range)}</small></h5><div class="positions-race-row positions-race-labels"><span>POS</span><span>EQUIPO</span><span>G</span><span>P</span><span>PCT</span><span>GB</span></div>${rows}</section>`;
+        };
+        list.innerHTML = renderGroup('Clasificación directa', 'direct', source.slice(0, direct), `Top ${direct}`)
+            + renderGroup('Zona Wildcard', 'wildcard', source.slice(direct, slots), `${direct + 1}°–${slots}°`)
+            + renderGroup('Fuera de clasificación', 'outside', source.slice(slots), `${slots + 1}° en adelante`);
+        summary.innerHTML = `<div class="positions-progress-caption">Cada juego cuenta.</div><div class="positions-progress-ring" style="--progress:${percent}%"><strong>${planned ? `${percent}%` : '—'}</strong></div><span>${config?.estado === 'finalizado' ? 'Torneo finalizado' : 'Temporada en curso'}</span><b>${played} de ${planned || '—'} juegos</b><small>Según el calendario configurado</small>`;
+    };
+
     const avatarForPosition = (position) => {
         const code = String(position || '').toUpperCase();
         return code === 'P' ? 'player-pitcher.svg'
@@ -104,7 +196,7 @@
 
         const playoff = document.getElementById('playoffRaceHome');
         const positionsSide = document.getElementById('positionsSide');
-        if (playoff && positionsSide && playoff.parentElement !== positionsSide) positionsSide.appendChild(playoff);
+        if (playoff && positionsSide && playoff.parentElement !== positionsSide) positionsSide.prepend(playoff);
 
         const upcoming = document.getElementById('proximos-partidos');
         const gamesSide = document.getElementById('gamesSide');
@@ -297,13 +389,13 @@
     }
 
     function renderPositionKpis() {
-        const gamesPlayed = state.standings.reduce((sum, team) => sum + Number(team.pj || 0), 0) / 2;
+        const gamesPlayed = Math.round(state.standings.reduce((sum, team) => sum + Number(team.pj || 0), 0) / 2);
         const runsFromStandings = state.standings.reduce((sum, team) => sum + Number(team.cf || 0), 0);
         const runs = runsFromStandings || state.games.reduce((sum, game) => sum + Number(game.carreras_local || 0) + Number(game.carreras_visitante || 0), 0);
-        const leader = [...state.standings].sort((a, b) => Number(b.porcentaje || 0) - Number(a.porcentaje || 0))[0];
+        const leader = [...state.standings].sort((a, b) => Number(a.ranking || 999) - Number(b.ranking || 999))[0];
         const values = {
             positionsTeamsKpi: state.standings.length || state.teams.length || '--',
-            positionsGamesKpi: Number.isFinite(gamesPlayed) ? Math.round(gamesPlayed) : '--',
+            positionsGamesKpi: gamesPlayed || '--',
             positionsLeaderKpi: leader?.equipo_nombre || '--',
             positionsRunsKpi: runs || '--'
         };
@@ -311,6 +403,42 @@
             const element = document.getElementById(id);
             if (element) element.textContent = value;
         });
+        const tournament = getTournamentConfig();
+        const season = document.getElementById('positionsSeasonLabel');
+        const tableTitle = document.getElementById('positionsTableTitle');
+        const leaderRecord = document.getElementById('positionsLeaderRecord');
+        const average = document.getElementById('positionsRunsAverage');
+        const tournamentLabel = tournament?.nombre || document.getElementById('indexTournamentSelect')?.selectedOptions?.[0]?.textContent || 'Torneo seleccionado';
+        if (season) season.textContent = tournamentLabel;
+        if (tableTitle) tableTitle.textContent = `Tabla General – ${tournamentLabel}`;
+        if (leaderRecord) leaderRecord.textContent = leader ? `${Number(leader.pg || 0)} G – ${Number(leader.pp || 0)} P` : 'Clasificación oficial';
+        if (average) average.textContent = gamesPlayed ? `${(runs / gamesPlayed).toFixed(1)} por juego` : 'Producción del torneo';
+    }
+
+    window.choguiPositionStandingsReady = (standings) => {
+        if (!Array.isArray(standings) || !standings.length) return;
+        state.standings = standings;
+        const card = document.getElementById('tablaPosiciones');
+        card?.querySelectorAll('[data-empty], [data-loader]').forEach((element) => { element.style.display = 'none'; });
+        renderPositionKpis();
+        window.choguiRenderPositionsRace(null);
+    };
+
+    function renderPositionsNextGames() {
+        const container = document.getElementById('positionsNextGames');
+        const subtitle = document.getElementById('positionsNextSubtitle');
+        if (!container) return;
+        const upcoming = state.upcoming.length > 0;
+        const games = upcoming ? state.upcoming.slice(0, 3) : recentFinals().slice(0, 3);
+        if (subtitle) subtitle.textContent = upcoming ? 'Partidos que pueden mover la tabla.' : 'No hay partidos futuros programados; consulta los últimos cruces.';
+        container.innerHTML = games.length ? games.map((game) => {
+            const date = formatDate(game.fecha_partido || game.fecha, { day: '2-digit', month: 'short' });
+            const local = game.equipo_local_nombre || 'Local';
+            const visitor = game.equipo_visitante_nombre || 'Visitante';
+            const score = upcoming ? 'vs' : `${Number(game.carreras_visitante || 0)}–${Number(game.carreras_local || 0)}`;
+            const meta = [String(game.hora || '').slice(0, 5), game.campo || game.ubicacion].filter(Boolean).join(' · ') || (upcoming ? 'Horario por definir' : 'Finalizado');
+            return `<a class="positions-next-game" href="partido.html?id=${encodeURIComponent(game.id)}"><span class="positions-next-date">${escapeHtml(date)}</span><span class="positions-next-meta">${escapeHtml(meta)}</span><span class="positions-next-match">${logoMarkup(game.equipo_visitante_id, visitor, 'positions-next-mark')}<b>${escapeHtml(visitor)}</b><i>${score}</i>${logoMarkup(game.equipo_local_id, local, 'positions-next-mark')}<b>${escapeHtml(local)}</b></span></a>`;
+        }).join('') : '<div class="directory-empty">No hay cruces cargados para este torneo.</div>';
     }
 
     function renderHomeKpis() {
@@ -426,13 +554,13 @@
                 withTournament('/api/equipos'),
                 withTournament('/api/jugadores'),
                 withTournament('/api/standings'),
-                withTournament('/api/partidos?limit=1000'),
+                null,
                 withTournament('/api/proximos-partidos'),
                 withTournament('/api/estadisticas-ofensivas?min_at_bats=1'),
                 withTournament('/api/estadisticas-pitcheo'),
                 withTournament('/api/noticias')
             ];
-            const responses = await Promise.all(paths.map((path) => getJson(path).catch(() => [])));
+            const responses = await Promise.all(paths.map((path) => (path ? getJson(path) : getAllGames()).catch(() => [])));
             if (requestToken !== dashboardRequestToken) return;
             [state.teams, state.players, state.standings, state.games, state.upcoming, state.batting, state.pitching, state.news] = responses.map(normalizeArray);
             loadedTournamentKey = tournamentKey;
@@ -443,6 +571,9 @@
             renderHomeLeaders();
             renderHomeBrief();
             renderPositionKpis();
+            if (typeof renderTablaPosiciones === 'function') renderTablaPosiciones(state.standings, document.getElementById('tablaPosicionesBody'));
+            window.choguiRenderPositionsRace(null);
+            renderPositionsNextGames();
             populatePositionFilter();
             renderTeamsDirectory(document.getElementById('teamsDirectorySearch')?.value || '');
             renderPlayersDirectory(document.getElementById('playersDirectorySearch')?.value || '', document.getElementById('playersPositionFilter')?.value || '');
@@ -456,7 +587,7 @@
             const image = event.target;
             if (!(image instanceof HTMLImageElement) || !image.dataset.teamInitials) return;
             const fallback = document.createElement('span');
-            fallback.className = image.className;
+            fallback.className = image.closest('.standings-team-mark') ? 'standings-team-initials' : image.className;
             fallback.textContent = image.dataset.teamInitials;
             image.replaceWith(fallback);
         }, true);
@@ -467,6 +598,7 @@
         bindNavigation();
         bindDirectoryFilters();
         bindGameFilters();
+        document.getElementById('positionsNextAction')?.addEventListener('click', () => window.mostrarPestana?.('partidos'));
         document.getElementById('homeBriefAction')?.addEventListener('click', (event) => {
             const button = event.currentTarget;
             const expanded = button.getAttribute('aria-expanded') !== 'true';

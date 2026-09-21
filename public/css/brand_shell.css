@@ -2110,7 +2110,6 @@ body::after {
     border-right: 1px solid rgba(19, 15, 9, 0.08);
 }
 
-.brand-page-shell .standings-table td,
 .brand-page-shell #statsTable td {
     padding: 14px 12px !important;
     font-size: 0.88rem;

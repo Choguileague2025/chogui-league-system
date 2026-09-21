@@ -28,7 +28,9 @@ function buildLimiter({ windowMs, max, message, limitName }) {
 
 const apiLimiter = buildLimiter({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    // The public dashboard loads several views and team crests in parallel.
+    // Authentication and admin writes keep their stricter separate limiters.
+    max: 300,
     limitName: 'api_general',
     message: 'Demasiadas peticiones. Intenta de nuevo en 15 minutos.'
 });
