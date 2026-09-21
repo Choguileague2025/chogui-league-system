@@ -3921,7 +3921,7 @@
         /* (professional-player-card styles removed — Phase 4 uses podio-card and lider-card) */
     </style>
     <link rel="stylesheet" href="css/brand_shell.css?v=20260921-positions">
-    <link rel="stylesheet" href="css/chogui-2026.css?v=20260921-positions">
+    <link rel="stylesheet" href="css/chogui-2026.css?v=20260921-games">
 </head>
 <body class="brand-page-shell">
     <header class="brand-topbar">
@@ -4329,20 +4329,26 @@
         </div>
 
         <div id="partidos" class="tab-content">
-            <section class="screen-intro">
-                <span class="section-eyebrow">Game Center</span>
+            <section class="screen-intro games-hero">
                 <h1 class="screen-title">Calendario y <span class="accent">Resultados</span></h1>
-                <p class="screen-copy">Partidos del torneo, marcadores oficiales y accesos al detalle de cada encuentro.</p>
+                <p class="screen-copy">Sigue tu equipo, revisa resultados y no te pierdas ningún momento de CHOGUI LEAGUE.</p>
             </section>
-            <div class="game-filter-bar" role="group" aria-label="Filtrar partidos">
-                <button class="game-filter active" type="button" data-game-filter="all">Todos los partidos</button>
-                <button class="game-filter" type="button" data-game-filter="en_vivo">En vivo</button>
-                <button class="game-filter" type="button" data-game-filter="proximo">Próximos</button>
-                <button class="game-filter" type="button" data-game-filter="finalizado">Finalizados</button>
+            <div class="game-filter-bar" aria-label="Filtrar partidos">
+                <div class="game-filter-status" role="group" aria-label="Estado del partido">
+                    <button class="game-filter active" type="button" data-game-filter="all" aria-pressed="true">Todos los partidos</button>
+                    <button class="game-filter" type="button" data-game-filter="en_vivo" aria-pressed="false">En vivo</button>
+                    <button class="game-filter" type="button" data-game-filter="proximo" aria-pressed="false">Próximos</button>
+                    <button class="game-filter" type="button" data-game-filter="finalizado" aria-pressed="false">Finalizados</button>
+                </div>
+                <div class="game-filter-options">
+                    <label class="visually-hidden" for="gamesTournamentSelect">Torneo</label><select id="gamesTournamentSelect" aria-label="Torneo"><option>Cargando torneos…</option></select>
+                    <label class="visually-hidden" for="gamesDivisionSelect">División</label><select id="gamesDivisionSelect" aria-label="División" hidden><option value="">Todas las divisiones</option></select>
+                    <div class="games-date-range"><label for="gamesDateFrom">Desde</label><input id="gamesDateFrom" type="date" aria-label="Fecha inicial"><span aria-hidden="true">–</span><label for="gamesDateTo">Hasta</label><input id="gamesDateTo" type="date" aria-label="Fecha final"></div>
+                </div>
             </div>
             <div class="games-layout">
-              <div>
-             <div class="game-center-card" id="gameCenter">
+              <div class="games-main"><div id="gamesByDate" class="games-by-date" aria-live="polite"><div class="directory-empty">Cargando calendario…</div></div>
+             <div class="games-legacy-data" aria-hidden="true"><div class="game-center-card" id="gameCenter">
                  <div class="game-center-kicker">Game Center</div>
                  <h3>Centro de partidos</h3>
                  <div class="game-center-grid" id="gameCenterGrid">
@@ -4360,9 +4366,9 @@
                  <div data-loader>Cargando...</div>
                  <div data-empty></div>
                  <div class="scoreboard-grid" id="ultimosPartidosGrid"></div>
-             </div>
+             </div></div>
               </div>
-              <aside class="section-side" id="gamesSide"></aside>
+              <aside class="section-side games-side" id="gamesSide"><div id="gamesSideContent"></div></aside>
             </div>
         </div>
 
@@ -9090,6 +9096,6 @@
     
     <script src="js/analytics.js" defer></script>
     <script src="js/index_modules.min.js?v=premium-home-20260613" defer></script>
-    <script src="js/chogui_2026.js?v=20260921-positions-2" defer></script>
+    <script src="js/chogui_2026.js?v=20260921-games" defer></script>
 </body>
 </html>

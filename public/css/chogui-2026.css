@@ -2398,6 +2398,88 @@ body.brand-page-shell .container {
     }
 }
 
+/* Partidos: broadcast calendar with real results and responsive game center. */
+.brand-page-shell #partidos .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.brand-page-shell #partidos > .games-hero {
+    min-height: 180px; margin: 0 0 11px; padding: 36px 24% 30px 18%;
+    border: 0; border-radius: 0; overflow: hidden;
+    background: linear-gradient(90deg, rgba(5,13,19,.62), rgba(5,13,19,.28)), url('/images/chogui-hero-cinematic.jpg') center 51% / cover no-repeat;
+}
+.brand-page-shell #partidos .games-hero .screen-title { margin: 0 0 7px; color: #fff; font-size: clamp(2rem,3.2vw,3rem); line-height: 1.1; text-shadow: 0 2px 10px #000; }
+.brand-page-shell #partidos .games-hero .screen-copy { max-width: 620px; color: #e0e4e8; font-size: clamp(.85rem,1.1vw,1rem); }
+.brand-page-shell #partidos .games-legacy-data,
+.brand-page-shell #partidos #gamesSide > #proximos-partidos { display: none; }
+.brand-page-shell #partidos .game-filter-bar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 0 0 12px; padding: 10px; overflow: visible; background: #15212b; }
+.brand-page-shell #partidos .game-filter-status,
+.brand-page-shell #partidos .game-filter-options { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; min-width: 0; }
+.brand-page-shell #partidos .game-filter { min-height: 38px; padding: 8px 13px; border-radius: 8px; background: #18252f; color: #eef1f4; font-size: .77rem; }
+.brand-page-shell #partidos .game-filter.active { background: var(--gold); color: #171100; }
+.brand-page-shell #partidos .game-filter-options select,
+.brand-page-shell #partidos .games-date-range { min-height: 38px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: #111c25; color: #eef1f4; font: inherit; font-size: .74rem; }
+.brand-page-shell #partidos .game-filter-options select { max-width: 180px; }
+.brand-page-shell #partidos .game-filter-options select[hidden] { display: none; }
+.brand-page-shell #partidos .games-date-range { display: flex; align-items: center; gap: 5px; }
+.brand-page-shell #partidos .games-date-range label { color: #aeb9c2; }
+.brand-page-shell #partidos .games-date-range input { width: 118px; min-width: 0; border: 0; background: transparent; color: #fff; font: inherit; color-scheme: dark; }
+.brand-page-shell #partidos .games-layout { grid-template-columns: minmax(0,1.85fr) minmax(290px,.95fr); align-items: start; gap: 12px; }
+.brand-page-shell #partidos .games-main,
+.brand-page-shell #partidos .games-side { min-width: 0; }
+.brand-page-shell #partidos .games-by-date,
+.brand-page-shell #partidos #gamesSideContent { display: grid; gap: 11px; }
+.brand-page-shell #partidos .games-day,
+.brand-page-shell #partidos .games-side-panel { min-width: 0; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: #15212b; }
+.brand-page-shell #partidos .games-day-head,
+.brand-page-shell #partidos .games-side-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 28px; padding: 0 4px 8px; }
+.brand-page-shell #partidos .games-day-head h2,
+.brand-page-shell #partidos .games-side-head h3 { margin: 0; color: #fff; font-size: .96rem; line-height: 1.2; }
+.brand-page-shell #partidos .games-day-head h2::first-letter { text-transform: uppercase; }
+.brand-page-shell #partidos .games-day-head > span { flex: none; color: #9aa9b4; font-size: .7rem; }
+.brand-page-shell #partidos .games-side-head a { color: var(--gold); font-size: .65rem; text-decoration: none; white-space: nowrap; }
+.brand-page-shell #partidos .games-day-list { display: grid; gap: 6px; }
+.brand-page-shell #partidos .games-match { display: grid; grid-template-columns: 128px minmax(0,1fr) 112px; align-items: center; gap: 9px; min-height: 90px; padding: 10px; border: 1px solid rgba(255,255,255,.11); border-radius: 8px; background: #17242e; }
+.brand-page-shell #partidos .games-match.is-live { border-color: var(--gold); }
+.brand-page-shell #partidos .games-match-meta { display: grid; justify-items: start; gap: 2px; min-width: 0; color: #aab5bc; font-size: .67rem; }
+.brand-page-shell #partidos .games-match-meta > strong { color: #fff; font-size: .81rem; }
+.brand-page-shell #partidos .games-match-meta > span { overflow-wrap: anywhere; }
+.brand-page-shell #partidos .games-state { display: inline-block; padding: 3px 7px; border-radius: 7px; background: #294962; color: #dcecf8; font-size: .57rem; font-weight: 900; letter-spacing: .03em; white-space: nowrap; }
+.brand-page-shell #partidos .games-state.en_vivo { background: #bd333b; color: #fff; }
+.brand-page-shell #partidos .games-state.proximo { background: #1b4939; color: #d5ffe5; }
+.brand-page-shell #partidos .games-match-center { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 6px; min-width: 0; text-align: center; }
+.brand-page-shell #partidos .games-competitor { display: grid; justify-items: center; gap: 1px; min-width: 0; }
+.brand-page-shell #partidos .games-team-logo { width: 34px; height: 34px; object-fit: contain; }
+.brand-page-shell #partidos .games-competitor strong { overflow: hidden; max-width: 100%; color: #fff; font-size: .69rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.brand-page-shell #partidos .games-competitor small { color: #aeb9c2; font-size: .62rem; }
+.brand-page-shell #partidos .games-score strong { display: block; color: #fff; font-size: clamp(1.1rem,2vw,1.8rem); white-space: nowrap; }
+.brand-page-shell #partidos .games-score strong span { color: #aeb6bc; }
+.brand-page-shell #partidos .games-score .games-vs { font-size: .95rem; }
+.brand-page-shell #partidos .games-score small { color: #c3cbd0; font-size: .61rem; }
+.brand-page-shell #partidos .games-detail { display: flex; justify-content: center; align-items: center; gap: 6px; min-height: 34px; padding: 5px 8px; border: 1px solid #51636e; border-radius: 7px; color: #fff; text-decoration: none; text-align: center; font-size: .67rem; font-weight: 800; }
+.brand-page-shell #partidos .games-detail.primary { border-color: var(--gold); background: var(--gold); color: #191300; }
+.brand-page-shell #partidos .games-detail:hover { border-color: var(--gold); }
+.brand-page-shell #partidos .games-side-panel { padding: 10px; }
+.brand-page-shell #partidos .games-featured { padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #182630; text-align: center; }
+.brand-page-shell #partidos .games-featured p { margin: 0 0 9px; color: #cad2d8; font-size: .68rem; }
+.brand-page-shell #partidos .games-featured-match { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 4px; }
+.brand-page-shell #partidos .games-featured-match > div { display: grid; justify-items: center; gap: 5px; min-width: 0; }
+.brand-page-shell #partidos .games-featured-match strong { overflow-wrap: anywhere; color: #fff; font-size: .68rem; }
+.brand-page-shell #partidos .games-featured-match > b { color: #fff; font-size: 1.5rem; white-space: nowrap; }
+.brand-page-shell #partidos .games-featured-logo { width: 58px; height: 58px; object-fit: contain; }
+.brand-page-shell #partidos .games-featured .games-detail { margin-top: 10px; }
+.brand-page-shell #partidos .games-mini-table { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.brand-page-shell #partidos .games-mini-head,
+.brand-page-shell #partidos .games-mini-table > a { display: grid; grid-template-columns: 20px minmax(0,1fr) 24px 24px 40px; align-items: center; gap: 4px; min-height: 28px; padding: 3px 8px; border-bottom: 1px solid var(--border); color: #fff; font-size: .66rem; text-decoration: none; }
+.brand-page-shell #partidos .games-mini-head { color: #aab5bd; font-size: .58rem; }
+.brand-page-shell #partidos .games-mini-table > a:last-child { border-bottom: 0; }
+.brand-page-shell #partidos .games-mini-table > a > span:nth-child(2) { display: flex; align-items: center; gap: 5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.brand-page-shell #partidos .games-mini-logo { width: 22px; height: 22px; flex: none; object-fit: contain; }
+.brand-page-shell #partidos .games-week-item { display: flex; gap: 9px; min-height: 34px; align-items: center; padding: 4px 7px; border: 1px solid var(--border); border-radius: 6px; color: #fff; text-decoration: none; font-size: .7rem; }
+.brand-page-shell #partidos .games-week-item + .games-week-item { margin-top: 4px; }
+.brand-page-shell #partidos .games-week-item time { min-width: 45px; color: var(--gold); font-weight: 900; text-transform: uppercase; }
+.brand-page-shell #partidos .games-empty { padding: 20px 12px; color: #aeb9c2; font-size: .78rem; text-align: center; }
+@media (max-width: 1100px) { .brand-page-shell #partidos .games-layout { grid-template-columns: minmax(0,1fr); } .brand-page-shell #partidos #gamesSideContent { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 768px) { .brand-page-shell #partidos > .games-hero { min-height: 225px; padding: 35px 26% 30px 9%; background-position: 63% center; } .brand-page-shell #partidos .game-filter-options { width: 100%; } }
+@media (max-width: 580px) { .brand-page-shell #partidos > .games-hero { min-height: 250px; padding: 32px 17px; background-position: 68% center; } .brand-page-shell #partidos .games-hero .screen-title { font-size: 2rem; } .brand-page-shell #partidos .game-filter-status { display: grid; width: 100%; grid-template-columns: repeat(2,minmax(0,1fr)); } .brand-page-shell #partidos .game-filter { white-space: normal; } .brand-page-shell #partidos .game-filter-options select { flex: 1; max-width: none; } .brand-page-shell #partidos .games-date-range { width: 100%; justify-content: space-between; } .brand-page-shell #partidos .games-date-range input { width: 105px; } .brand-page-shell #partidos #gamesSideContent { grid-template-columns: 1fr; } .brand-page-shell #partidos .games-match { grid-template-columns: minmax(0,1fr); gap: 6px; } .brand-page-shell #partidos .games-match-meta { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; } .brand-page-shell #partidos .games-match-center { padding: 5px 0; } .brand-page-shell #partidos .games-detail { min-height: 40px; } }
+
 /* Posiciones: same broadcast composition as the approved league screen. */
 .brand-page-shell #posiciones > .positions-hero {
     position: relative;

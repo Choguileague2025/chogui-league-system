@@ -530,18 +530,102 @@
     function bindGameFilters() {
         document.querySelectorAll('[data-game-filter]').forEach((button) => {
             button.addEventListener('click', () => {
-                document.querySelectorAll('[data-game-filter]').forEach((item) => item.classList.remove('active'));
+                document.querySelectorAll('[data-game-filter]').forEach((item) => { item.classList.remove('active'); item.setAttribute('aria-pressed', 'false'); });
                 button.classList.add('active');
-                const filter = button.dataset.gameFilter;
-                document.querySelectorAll('#gameCenterGrid .game-center-row, #ultimosPartidosGrid .scoreboard-card').forEach((card) => {
-                    const text = card.textContent.toLowerCase();
-                    const visible = filter === 'all'
-                        || (filter === 'en_vivo' && text.includes('en vivo'))
-                        || (filter === 'finalizado' && (text.includes('final') || card.classList.contains('results')))
-                        || (filter === 'proximo' && (text.includes('programado') || text.includes('previa')));
-                    card.hidden = !visible;
-                });
+                button.setAttribute('aria-pressed', 'true');
+                renderGamesScreen();
             });
+        });
+        ['gamesDateFrom', 'gamesDateTo', 'gamesDivisionSelect'].forEach((id) => {
+            document.getElementById(id)?.addEventListener('change', renderGamesScreen);
+        });
+        document.getElementById('gamesTournamentSelect')?.addEventListener('change', (event) => {
+            const global = document.getElementById('indexTournamentSelect');
+            if (!global || global.value === event.target.value) return;
+            global.value = event.target.value;
+            global.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    }
+
+    const gameKind = (game) => game.estado === 'en_vivo' ? 'en_vivo'
+        : game.estado === 'finalizado' ? 'finalizado' : 'proximo';
+
+    function renderGamesScreen() {
+        const list = document.getElementById('gamesByDate');
+        const side = document.getElementById('gamesSideContent');
+        if (!list || !side) return;
+        const globalTournament = document.getElementById('indexTournamentSelect');
+        const tournament = document.getElementById('gamesTournamentSelect');
+        if (globalTournament && tournament) {
+            tournament.innerHTML = globalTournament.innerHTML;
+            tournament.value = globalTournament.value;
+        }
+        const divisionSelect = document.getElementById('gamesDivisionSelect');
+        const divisionValues = [...new Set(state.games.map((game) => game.division_nombre || game.division).filter(Boolean))].sort();
+        if (divisionSelect) {
+            const previous = divisionSelect.value;
+            divisionSelect.innerHTML = '<option value="">Todas las divisiones</option>' + divisionValues.map((division) => `<option value="${escapeHtml(division)}">${escapeHtml(division)}</option>`).join('');
+            divisionSelect.hidden = !divisionValues.length;
+            divisionSelect.value = divisionValues.includes(previous) ? previous : '';
+        }
+        const from = document.getElementById('gamesDateFrom')?.value || '';
+        const to = document.getElementById('gamesDateTo')?.value || '';
+        const kind = document.querySelector('[data-game-filter].active')?.dataset.gameFilter || 'all';
+        const division = divisionSelect?.value || '';
+        const dateKey = (game) => String(game.fecha_partido || game.fecha || '').slice(0, 10);
+        const games = [...state.games].filter((game) => {
+            const date = dateKey(game);
+            return (kind === 'all' || gameKind(game) === kind)
+                && (!division || (game.division_nombre || game.division) === division)
+                && (!from || (date && date >= from)) && (!to || (date && date <= to));
+        }).sort((a, b) => {
+            const date = dateKey(b).localeCompare(dateKey(a));
+            return date || String(b.hora || '').localeCompare(String(a.hora || '')) || Number(b.id || 0) - Number(a.id || 0);
+        });
+        const grouped = new Map();
+        games.forEach((game) => {
+            const key = dateKey(game) || 'sin-fecha';
+            if (!grouped.has(key)) grouped.set(key, []);
+            grouped.get(key).push(game);
+        });
+        list.innerHTML = games.length ? [...grouped.entries()].map(([date, rows]) => {
+            const title = date === 'sin-fecha' ? 'Fecha por definir' : formatDate(date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            return `<section class="games-day"><div class="games-day-head"><h2>${escapeHtml(title)}</h2><span>${rows.length} partido${rows.length === 1 ? '' : 's'}</span></div><div class="games-day-list">${rows.map(renderGameRow).join('')}</div></section>`;
+        }).join('') : '<div class="games-empty">No hay partidos para estos filtros. Cambia el estado o las fechas para consultar el calendario.</div>';
+        renderGamesSidebar(side);
+    }
+
+    function renderGameRow(game) {
+        const kind = gameKind(game);
+        const live = kind === 'en_vivo';
+        const final = kind === 'finalizado';
+        const local = game.equipo_local_nombre || 'Local';
+        const visitor = game.equipo_visitante_nombre || 'Visitante';
+        const time = game.hora ? String(game.hora).slice(0, 5) : 'Hora por definir';
+        const location = game.campo || game.ubicacion || 'Campo por definir';
+        const division = game.division_nombre || game.division || '';
+        const score = final || live ? `${Number(game.carreras_visitante ?? 0)} <span>–</span> ${Number(game.carreras_local ?? 0)}` : '<span class="games-vs">VS</span>';
+        const status = live ? 'EN VIVO' : final ? 'FINAL' : 'PRÓXIMO';
+        const inning = live && game.innings_jugados ? `<small>Entrada ${Number(game.innings_jugados)}</small>` : '';
+        const href = `partido.html?id=${encodeURIComponent(game.id)}`;
+        return `<article class="games-match ${live ? 'is-live' : ''}"><div class="games-match-meta"><strong>${escapeHtml(time)}</strong><span>${escapeHtml(location)}</span>${division ? `<span>${escapeHtml(division)}</span>` : ''}<b class="games-state ${kind}">${status}</b></div><div class="games-match-center"><div class="games-competitor">${logoMarkup(game.equipo_visitante_id, visitor, 'games-team-logo')}<strong>${escapeHtml(visitor)}</strong><small>${escapeHtml(teamRecord(game.equipo_visitante_id))}</small></div><div class="games-score"><strong>${score}</strong>${inning}</div><div class="games-competitor">${logoMarkup(game.equipo_local_id, local, 'games-team-logo')}<strong>${escapeHtml(local)}</strong><small>${escapeHtml(teamRecord(game.equipo_local_id))}</small></div></div><a class="games-detail ${live ? 'primary' : ''}" href="${href}">${live ? 'Ver en vivo' : final ? 'Ver detalle' : 'Ver previa'} <span aria-hidden="true">→</span></a></article>`;
+    }
+
+    function renderGamesSidebar(side) {
+        const live = state.games.find((game) => gameKind(game) === 'en_vivo');
+        const upcoming = [...state.games].filter((game) => gameKind(game) === 'proximo').sort((a, b) => String(a.fecha_partido).localeCompare(String(b.fecha_partido)))[0];
+        const featured = live || upcoming || recentFinals()[0];
+        const standings = [...state.standings].sort((a, b) => Number(a.ranking || 999) - Number(b.ranking || 999)).slice(0, 5);
+        const upcomingWeek = [...state.games].filter((game) => {
+            if (gameKind(game) !== 'proximo') return false;
+            const diff = Date.parse(game.fecha_partido || game.fecha || '') - Date.now();
+            return diff >= -86400000 && diff <= 7 * 86400000;
+        }).sort((a, b) => String(a.fecha_partido).localeCompare(String(b.fecha_partido))).slice(0, 4);
+        side.innerHTML = `<section class="games-side-panel"><div class="games-side-head"><h3>Partido destacado</h3>${featured ? `<span class="games-state ${gameKind(featured)}">${gameKind(featured) === 'en_vivo' ? 'EN VIVO' : gameKind(featured) === 'finalizado' ? 'FINAL' : 'PRÓXIMO'}</span>` : ''}</div>${featured ? `<div class="games-featured"><p>${escapeHtml(formatDate(featured.fecha_partido || featured.fecha, { day: 'numeric', month: 'long', year: 'numeric' }))}${featured.hora ? ` · ${escapeHtml(String(featured.hora).slice(0, 5))}` : ''}</p><div class="games-featured-match"><div>${logoMarkup(featured.equipo_visitante_id, featured.equipo_visitante_nombre, 'games-featured-logo')}<strong>${escapeHtml(featured.equipo_visitante_nombre || 'Visitante')}</strong></div><b>${gameKind(featured) === 'proximo' ? 'VS' : `${Number(featured.carreras_visitante ?? 0)} – ${Number(featured.carreras_local ?? 0)}`}</b><div>${logoMarkup(featured.equipo_local_id, featured.equipo_local_nombre, 'games-featured-logo')}<strong>${escapeHtml(featured.equipo_local_nombre || 'Local')}</strong></div></div><a class="games-detail primary" href="partido.html?id=${encodeURIComponent(featured.id)}">${gameKind(featured) === 'en_vivo' ? 'Ver en vivo' : gameKind(featured) === 'finalizado' ? 'Ver detalle' : 'Ver previa'} →</a></div>` : '<div class="games-empty">Aún no hay partidos cargados.</div>'}</section><section class="games-side-panel"><div class="games-side-head"><h3>Tabla de posiciones</h3><a href="#posiciones">Ver tabla completa →</a></div><div class="games-mini-table"><div class="games-mini-head"><span>#</span><span>Equipo</span><span>G</span><span>P</span><span>PCT</span></div>${standings.map((team, index) => `<a href="equipo.html?id=${encodeURIComponent(team.equipo_id)}"><span>${index + 1}</span><span>${logoMarkup(team.equipo_id, team.equipo_nombre, 'games-mini-logo')}${escapeHtml(team.equipo_nombre)}</span><span>${Number(team.pg || 0)}</span><span>${Number(team.pp || 0)}</span><span>${formatPct(team.porcentaje)}</span></a>`).join('') || '<div class="games-empty">Sin posiciones todavía.</div>'}</div></section><section class="games-side-panel"><div class="games-side-head"><h3>Próximos 7 días</h3><a href="#partidos" data-games-upcoming>Ver calendario →</a></div>${upcomingWeek.length ? upcomingWeek.map((game) => `<a class="games-week-item" href="partido.html?id=${encodeURIComponent(game.id)}"><time>${escapeHtml(formatDate(game.fecha_partido || game.fecha, { day: '2-digit', month: 'short' }))}</time><span>${escapeHtml(game.equipo_visitante_nombre || 'Visitante')} vs ${escapeHtml(game.equipo_local_nombre || 'Local')}</span></a>`).join('') : '<div class="games-empty">No hay partidos programados para los próximos 7 días.</div>'}</section>`;
+        side.querySelector('[data-games-upcoming]')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            document.querySelector('[data-game-filter="proximo"]')?.click();
+            document.getElementById('gamesByDate')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     }
 
@@ -574,6 +658,7 @@
             if (typeof renderTablaPosiciones === 'function') renderTablaPosiciones(state.standings, document.getElementById('tablaPosicionesBody'));
             window.choguiRenderPositionsRace(null);
             renderPositionsNextGames();
+            renderGamesScreen();
             populatePositionFilter();
             renderTeamsDirectory(document.getElementById('teamsDirectorySearch')?.value || '');
             renderPlayersDirectory(document.getElementById('playersDirectorySearch')?.value || '', document.getElementById('playersPositionFilter')?.value || '');
