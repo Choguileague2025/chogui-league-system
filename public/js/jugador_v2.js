@@ -459,7 +459,6 @@ async function loadTournaments() {
         select.addEventListener('change', (e) => {
             currentTournamentId = e.target.value === 'todos' ? 'todos' : parseInt(e.target.value);
             loadPlayerInfo();
-            loadAllStats();
         });
     } catch (error) {
         console.error('Error cargando torneos:', error);
@@ -549,6 +548,7 @@ async function loadAllStats() {
         setHtml('pitchingTableBody', '<tr><td colspan="11" class="empty-state-v2">Esperando nuevo torneo público</td></tr>');
         setHtml('defensiveTableBody', '<tr><td colspan="7" class="empty-state-v2">Esperando nuevo torneo público</td></tr>');
         await Promise.all([loadHistoricalStats(), loadGameLog('')]);
+        document.dispatchEvent(new Event('chogui:player-data'));
         return;
     }
 
@@ -572,6 +572,7 @@ async function loadAllStats() {
     });
 
     registerPlayerShareCard();
+    document.dispatchEvent(new Event('chogui:player-data'));
 }
 
 async function loadHistoricalStats() {

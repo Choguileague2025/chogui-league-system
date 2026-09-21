@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/brand_shell.css">
     <link rel="stylesheet" href="css/chogui-2026.css?v=20260920">
     <link rel="stylesheet" href="css/share_media.css">
+    <link rel="stylesheet" href="css/jugador-dashboard.css?v=20260921-player">
 </head>
 <body class="brand-page-shell">
     <header class="brand-topbar">
@@ -29,7 +30,7 @@
                 <a href="index.html#posiciones" class="brand-nav-link">Posiciones</a>
                 <a href="index.html#partidos" class="brand-nav-link">Partidos</a>
                 <a href="index.html#equipos" class="brand-nav-link">Equipos</a>
-                <a href="index.html#jugadores" class="brand-nav-link">Jugadores</a>
+                <a href="index.html#jugadores" class="brand-nav-link active">Jugadores</a>
                 <a href="index.html#estadisticas" class="brand-nav-link">Estadísticas</a>
                 <a href="login.html" class="brand-admin-link">Admin</a>
             </nav>
@@ -37,6 +38,20 @@
     </header>
 
     <div class="container">
+        <section class="player-showcase" aria-label="Perfil del jugador">
+            <div class="player-showcase-photo"><span id="playerDashboardNumber"></span><img id="playerDashboardAvatar" src="/images/avatars/player-utility.svg" alt="Avatar ilustrado del jugador"></div>
+            <div class="player-showcase-info"><span class="player-eyebrow">JUGADOR</span><h1 id="playerDashboardName">Cargando jugador...</h1><a id="playerDashboardTeam" class="player-team-link" href="index.html#equipos"></a><div id="playerDashboardDetails" class="player-showcase-details"></div><div id="playerDashboardBadges" class="player-dashboard-badges"></div></div>
+            <div class="player-showcase-note">CHOGUI<br>LEAGUE<span>SOFTBALL · PASIÓN · COMUNIDAD</span></div>
+        </section>
+        <div id="playerMobileTournamentHost" class="player-mobile-tournament-host"></div>
+        <div class="player-dashboard-kpis"><div><span>Promedio de bateo · AVG</span><strong id="playerKpiAvg">—</strong></div><div><span>Cuadrangulares · HR</span><strong id="playerKpiHr">—</strong></div><div><span>Impulsadas · RBI</span><strong id="playerKpiRbi">—</strong></div><div><span>Producción · OPS</span><strong id="playerKpiOps">—</strong></div></div>
+        <nav class="player-dashboard-tabs" aria-label="Secciones del jugador"><button type="button" class="active" data-profile-tab="resumen">Resumen</button><button type="button" data-profile-tab="partidos">Últimos partidos</button><button type="button" data-profile-tab="splits">Splits</button><button type="button" data-profile-tab="biografia">Biografía</button><button type="button" data-profile-tab="comparar">Comparar</button><button type="button" data-profile-tab="completas">Estadísticas completas</button></nav>
+        <div id="profilePanelResumen" class="player-dashboard-panel"><div class="player-dashboard-layout"><div class="player-dashboard-main"><section class="player-dashboard-card" id="playerSeasonSummary"></section><section class="player-dashboard-card" id="playerRecentSummary"></section></div><div class="player-dashboard-side"><section class="player-dashboard-card" id="playerProfileSummary"></section><section class="player-dashboard-card player-radar-card"><h2>Radar de rendimiento</h2><div id="playerRadarHost"></div></section><section class="player-dashboard-card" id="playerAwardsSummary" hidden></section></div></div></div>
+        <div id="profilePanelPartidos" class="player-dashboard-panel" hidden><section class="player-dashboard-card" id="playerAllGames"></section></div>
+        <div id="profilePanelSplits" class="player-dashboard-panel" hidden><section class="player-dashboard-card"><h2>Splits y rendimiento por rival</h2><div id="playerSplitsHost"></div></section></div>
+        <div id="profilePanelBiografia" class="player-dashboard-panel" hidden><section class="player-dashboard-card" id="playerBiography"></section></div>
+        <div id="profilePanelComparar" class="player-dashboard-panel" hidden><section class="player-dashboard-card"><h2>Comparar jugadores</h2><div id="playerCompareHost"></div></section></div>
+        <div id="profilePanelCompletas" class="player-dashboard-panel" hidden>
         <section class="brand-hero">
             <div class="brand-hero-inner">
                 <div class="brand-hero-logo">
@@ -119,8 +134,8 @@
                     </div>
                 </div>
                 <!-- TOURNAMENT SELECTOR -->
-                <div class="tournament-selector">
-                    <label for="tournamentSelect">🏆 Torneo:</label>
+                <div class="tournament-selector player-header-tournament">
+                    <label for="tournamentSelect">Torneo</label>
                     <select id="tournamentSelect">
                         <option value="">Cargando...</option>
                     </select>
@@ -148,12 +163,12 @@
 
         <!-- TABS NAVIGATION -->
         <nav class="player-tabs">
-            <button class="player-tab active" data-tab="ofensivas">⚾ Ofensivas</button>
-            <button class="player-tab" data-tab="pitcheo">🥎 Pitcheo</button>
-            <button class="player-tab" data-tab="defensivas">🛡️ Defensivas</button>
-            <button class="player-tab" data-tab="comparacion">📊 Comparación</button>
-            <button class="player-tab" data-tab="historico">🏆 Histórico</button>
-            <button class="player-tab" data-tab="gamelog">🗓️ Juego a juego</button>
+            <button class="player-tab active" data-tab="ofensivas">Ofensivas</button>
+            <button class="player-tab" data-tab="pitcheo">Pitcheo</button>
+            <button class="player-tab" data-tab="defensivas">Defensivas</button>
+            <button class="player-tab" data-tab="comparacion">Comparación</button>
+            <button class="player-tab" data-tab="historico">Histórico</button>
+            <button class="player-tab" data-tab="gamelog">Juego a juego</button>
         </nav>
 
         <!-- TAB PANELS -->
@@ -517,7 +532,10 @@
             <a href="index.html" class="btn-primary">🏠 Volver al Inicio</a>
             <a href="#" id="backToTeamButton" class="btn-secondary">🏅 Volver al Equipo</a>
         </div>
+        </div>
     </div>
+
+    <section class="player-sponsors" aria-label="Patrocinadores de Chogui League"><strong>Patrocinadores</strong><img src="/images/sponsors/deportes-bd.png" alt="Deportes BD"><img src="/images/sponsors/la-santa-barbershop.png" alt="La Santa Barbershop"><img src="/images/sponsors/ag.png" alt="AG"><img src="/images/sponsors/ap-import.png" alt="AP Import"><img src="/images/sponsors/western-union.png" alt="Western Union"><img src="/images/sponsors/iphone-go.png" alt="iPhone Go"></section>
 
     <footer class="main-footer">
         <div class="footer-content">
@@ -540,7 +558,7 @@
         </div>
         <div class="footer-bottom">
             <div class="footer-credits">
-                <span>Copyright ©2025 ATRAELAB / All rights reserved</span>
+                <span>© 2026 CHOGUI LEAGUE · ATRAELAB</span>
             </div>
         </div>
     </footer>
@@ -549,6 +567,7 @@
     <script src="js/share_media.js" defer></script>
     <script src="js/chogui_shell.js?v=20260920" defer></script>
     <script src="js/jugador_v2.js" defer></script>
+    <script src="js/jugador_dashboard.js?v=20260921-player" defer></script>
     <script>
     window.addEventListener('scroll', function() {
         var header = document.querySelector('.header');

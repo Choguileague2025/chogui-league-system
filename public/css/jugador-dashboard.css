@@ -1,0 +1,80 @@
+/* Public player profile, using the approved CHOGUI broadcast layout. */
+.brand-page-shell .brand-nav-link.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+.brand-page-shell .container { padding-top: 0; }
+.brand-page-shell .player-dashboard-panel[hidden],
+.brand-page-shell .player-dashboard-card[hidden] { display: none !important; }
+.brand-page-shell .player-showcase { position: relative; display: grid; grid-template-columns: 215px minmax(0, 1fr) 180px; align-items: end; gap: 20px; min-height: 245px; margin: 0 0 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.08); border-radius: 0 0 12px 12px; background: linear-gradient(90deg,rgba(7,16,23,.96),rgba(7,16,23,.86) 50%,rgba(7,16,23,.5)),url('/images/chogui-hero-cinematic.jpg') center 53% / cover no-repeat; }
+.brand-page-shell .player-showcase-photo { position: relative; align-self: stretch; display: flex; align-items: flex-end; justify-content: center; min-height: 240px; background: linear-gradient(0deg,rgba(255,193,7,.13),transparent 58%); }
+.brand-page-shell .player-showcase-photo img { display: block; width: min(190px, 95%); height: 218px; object-fit: contain; object-position: bottom; filter: drop-shadow(0 3px 13px rgba(0,0,0,.5)); }
+.brand-page-shell #playerDashboardNumber { position: absolute; top: 15px; left: 18px; z-index: 2; color: var(--gold); font-size: 1.9rem; font-weight: 950; }
+.brand-page-shell .player-showcase-info { align-self: center; min-width: 0; padding: 17px 0; }
+.brand-page-shell .player-eyebrow { color: #c3cdd2; font-size: .65rem; font-weight: 800; letter-spacing: .24em; }
+.brand-page-shell #playerDashboardName { margin: 3px 0 8px; color: #fff; font-size: clamp(1.8rem,3vw,2.8rem); font-weight: 950; line-height: 1.08; overflow-wrap: anywhere; }
+.brand-page-shell .player-team-link { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; font-size: .88rem; }
+.brand-page-shell .player-team-link:hover { color: var(--gold); }
+.brand-page-shell .player-team-link img { width: 27px; height: 27px; object-fit: contain; }
+.brand-page-shell .player-showcase-details { display: flex; flex-wrap: wrap; gap: 0; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.15); }
+.brand-page-shell .player-showcase-details > div { display: grid; min-width: 95px; gap: 3px; padding: 0 14px; border-left: 1px solid rgba(255,255,255,.17); }
+.brand-page-shell .player-showcase-details > div:first-child { padding-left: 0; border-left: 0; }
+.brand-page-shell .player-showcase-details span { color: #acbac3; font-size: .62rem; }
+.brand-page-shell .player-showcase-details strong { color: #fff; font-size: .72rem; }
+.brand-page-shell .player-dashboard-badges { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.brand-page-shell .player-dashboard-badges span { padding: 5px 11px; border: 1px solid rgba(255,255,255,.2); border-radius: 20px; background: rgba(16,28,36,.65); color: #eaf0f2; font-size: .65rem; font-weight: 700; }
+.brand-page-shell .player-showcase-note { align-self: center; padding: 0 18px 0 0; color: #fff; font-size: 1.05rem; font-weight: 900; letter-spacing: .24em; line-height: 1.3; text-align: right; }
+.brand-page-shell .player-showcase-note span { display: block; margin-top: 8px; color: var(--gold); font-size: .48rem; line-height: 1.5; }
+.brand-page-shell .player-dashboard-kpis { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin: 0 0 14px; }
+.brand-page-shell .player-dashboard-kpis > div { display: grid; min-height: 88px; align-content: center; gap: 2px; padding: 14px 20px; border: 1px solid rgba(255,255,255,.13); border-radius: 11px; background: #15222b; }
+.brand-page-shell .player-dashboard-kpis span { color: #c2cbd1; font-size: .67rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+.brand-page-shell .player-dashboard-kpis strong { color: #fff; font-size: clamp(1.35rem,2.2vw,2rem); font-weight: 900; line-height: 1.1; }
+.brand-page-shell .player-dashboard-kpis > div:nth-child(2) strong { color: var(--gold); }
+.brand-page-shell .player-dashboard-tabs { display: flex; align-items: stretch; gap: 5px; margin-bottom: 12px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,.17); scrollbar-width: thin; }
+.brand-page-shell .player-dashboard-tabs button { flex: none; min-height: 43px; padding: 10px 13px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #c9d2d7; font: inherit; font-size: .75rem; font-weight: 750; cursor: pointer; white-space: nowrap; }
+.brand-page-shell .player-dashboard-tabs button:hover, .brand-page-shell .player-dashboard-tabs button.active { border-bottom-color: var(--gold); color: var(--gold); }
+.brand-page-shell .player-dashboard-panel { min-width: 0; min-height: 270px; }
+.brand-page-shell .player-dashboard-layout { display: grid; grid-template-columns: minmax(0,1.38fr) minmax(300px,1fr); gap: 11px; }
+.brand-page-shell .player-dashboard-main, .brand-page-shell .player-dashboard-side { display: grid; align-content: start; gap: 11px; min-width: 0; }
+.brand-page-shell .player-dashboard-card { min-width: 0; padding: 13px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: #15222b; }
+.brand-page-shell .player-dashboard-card h2 { margin: 0 0 12px; color: #fff; font-size: .91rem; line-height: 1.25; }
+.brand-page-shell .player-dashboard-card h2::before { content: ''; display: inline-block; width: 4px; height: 14px; margin-right: 8px; border-radius: 3px; background: var(--gold); vertical-align: -2px; }
+.brand-page-shell .player-dashboard-card h3 { margin: 15px 0 5px; color: #cbd5db; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; }
+.brand-page-shell .player-dashboard-card h3:first-of-type { margin-top: 0; }
+.brand-page-shell .player-card-head { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+.brand-page-shell .player-card-head button { padding: 0; border: 0; background: none; color: var(--gold); font-size: .67rem; cursor: pointer; white-space: nowrap; }
+.brand-page-shell .player-table-scroll { max-width: 100%; overflow-x: auto; scrollbar-width: thin; }
+.brand-page-shell .player-dashboard-table { width: 100%; border-collapse: collapse; color: #f4f6f7; font-size: .68rem; }
+.brand-page-shell .player-dashboard-table th { padding: 8px 7px; border-bottom: 1px solid rgba(255,255,255,.16); background: #10202a; color: #b8c7ce; text-align: left; font-size: .58rem; font-weight: 700; white-space: nowrap; }
+.brand-page-shell .player-dashboard-table td { padding: 9px 7px; border-bottom: 1px solid rgba(255,255,255,.09); white-space: nowrap; }
+.brand-page-shell .player-dashboard-table th:not(:first-child), .brand-page-shell .player-dashboard-table td:not(:first-child) { text-align: center; }
+.brand-page-shell .player-dashboard-table tbody tr:hover { background: rgba(255,255,255,.035); }
+.brand-page-shell .player-rival-link { display: inline-flex; align-items: center; gap: 5px; color: #fff; text-decoration: none; }
+.brand-page-shell .player-rival-link:hover, .brand-page-shell .player-detail-link:hover { color: var(--gold); }
+.brand-page-shell .player-rival-link img { width: 22px; height: 22px; object-fit: contain; }
+.brand-page-shell .player-detail-link { color: var(--gold); text-decoration: none; }
+.brand-page-shell .player-result { display: inline-block; min-width: 18px; font-weight: 900; }
+.brand-page-shell .player-result.win { color: #52d781; }
+.brand-page-shell .player-result.loss { color: #ff6969; }
+.brand-page-shell .player-profile-list > div { display: flex; justify-content: space-between; gap: 16px; padding: 9px 2px; border-bottom: 1px solid rgba(255,255,255,.09); color: #e4eaed; font-size: .73rem; }
+.brand-page-shell .player-profile-list span, .brand-page-shell .player-muted { color: #afbdc5; }
+.brand-page-shell .player-profile-list strong, .brand-page-shell .player-profile-list a { color: #fff; text-align: right; text-decoration: none; }
+.brand-page-shell .player-profile-list a:hover { color: var(--gold); }
+.brand-page-shell .player-muted { margin: 10px 0 0; font-size: .77rem; line-height: 1.5; }
+.brand-page-shell .player-radar-card { min-height: 230px; }
+.brand-page-shell #playerRadarHost { display: flex; justify-content: center; min-height: 190px; }
+.brand-page-shell #radarChart { max-width: 360px; max-height: 255px; }
+.brand-page-shell #profilePanelSplits .detailed-table-section, .brand-page-shell #profilePanelComparar .detailed-table-section { margin: 0; padding: 0; border: 0; background: transparent; }
+.brand-page-shell #profilePanelComparar .player-tab { border-radius: 8px; }
+.brand-page-shell #profilePanelComparar .comparable-player-card { border: 1px solid rgba(255,255,255,.16); background: #12212a; color: #f1f4f6; }
+.brand-page-shell #profilePanelComparar .comparable-player-card.active { border-color: var(--gold); background: #233039; color: #fff; }
+.brand-page-shell #profilePanelCompletas .brand-hero, .brand-page-shell #profilePanelCompletas .breadcrumb, .brand-page-shell #profilePanelCompletas .team-main-card, .brand-page-shell #profilePanelCompletas .player-insight-strip { display: none !important; }
+.brand-page-shell #profilePanelCompletas .page-quicknav { margin-bottom: 12px; }
+.brand-page-shell .player-header-tournament { display: flex; align-items: center; gap: 5px; margin: 0 6px; padding: 0; border: 0; background: transparent; }
+.brand-page-shell .player-header-tournament label { color: #b9c4ca; font-size: .68rem; }
+.brand-page-shell .player-header-tournament select { max-width: 160px; min-height: 36px; padding: 7px 23px 7px 9px; border: 1px solid rgba(255,193,7,.6); border-radius: 8px; background: #111b24; color: #fff; font-size: .72rem; }
+.brand-page-shell .player-mobile-tournament-host { display: none; }
+.brand-page-shell .player-sponsors { display: flex; align-items: center; justify-content: space-between; gap: 18px; width: var(--shell); min-height: 64px; margin: 8px auto 0; padding: 8px 12px; border-top: 1px solid var(--border); }
+.brand-page-shell .player-sponsors strong { max-width: 110px; color: #c3cdd3; font-size: .63rem; letter-spacing: .1em; text-transform: uppercase; }
+.brand-page-shell .player-sponsors img { max-width: min(95px,12%); max-height: 37px; object-fit: contain; filter: grayscale(1); opacity: .75; }
+@media (max-width: 1050px) { .brand-page-shell .player-showcase { grid-template-columns: 175px minmax(0,1fr); } .brand-page-shell .player-showcase-photo { min-height: 220px; } .brand-page-shell .player-showcase-photo img { height: 195px; } .brand-page-shell .player-showcase-note { display: none; } }
+@media (max-width: 800px) { .brand-page-shell .player-dashboard-layout { grid-template-columns: minmax(0,1fr); } .brand-page-shell .player-dashboard-side { grid-template-columns: repeat(2,minmax(0,1fr)); } .brand-page-shell #playerAwardsSummary { grid-column: 1 / -1; } }
+@media (max-width: 760px) { .brand-page-shell .player-mobile-tournament-host { display: flex; justify-content: flex-end; padding: 9px 0; } .brand-page-shell .player-header-tournament { margin: 0; } .brand-page-shell .player-sponsors { flex-wrap: wrap; justify-content: center; } .brand-page-shell .player-sponsors strong { width: 100%; max-width: none; text-align: center; } .brand-page-shell .player-sponsors img { max-width: 24%; } .brand-page-shell .player-showcase { grid-template-columns: 125px minmax(0,1fr); min-height: 215px; } .brand-page-shell .player-showcase-photo { min-height: 210px; } .brand-page-shell .player-showcase-photo img { height: 165px; } .brand-page-shell #playerDashboardNumber { font-size: 1.3rem; } .brand-page-shell .player-showcase-details > div { min-width: 80px; padding: 0 8px; } .brand-page-shell .player-dashboard-kpis { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 480px) { .brand-page-shell .player-showcase { grid-template-columns: 95px minmax(0,1fr); gap: 8px; min-height: 225px; background-position: 61% center; } .brand-page-shell .player-showcase-photo { min-height: 220px; } .brand-page-shell .player-showcase-photo img { width: 95px; height: 145px; } .brand-page-shell #playerDashboardNumber { top: 12px; left: 6px; font-size: 1.05rem; } .brand-page-shell .player-showcase-info { padding-right: 9px; } .brand-page-shell #playerDashboardName { font-size: clamp(1.35rem,6vw,1.8rem); } .brand-page-shell .player-showcase-details { gap: 6px 0; margin-top: 9px; padding-top: 8px; } .brand-page-shell .player-showcase-details > div { min-width: 76px; } .brand-page-shell .player-showcase-details > div:nth-child(3) { padding-left: 0; border-left: 0; } .brand-page-shell .player-dashboard-side { grid-template-columns: minmax(0,1fr); } .brand-page-shell .player-dashboard-kpis > div { min-height: 76px; padding: 10px 12px; } .brand-page-shell .player-dashboard-kpis strong { font-size: 1.45rem; } .brand-page-shell .player-dashboard-tabs button { padding: 10px; font-size: .69rem; } }
