@@ -19,6 +19,7 @@ let allTorneos = [];
 let sseConnection = null;
 let teamGamesWithBoxscore = [];
 let teamBattingRows = [];
+let teamPitchingRows = [];
 let currentBattingPage = 1;
 const TEAM_BATTING_PAGE_SIZE = 10;
 
@@ -40,13 +41,9 @@ function registerTeamShareCard() {
             const pct = document.getElementById('teamWinPct')?.textContent || '--';
             const diff = document.getElementById('teamSignalDiff')?.textContent || '';
             const position = document.getElementById('teamPositionStat')?.textContent || '--';
-            let tone = 'default';
-            if (/playoff|clasifica|adentro/i.test(zoneText)) tone = 'playoff';
-            if (/persigue|corte|pelea|acecho/i.test(zoneText)) tone = 'chase';
-
             return {
                 type: 'equipo',
-                tone,
+                tone: 'default',
                 kicker: document.getElementById('teamHeroKicker')?.textContent || 'Perfil oficial del equipo',
                 tournamentName,
                 title: document.getElementById('teamHeroTitle')?.textContent || teamData.nombre || 'Perfil del equipo',
@@ -61,6 +58,8 @@ function registerTeamShareCard() {
                 fileName: `equipo-${teamData.nombre || 'perfil'}`,
                 linkLabel: diff ? `DIF ${diff}` : (currentTorneoId ? 'Torneo seleccionado' : 'Todos los torneos'),
                 brandText: tournamentName ? `${tournamentName} • choguileague.site` : 'choguileague.site',
+                disableSponsors: true,
+                disableWatermark: true,
                 metrics: [
                     { label: 'Récord', value: record },
                     { label: 'Posición', value: position },
@@ -199,6 +198,8 @@ async function cargarTodosLosDatos() {
         ]);
     } catch (error) {
         console.error('Error cargando datos del equipo:', error);
+    } finally {
+        document.dispatchEvent(new Event('chogui:team-data'));
     }
 }
 
@@ -243,7 +244,7 @@ function renderizarInformacionEquipo() {
 
     // URL amigable
     const nombreAmigable = teamData.nombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    window.history.replaceState(null, document.title, `equipo.html?id=${currentTeamId}&nombre=${nombreAmigable}`);
+    window.history.replaceState(null, document.title, `equipo.html?id=${currentTeamId}&nombre=${nombreAmigable}${window.location.hash}`);
 
     // Breadcrumb
     const breadcrumb = document.getElementById('teamBreadcrumb');
@@ -1513,6 +1514,7 @@ async function cargarTopBateadores() {
         const torneoQuery = currentTorneoId ? `&torneo_id=${currentTorneoId}` : '';
 
         if (rosterData.length === 0) {
+            teamBattingRows = [];
             tbody.innerHTML = '<tr><td colspan="14" class="empty-cell">No hay jugadores</td></tr>';
             return;
         }
@@ -1587,6 +1589,7 @@ async function cargarTopLanzadores() {
         const torneoQuery = currentTorneoId ? `&torneo_id=${currentTorneoId}` : '';
 
         if (rosterData.length === 0) {
+            teamPitchingRows = [];
             tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">No hay jugadores</td></tr>';
             return;
         }
@@ -1620,6 +1623,7 @@ async function cargarTopLanzadores() {
 
         // Sort by ERA asc (lower is better), show ALL pitchers
         playerAggs.sort((a, b) => a.era - b.era);
+        teamPitchingRows = playerAggs;
 
         if (playerAggs.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Sin estadísticas disponibles</td></tr>';
@@ -1640,6 +1644,7 @@ async function cargarTopLanzadores() {
 
     } catch (error) {
         console.error('Error cargando top lanzadores:', error);
+        teamPitchingRows = [];
         tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Error cargando datos</td></tr>';
     }
 }
@@ -1722,7 +1727,7 @@ async function cargarPartidosRecientes() {
     const container = document.getElementById('recentGamesContainer');
     try {
         const torneoQuery = currentTorneoId ? `&torneo_id=${currentTorneoId}` : '';
-        const response = await fetch(`/api/partidos?equipo_id=${currentTeamId}&limit=10${torneoQuery}`);
+        const response = await fetch(`/api/partidos?equipo_id=${currentTeamId}&limit=1000${torneoQuery}`);
         if (!response.ok) throw new Error(`Error cargando partidos: ${response.status}`);
 
         const data = await response.json();
@@ -1900,9 +1905,8 @@ function conectarSSE() {
         sseConnection.addEventListener('stats-update', function (e) {
             console.log('[SSE] Stats update recibido');
             // Reload collective stats and top players
-            cargarEstadisticasColectivas();
-            cargarTopBateadores();
-            cargarTopLanzadores();
+            Promise.all([cargarEstadisticasColectivas(), cargarTopBateadores(), cargarTopLanzadores()])
+                .finally(() => document.dispatchEvent(new Event('chogui:team-data')));
         });
 
         sseConnection.addEventListener('tournament-change', function (e) {
@@ -2005,7 +2009,7 @@ function verJugador(jugadorId) {
 }
 
 function mostrarErrorEquipo(mensaje) {
-    const mainCard = document.querySelector('.team-main-card');
+    const mainCard = document.getElementById('teamPanelResumen') || document.querySelector('.team-main-card');
     if (!mainCard) return;
     mainCard.innerHTML = `
         <div style="text-align:center;padding:40px 20px;">

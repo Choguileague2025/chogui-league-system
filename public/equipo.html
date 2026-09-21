@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="equipo.min.css">
     <link rel="stylesheet" href="css/equipo_v2.min.css">
     <link rel="stylesheet" href="css/brand_shell.css">
-    <link rel="stylesheet" href="css/chogui-2026.css?v=20260920">
+    <link rel="stylesheet" href="css/chogui-2026.css?v=20260921-team">
+    <link rel="stylesheet" href="css/equipo-dashboard.css?v=20260921-team">
     <link rel="stylesheet" href="css/share_media.css">
 </head>
 <body class="brand-page-shell">
@@ -28,108 +29,33 @@
                 <a href="index.html#inicio" class="brand-nav-link">Inicio</a>
                 <a href="index.html#posiciones" class="brand-nav-link">Posiciones</a>
                 <a href="index.html#partidos" class="brand-nav-link">Partidos</a>
-                <a href="index.html#equipos" class="brand-nav-link">Equipos</a>
+                <a href="index.html#equipos" class="brand-nav-link active">Equipos</a>
                 <a href="index.html#jugadores" class="brand-nav-link">Jugadores</a>
                 <a href="index.html#estadisticas" class="brand-nav-link">Estadísticas</a>
+                <div class="tournament-selector-v2 team-header-tournament"><label for="tournamentSelect">Torneo</label><select id="tournamentSelect"><option value="">Cargando...</option></select></div>
                 <a href="login.html" class="brand-admin-link">Admin</a>
             </nav>
         </div>
     </header>
 
     <div class="container">
-        <section class="brand-hero">
-            <div class="brand-hero-inner">
-                <div class="brand-hero-logo">
-                    <img id="heroTeamLogo" src="/images/logos/chogui-league.png" alt="Escudo del equipo">
-                </div>
-                <div class="brand-hero-copy">
-                    <span class="brand-hero-kicker" id="teamHeroKicker">Perfil oficial del equipo</span>
-                    <h1 class="brand-hero-title" id="teamHeroTitle">Perfil del Equipo</h1>
-                    <p class="brand-hero-subtitle" id="teamHeroSubtitle">Plantilla, histórico y rendimiento oficial dentro de la liga.</p>
-                    <div class="brand-hero-actions" aria-label="Acciones del equipo">
-                        <button class="brand-action-btn" type="button" data-share-link>
-                            <span>🔗</span>
-                            <span>Compartir enlace</span>
-                        </button>
-                        <button class="brand-action-btn accent" type="button" data-download-card>
-                            <span>📸</span>
-                            <span>Descargar imagen</span>
-                        </button>
-                        <button class="brand-action-btn subtle" type="button" data-download-story>
-                            <span>📱</span>
-                            <span>Descargar story</span>
-                        </button>
-                        <span class="brand-action-feedback" data-share-feedback aria-live="polite"></span>
-                    </div>
-                </div>
-                <div class="brand-hero-badge">
-                    <span id="teamHeroBadgeLabel">Ciudad</span>
-                    <strong id="teamHeroBadgeValue">--</strong>
-                    <span id="teamHeroBadgeMeta">Equipo oficial</span>
-                </div>
+        <section class="team-showcase" aria-label="Perfil del equipo">
+            <div class="team-showcase-breadcrumb"><a href="index.html#equipos">Equipos</a><span aria-hidden="true">›</span><strong id="teamBreadcrumb">Cargando...</strong></div>
+            <div class="team-showcase-main">
+                <img id="heroTeamLogo" src="/images/logos/chogui-league.png" alt="Escudo del equipo">
+                <div class="team-showcase-copy"><span id="teamHeroKicker">Perfil oficial del equipo</span><h1 id="teamHeroTitle">Perfil del Equipo</h1><p id="teamHeroSubtitle">Plantilla, histórico y rendimiento oficial dentro de la liga.</p><div class="team-showcase-kpis"><div><strong id="teamDashboardRecord">--</strong><span>Récord</span></div><div><strong id="teamDashboardPosition">--</strong><span>Posición en la liga</span></div><div><strong id="teamDashboardStreak">--</strong><span>Racha actual</span></div></div></div>
             </div>
+            <div class="team-share-controls"><button type="button" data-share-link>Compartir equipo</button><button type="button" data-download-card>Descargar imagen</button><button type="button" data-download-story>Descargar story</button><span data-share-feedback aria-live="polite"></span></div>
         </section>
-
-        <!-- BREADCRUMB -->
-        <div class="breadcrumb">
-            <a href="index.html">🏠 Inicio</a>
-            <span>></span>
-            <a href="index.html#posiciones">📊 Posiciones</a>
-            <span>></span>
-            <strong id="teamBreadcrumb" style="color: #ffc107;">Cargando...</strong>
-        </div>
-
-        <nav class="page-quicknav" aria-label="Navegación rápida del equipo">
-            <a class="page-quicknav-link" href="#playoffPathSection">Playoffs</a>
-            <a class="page-quicknav-link" href="#teamGamesSection">Juegos</a>
-            <a class="page-quicknav-link" href="#teamHistorySection">Histórico</a>
-            <a class="page-quicknav-link" href="#headToHeadSection">Cara a cara</a>
-            <a class="page-quicknav-link" href="#teamCompareSection">Comparador</a>
-            <a class="page-quicknav-link" href="#teamRosterSection">Plantilla</a>
-        </nav>
-
-        <!-- TEAM MAIN CARD + TOURNAMENT SELECTOR -->
-        <div class="team-main-card">
-            <div class="team-header">
-                <div class="team-logo" id="teamLogo"></div>
-                <div class="team-info">
-                    <h2 id="teamName">Cargando equipo...</h2>
-                    <div class="team-subtitle" id="teamLocation">-</div>
-                    <div style="color: #fff; margin-top: 10px;">
-                        <strong>Manager:</strong> <span id="teamManager">-</span>
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">
-                        <strong>Fundado:</strong> <span id="teamFounded">-</span>
-                    </div>
-                </div>
-                <!-- TOURNAMENT SELECTOR -->
-                <div class="tournament-selector-v2">
-                    <label for="tournamentSelect">🏆 Torneo:</label>
-                    <select id="tournamentSelect">
-                        <option value="">Cargando...</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="team-stats-row" id="teamStatsRow">
-                <div class="stat-item">
-                    <span class="stat-value" id="teamRecord">-</span>
-                    <span class="stat-label">Récord (G-P)</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="teamPositionStat">-</span>
-                    <span class="stat-label">Posición</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="teamWinPct">-.---</span>
-                    <span class="stat-label">Porcentaje</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="teamRuns">-</span>
-                    <span class="stat-label">Carreras</span>
-                </div>
-            </div>
-        </div>
+        <div id="teamMobileTournamentHost" class="team-mobile-tournament-host"></div>
+        <div class="team-data-hooks team-main-card" aria-hidden="true"><span id="teamHeroBadgeLabel"></span><strong id="teamHeroBadgeValue"></strong><span id="teamHeroBadgeMeta"></span><div class="team-logo" id="teamLogo"></div><span id="teamName"></span><span id="teamLocation"></span><span id="teamManager"></span><span id="teamFounded"></span><div id="teamStatsRow"><span id="teamRecord"></span><span id="teamPositionStat"></span><span id="teamWinPct"></span><span id="teamRuns"></span></div></div>
+        <nav class="team-profile-tabs" aria-label="Secciones del equipo"><button type="button" class="active" data-team-panel="resumen" aria-pressed="true">Resumen</button><button type="button" data-team-panel="roster" aria-pressed="false">Roster</button><button type="button" data-team-panel="calendario" aria-pressed="false">Calendario</button><button type="button" data-team-panel="estadisticas" aria-pressed="false">Estadísticas</button><button type="button" data-team-panel="analisis" aria-pressed="false">Más análisis</button></nav>
+        <div class="team-panel active" id="teamPanelResumen"><div class="team-overview-grid"><section class="team-dashboard-card" id="teamDashboardStaff"></section><section class="team-dashboard-card" id="teamDashboardIntro"></section><section class="team-dashboard-card" id="teamDashboardResults"></section></div><div class="team-overview-bottom"><section class="team-dashboard-card" id="teamDashboardRoster"></section><section class="team-dashboard-card" id="teamDashboardLeaders"></section><section class="team-dashboard-card" id="teamDashboardStats"></section></div></div>
+        <div class="team-panel" id="teamPanelRoster" hidden></div>
+        <div class="team-panel" id="teamPanelCalendario" hidden></div>
+        <div class="team-panel" id="teamPanelEstadisticas" hidden></div>
+        <div class="team-panel" id="teamPanelAnalisis" hidden>
+        <nav class="page-quicknav" aria-label="Navegación avanzada del equipo"><a class="page-quicknav-link" href="#playoffPathSection">Playoffs</a><a class="page-quicknav-link" href="#teamGamesSection">Juegos</a><a class="page-quicknav-link" href="#teamHistorySection">Histórico</a><a class="page-quicknav-link" href="#headToHeadSection">Cara a cara</a><a class="page-quicknav-link" href="#teamCompareSection">Comparador</a><a class="page-quicknav-link" href="#teamRosterSection">Plantilla</a></nav>
 
         <section class="team-signal-strip" aria-label="Estado competitivo del equipo">
             <div class="team-signal-card featured">
@@ -573,8 +499,10 @@
             <a href="index.html#posiciones" class="btn-secondary">📊 Ver Posiciones</a>
             <a href="login.html" class="btn-secondary">⚙️ Panel Admin</a>
         </div>
+        </div><!-- /teamPanelAnalisis -->
     </div>
 
+    <section class="team-sponsors" aria-label="Patrocinadores de Chogui League"><strong>Patrocinadores</strong><img src="/images/sponsors/deportes-bd.png" alt="Deportes BD"><img src="/images/sponsors/la-santa-barbershop.png" alt="La Santa Barbershop"><img src="/images/sponsors/ag.png" alt="AG"><img src="/images/sponsors/ap-import.png" alt="AP Import"><img src="/images/sponsors/western-union.png" alt="Western Union"><img src="/images/sponsors/iphone-go.png" alt="iPhone Go"></section>
     <footer class="main-footer">
         <div class="footer-content">
             <div class="footer-section">
@@ -604,7 +532,8 @@
     <script src="js/analytics.js" defer></script>
     <script src="js/share_media.js" defer></script>
     <script src="js/chogui_shell.js?v=20260920" defer></script>
-    <script src="js/equipo_v2.js?v=batting-pages-20260722" defer></script>
+    <script src="js/equipo_v2.js?v=20260921-team" defer></script>
+    <script src="js/equipo_dashboard.js?v=20260921-team" defer></script>
     <script>
     document.addEventListener('click', function(event) {
         if (event.target.closest('a[href]')) return;
