@@ -134,16 +134,29 @@ async function cargarTorneos() {
         }
 
         select.disabled = false;
-        select.innerHTML = '<option value="">Todos los torneos</option>';
-        const selected = new URLSearchParams(location.search).get('torneo_id') || sessionStorage.getItem('publicTorneoId');
-        const activo = allTorneos.find(t => String(t.id) === selected) || allTorneos.find(t => t.activo) || allTorneos[0];
+        select.replaceChildren();
+        const current = allTorneos.filter(t => !['finalizado', 'archivado'].includes(t.estado));
+        const selected = new URLSearchParams(location.search).get('torneo_id');
+        if (sessionStorage.getItem('publicTorneoSelectionVersion') !== '2026-new-editions') {
+            sessionStorage.removeItem('publicTorneoId');
+            sessionStorage.setItem('publicTorneoSelectionVersion', '2026-new-editions');
+        }
+        const saved = sessionStorage.getItem('publicTorneoId');
+        const find = (list, id) => list.find(t => String(t.id) === String(id));
+        const activo = find(allTorneos, selected) || find(allTorneos, saved) || current.find(t => t.activo) || current[0] || allTorneos[0];
 
-        allTorneos.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.id;
-            opt.textContent = t.nombre + (t.activo ? ' (Activo)' : '');
-            select.appendChild(opt);
-        });
+        for (const [label, tournaments] of [['Torneos actuales', current], ['Historial', allTorneos.filter(t => ['finalizado', 'archivado'].includes(t.estado))]]) {
+            if (!tournaments.length) continue;
+            const group = document.createElement('optgroup');
+            group.label = label;
+            tournaments.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = t.nombre;
+                group.appendChild(opt);
+            });
+            select.appendChild(group);
+        }
 
         // Default to active tournament
         if (activo) {

@@ -440,22 +440,31 @@ async function loadTournaments() {
         }
 
         select.disabled = false;
-        select.innerHTML = '<option value="todos">Todos los torneos</option>';
+        select.replaceChildren();
+        const current = torneos.filter(torneo => !['finalizado', 'archivado'].includes(torneo.estado));
+        for (const [label, tournaments] of [['Torneos actuales', current], ['Historial', torneos.filter(torneo => ['finalizado', 'archivado'].includes(torneo.estado))]]) {
+            if (!tournaments.length) continue;
+            const group = document.createElement('optgroup');
+            group.label = label;
+            tournaments.forEach(torneo => {
+                const option = document.createElement('option');
+                option.value = torneo.id;
+                option.textContent = torneo.nombre;
+                group.appendChild(option);
+            });
+            select.appendChild(group);
+        }
 
-        torneos.forEach(torneo => {
-            const option = document.createElement('option');
-            option.value = torneo.id;
-            option.textContent = torneo.nombre + (torneo.activo ? ' (Activo)' : '');
-            if (torneo.activo && !currentTournamentId) {
-                option.selected = true;
-                currentTournamentId = torneo.id;
-            }
-            select.appendChild(option);
-        });
-
-        const saved = new URLSearchParams(location.search).get('torneo_id') || sessionStorage.getItem('publicTorneoId');
-        if (torneos.some(t => String(t.id) === saved)) { currentTournamentId = saved; select.value = saved; }
-        if (!currentTournamentId && torneos[0]) { currentTournamentId = torneos[0].id; select.value = currentTournamentId; }
+        const requested = new URLSearchParams(location.search).get('torneo_id');
+        if (sessionStorage.getItem('publicTorneoSelectionVersion') !== '2026-new-editions') {
+            sessionStorage.removeItem('publicTorneoId');
+            sessionStorage.setItem('publicTorneoSelectionVersion', '2026-new-editions');
+        }
+        const saved = sessionStorage.getItem('publicTorneoId');
+        const find = (list, id) => list.find(torneo => String(torneo.id) === String(id));
+        const chosen = find(torneos, requested) || find(torneos, saved) || current.find(torneo => torneo.activo) || current[0] || torneos[0];
+        currentTournamentId = chosen.id;
+        select.value = String(chosen.id);
         select.addEventListener('change', (e) => {
             currentTournamentId = e.target.value === 'todos' ? 'todos' : parseInt(e.target.value);
             loadPlayerInfo();

@@ -30,29 +30,37 @@ const TournamentModule = {
                 return;
             }
 
+            const current = this.allTorneos.filter(torneo => !['finalizado', 'archivado'].includes(torneo.estado));
+            const history = this.allTorneos.filter(torneo => ['finalizado', 'archivado'].includes(torneo.estado));
             select.disabled = false;
-            select.innerHTML = '<option value="todos">Todos los torneos</option>';
-
-            this.allTorneos.forEach(torneo => {
-                const option = document.createElement('option');
-                option.value = torneo.id;
-                option.textContent = torneo.nombre + (torneo.activo ? ' (Activo)' : '');
-                if (torneo.activo && !this.currentTournamentId) {
-                    option.selected = true;
-                    this.currentTournamentId = String(torneo.id);
-                }
-                select.appendChild(option);
-            });
-
-            const saved = new URLSearchParams(location.search).get('torneo_id') || sessionStorage.getItem('publicTorneoId');
-            if (this.allTorneos.some(t => String(t.id) === saved)) {
-                this.currentTournamentId = saved;
-                select.value = saved;
+            select.replaceChildren();
+            for (const [label, tournaments] of [['Torneos actuales', current], ['Historial', history]]) {
+                if (!tournaments.length) continue;
+                const group = document.createElement('optgroup');
+                group.label = label;
+                tournaments.forEach(torneo => {
+                    const option = document.createElement('option');
+                    option.value = torneo.id;
+                    option.textContent = torneo.nombre;
+                    group.appendChild(option);
+                });
+                select.appendChild(group);
             }
-            if (!this.currentTournamentId && this.allTorneos[0]) {
-                this.currentTournamentId = String(this.allTorneos[0].id);
-                select.value = this.currentTournamentId;
+
+            const requested = new URLSearchParams(location.search).get('torneo_id');
+            if (sessionStorage.getItem('publicTorneoSelectionVersion') !== '2026-new-editions') {
+                sessionStorage.removeItem('publicTorneoId');
+                sessionStorage.setItem('publicTorneoSelectionVersion', '2026-new-editions');
             }
+            const saved = sessionStorage.getItem('publicTorneoId');
+            const match = (list, id) => list.find(torneo => String(torneo.id) === String(id));
+            const chosen = match(this.allTorneos, requested)
+                || match(this.allTorneos, saved)
+                || current.find(torneo => torneo.activo)
+                || current[0]
+                || this.allTorneos[0];
+            this.currentTournamentId = String(chosen.id);
+            select.value = this.currentTournamentId;
 
             if (!select.dataset.boundTournamentListener) {
                 select.addEventListener('change', (e) => {

@@ -9,7 +9,8 @@
         upcoming: [],
         batting: [],
         pitching: [],
-        news: []
+        news: [],
+        awards: null
     };
     let dashboardRequestToken = 0;
     let loadedTournamentKey = null;
@@ -43,6 +44,10 @@
         const select = document.getElementById('indexTournamentSelect');
         return select && select.value && select.value !== 'todos' ? select.value : '';
     };
+
+    const profileTournamentQuery = () => selectedTournamentId() ? `&torneo_id=${encodeURIComponent(selectedTournamentId())}` : '';
+    const teamProfileUrl = (id) => `equipo.html?id=${encodeURIComponent(id)}${profileTournamentQuery()}`;
+    const playerProfileUrl = (id) => `jugador.html?id=${encodeURIComponent(id)}${profileTournamentQuery()}`;
 
     const withTournament = (path) => {
         const tournamentId = selectedTournamentId();
@@ -163,7 +168,7 @@
                 const pct = Number(team.porcentaje || 0);
                 const gamesBack = (Number(leader.pg || 0) - Number(team.pg || 0) + Number(team.pp || 0) - Number(leader.pp || 0)) / 2;
                 const gb = gamesBack ? gamesBack.toFixed(1) : '—';
-                return `<a class="positions-race-row" href="equipo.html?id=${encodeURIComponent(team.equipo_id)}"><span>${Number(team.posicion || 0)}</span><span class="positions-race-team">${logoMarkup(team.equipo_id, team.equipo_nombre, 'positions-race-mark')}<b>${escapeHtml(team.equipo_nombre)}</b></span><span>${Number(team.pg || 0)}</span><span>${Number(team.pp || 0)}</span><span>${formatPct(pct)}</span><span>${gb}</span></a>`;
+                return `<a class="positions-race-row" href="${teamProfileUrl(team.equipo_id)}"><span>${Number(team.posicion || 0)}</span><span class="positions-race-team">${logoMarkup(team.equipo_id, team.equipo_nombre, 'positions-race-mark')}<b>${escapeHtml(team.equipo_nombre)}</b></span><span>${Number(team.pg || 0)}</span><span>${Number(team.pp || 0)}</span><span>${formatPct(pct)}</span><span>${gb}</span></a>`;
             }).join('');
             return `<section class="positions-race-group ${className}"><h5>${escapeHtml(name)} <small>${escapeHtml(range)}</small></h5><div class="positions-race-row positions-race-labels"><span>POS</span><span>EQUIPO</span><span>G</span><span>P</span><span>PCT</span><span>GB</span></div>${rows}</section>`;
         };
@@ -308,7 +313,7 @@
         body.innerHTML = ordered.length ? ordered.map((team, index) => `
             <tr data-equipo-id="${escapeHtml(team.equipo_id)}">
                 <td>${escapeHtml(team.ranking || index + 1)}</td>
-                <td><a class="home-standings-team" href="equipo.html?id=${encodeURIComponent(team.equipo_id)}">${logoMarkup(team.equipo_id, team.equipo_nombre, 'home-team-mark')}<span>${escapeHtml(team.equipo_nombre)}</span></a></td>
+                <td><a class="home-standings-team" href="${teamProfileUrl(team.equipo_id)}">${logoMarkup(team.equipo_id, team.equipo_nombre, 'home-team-mark')}<span>${escapeHtml(team.equipo_nombre)}</span></a></td>
                 <td>${Number(team.pg || 0)}</td><td>${Number(team.pp || 0)}</td><td>${formatPct(team.porcentaje)}</td>
             </tr>`).join('') : '<tr><td colspan="5">Todavía no hay clasificación disponible.</td></tr>';
     }
@@ -342,20 +347,20 @@
     function renderHomeLeaders() {
         const container = document.getElementById('homeLeadersGrid');
         if (!container) return;
-        const batting = state.batting;
-        const pitching = state.pitching;
+        const batting = state.awards?.categorias?.ofensiva || {};
+        const pitching = state.awards?.categorias?.pitcheo || {};
         const categories = [
-            { label: 'Promedio de bateo', key: 'AVG', item: [...batting].sort((a, b) => Number(b.avg || 0) - Number(a.avg || 0))[0], value: (item) => Number(item?.avg || 0).toFixed(3).replace(/^0/, '') },
-            { label: 'Cuadrangulares', key: 'HR', item: [...batting].sort((a, b) => Number(b.home_runs || 0) - Number(a.home_runs || 0))[0], value: (item) => Number(item?.home_runs || 0) },
-            { label: 'Impulsadas', key: 'RBI', item: [...batting].sort((a, b) => Number(b.rbi || 0) - Number(a.rbi || 0))[0], value: (item) => Number(item?.rbi || 0) },
-            { label: 'Efectividad', key: 'ERA', item: [...pitching].filter((item) => Number(item.innings_pitched || item.ip || 0) > 0).sort((a, b) => Number(a.era ?? 999) - Number(b.era ?? 999))[0], value: (item) => Number(item?.era || 0).toFixed(2) }
+            { label: 'Promedio de bateo', key: 'AVG', item: batting.avg?.[0], value: (item) => Number(item?.avg || 0).toFixed(3).replace(/^0/, '') },
+            { label: 'Cuadrangulares', key: 'HR', item: batting.home_runs?.[0], value: (item) => Number(item?.home_runs || 0) },
+            { label: 'Impulsadas', key: 'RBI', item: batting.rbi?.[0], value: (item) => Number(item?.rbi || 0) },
+            { label: 'Efectividad', key: 'ERA', item: pitching.era?.[0], value: (item) => Number(item?.era || 0).toFixed(2) }
         ];
         container.innerHTML = categories.map(({ label, key, item, value }) => {
-            if (!item) return `<article class="home-leader-card"><span class="home-leader-label">${escapeHtml(label)} (${key})</span><div class="home-leader-main"><span class="home-leader-avatar home-leader-avatar-empty">--</span><span class="home-leader-info"><strong>Sin datos</strong><b class="home-leader-value">--</b></span></div></article>`;
+            if (!item) return `<article class="home-leader-card"><span class="home-leader-label">${escapeHtml(label)} (${key})</span><div class="home-leader-main"><span class="home-leader-avatar home-leader-avatar-empty">--</span><span class="home-leader-info"><strong>Sin líder elegible</strong><b class="home-leader-value">--</b></span></div></article>`;
             const playerId = item.jugador_id || item.id;
             const playerName = item.jugador_nombre || item.nombre || 'Jugador';
             const card = `<span class="home-leader-label">${escapeHtml(label)} (${key})</span><div class="home-leader-main"><img class="home-leader-avatar" src="/images/avatars/${avatarForPosition(item.posicion)}" alt="" loading="lazy"><span class="home-leader-info"><strong>${escapeHtml(playerName)}</strong><small>${escapeHtml(item.equipo_nombre || '')}</small><b class="home-leader-value">${escapeHtml(value(item))}</b></span></div>`;
-            return playerId ? `<a class="home-leader-card" href="jugador.html?id=${encodeURIComponent(playerId)}">${card}</a>` : `<article class="home-leader-card">${card}</article>`;
+            return playerId ? `<a class="home-leader-card" href="${playerProfileUrl(playerId)}">${card}</a>` : `<article class="home-leader-card">${card}</article>`;
         }).join('');
     }
 
@@ -384,7 +389,7 @@
             }
         }
         const leader = [...state.standings].sort((a, b) => Number(a.ranking || 999) - Number(b.ranking || 999))[0];
-        if (leader) rows.push({ title: 'Líder de la tabla', copy: `${leader.equipo_nombre} · ${Number(leader.pg || 0)} G - ${Number(leader.pp || 0)} P · PCT ${formatPct(leader.porcentaje)}`, teamId: leader.equipo_id, team: leader.equipo_nombre, href: `equipo.html?id=${encodeURIComponent(leader.equipo_id)}` });
+        if (leader) rows.push({ title: 'Líder de la tabla', copy: `${leader.equipo_nombre} · ${Number(leader.pg || 0)} G - ${Number(leader.pp || 0)} P · PCT ${formatPct(leader.porcentaje)}`, teamId: leader.equipo_id, team: leader.equipo_nombre, href: `${teamProfileUrl(leader.equipo_id)}` });
         container.innerHTML = rows.length ? rows.map((row) => `<a class="home-brief-item" href="${row.href}">${logoMarkup(row.teamId, row.team, 'home-brief-mark')}<span><strong>${escapeHtml(row.title)}</strong><small>${escapeHtml(row.copy)}</small></span><span class="home-brief-arrow" aria-hidden="true">→</span></a>`).join('') : '<div class="directory-empty">La actualidad aparecerá cuando haya partidos o posiciones oficiales.</div>';
     }
 
@@ -472,7 +477,7 @@
             const name = team.nombre || team.equipo_nombre || 'Equipo';
             const standing = standingById.get(String(teamId));
             const record = standing ? `${Number(standing.pg || 0)}-${Number(standing.pp || 0)}` : 'Sin récord';
-            return `<a class="directory-card" href="equipo.html?id=${encodeURIComponent(teamId)}">${logoMarkup(teamId, name, 'directory-logo')}<div><h3>${escapeHtml(name)}</h3><p>${escapeHtml(team.ciudad || team.ubicacion || 'Chogui League')}</p><small>${standing ? `Posición #${standing.ranking || '--'}` : 'Ver perfil y plantilla'}</small></div><span class="directory-stat">${escapeHtml(record)}</span></a>`;
+            return `<a class="directory-card" href="${teamProfileUrl(teamId)}">${logoMarkup(teamId, name, 'directory-logo')}<div><h3>${escapeHtml(name)}</h3><p>${escapeHtml(team.ciudad || team.ubicacion || 'Chogui League')}</p><small>${standing ? `Posición #${standing.ranking || '--'}` : 'Ver perfil y plantilla'}</small></div><span class="directory-stat">${escapeHtml(record)}</span></a>`;
         }).join('') : '<div class="directory-empty">No se encontraron equipos.</div>';
     }
 
@@ -495,7 +500,7 @@
             const name = player.nombre || player.jugador_nombre || stat?.jugador_nombre || 'Jugador';
             const team = player.equipo_nombre || stat?.equipo_nombre || 'Sin equipo';
             const positionName = player.posicion || stat?.posicion || 'UTIL';
-            return `<a class="directory-card" href="jugador.html?id=${encodeURIComponent(playerId)}"><span class="directory-avatar">${escapeHtml(initials(name))}</span><div><h3>${escapeHtml(name)}</h3><p>${escapeHtml(team)}</p><small>${escapeHtml(positionName)}</small></div><span class="directory-stat">${stat ? `AVG ${Number(stat.avg || 0).toFixed(3).replace(/^0/, '')}` : 'Perfil'}</span></a>`;
+            return `<a class="directory-card" href="${playerProfileUrl(playerId)}"><span class="directory-avatar">${escapeHtml(initials(name))}</span><div><h3>${escapeHtml(name)}</h3><p>${escapeHtml(team)}</p><small>${escapeHtml(positionName)}</small></div><span class="directory-stat">${stat ? `AVG ${Number(stat.avg || 0).toFixed(3).replace(/^0/, '')}` : 'Perfil'}</span></a>`;
         }).join('') : '<div class="directory-empty">No se encontraron jugadores.</div>';
     }
 
@@ -621,7 +626,7 @@
             const diff = Date.parse(game.fecha_partido || game.fecha || '') - Date.now();
             return diff >= -86400000 && diff <= 7 * 86400000;
         }).sort((a, b) => String(a.fecha_partido).localeCompare(String(b.fecha_partido))).slice(0, 4);
-        side.innerHTML = `<section class="games-side-panel"><div class="games-side-head"><h3>Partido destacado</h3>${featured ? `<span class="games-state ${gameKind(featured)}">${gameKind(featured) === 'en_vivo' ? 'EN VIVO' : gameKind(featured) === 'finalizado' ? 'FINAL' : 'PRÓXIMO'}</span>` : ''}</div>${featured ? `<div class="games-featured"><p>${escapeHtml(formatDate(featured.fecha_partido || featured.fecha, { day: 'numeric', month: 'long', year: 'numeric' }))}${featured.hora ? ` · ${escapeHtml(String(featured.hora).slice(0, 5))}` : ''}</p><div class="games-featured-match"><div>${logoMarkup(featured.equipo_visitante_id, featured.equipo_visitante_nombre, 'games-featured-logo')}<strong>${escapeHtml(featured.equipo_visitante_nombre || 'Visitante')}</strong></div><b>${gameKind(featured) === 'proximo' ? 'VS' : `${Number(featured.carreras_visitante ?? 0)} – ${Number(featured.carreras_local ?? 0)}`}</b><div>${logoMarkup(featured.equipo_local_id, featured.equipo_local_nombre, 'games-featured-logo')}<strong>${escapeHtml(featured.equipo_local_nombre || 'Local')}</strong></div></div><a class="games-detail primary" href="partido.html?id=${encodeURIComponent(featured.id)}">${gameKind(featured) === 'en_vivo' ? 'Ver en vivo' : gameKind(featured) === 'finalizado' ? 'Ver detalle' : 'Ver previa'} →</a></div>` : '<div class="games-empty">Aún no hay partidos cargados.</div>'}</section><section class="games-side-panel"><div class="games-side-head"><h3>Tabla de posiciones</h3><a href="#posiciones">Ver tabla completa →</a></div><div class="games-mini-table"><div class="games-mini-head"><span>#</span><span>Equipo</span><span>G</span><span>P</span><span>PCT</span></div>${standings.map((team, index) => `<a href="equipo.html?id=${encodeURIComponent(team.equipo_id)}"><span>${index + 1}</span><span>${logoMarkup(team.equipo_id, team.equipo_nombre, 'games-mini-logo')}${escapeHtml(team.equipo_nombre)}</span><span>${Number(team.pg || 0)}</span><span>${Number(team.pp || 0)}</span><span>${formatPct(team.porcentaje)}</span></a>`).join('') || '<div class="games-empty">Sin posiciones todavía.</div>'}</div></section><section class="games-side-panel"><div class="games-side-head"><h3>Próximos 7 días</h3><a href="#partidos" data-games-upcoming>Ver calendario →</a></div>${upcomingWeek.length ? upcomingWeek.map((game) => `<a class="games-week-item" href="partido.html?id=${encodeURIComponent(game.id)}"><time>${escapeHtml(formatDate(game.fecha_partido || game.fecha, { day: '2-digit', month: 'short' }))}</time><span>${escapeHtml(game.equipo_visitante_nombre || 'Visitante')} vs ${escapeHtml(game.equipo_local_nombre || 'Local')}</span></a>`).join('') : '<div class="games-empty">No hay partidos programados para los próximos 7 días.</div>'}</section>`;
+        side.innerHTML = `<section class="games-side-panel"><div class="games-side-head"><h3>Partido destacado</h3>${featured ? `<span class="games-state ${gameKind(featured)}">${gameKind(featured) === 'en_vivo' ? 'EN VIVO' : gameKind(featured) === 'finalizado' ? 'FINAL' : 'PRÓXIMO'}</span>` : ''}</div>${featured ? `<div class="games-featured"><p>${escapeHtml(formatDate(featured.fecha_partido || featured.fecha, { day: 'numeric', month: 'long', year: 'numeric' }))}${featured.hora ? ` · ${escapeHtml(String(featured.hora).slice(0, 5))}` : ''}</p><div class="games-featured-match"><div>${logoMarkup(featured.equipo_visitante_id, featured.equipo_visitante_nombre, 'games-featured-logo')}<strong>${escapeHtml(featured.equipo_visitante_nombre || 'Visitante')}</strong></div><b>${gameKind(featured) === 'proximo' ? 'VS' : `${Number(featured.carreras_visitante ?? 0)} – ${Number(featured.carreras_local ?? 0)}`}</b><div>${logoMarkup(featured.equipo_local_id, featured.equipo_local_nombre, 'games-featured-logo')}<strong>${escapeHtml(featured.equipo_local_nombre || 'Local')}</strong></div></div><a class="games-detail primary" href="partido.html?id=${encodeURIComponent(featured.id)}">${gameKind(featured) === 'en_vivo' ? 'Ver en vivo' : gameKind(featured) === 'finalizado' ? 'Ver detalle' : 'Ver previa'} →</a></div>` : '<div class="games-empty">Aún no hay partidos cargados.</div>'}</section><section class="games-side-panel"><div class="games-side-head"><h3>Tabla de posiciones</h3><a href="#posiciones">Ver tabla completa →</a></div><div class="games-mini-table"><div class="games-mini-head"><span>#</span><span>Equipo</span><span>G</span><span>P</span><span>PCT</span></div>${standings.map((team, index) => `<a href="${teamProfileUrl(team.equipo_id)}"><span>${index + 1}</span><span>${logoMarkup(team.equipo_id, team.equipo_nombre, 'games-mini-logo')}${escapeHtml(team.equipo_nombre)}</span><span>${Number(team.pg || 0)}</span><span>${Number(team.pp || 0)}</span><span>${formatPct(team.porcentaje)}</span></a>`).join('') || '<div class="games-empty">Sin posiciones todavía.</div>'}</div></section><section class="games-side-panel"><div class="games-side-head"><h3>Próximos 7 días</h3><a href="#partidos" data-games-upcoming>Ver calendario →</a></div>${upcomingWeek.length ? upcomingWeek.map((game) => `<a class="games-week-item" href="partido.html?id=${encodeURIComponent(game.id)}"><time>${escapeHtml(formatDate(game.fecha_partido || game.fecha, { day: '2-digit', month: 'short' }))}</time><span>${escapeHtml(game.equipo_visitante_nombre || 'Visitante')} vs ${escapeHtml(game.equipo_local_nombre || 'Local')}</span></a>`).join('') : '<div class="games-empty">No hay partidos programados para los próximos 7 días.</div>'}</section>`;
         side.querySelector('[data-games-upcoming]')?.addEventListener('click', (event) => {
             event.preventDefault();
             document.querySelector('[data-game-filter="proximo"]')?.click();
@@ -642,11 +647,13 @@
                 withTournament('/api/proximos-partidos'),
                 withTournament('/api/estadisticas-ofensivas?min_at_bats=1'),
                 withTournament('/api/estadisticas-pitcheo'),
-                withTournament('/api/noticias')
+                withTournament('/api/noticias'),
+                withTournament('/api/dashboard/premios-oficiales')
             ];
             const responses = await Promise.all(paths.map((path) => (path ? getJson(path) : getAllGames()).catch(() => [])));
             if (requestToken !== dashboardRequestToken) return;
-            [state.teams, state.players, state.standings, state.games, state.upcoming, state.batting, state.pitching, state.news] = responses.map(normalizeArray);
+            [state.teams, state.players, state.standings, state.games, state.upcoming, state.batting, state.pitching, state.news] = responses.slice(0, 8).map(normalizeArray);
+            state.awards = responses[8] && !Array.isArray(responses[8]) ? responses[8] : null;
             loadedTournamentKey = tournamentKey;
             renderHomeKpis();
             renderHomeFeatured();

@@ -15,7 +15,9 @@ function validarCrearTorneo(body) {
         min_ip_rate_stats,
         min_ip_counting_stats,
         min_ip_pitcher_award,
-        min_chances_defense
+        min_chances_defense,
+        min_partidos_premios,
+        min_pa_bateo
     } = body;
 
     if (!nombre || nombre.trim().length < 3) {
@@ -59,6 +61,8 @@ function validarCrearTorneo(body) {
     validateDecimalField(min_ip_counting_stats, 'Min IP métricas acumulativas');
     validateDecimalField(min_ip_pitcher_award, 'Min IP premio pitcher');
     validateIntField(min_chances_defense, 'Min chances defensa');
+    validateIntField(min_partidos_premios, 'Min partidos para premios');
+    validateIntField(min_pa_bateo, 'Min apariciones al plato');
 
     return {
         isValid: errors.length === 0,
@@ -73,7 +77,9 @@ function validarCrearTorneo(body) {
             min_ip_rate_stats: min_ip_rate_stats !== undefined && min_ip_rate_stats !== '' ? Number(min_ip_rate_stats) : null,
             min_ip_counting_stats: min_ip_counting_stats !== undefined && min_ip_counting_stats !== '' ? Number(min_ip_counting_stats) : null,
             min_ip_pitcher_award: min_ip_pitcher_award !== undefined && min_ip_pitcher_award !== '' ? Number(min_ip_pitcher_award) : null,
-            min_chances_defense: min_chances_defense !== undefined && min_chances_defense !== '' ? parseInt(min_chances_defense, 10) : null
+            min_chances_defense: min_chances_defense !== undefined && min_chances_defense !== '' ? parseInt(min_chances_defense, 10) : null,
+            min_partidos_premios: min_partidos_premios !== undefined && min_partidos_premios !== '' ? parseInt(min_partidos_premios, 10) : null,
+            min_pa_bateo: min_pa_bateo !== undefined && min_pa_bateo !== '' ? parseInt(min_pa_bateo, 10) : null
         }
     };
 }
@@ -92,7 +98,9 @@ function validarActualizarTorneo(body) {
         min_ip_rate_stats,
         min_ip_counting_stats,
         min_ip_pitcher_award,
-        min_chances_defense
+        min_chances_defense,
+        min_partidos_premios,
+        min_pa_bateo
     } = body;
     const fields = [];
     const values = [];
@@ -183,6 +191,8 @@ function validarActualizarTorneo(body) {
     pushNullableDecimal('min_ip_counting_stats', min_ip_counting_stats, 'Min IP métricas acumulativas');
     pushNullableDecimal('min_ip_pitcher_award', min_ip_pitcher_award, 'Min IP premio pitcher');
     pushNullableInt('min_chances_defense', min_chances_defense, 'Min chances defensa');
+    pushNullableInt('min_partidos_premios', min_partidos_premios, 'Min partidos para premios');
+    pushNullableInt('min_pa_bateo', min_pa_bateo, 'Min apariciones al plato');
 
     if (errors.length === 0 && fields.length === 0) {
         errors.push('No se proporcionaron campos para actualizar');

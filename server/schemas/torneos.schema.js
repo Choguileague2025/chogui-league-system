@@ -15,7 +15,9 @@ const torneoCreateSchema = z.object({
     min_ip_rate_stats: optionalNonNegativeNumber.optional(),
     min_ip_counting_stats: optionalNonNegativeNumber.optional(),
     min_ip_pitcher_award: optionalNonNegativeNumber.optional(),
-    min_chances_defense: optionalInt.optional()
+    min_chances_defense: optionalInt.optional(),
+    min_partidos_premios: optionalInt.optional(),
+    min_pa_bateo: optionalInt.optional()
 }).strict();
 
 const torneoUpdateSchema = z.object({
@@ -30,7 +32,9 @@ const torneoUpdateSchema = z.object({
     min_ip_rate_stats: z.union([optionalNonNegativeNumber, z.literal(''), z.null()]).optional(),
     min_ip_counting_stats: z.union([optionalNonNegativeNumber, z.literal(''), z.null()]).optional(),
     min_ip_pitcher_award: z.union([optionalNonNegativeNumber, z.literal(''), z.null()]).optional(),
-    min_chances_defense: z.union([optionalInt, z.literal(''), z.null()]).optional()
+    min_chances_defense: z.union([optionalInt, z.literal(''), z.null()]).optional(),
+    min_partidos_premios: z.union([z.literal(''), z.null(), optionalInt]).optional(),
+    min_pa_bateo: z.union([z.literal(''), z.null(), optionalInt]).optional()
 }).strict().refine((payload) => Object.keys(payload).length > 0, {
     message: 'Debe enviar al menos un campo para actualizar'
 });

@@ -7509,8 +7509,12 @@
                             ? `OPS ${Number(item.ops || 0).toFixed(3)}`
                             : `FLD% ${Number(item.fielding_percentage || 0).toFixed(3)}`;
                         const qualifier = side === 'ofensiva'
-                            ? `Mín. ${Number(item.qualifying_min_ab || 0)} AB`
-                            : `Mín. ${Number(item.qualifying_min_chances || 0)} chances`;
+                            ? (item.qualifying_min_games != null
+                                ? `Mín. ${Number(item.qualifying_min_games)} juegos · ${Number(item.qualifying_min_pa)} PA`
+                                : `Mín. ${Number(item.qualifying_min_ab || 0)} AB`)
+                            : (item.qualifying_min_games != null
+                                ? `Mín. ${Number(item.qualifying_min_games)} juegos · ${Number(item.qualifying_min_chances)} oportunidades en ${escapeHTML(item.posicion || 'posición')}`
+                                : `Mín. ${Number(item.qualifying_min_chances || 0)} chances`);
                         const support = side === 'ofensiva'
                             ? `${Number(item.hits || 0)} H • ${Number(item.home_runs || 0)} HR • ${Number(item.rbi || 0)} RBI`
                             : `${Number(item.putouts || 0)} PO • ${Number(item.assists || 0)} A • ${Number(item.errors || 0)} E`;
@@ -7621,8 +7625,20 @@
                 defensiveEl.innerHTML = renderChampionRows(data.defensivos, 'defensiva');
                 officialAwardsEl.innerHTML = renderOfficialAwards(awardsData.resumen || {});
                 goldGlovesEl.innerHTML = renderGoldGloves(awardsData.guantes_por_posicion || []);
-                qualificationNoteEl.textContent = `Elegibilidad actual: ${Number(awardsData?.criterios?.min_ab_rate_stats || 0)} AB para títulos rate, ${Number(awardsData?.criterios?.min_ab_counting_stats || 0)} AB para categorías acumulativas, ${Number(awardsData?.criterios?.min_ip_rate_stats || 0)} IP para ERA/WHIP, ${Number(awardsData?.criterios?.min_ip_counting_stats || 0)} IP para wins/K/saves y ${Number(awardsData?.criterios?.min_chances_defense || 0)} chances para defensa.`;
-                applyEligibilityCopy({
+                const minGames = Number(awardsData?.criterios?.min_partidos_premios || 0);
+                const minPa = Number(awardsData?.criterios?.min_pa_bateo || 0);
+                qualificationNoteEl.textContent = minGames
+                    ? `Elegibilidad actual: ${minGames} partidos registrados en el boxscore para premios de bateo, pitcheo y defensa. Bateo exige además ${minPa} apariciones al plato. Defensa se evalúa por posición con outs, asistencias, errores y oportunidades.`
+                    : `Elegibilidad actual: ${Number(awardsData?.criterios?.min_ab_rate_stats || 0)} AB para títulos rate, ${Number(awardsData?.criterios?.min_ab_counting_stats || 0)} AB para categorías acumulativas, ${Number(awardsData?.criterios?.min_ip_rate_stats || 0)} IP para ERA/WHIP, ${Number(awardsData?.criterios?.min_ip_counting_stats || 0)} IP para wins/K/saves y ${Number(awardsData?.criterios?.min_chances_defense || 0)} chances para defensa.`;
+                applyEligibilityCopy(minGames ? {
+                    summary: `Los premios requieren participación real en al menos ${minGames} partidos de esta edición, registrada en el boxscore.`,
+                    batting: `${minGames} partidos con aparición al bate y ${minPa} apariciones al plato para todas las categorías ofensivas y el MVP.`,
+                    pitching: `${minGames} partidos con actuación de pitcheo para ERA, WHIP, victorias, ponches y premio al pitcher.`,
+                    defense: `${minGames} partidos en la misma posición y ${Number(awardsData?.criterios?.min_chances_defense || 0)} oportunidades mínimas. El porcentaje de fildeo se calcula con outs y asistencias sobre oportunidades, incluidos los errores.`,
+                    battingInline: `Criterio ofensivo: ${minGames} partidos y ${minPa} PA.`,
+                    pitchingInline: `Criterio de pitcheo: ${minGames} partidos lanzados.`,
+                    defenseInline: `Criterio defensivo: ${minGames} partidos por posición y ${Number(awardsData?.criterios?.min_chances_defense || 0)} oportunidades.`
+                } : {
                     summary: `Usamos mínimos oficiales del torneo para evitar campeones por muestra engañosa y declarar líderes con criterios reales.`,
                     batting: `${Number(awardsData?.criterios?.min_ab_rate_stats || 0)} AB para AVG, OBP, SLG y OPS. ${Number(awardsData?.criterios?.min_ab_counting_stats || 0)} AB para hits, dobles, triples, HR, RBI, carreras, boletos y robos.`,
                     pitching: `${Number(awardsData?.criterios?.min_ip_rate_stats || 0)} IP para ERA y WHIP. ${Number(awardsData?.criterios?.min_ip_counting_stats || 0)} IP para ganados, ponches y salvados.`,
@@ -9102,8 +9118,8 @@
     
     
     <script src="js/analytics.js" defer></script>
-    <script src="js/index_modules.min.js?v=premium-home-20260613" defer></script>
-    <script src="js/chogui_2026.js?v=20260921-games" defer></script>
-    <script src="js/estadisticas_dashboard.js?v=20260921-stats" defer></script>
+    <script src="js/index_modules.min.js?v=20260921-editions" defer></script>
+    <script src="js/chogui_2026.js?v=20260921-editions" defer></script>
+    <script src="js/estadisticas_dashboard.js?v=20260921-editions" defer></script>
 </body>
 </html>

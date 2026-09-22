@@ -74,7 +74,9 @@ async function crear(req, res, next) {
             min_ip_rate_stats,
             min_ip_counting_stats,
             min_ip_pitcher_award,
-            min_chances_defense
+            min_chances_defense,
+            min_partidos_premios,
+            min_pa_bateo
         } = validation.sanitized;
 
         const torneo = await torneosService.crear(nombre, {
@@ -87,7 +89,9 @@ async function crear(req, res, next) {
             min_ip_rate_stats,
             min_ip_counting_stats,
             min_ip_pitcher_award,
-            min_chances_defense
+            min_chances_defense,
+            min_partidos_premios,
+            min_pa_bateo
         });
 
         res.status(201).json(torneo);

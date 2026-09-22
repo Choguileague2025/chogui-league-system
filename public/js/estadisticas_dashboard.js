@@ -24,7 +24,7 @@
     const get = async (path) => { const response = await fetch(path, {headers:{Accept:'application/json'}}); if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); };
     const list = (value) => Array.isArray(value) ? value : Array.isArray(value?.partidos) ? value.partidos : [];
     const profileUrl = (row) => `jugador.html?id=${encodeURIComponent(row.jugador_id || row.id)}${selectedId() && selectedId() !== 'todos' ? `&torneo_id=${encodeURIComponent(selectedId())}` : ''}`;
-    const teamUrl = (row) => `equipo.html?id=${encodeURIComponent(row.equipo_id || row.id)}`;
+    const teamUrl = (row) => `equipo.html?id=${encodeURIComponent(row.equipo_id || row.id)}${selectedId() && selectedId() !== 'todos' ? `&torneo_id=${encodeURIComponent(selectedId())}` : ''}`;
     const logo = (id) => id ? `<img src="/api/equipos/${encodeURIComponent(id)}/logo" alt="" loading="lazy" onerror="this.style.display='none'">` : '';
     const filled = (value) => value == null || value === '' ? '—' : esc(value);
     const fieldingPct = (row) => { const chances = num(row.putouts) + num(row.assists) + num(row.errors); return chances ? (num(row.putouts) + num(row.assists)) / chances : num(row.fielding_percentage); };

@@ -4462,7 +4462,9 @@
                     min_ip_rate_stats: prompt('Min IP para ERA/WHIP (vacío = automático):', torneo.min_ip_rate_stats ?? ''),
                     min_ip_counting_stats: prompt('Min IP para wins, ponches y saves (vacío = automático):', torneo.min_ip_counting_stats ?? ''),
                     min_ip_pitcher_award: prompt('Min IP para premio pitcher del torneo (vacío = automático):', torneo.min_ip_pitcher_award ?? ''),
-                    min_chances_defense: prompt('Min chances para defensiva y guantes de oro (vacío = automático):', torneo.min_chances_defense ?? '')
+                    min_chances_defense: prompt('Min chances para defensiva y guantes de oro (vacío = automático):', torneo.min_chances_defense ?? ''),
+                    min_partidos_premios: prompt('Min partidos jugados para premios de bateo, pitcheo y defensa (vacío = criterio anterior):', torneo.min_partidos_premios ?? ''),
+                    min_pa_bateo: prompt('Min apariciones al plato para premios de bateo (vacío = criterio anterior):', torneo.min_pa_bateo ?? '')
                 };
 
                 const payload = {};

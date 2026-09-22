@@ -150,7 +150,9 @@ function normalizarCriteriosElegibilidad(torneo = {}) {
         min_ip_rate_stats: torneo.min_ip_rate_stats === null || torneo.min_ip_rate_stats === undefined ? null : Number(torneo.min_ip_rate_stats),
         min_ip_counting_stats: torneo.min_ip_counting_stats === null || torneo.min_ip_counting_stats === undefined ? null : Number(torneo.min_ip_counting_stats),
         min_ip_pitcher_award: torneo.min_ip_pitcher_award === null || torneo.min_ip_pitcher_award === undefined ? null : Number(torneo.min_ip_pitcher_award),
-        min_chances_defense: torneo.min_chances_defense === null || torneo.min_chances_defense === undefined ? null : Number(torneo.min_chances_defense)
+        min_chances_defense: torneo.min_chances_defense === null || torneo.min_chances_defense === undefined ? null : Number(torneo.min_chances_defense),
+        min_partidos_premios: torneo.min_partidos_premios === null || torneo.min_partidos_premios === undefined ? null : Number(torneo.min_partidos_premios),
+        min_pa_bateo: torneo.min_pa_bateo === null || torneo.min_pa_bateo === undefined ? null : Number(torneo.min_pa_bateo)
     };
 }
 
@@ -176,7 +178,9 @@ async function crear(nombre, opciones = {}) {
         min_ip_rate_stats = null,
         min_ip_counting_stats = null,
         min_ip_pitcher_award = null,
-        min_chances_defense = null
+        min_chances_defense = null,
+        min_partidos_premios = null,
+        min_pa_bateo = null
     } = opciones;
 
     const result = await pool.query(
@@ -184,9 +188,9 @@ async function crear(nombre, opciones = {}) {
             nombre, fecha_inicio, activo, estado, total_juegos, cupos_playoffs,
             min_ab_rate_stats, min_ab_counting_stats, min_ab_mvp,
             min_ip_rate_stats, min_ip_counting_stats, min_ip_pitcher_award,
-            min_chances_defense
+            min_chances_defense, min_partidos_premios, min_pa_bateo
          )
-         VALUES ($1, $2, false, 'preparacion', $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         VALUES ($1, $2, false, 'preparacion', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING *`,
         [
             nombre,
@@ -199,7 +203,9 @@ async function crear(nombre, opciones = {}) {
             min_ip_rate_stats,
             min_ip_counting_stats,
             min_ip_pitcher_award,
-            min_chances_defense
+            min_chances_defense,
+            min_partidos_premios,
+            min_pa_bateo
         ]
     );
     return result.rows[0];

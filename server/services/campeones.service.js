@@ -27,6 +27,65 @@ function toNumber(value, fallback = 0) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+async function obtenerParticipacionTorneo(torneoId, criteria) {
+    if (!torneoId || torneoId === 'todos' || criteria.min_partidos_premios == null) return null;
+    const [batting, pitching, defense] = await Promise.all([
+        pool.query(`
+            SELECT b.jugador_id, COUNT(DISTINCT p.id)::INT AS juegos_bateo,
+                   SUM(GREATEST(b.plate_appearances,
+                       b.at_bats + b.walks + b.hit_by_pitch + b.sacrifice_flies + b.sacrifice_hits))::INT AS plate_appearances
+            FROM partido_jugador_ofensiva b
+            JOIN partidos p ON p.id = b.partido_id
+            WHERE p.torneo_id = $1 AND p.estado = 'finalizado'
+              AND GREATEST(b.plate_appearances,
+                  b.at_bats + b.walks + b.hit_by_pitch + b.sacrifice_flies + b.sacrifice_hits) > 0
+            GROUP BY b.jugador_id`, [torneoId]),
+        pool.query(`
+            SELECT b.jugador_id, COUNT(DISTINCT p.id)::INT AS juegos_pitcheo
+            FROM partido_jugador_pitcheo b
+            JOIN partidos p ON p.id = b.partido_id
+            WHERE p.torneo_id = $1 AND p.estado = 'finalizado' AND b.innings_pitched > 0
+            GROUP BY b.jugador_id`, [torneoId]),
+        pool.query(`
+            SELECT b.jugador_id, j.nombre AS jugador_nombre, tj.equipo_id,
+                   e.nombre AS equipo_nombre,
+                   UPPER(COALESCE(NULLIF(TRIM(b.posicion), ''), tj.posicion, 'UTIL')) AS posicion,
+                   COUNT(DISTINCT p.id)::INT AS juegos_defensa,
+                   SUM(b.putouts)::INT AS putouts, SUM(b.assists)::INT AS assists,
+                   SUM(b.errors)::INT AS errors, SUM(b.double_plays)::INT AS double_plays
+            FROM partido_jugador_defensa b
+            JOIN partidos p ON p.id = b.partido_id
+            JOIN jugadores j ON j.id = b.jugador_id
+            LEFT JOIN torneo_jugadores tj ON tj.torneo_id = p.torneo_id AND tj.jugador_id = b.jugador_id
+            LEFT JOIN equipos e ON e.id = tj.equipo_id
+            WHERE p.torneo_id = $1 AND p.estado = 'finalizado'
+            GROUP BY b.jugador_id, j.nombre, tj.equipo_id, e.nombre,
+                     UPPER(COALESCE(NULLIF(TRIM(b.posicion), ''), tj.posicion, 'UTIL'))`, [torneoId])
+    ]);
+    return {
+        batting: new Map(batting.rows.map(row => [Number(row.jugador_id), row])),
+        pitching: new Map(pitching.rows.map(row => [Number(row.jugador_id), row])),
+        defense: defense.rows
+    };
+}
+
+function aplicarParticipacion(ofensivas, pitcheo, defensivas, participation) {
+    if (!participation) return { ofensivas, pitcheo, defensivas };
+    const playerInfo = new Map(defensivas.map(row => [Number(row.jugador_id), row]));
+    return {
+        ofensivas: ofensivas.map(row => ({ ...row, ...participation.batting.get(Number(row.jugador_id)) })),
+        pitcheo: pitcheo.map(row => ({ ...row, ...participation.pitching.get(Number(row.jugador_id)) })),
+        defensivas: participation.defense.map(row => {
+            const info = playerInfo.get(Number(row.jugador_id)) || {};
+            const chances = toNumber(row.putouts) + toNumber(row.assists) + toNumber(row.errors);
+            return {
+                ...info, ...row, chances,
+                fielding_percentage: chances ? Number(((toNumber(row.putouts) + toNumber(row.assists)) / chances).toFixed(3)) : 0
+            };
+        })
+    };
+}
+
 function groupByPosition(rows) {
     const groups = new Map();
     rows.forEach((row) => {
@@ -41,7 +100,9 @@ function qualifyOffensiveRows(rows, options = {}) {
     const {
         minFloor = 8,
         share = 0.45,
-        fixedThreshold = null
+        fixedThreshold = null,
+        minGames = null,
+        minPlateAppearances = null
     } = options;
     const candidates = rows
         .map((row) => ({
@@ -66,6 +127,15 @@ function qualifyOffensiveRows(rows, options = {}) {
         return { qualified: [], threshold: 0, candidates: [] };
     }
 
+    if (minGames != null) {
+        return {
+            qualified: candidates.filter(row => toNumber(row.juegos_bateo) >= minGames
+                && toNumber(row.plate_appearances) >= toNumber(minPlateAppearances)),
+            threshold: 0,
+            candidates
+        };
+    }
+
     const maxAtBats = Math.max(...candidates.map((row) => row.at_bats));
     const threshold = fixedThreshold !== null && fixedThreshold !== undefined
         ? Number(fixedThreshold)
@@ -80,7 +150,8 @@ function qualifyPitchingRows(rows, options = {}) {
     const {
         minFloor = 4,
         share = 0.4,
-        fixedThreshold = null
+        fixedThreshold = null,
+        minGames = null
     } = options;
     const candidates = rows
         .map((row) => ({
@@ -99,6 +170,10 @@ function qualifyPitchingRows(rows, options = {}) {
         return { qualified: [], threshold: 0, candidates: [] };
     }
 
+    if (minGames != null) {
+        return { qualified: candidates.filter(row => toNumber(row.juegos_pitcheo) >= minGames), threshold: 0, candidates };
+    }
+
     const maxIp = Math.max(...candidates.map((row) => row.innings_pitched));
     const threshold = fixedThreshold !== null && fixedThreshold !== undefined
         ? Number(fixedThreshold)
@@ -113,7 +188,8 @@ function qualifyDefensiveRows(rows, options = {}) {
     const {
         minFloor = 5,
         share = 0.35,
-        fixedThreshold = null
+        fixedThreshold = null,
+        minGames = null
     } = options;
     const candidates = rows
         .map((row) => ({
@@ -127,13 +203,19 @@ function qualifyDefensiveRows(rows, options = {}) {
         .filter((row) => row.chances > 0);
 
     if (!candidates.length) {
-        return { qualified: [], threshold: 0, candidates: [] };
+        return { qualified: [], threshold: minGames == null ? 0 : Number(fixedThreshold ?? minFloor), candidates: [] };
     }
 
     const maxChances = Math.max(...candidates.map((row) => row.chances));
     const threshold = fixedThreshold !== null && fixedThreshold !== undefined
         ? Number(fixedThreshold)
         : Math.max(minFloor, Math.ceil(maxChances * share));
+    if (minGames != null) {
+        return {
+            qualified: candidates.filter(row => toNumber(row.juegos_defensa) >= minGames && row.chances >= threshold),
+            threshold, candidates
+        };
+    }
     let qualified = candidates.filter((row) => row.chances >= threshold);
     if (!qualified.length) qualified = candidates;
 
@@ -142,7 +224,9 @@ function qualifyDefensiveRows(rows, options = {}) {
 
 function computeOffensiveChampion(rows, criteria = {}) {
     const { qualified, threshold } = qualifyOffensiveRows(rows, {
-        fixedThreshold: criteria.min_ab_rate_stats
+        fixedThreshold: criteria.min_ab_rate_stats,
+        minGames: criteria.min_partidos_premios,
+        minPlateAppearances: criteria.min_pa_bateo
     });
     if (!qualified.length) return null;
 
@@ -159,13 +243,16 @@ function computeOffensiveChampion(rows, criteria = {}) {
         ...qualified[0],
         lado: 'ofensiva',
         criterio: 'OPS',
-        qualifying_min_ab: threshold
+        qualifying_min_ab: criteria.min_partidos_premios == null ? threshold : null,
+        qualifying_min_pa: criteria.min_pa_bateo,
+        qualifying_min_games: criteria.min_partidos_premios
     };
 }
 
 function computeDefensiveChampion(rows, criteria = {}) {
     const { qualified, threshold } = qualifyDefensiveRows(rows, {
-        fixedThreshold: criteria.min_chances_defense
+        fixedThreshold: criteria.min_chances_defense,
+        minGames: criteria.min_partidos_premios
     });
     if (!qualified.length) return null;
 
@@ -181,7 +268,8 @@ function computeDefensiveChampion(rows, criteria = {}) {
         ...qualified[0],
         lado: 'defensiva',
         criterio: 'FLD%',
-        qualifying_min_chances: threshold
+        qualifying_min_chances: threshold,
+        qualifying_min_games: criteria.min_partidos_premios
     };
 }
 
@@ -222,18 +310,21 @@ async function obtenerCampeonesPorPosicion(torneoIdParam) {
             ? pool.query('SELECT id, nombre, estado, activo FROM torneos WHERE id = $1 LIMIT 1', [torneoIdResolved])
             : Promise.resolve({ rows: [] })
     ]);
+    const participation = await obtenerParticipacionTorneo(torneoIdResolved, criterios);
+    const qualifiedRows = aplicarParticipacion(ofensivas, [], defensivas, participation);
 
     return {
         torneo: torneoInfo.rows[0] || null,
         criterios,
-        ofensivos: summarizeChampionsByPosition(ofensivas, computeOffensiveChampion, criterios),
-        defensivos: summarizeChampionsByPosition(defensivas, computeDefensiveChampion, criterios)
+        ofensivos: summarizeChampionsByPosition(qualifiedRows.ofensivas, computeOffensiveChampion, criterios),
+        defensivos: summarizeChampionsByPosition(qualifiedRows.defensivas, computeDefensiveChampion, criterios)
     };
 }
 
 function computePitcherAward(rows, criteria = {}) {
     const { qualified, threshold } = qualifyPitchingRows(rows, {
-        fixedThreshold: criteria.min_ip_pitcher_award ?? criteria.min_ip_rate_stats
+        fixedThreshold: criteria.min_ip_pitcher_award ?? criteria.min_ip_rate_stats,
+        minGames: criteria.min_partidos_premios
     });
     if (!qualified.length) return null;
 
@@ -248,13 +339,15 @@ function computePitcherAward(rows, criteria = {}) {
     return {
         ...qualified[0],
         criterio: 'W / ERA / K',
-        qualifying_min_ip: threshold
+        qualifying_min_ip: criteria.min_partidos_premios == null ? threshold : null,
+        qualifying_min_games: criteria.min_partidos_premios
     };
 }
 
 function computeOverallDefensiveAward(rows, criteria = {}) {
     const { qualified, threshold } = qualifyDefensiveRows(rows, {
-        fixedThreshold: criteria.min_chances_defense
+        fixedThreshold: criteria.min_chances_defense,
+        minGames: criteria.min_partidos_premios
     });
     if (!qualified.length) return null;
 
@@ -268,7 +361,8 @@ function computeOverallDefensiveAward(rows, criteria = {}) {
     return {
         ...qualified[0],
         criterio: 'FLD% / Chances',
-        qualifying_min_chances: threshold
+        qualifying_min_chances: threshold,
+        qualifying_min_games: criteria.min_partidos_premios
     };
 }
 
@@ -280,7 +374,7 @@ async function obtenerPremiosOficialesTorneo(torneoIdParam) {
         ? await obtenerCriteriosElegibilidad(torneoIdResolved)
         : {};
 
-    const [ofensivas, pitcheo, defensivas, champions] = await Promise.all([
+    const [rawOfensivas, rawPitcheo, rawDefensivas, champions] = await Promise.all([
         estadisticasService.obtenerOfensivas({
             torneo_id: torneoIdResolved === 'todos' ? 'todos' : torneoIdResolved,
             min_at_bats: 0
@@ -293,18 +387,26 @@ async function obtenerPremiosOficialesTorneo(torneoIdParam) {
         }),
         obtenerCampeonesPorPosicion(torneoIdResolved)
     ]);
+    const participation = await obtenerParticipacionTorneo(torneoIdResolved, criteriosConfigurados);
+    const { ofensivas, pitcheo, defensivas } = aplicarParticipacion(rawOfensivas, rawPitcheo, rawDefensivas, participation);
 
     const battingChampion = computeOffensiveChampion(ofensivas, criteriosConfigurados);
     const { qualified: qualifiedOffensiveRate, threshold: qualifyingMinAbRate } = qualifyOffensiveRows(ofensivas, {
-        fixedThreshold: criteriosConfigurados.min_ab_rate_stats
+        fixedThreshold: criteriosConfigurados.min_ab_rate_stats,
+        minGames: criteriosConfigurados.min_partidos_premios,
+        minPlateAppearances: criteriosConfigurados.min_pa_bateo
     });
     const { qualified: qualifiedOffensiveCounting, threshold: qualifyingMinAbCounting } = qualifyOffensiveRows(ofensivas, {
         minFloor: 4,
         share: 0.2,
-        fixedThreshold: criteriosConfigurados.min_ab_counting_stats
+        fixedThreshold: criteriosConfigurados.min_ab_counting_stats,
+        minGames: criteriosConfigurados.min_partidos_premios,
+        minPlateAppearances: criteriosConfigurados.min_pa_bateo
     });
     const { qualified: qualifiedOffensiveMvp, threshold: qualifyingMinAbMvp } = qualifyOffensiveRows(ofensivas, {
-        fixedThreshold: criteriosConfigurados.min_ab_mvp ?? criteriosConfigurados.min_ab_rate_stats
+        fixedThreshold: criteriosConfigurados.min_ab_mvp ?? criteriosConfigurados.min_ab_rate_stats,
+        minGames: criteriosConfigurados.min_partidos_premios,
+        minPlateAppearances: criteriosConfigurados.min_pa_bateo
     });
     qualifiedOffensiveMvp.sort((a, b) =>
         toNumber(b.ops) - toNumber(a.ops) ||
@@ -318,13 +420,19 @@ async function obtenerPremiosOficialesTorneo(torneoIdParam) {
     const mvp = qualifiedOffensiveMvp[0] || null;
     const pitcher = computePitcherAward(pitcheo, criteriosConfigurados);
     const goldGlove = computeOverallDefensiveAward(defensivas, criteriosConfigurados);
+    const { threshold: qualifyingMinChances } = qualifyDefensiveRows(defensivas, {
+        fixedThreshold: criteriosConfigurados.min_chances_defense,
+        minGames: criteriosConfigurados.min_partidos_premios
+    });
     const { qualified: qualifiedPitchingRate, threshold: qualifyingMinIpRate } = qualifyPitchingRows(pitcheo, {
-        fixedThreshold: criteriosConfigurados.min_ip_rate_stats
+        fixedThreshold: criteriosConfigurados.min_ip_rate_stats,
+        minGames: criteriosConfigurados.min_partidos_premios
     });
     const { qualified: qualifiedPitchingCounting, threshold: qualifyingMinIpCounting } = qualifyPitchingRows(pitcheo, {
         minFloor: 2,
         share: 0.15,
-        fixedThreshold: criteriosConfigurados.min_ip_counting_stats
+        fixedThreshold: criteriosConfigurados.min_ip_counting_stats,
+        minGames: criteriosConfigurados.min_partidos_premios
     });
 
     const topCategory = (rows, key, descending = true, limit = 1) => {
@@ -341,16 +449,23 @@ async function obtenerPremiosOficialesTorneo(torneoIdParam) {
     return {
         torneo: champions.torneo,
         criterios: {
+            min_partidos_premios: criteriosConfigurados.min_partidos_premios,
+            min_pa_bateo: criteriosConfigurados.min_pa_bateo,
             min_ab_rate_stats: qualifyingMinAbRate,
             min_ab_counting_stats: qualifyingMinAbCounting,
             min_ab_mvp: qualifyingMinAbMvp,
             min_ip_rate_stats: qualifyingMinIpRate,
             min_ip_counting_stats: qualifyingMinIpCounting,
-            min_ip_pitcher_award: pitcher?.qualifying_min_ip || criteriosConfigurados.min_ip_pitcher_award || qualifyingMinIpRate,
-            min_chances_defense: goldGlove?.qualifying_min_chances || criteriosConfigurados.min_chances_defense || 0
+            min_ip_pitcher_award: pitcher?.qualifying_min_ip ?? criteriosConfigurados.min_ip_pitcher_award ?? qualifyingMinIpRate,
+            min_chances_defense: qualifyingMinChances
         },
         resumen: {
-            mvp: mvp ? { ...mvp, criterio: 'OPS / RBI / HR', qualifying_min_ab: qualifyingMinAbMvp } : null,
+            mvp: mvp ? {
+                ...mvp, criterio: 'OPS / RBI / HR',
+                qualifying_min_ab: criteriosConfigurados.min_partidos_premios == null ? qualifyingMinAbMvp : null,
+                qualifying_min_pa: criteriosConfigurados.min_pa_bateo,
+                qualifying_min_games: criteriosConfigurados.min_partidos_premios
+            } : null,
             bateo: battingChampion,
             pitcher,
             guante_oro: goldGlove
@@ -466,7 +581,7 @@ async function obtenerRowsHistoricosPosicionales() {
     };
 }
 
-function construirPremiosHistoricos(offensiveRows, defensiveRows) {
+async function construirPremiosHistoricos(offensiveRows, defensiveRows) {
     const offensiveByTournament = new Map();
     const defensiveByTournament = new Map();
 
@@ -483,6 +598,8 @@ function construirPremiosHistoricos(offensiveRows, defensiveRows) {
     });
 
     const awardsMap = new Map();
+    const configured = await pool.query('SELECT id FROM torneos WHERE min_partidos_premios > 0');
+    const strictIds = new Set(configured.rows.map(row => String(row.id)));
 
     const registerAward = (winner, side, tournamentName) => {
         if (!winner?.jugador_id) return;
@@ -504,15 +621,23 @@ function construirPremiosHistoricos(offensiveRows, defensiveRows) {
     };
 
     offensiveByTournament.forEach((rows, tournamentKey) => {
+        if (strictIds.has(tournamentKey)) return;
         const champions = summarizeChampionsByPosition(rows, computeOffensiveChampion);
         const tournamentName = rows[0]?.torneo_nombre || tournamentKey;
         champions.forEach((winner) => registerAward(winner, 'ofensiva', tournamentName));
     });
 
     defensiveByTournament.forEach((rows, tournamentKey) => {
+        if (strictIds.has(tournamentKey)) return;
         const champions = summarizeChampionsByPosition(rows, computeDefensiveChampion);
         const tournamentName = rows[0]?.torneo_nombre || tournamentKey;
         champions.forEach((winner) => registerAward(winner, 'defensiva', tournamentName));
+    });
+
+    const official = await Promise.all([...strictIds].map(id => obtenerCampeonesPorPosicion(Number(id))));
+    official.forEach(data => {
+        data.ofensivos.forEach(winner => registerAward(winner, 'ofensiva', data.torneo?.nombre));
+        data.defensivos.forEach(winner => registerAward(winner, 'defensiva', data.torneo?.nombre));
     });
 
     return awardsMap;
@@ -520,7 +645,7 @@ function construirPremiosHistoricos(offensiveRows, defensiveRows) {
 
 async function obtenerPalmaresHistoricoPosicional() {
     const { offensiveRows, defensiveRows } = await obtenerRowsHistoricosPosicionales();
-    const awardsMap = construirPremiosHistoricos(offensiveRows, defensiveRows);
+    const awardsMap = await construirPremiosHistoricos(offensiveRows, defensiveRows);
 
     return Array.from(awardsMap.values())
         .sort((a, b) =>
@@ -532,7 +657,7 @@ async function obtenerPalmaresHistoricoPosicional() {
 
 async function obtenerPalmaresJugador(jugadorId) {
     const { offensiveRows, defensiveRows } = await obtenerRowsHistoricosPosicionales();
-    const awards = Array.from(construirPremiosHistoricos(offensiveRows, defensiveRows).values())
+    const awards = Array.from((await construirPremiosHistoricos(offensiveRows, defensiveRows)).values())
         .filter((entry) => Number(entry.jugador_id) === Number(jugadorId))
         .sort((a, b) => b.titulos - a.titulos || String(a.lado).localeCompare(String(b.lado), 'es'));
 
@@ -547,7 +672,7 @@ async function obtenerPalmaresJugador(jugadorId) {
 async function obtenerPalmaresEquipo(equipoNombre) {
     const { offensiveRows, defensiveRows } = await obtenerRowsHistoricosPosicionales();
     const normalizedName = String(equipoNombre || '').trim().toUpperCase();
-    const awards = Array.from(construirPremiosHistoricos(offensiveRows, defensiveRows).values())
+    const awards = Array.from((await construirPremiosHistoricos(offensiveRows, defensiveRows)).values())
         .filter((entry) => String(entry.equipo_nombre || '').trim().toUpperCase() === normalizedName)
         .sort((a, b) => b.titulos - a.titulos || String(a.jugador_nombre || '').localeCompare(String(b.jugador_nombre || ''), 'es'));
 
@@ -664,7 +789,7 @@ async function obtenerLideresHistoricosCategorias() {
     const defensiveRows = defensiveResult.rows;
     const historicalRows = await obtenerRowsHistoricosPosicionales();
     const fullAwards = Array.from(
-        construirPremiosHistoricos(historicalRows.offensiveRows, historicalRows.defensiveRows).values()
+        (await construirPremiosHistoricos(historicalRows.offensiveRows, historicalRows.defensiveRows)).values()
     );
 
     const top = (rows, key, descending = true, limit = 5) => {
@@ -721,5 +846,6 @@ module.exports = {
     obtenerPalmaresJugador,
     obtenerPalmaresEquipo,
     obtenerLideresHistoricosCategorias,
-    obtenerPremiosOficialesTorneo
+    obtenerPremiosOficialesTorneo,
+    __testing: { qualifyOffensiveRows, qualifyPitchingRows, qualifyDefensiveRows, computeOffensiveChampion, computeDefensiveChampion }
 };
