@@ -3922,6 +3922,7 @@
     </style>
     <link rel="stylesheet" href="css/brand_shell.css?v=20260921-positions">
     <link rel="stylesheet" href="css/chogui-2026.css?v=20260921-games">
+    <link rel="stylesheet" href="css/estadisticas-dashboard.css?v=20260921-stats">
 </head>
 <body class="brand-page-shell">
     <header class="brand-topbar">
@@ -4393,6 +4394,11 @@
         </div>
 
         <div id="estadisticas" class="tab-content">
+            <section class="stats-showcase" aria-label="Líderes y estadísticas"><span class="stats-showcase-kicker">CHOGUI LEAGUE · ESTADÍSTICAS OFICIALES</span><h1>Líderes y <span>Estadísticas</span></h1><p>Números que cuentan historias. Descubre quiénes lideran la liga.</p><div class="stats-showcase-mark">SOFTBALL<br>PERSONAS<br>HISTORIAS<br>COMUNIDAD</div></section>
+            <div class="stats-dashboard-controls"><nav class="stats-dashboard-tabs" aria-label="Departamentos estadísticos"><button type="button" class="active" data-dashboard-category="bateo" aria-pressed="true">Bateo</button><button type="button" data-dashboard-category="pitcheo" aria-pressed="false">Pitcheo</button><button type="button" data-dashboard-category="defensa" aria-pressed="false">Defensa</button><button type="button" data-dashboard-category="equipos" aria-pressed="false">Equipos</button></nav><div class="stats-dashboard-filters"><label class="visually-hidden" for="statsDashboardSearch">Buscar jugador o equipo</label><input id="statsDashboardSearch" type="search" placeholder="Buscar jugador, equipo…" autocomplete="off"><label class="visually-hidden" for="statsDashboardTournament">Seleccionar torneo</label><select id="statsDashboardTournament" aria-label="Torneo"><option value="">Cargando torneos…</option></select></div></div>
+            <div class="stats-dashboard-grid"><div class="stats-dashboard-main"><section class="stats-dashboard-card" id="statsDashboardLeaders"><h2>Líderes del torneo</h2><p class="stats-dashboard-muted">Cargando líderes…</p></section><section class="stats-dashboard-card" id="statsDashboardTable"><h2>Tabla de estadísticas</h2><p class="stats-dashboard-muted">Cargando estadísticas…</p></section></div><aside class="stats-dashboard-sidebar"><section class="stats-dashboard-card" id="statsDashboardTrends"></section><section class="stats-dashboard-card" id="statsDashboardSpotlight"></section><section class="stats-dashboard-card" id="statsDashboardProduction"></section></aside></div>
+            <button type="button" class="stats-dashboard-more" id="statsDashboardMore" aria-expanded="false">Ver análisis completo y criterios oficiales ↓</button>
+            <div id="statisticsAdvanced" hidden>
             <section class="screen-intro">
                 <span class="section-eyebrow">Rendimiento oficial</span>
                 <h1 class="screen-title">Líderes y <span class="accent">Estadísticas</span></h1>
@@ -4657,6 +4663,7 @@
                         <div class="loading">Cargando...</div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
 
@@ -9097,5 +9104,6 @@
     <script src="js/analytics.js" defer></script>
     <script src="js/index_modules.min.js?v=premium-home-20260613" defer></script>
     <script src="js/chogui_2026.js?v=20260921-games" defer></script>
+    <script src="js/estadisticas_dashboard.js?v=20260921-stats" defer></script>
 </body>
 </html>
