@@ -1,4 +1,4 @@
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const { securityLog } = require('../utils/securityLogger');
 
 const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
@@ -16,6 +16,15 @@ const ADMIN_RATE_LIMIT_WINDOW_MS = positiveInteger(
     process.env.ADMIN_RATE_LIMIT_WINDOW_MS,
     FIFTEEN_MINUTES_MS
 );
+const AUTH_RATE_LIMIT_MAX = positiveInteger(process.env.AUTH_RATE_LIMIT_MAX, 50);
+
+function loginAttemptKey(req) {
+    const username = typeof req.body?.username === 'string'
+        ? req.body.username.trim().toLowerCase().slice(0, 50)
+        : 'sin-usuario';
+
+    return `${ipKeyGenerator(req.ip)}:${username || 'sin-usuario'}`;
+}
 
 function logRateLimitHit(req, limitName) {
     securityLog('warn', 'RATE_LIMIT', {
@@ -26,12 +35,13 @@ function logRateLimitHit(req, limitName) {
     });
 }
 
-function buildLimiter({ windowMs, max, message, limitName }) {
+function buildLimiter({ windowMs, max, message, limitName, ...options }) {
     return rateLimit({
         windowMs,
         max,
         standardHeaders: true,
         legacyHeaders: false,
+        ...options,
         handler: (req, res) => {
             logRateLimitHit(req, limitName);
             return res.status(429).json({
@@ -47,13 +57,18 @@ const apiLimiter = buildLimiter({
     // The public dashboard loads several views and team crests in parallel.
     // Authentication and admin writes keep their stricter separate limiters.
     max: 300,
+    // Las operaciones correctas son trabajo normal y no deben consumir cupo.
+    // Solo una sucesion de respuestas fallidas activa la proteccion.
+    skipSuccessfulRequests: true,
     limitName: 'api_general',
     message: 'Demasiadas peticiones. Intenta de nuevo en 15 minutos.'
 });
 
 const authLimiter = buildLimiter({
     windowMs: FIFTEEN_MINUTES_MS,
-    max: 5,
+    max: AUTH_RATE_LIMIT_MAX,
+    skipSuccessfulRequests: true,
+    keyGenerator: loginAttemptKey,
     limitName: 'auth',
     message: 'Demasiados intentos de autenticacion. Intenta de nuevo en 15 minutos.'
 });
@@ -61,6 +76,7 @@ const authLimiter = buildLimiter({
 const adminLimiter = buildLimiter({
     windowMs: ADMIN_RATE_LIMIT_WINDOW_MS,
     max: ADMIN_RATE_LIMIT_MAX,
+    skipSuccessfulRequests: true,
     limitName: 'admin_sensitive',
     message: 'Se alcanzo temporalmente el limite de operaciones administrativas. Intenta nuevamente en unos minutos.'
 });
@@ -70,5 +86,6 @@ module.exports = {
     authLimiter,
     adminLimiter,
     ADMIN_RATE_LIMIT_MAX,
-    ADMIN_RATE_LIMIT_WINDOW_MS
+    ADMIN_RATE_LIMIT_WINDOW_MS,
+    AUTH_RATE_LIMIT_MAX
 };
