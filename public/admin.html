@@ -3832,7 +3832,11 @@
                         return;
                     }
                     if (raw !== '') hasValue = true;
-                    payload[field] = raw === '' ? 0 : Number(raw);
+                    // El orden al bate es opcional. Un campo vacío debe viajar como
+                    // null; convertirlo a 0 hace que la API rechace todo el boxscore.
+                    payload[field] = raw === ''
+                        ? (field === 'batting_order' ? null : 0)
+                        : Number(raw);
                 });
 
                 if (kind === 'ofensiva') {
@@ -3882,8 +3886,8 @@
                 });
 
                 if (!response.ok) {
-                    const error = await response.json().catch(() => ({}));
-                    throw new Error(error.error || error.message || 'No se pudo guardar el boxscore.');
+                    const errorMessage = await parseApiError(response, 'No se pudo guardar el boxscore.');
+                    throw new Error(errorMessage);
                 }
 
                 document.getElementById('boxscoreModalMessage').textContent = 'Boxscore guardado correctamente.';

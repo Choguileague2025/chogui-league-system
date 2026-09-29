@@ -24,11 +24,15 @@ const partidoUpdateSchema = partidoBaseSchema;
 
 const optionalNullableIntField = z.union([z.coerce.number().int().min(0), z.literal(''), z.null()]).optional();
 const optionalNullableNumberField = z.union([z.coerce.number().min(0), z.literal(''), z.null()]).optional();
+const optionalBattingOrderField = z.preprocess(
+    (value) => value === 0 || value === '0' || value === '' ? null : value,
+    z.union([z.coerce.number().int().min(1).max(30), z.null()]).optional()
+);
 
 const boxscoreOfensivaRowSchema = z.object({
     jugador_id: z.coerce.number().int().positive('Jugador ofensivo inválido'),
     equipo_id: z.union([z.coerce.number().int().positive(), z.literal(''), z.null()]).optional(),
-    batting_order: z.union([z.coerce.number().int().min(1).max(30), z.literal(''), z.null()]).optional(),
+    batting_order: optionalBattingOrderField,
     plate_appearances: optionalNullableIntField,
     at_bats: optionalNullableIntField,
     hits: optionalNullableIntField,
